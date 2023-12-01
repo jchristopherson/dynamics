@@ -1,12 +1,3 @@
-# dynamics
-A library of routines used for the analysis of dynamic systems.
-
-## Status
-[![CMake](https://github.com/jchristopherson/dynamics/actions/workflows/cmake.yml/badge.svg)](https://github.com/jchristopherson/dynamics/actions/workflows/cmake.yml)
-
-## Example 1
-This example illustrates how to compute the frequency response of a linear dynamic system with a resonant frequency of 50 Hz and a damping ratio of 0.1.
-```fortran
 program example
     use iso_fortran_env
     use dynamics
@@ -95,6 +86,3 @@ program example
     call plt%set(2, 1, plt2)
     call plt%draw()
 end program
-```
-Using the [fplot](https://github.com/jchristopherson/fplot), this example produces the following plot.
-![](images/frf_example_1.png?raw=true)

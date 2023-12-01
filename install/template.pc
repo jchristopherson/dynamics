@@ -1,0 +1,10 @@
+prefix = @CMAKE_INSTALL_PREFIX@
+libdir = ${prefix}/@CMAKE_INSTALL_FULL_LIBDIR@
+includedir = ${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+
+Name: @PROJECT_NAME@
+Description: DYNAMICS is a library of routines used for the analysis of dynamic systems.
+Version: @PROJECT_VERSION@
+URL: https://github.com/jchristopherson/dynamics
+Libs: -L${libdir} -l@PROJECT_NAME@
+Cflags: -I${includedir}
