@@ -3,6 +3,12 @@ module dynamics_frf_tests
     use iso_fortran_env
     use fortran_test_helper
     implicit none
+
+    type, extends(harmonic_ode_container) :: ode_sweep_object
+    contains
+        procedure, public :: ode => example_2nd_order_sweep
+    end type
+
 contains
 ! ------------------------------------------------------------------------------
 ! 2nd Order Test Problem
@@ -34,6 +40,27 @@ subroutine example_2nd_order(t, x, dxdt)
     f = example_2nd_order_forcing(t)
     dxdt(1) = x(2)
     dxdt(2) = f - (2.0d0 * z * wn * x(2) + wn**2 * x(1))
+end subroutine
+
+subroutine example_2nd_order_sweep(this, x, y, dydx)
+    ! Arguments
+    class(ode_sweep_object), intent(in) :: this
+    real(real64), intent(in) :: x
+    real(real64), intent(in), dimension(:) :: y
+    real(real64), intent(out), dimension(:) :: dydx
+
+    ! Model Parameters
+    real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
+    real(real64), parameter :: z = 1.0d-1
+    real(real64), parameter :: wn = 2.0d0 * pi * 5.0d1
+
+    ! Local Variables
+    real(real64) :: f
+
+    ! Process
+    f = sin(2.0d0 * pi * this%excitation_frequency * x)
+    dydx(1) = y(2)
+    dydx(2) = f - (2.0d0 * z * wn * y(2) + wn**2 * y(1))
 end subroutine
 
 ! ------------------------------------------------------------------------------
@@ -100,6 +127,62 @@ function test_fft_based_frf() result(rst)
     if (.not.assert(ratio, reference2, tol)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_fft_based_frf -2"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_frf_sweep() result(rst)
+    ! Arguments
+    logical :: rst
+
+    ! Parameters
+    real(real64), parameter :: fmax = 1.0d2
+    real(real64), parameter :: fmin = 1.0d1
+    real(real64), parameter :: tol = 0.05d0
+    integer(int32), parameter :: npts = 100
+    real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
+    real(real64), parameter :: z = 1.0d-1
+    real(real64), parameter :: wn = 2.0d0 * pi * 5.0d1
+    complex(real64), parameter :: j = (0.0d0, 1.0d0)
+
+    ! Local Variables
+    type(ode_sweep_object) :: mdl
+    integer(int32) :: i
+    real(real64) :: df, freq(npts)
+    real(real64), allocatable, dimension(:) :: mag1, mag2, magans1, magans2, &
+        ratio1, ratio2, ref
+    complex(real64), allocatable, dimension(:,:) :: sol
+    complex(real64), allocatable, dimension(:) :: tf1, tf2, s
+
+    ! Initialization
+    rst = .true.
+    df = (fmax - fmin) / (npts - 1.0d0)
+    freq = (/ (df * i + fmin, i = 0, npts - 1) /)
+
+    ! Compute the FRF's
+    sol = mdl%frequency_sweep(freq, [0.0d0, 0.0d0])
+    mag1 = abs(sol(:,1))
+    mag2 = abs(sol(:,2))
+
+    ! Compute the solution
+    s = j * (2.0d0 * pi * freq)
+    tf1 = 1.0d0 / (s**2 + 2.0d0 * z * wn * s + wn**2)
+    tf2 = s * tf1
+    magans1 = abs(tf1)
+    magans2 = abs(tf2)
+
+    ! Tests
+    ratio1 = mag1 / magans1
+    allocate(ref(size(ratio1)), source = 1.0d0)
+    if (.not.assert(ratio1, ref, tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_frf_sweep -1"
+    end if
+
+    ratio2 = mag2 / magans2
+    if (.not.assert(ratio2, ref, tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_frf_sweep -2"
     end if
 end function
 

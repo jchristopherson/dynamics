@@ -14,6 +14,9 @@ program main
     check = test_fft_based_frf()
     if (.not.check) flag = 1
 
+    check = test_frf_sweep()
+    if (.not.check) flag = 2
+
 
     ! End
     if (flag /= 0) stop flag
