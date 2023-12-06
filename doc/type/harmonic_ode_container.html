@@ -96,7 +96,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title="<p>50.0% of total for derived types.</p>Including implementation: 3 statements, 50.0% of total for derived types.">3 statements</a>
+               title="<p>62.5% of total for derived types.</p>Including implementation: 107 statements, 97.3% of total for derived types.">5 statements</a>
           </li>
 
             <li id="source-file">
@@ -153,7 +153,19 @@
   
   
   
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#boundprocs-0">Type-Bound Procedures</a>
+        </h3>
+      </div>
+      <div id="boundprocs-0" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../type/harmonic_ode_container.html#boundprocedure-frequency_sweep">frequency_sweep</a>
+        </div>
+      </div>
+    </div>
+
   
 
 
@@ -199,7 +211,19 @@ exposed to harmonic excitation.</p>
   
   
   
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#boundprocs-1">Type-Bound Procedures</a>
+        </h3>
+      </div>
+      <div id="boundprocs-1" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../type/harmonic_ode_container.html#boundprocedure-frequency_sweep">frequency_sweep</a>
+        </div>
+      </div>
+    </div>
+
   
 
 
@@ -243,6 +267,199 @@ exposed to harmonic excitation.</p>
     
 
 
+      <section>
+        <h2>Type-Bound Procedures</h2>
+            <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-frequency_sweep"></span><h3>procedure, public :: <strong>frequency_sweep</strong>  => hoc_frf_sweep         
+    </h3></div>
+    <ul class="list-group">
+        <li class="list-group-item">
+                  <h3>
+    private  function hoc_frf_sweep(sys, freq, iv, solver, ncycles, ntransient, points, err) result(rst)  
+</h3>
+  <p>Computes the frequency response of each equation of a system of
+harmonically excited ODE's by sweeping through frequency.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/harmonic_ode_container.html'>harmonic_ode_container</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>sys</strong></td>
+            <td>
+                <p>The harmonic_ode_container object containing the equations to 
+analyze.  To properly use this object, extend the 
+harmonic_ode_container object and overload the ode routine to 
+define the ODE's.  Use the excitation_frequency property to
+obtain the desired frequency from the solver.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>freq</strong></td>
+            <td>
+                <p>An M-element array containing the frequency points at which the 
+solution should be computed.  Notice, whatever units are utilized
+for this array are also the units of the excitation_frequency
+property in @p sys.  It is recommended that the units be set to 
+Hz.  Additionally, this array cannot contain any zero-valued 
+elements as the ODE solution time for each frequency is 
+determined by the period of oscillation and number of cycles.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>iv</strong></td>
+            <td>
+                <p>An N-element array containing the initial conditions for each of 
+the N ODEs.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(ode_integrator),
+            </td>
+<td>intent(inout),</td>
+              <td>optional,</td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>solver</strong></td>
+            <td>
+                <p>An optional differential equation solver.  The default solver
+is the Dormand-Prince Runge-Kutta integrator from the DIFFEQ
+library.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ncycles</strong></td>
+            <td>
+                <p>An optional parameter controlling the number of cycles to 
+analyze when determining the amplitude and phase of the response.
+The default is 20.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ntransient</strong></td>
+            <td>
+                <p>An optional parameter controlling how many of the initial 
+"transient" cycles to ignore.  The default is 200.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>points</strong></td>
+            <td>
+                <p>An optional parameter controlling how many evenly spaced 
+solution points should be considered per cycle.  The default is 
+1000.  Notice, there must be at least 2 points per cycle for the
+analysis to be effective.  The algorithm utilizes a discrete 
+Fourier transform to determine the phase and amplitude, and in 
+order to satisfy Nyquist conditions, the value must be at least 
+2.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(errors),
+            </td>
+<td>intent(inout),</td>
+              <td>optional,</td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>err</strong></td>
+            <td>
+                <p>An optional errors-based object that if provided 
+can be used to retrieve information relating to any errors 
+encountered during execution. If not provided, a default 
+implementation of the errors class is used internally to provide 
+error handling. Possible errors and warning messages that may be 
+encountered are as follows.</p>
+<ul>
+<li>DYN_MEMORY_ERROR: Occurs if there are issues allocating memory.</li>
+<li>DYN_NULL_POINTER_ERROR: Occurs if a null pointer is supplied.</li>
+<li>DYN_INVALID_INPUT_ERROR: Occurs if an invalid parameter
+     is given.</li>
+</ul>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>complex(kind=real64), allocatable, dimension(:,:)</small>
+    </h4>
+    <p>The results matrix that will be allocated to M-by-N in size with
+each column containing the complex-valued frequency response of
+the corresponding ODE.</p>
+
+        </li>
+    </ul>
+  </div>
+
+      </section>
 
     
     </div>
@@ -260,7 +477,7 @@ exposed to harmonic excitation.</p>
             <p class="text-right">
               Documentation generated by
               <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2023-12-01 13:57              </p>
+ on 2023-12-06 13:47              </p>
           </div>
         </div>
         <br>

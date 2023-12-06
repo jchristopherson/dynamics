@@ -32,10 +32,8 @@
 *.app
 
 # Directories
-bin/
-lib/
 build/
-latex/
+doc/
 
 # CMake Stuff
 .cmaketools.json

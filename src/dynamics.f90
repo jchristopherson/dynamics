@@ -16,6 +16,8 @@ module dynamics
         !! Defines an error associated with memory allocations.
     integer(int32), parameter :: DYN_NULL_POINTER_ERROR = DIFFEQ_NULL_POINTER_ERROR
         !! Defines an error associated with a null pointer.
+    integer(int32), parameter :: DYN_INVALID_INPUT_ERROR = DIFFEQ_INVALID_INPUT_ERROR
+        !! Defines an error associated with an invalid input.
 
     interface
         function ode_excite(t) result(rst)
@@ -216,7 +218,10 @@ contains
         !! harmonically excited ODE's by sweeping through frequency.
         class(harmonic_ode_container), intent(inout) :: sys
             !! The harmonic_ode_container object containing the equations to 
-            !! analyze.
+            !! analyze.  To properly use this object, extend the 
+            !! harmonic_ode_container object and overload the ode routine to 
+            !! define the ODE's.  Use the excitation_frequency property to
+            !! obtain the desired frequency from the solver.
         real(real64), intent(in), dimension(:) :: freq
             !! An M-element array containing the frequency points at which the 
             !! solution should be computed.  Notice, whatever units are utilized
@@ -257,7 +262,7 @@ contains
             !!
             !! - DYN_MEMORY_ERROR: Occurs if there are issues allocating memory.
             !! - DYN_NULL_POINTER_ERROR: Occurs if a null pointer is supplied.
-            !! - DIFFEQ_INVALID_INPUT_ERROR: Occurs if an invalid parameter
+            !! - DYN_INVALID_INPUT_ERROR: Occurs if an invalid parameter
             !!      is given.
         complex(real64), allocatable, dimension(:,:) :: rst
             !! The results matrix that will be allocated to M-by-N in size with
@@ -370,7 +375,7 @@ contains
         write(errmsg, 100) "The number of cycles to analyze must be at " // &
             "least 1; however, a value of ", nc, " was found."
         call errmgr%report_error("frf_sweep", trim(errmsg), &
-            DIFFEQ_INVALID_INPUT_ERROR)
+            DYN_INVALID_INPUT_ERROR)
         return
 
         ! Number of Transient Cycles Error
@@ -379,7 +384,7 @@ contains
         write(errmsg, 100) "The number of transient cycles must be at " // &
             "least 1; however, a value of ", nt, " was found."
         call errmgr%report_error("frf_sweep", trim(errmsg), &
-            DIFFEQ_INVALID_INPUT_ERROR)
+            DYN_INVALID_INPUT_ERROR)
         return
 
         ! Points Per Cycle Error
@@ -387,14 +392,14 @@ contains
         write(errmsg, 100) "The number of points per cycle must be at " // &
             "least 2; however, a value of ", ppc, " was found."
         call errmgr%report_error("frf_sweep", trim(errmsg), &
-            DIFFEQ_INVALID_INPUT_ERROR)
+            DYN_INVALID_INPUT_ERROR)
         return
 
         ! Zero-Valued Frequency Error
     50  continue
         write(errmsg, 100) "A zero-valued frequency was found at index ", i, "."
         call errmgr%report_error("frf_sweep", trim(errmsg), &
-            DIFFEQ_INVALID_INPUT_ERROR)
+            DYN_INVALID_INPUT_ERROR)
         return
 
         ! Formatting
