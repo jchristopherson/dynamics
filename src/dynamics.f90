@@ -2,7 +2,6 @@ module dynamics
     use iso_fortran_env
     use diffeq
     use ferror
-    use spectrum
     implicit none
     private
     public :: DYN_MEMORY_ERROR
@@ -17,6 +16,8 @@ module dynamics
         !! Defines an error associated with memory allocations.
     integer(int32), parameter :: DYN_NULL_POINTER_ERROR = DIFFEQ_NULL_POINTER_ERROR
         !! Defines an error associated with a null pointer.
+    integer(int32), parameter :: DYN_INVALID_INPUT_ERROR = DIFFEQ_INVALID_INPUT_ERROR
+        !! Defines an error associated with an invalid input.
 
     interface
         function ode_excite(t) result(rst)
@@ -44,6 +45,8 @@ module dynamics
         !! exposed to harmonic excitation.
         real(real64) :: excitation_frequency
             !! The excitation frequency.
+    contains
+        procedure, public :: frequency_sweep => hoc_frf_sweep
     end type
 
     interface frequency_response
@@ -78,10 +81,12 @@ contains
 
 ! ------------------------------------------------------------------------------
     subroutine frf_fft(sys, span, iv, rst, fs, solver, win, freq, err)
+        use spectrum
         !! Computes the frequency response of each equation in a system of 
         !! forced differential equations.
         class(forced_ode_container), intent(inout) :: sys
-            !! The forced_ode_container object.
+            !! The forced_ode_container object containing the equations to
+            !! analyze.
         real(real64), intent(in) :: span
             !! The duration of the time-domain analysis.
         real(real64), intent(in), dimension(:) :: iv
@@ -110,17 +115,17 @@ contains
             !! responses were calculated.
         class(errors), intent(inout), optional, target :: err
             !! An optional errors-based object that if provided 
-            !!  can be used to retrieve information relating to any errors 
-            !!  encountered during execution. If not provided, a default 
-            !!  implementation of the errors class is used internally to provide 
-            !!  error handling. Possible errors and warning messages that may be 
-            !!  encountered are as follows.
+            !! can be used to retrieve information relating to any errors 
+            !! encountered during execution. If not provided, a default 
+            !! implementation of the errors class is used internally to provide 
+            !! error handling. Possible errors and warning messages that may be 
+            !! encountered are as follows.
             !!
             !! - DYN_MEMORY_ERROR: Occurs if there are issues allocating memory.
             !! - DYN_NULL_POINTER_ERROR: Occurs if a null pointer is supplied.
 
         ! Local Variables
-        integer(int32) :: i, m, npts, neqn, nfreq, flag
+        integer(int32) :: i, npts, neqn, nfreq, flag
         real(real64) :: dt, sampleRate, df
         real(real64), allocatable, dimension(:) :: t, force
         real(real64), allocatable, dimension(:,:) :: sol
@@ -154,11 +159,6 @@ contains
             w => win
         else
             w => defaultWindow
-            if (is_power_of_two(npts)) then
-                m = npts
-            else
-                m = 2**next_power_of_two(npts)
-            end if
             w%size = npts
         end if
         nfreq = compute_transform_length(w%size)
@@ -211,6 +211,230 @@ contains
     end subroutine
 
 ! ------------------------------------------------------------------------------
+    function hoc_frf_sweep(sys, freq, iv, solver, ncycles, ntransient, &
+        points, err) result(rst)
+        use spectrum, only : next_power_of_two
+        !! Computes the frequency response of each equation of a system of
+        !! harmonically excited ODE's by sweeping through frequency.
+        class(harmonic_ode_container), intent(inout) :: sys
+            !! The harmonic_ode_container object containing the equations to 
+            !! analyze.  To properly use this object, extend the 
+            !! harmonic_ode_container object and overload the ode routine to 
+            !! define the ODE's.  Use the excitation_frequency property to
+            !! obtain the desired frequency from the solver.
+        real(real64), intent(in), dimension(:) :: freq
+            !! An M-element array containing the frequency points at which the 
+            !! solution should be computed.  Notice, whatever units are utilized
+            !! for this array are also the units of the excitation_frequency
+            !! property in @p sys.  It is recommended that the units be set to 
+            !! Hz.  Additionally, this array cannot contain any zero-valued 
+            !! elements as the ODE solution time for each frequency is 
+            !! determined by the period of oscillation and number of cycles.
+        real(real64), intent(in), dimension(:) :: iv
+            !! An N-element array containing the initial conditions for each of 
+            !! the N ODEs.
+        class(ode_integrator), intent(inout), optional, target :: solver
+            !! An optional differential equation solver.  The default solver
+            !! is the Dormand-Prince Runge-Kutta integrator from the DIFFEQ
+            !! library.
+        integer(int32), intent(in), optional :: ncycles
+            !! An optional parameter controlling the number of cycles to 
+            !! analyze when determining the amplitude and phase of the response.
+            !! The default is 20.
+        integer(int32), intent(in), optional :: ntransient
+            !! An optional parameter controlling how many of the initial 
+            !! "transient" cycles to ignore.  The default is 200.
+        integer(int32), intent(in), optional :: points
+            !! An optional parameter controlling how many evenly spaced 
+            !! solution points should be considered per cycle.  The default is 
+            !! 1000.  Notice, there must be at least 2 points per cycle for the
+            !! analysis to be effective.  The algorithm utilizes a discrete 
+            !! Fourier transform to determine the phase and amplitude, and in 
+            !! order to satisfy Nyquist conditions, the value must be at least 
+            !! 2.
+        class(errors), intent(inout), optional, target :: err
+            !! An optional errors-based object that if provided 
+            !! can be used to retrieve information relating to any errors 
+            !! encountered during execution. If not provided, a default 
+            !! implementation of the errors class is used internally to provide 
+            !! error handling. Possible errors and warning messages that may be 
+            !! encountered are as follows.
+            !!
+            !! - DYN_MEMORY_ERROR: Occurs if there are issues allocating memory.
+            !! - DYN_NULL_POINTER_ERROR: Occurs if a null pointer is supplied.
+            !! - DYN_INVALID_INPUT_ERROR: Occurs if an invalid parameter
+            !!      is given.
+        complex(real64), allocatable, dimension(:,:) :: rst
+            !! The results matrix that will be allocated to M-by-N in size with
+            !! each column containing the complex-valued frequency response of
+            !! the corresponding ODE.
+
+        ! Parameters
+        real(real64), parameter :: zerotol = sqrt(epsilon(0.0d0))
+
+        ! Local Variables
+        integer(int32) :: i, j, nfreq, neqn, nc, nt, ntotal, npts, ppc, flag, &
+            nfft, i1, ncpts
+        real(real64) :: dt, tare, phase, amp
+        real(real64), allocatable, dimension(:) :: ic, t
+        real(real64), allocatable, dimension(:,:) :: sol
+        complex(real64), allocatable, dimension(:) :: xpts
+        class(ode_integrator), pointer :: integrator
+        type(dprk45_integrator), target :: default_integrator
+        class(errors), pointer :: errmgr
+        type(errors), target :: deferr
+        character(len = :), allocatable :: errmsg
+        
+        ! Initialization
+        if (present(ncycles)) then
+            nc = ncycles
+        else
+            nc = 20
+        end if
+        if (present(ntransient)) then
+            nt = ntransient
+        else
+            nt = 200
+        end if
+        if (present(points)) then
+            ppc = points
+        else
+            ppc = 1000
+        end if
+        if (present(err)) then
+            errmgr => err
+        else
+            errmgr => deferr
+        end if
+        nfreq = size(freq)
+        neqn = size(iv)
+        ntotal = nt + nc
+        npts = ntotal * ppc
+        ncpts = nc * ppc
+        i1 = npts - ncpts + 1
+        nfft = 2**next_power_of_two(ppc * nc)
+
+        ! Set up the integrator
+        if (present(solver)) then
+            integrator => solver
+        else
+            integrator => default_integrator
+        end if
+
+        ! Input Checking
+        if (nc < 1) go to 20
+        if (nt < 1) go to 30
+        if (ppc < 2) go to 40
+        do i = 1, nfreq
+            if (abs(freq(i)) < zerotol) go to 50
+        end do
+
+        ! Local Memory Allocation
+        allocate(rst(nfreq, neqn), stat = flag)
+        if (flag == 0) allocate(ic(neqn), stat = flag, source = iv)
+        if (flag == 0) allocate(t(npts), stat = flag)
+        if (flag == 0) allocate(xpts(nfft), stat = flag, source = (0.0d0, 0.0d0))
+        if (flag /= 0) go to 10
+
+        ! Cycle over each frequency point
+        do i = 1, nfreq
+            ! Define the time vector
+            dt = (1.0d0 / freq(i)) / (ppc - 1.0d0)
+            t = (/ (dt * j, j = 0, npts - 1) /)
+
+            ! Update the frequency
+            sys%excitation_frequency = freq(i)
+
+            ! Compute the solution
+            sol = integrator%solve(sys, t, ic, errmgr)
+            if (errmgr%has_error_occurred()) return
+
+            ! Reset the initial conditions to the last solution point
+            ic = sol(npts, 2:)
+
+            ! Determine the magnitude and phase for each equation
+            do j = 1, neqn
+                rst(i,j) = get_magnitude_phase(sol(i1:,j+1), xpts)
+            end do
+        end do
+
+        ! End
+        return
+
+        ! Memory Error
+    10  continue
+        allocate(character(len = 256) :: errmsg)
+        write(errmsg, 100) "Memory allocation error flag ", flag, "."
+        call err%report_error("frf_sweep", trim(errmsg), &
+            DIFFEQ_MEMORY_ALLOCATION_ERROR)
+        return
+
+        ! Number of Cycles Error
+    20  continue
+        allocate(character(len = 256) :: errmsg)
+        write(errmsg, 100) "The number of cycles to analyze must be at " // &
+            "least 1; however, a value of ", nc, " was found."
+        call errmgr%report_error("frf_sweep", trim(errmsg), &
+            DYN_INVALID_INPUT_ERROR)
+        return
+
+        ! Number of Transient Cycles Error
+    30  continue
+        allocate(character(len = 256) :: errmsg)
+        write(errmsg, 100) "The number of transient cycles must be at " // &
+            "least 1; however, a value of ", nt, " was found."
+        call errmgr%report_error("frf_sweep", trim(errmsg), &
+            DYN_INVALID_INPUT_ERROR)
+        return
+
+        ! Points Per Cycle Error
+    40  continue
+        write(errmsg, 100) "The number of points per cycle must be at " // &
+            "least 2; however, a value of ", ppc, " was found."
+        call errmgr%report_error("frf_sweep", trim(errmsg), &
+            DYN_INVALID_INPUT_ERROR)
+        return
+
+        ! Zero-Valued Frequency Error
+    50  continue
+        write(errmsg, 100) "A zero-valued frequency was found at index ", i, "."
+        call errmgr%report_error("frf_sweep", trim(errmsg), &
+            DYN_INVALID_INPUT_ERROR)
+        return
+
+        ! Formatting
+    100 format(A, I0, A)
+    end function
+
+    ! ----------
+    function get_magnitude_phase(x, xzeros) result(rst)
+        use fftpack, only : fft
+        use spectrum, only : compute_transform_length
+        ! Arguments
+        real(real64), intent(in), dimension(:) :: x
+        complex(real64), intent(inout), dimension(:) :: xzeros
+        complex(real64) :: rst
+
+        ! Local Variables
+        integer(int32) :: ind, m, n, nx
+        real(real64) :: amp, phase
+
+        ! Initialization
+        nx = size(x)
+        n = size(xzeros)
+        m = compute_transform_length(n)
+        amp = 0.5d0 * (maxval(x) - minval(x))
+
+        ! Zero pad the data
+        xzeros(:nx) = cmplx(x, 0.0d0, real64)
+        xzeros(nx+1:) = cmplx(0.0d0, 0.0d0, real64)
+
+        ! Compute the FFT to estimate the phase
+        xzeros = fft(xzeros)
+        ind = maxloc(abs(xzeros(:m)), 1)
+        phase = atan2(aimag(xzeros(ind)), real(xzeros(ind)))
+        rst = cmplx(amp * cos(phase), amp * sin(phase), real64)
+    end function
 
 ! ------------------------------------------------------------------------------
 end module
