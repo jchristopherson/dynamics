@@ -19,3 +19,11 @@ add_executable(
 )
 link_library(frf_sweep_example_1 ${PROJECT_NAME} ${PROJECT_INCLUDE_DIR})
 link_library(frf_sweep_example_1 ${fplot_LIBRARY} ${fplot_INCLUDE_DIR})
+
+# FRF Proportional Damping Example 1
+add_executable(
+    frf_proportional_example_1
+    frf_proportional_example_1.f90
+)
+link_library(frf_proportional_example_1 ${PROJECT_NAME} ${PROJECT_INCLUDE_DIR})
+link_library(frf_proportional_example_1 ${fplot_LIBRARY} ${fplot_INCLUDE_DIR})

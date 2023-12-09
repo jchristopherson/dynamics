@@ -187,4 +187,69 @@ function test_frf_sweep() result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+subroutine modal_frf_forcing_term(freq, f)
+    real(real64), intent(in) :: freq
+    complex(real64), intent(out), dimension(:) :: f
+
+    complex(real64), parameter :: zero = (0.0d0, 0.0d0)
+    complex(real64), parameter :: one = (1.0d0, 0.0d0)
+
+    f = [one, zero, zero]
+end subroutine
+
+! Use the example from: https://github.com/jchristopherson/linalg
+function test_proportional_damping_frf() result(rst)
+    ! Arguments
+    logical :: rst
+
+    ! Parameters
+    real(real64), parameter :: tol = 1.0d-3
+    integer(int32), parameter :: nfreq = 100
+    real(real64), parameter :: fmin = 10.0d0
+    real(real64), parameter :: fmax = 1.0d2
+    real(real64), parameter :: alpha = 0.1d0
+    real(real64), parameter :: beta = 2.0d-5
+    real(real64), parameter :: ans1(3) = [232.9225d0, 749.6189d0, 923.5669d0]
+
+    ! Define the model parameters
+    real(real64), parameter :: m1 = 0.5d0
+    real(real64), parameter :: m2 = 2.5d0
+    real(real64), parameter :: m3 = 0.75d0
+    real(real64), parameter :: k1 = 5.0d6
+    real(real64), parameter :: k2 = 10.0d6
+    real(real64), parameter :: k3 = 10.0d6
+    real(real64), parameter :: k4 = 5.0d6
+
+    ! Local Variables
+    integer(int32) :: i
+    real(real64) :: df, m(3,3), k(3,3), freq(nfreq)
+    real(real64), allocatable, dimension(:) :: modes
+    real(real64), allocatable, dimension(:,:) :: modeshapes
+    complex(real64), allocatable, dimension(:,:) :: frfs
+    procedure(modal_excite), pointer :: fcn
+
+    ! Initialization
+    rst = .true.
+    df = (fmax - fmin) / (nfreq - 1.0d0)
+    freq = (/ (df * i + fmin, i = 0, nfreq - 1) /)
+    fcn => modal_frf_forcing_term
+
+    ! Define the mass matrix
+    m = reshape([m1, 0.0d0, 0.0d0, 0.0d0, m2, 0.0d0, 0.0d0, 0.0d0, m3], [3, 3])
+
+    ! Define the stiffness matrix
+    k = reshape([k1 + k2, -k2, 0.0d0, -k2, k2 + k3, -k3, 0.0d0, -k3, k3 + k4], &
+        [3, 3])
+
+    ! Compute the frequency response functions, along with the modal information
+    call frequency_response(m, k, alpha, beta, freq, fcn, frfs, modes, modeshapes)
+
+    ! Verify the modal results
+    if (.not.assert(ans1, modes, tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_proportional_damping_frf -1"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
 end module

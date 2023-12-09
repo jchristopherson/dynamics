@@ -17,6 +17,9 @@ program main
     check = test_frf_sweep()
     if (.not.check) flag = 2
 
+    check = test_proportional_damping_frf()
+    if (.not.check) flag = 3
+
 
     ! End
     if (flag /= 0) stop flag
