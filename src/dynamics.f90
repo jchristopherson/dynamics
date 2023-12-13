@@ -15,6 +15,8 @@ module dynamics
     public :: modal_response
     public :: normalize_mode_shapes
     public :: rotate_x
+    public :: rotate_y
+    public :: rotate_z
 
     interface
         function ode_excite(t) result(rst)
@@ -491,10 +493,11 @@ contains
 ! ------------------------------------------------------------------------------
     pure elemental function compute_modal_damping(lambda, alpha, beta) &
         result(rst)
-        !! Computes the modal damping factors (\ \zeta_i \) given the
-        !! proportional damping terms (\ alpha \) and (\ beta \) where
-        !! (\ \alpha + \beta \omega_{i}^2 = 2 \zeta_{i} \omega_{i} \) and
-        !! (\ \lambda_{i} = \omega_{i}^2 \).
+        !! Computes the modal damping factors \( \zeta_i \) given the
+        !! proportional damping terms \( \alpha \) and \( \beta \) where
+        !! \( \alpha + \beta \omega_{i}^2 = 2 \zeta_{i} \omega_{i} \),
+        !! \( \lambda_{i} = \omega_{i}^2 \), and \( \lambda_i \) is the
+        !! \( i^{th} \) eigenvalue of the system.
         real(real64), intent(in) :: lambda
             !! The square of the modal frequency - the eigen value.
         real(real64), intent(in) :: alpha
@@ -969,13 +972,13 @@ contains
 ! KINEMATICS ROUTINES
 ! ******************************************************************************
     pure function rotate_x(angle) result(rst)
-        !! Constructs the rotation matrix describing the rotation about an
+        !! Constructs the rotation matrix describing a rotation about an
         !! x-axis such that 
-        !! \( \overrightarrow{r_2} = \textbf{R} \overrightarrow{r_1} \).
+        !! \( \overrightarrow{r_2} = \textbf{R}_x \overrightarrow{r_1} \).
         !!
-        !! $$ \textbf{R} = \begin{matrix} 1 & 0 & 0 \\ 0 & \cos{\theta_x} &
-        !! -\sin{\theta_x} \\ 0 & \sin{\theta_x} & \cos{\theta_x} \\
-        !! \end{matrix}
+        !! $$ \textbf{R}_x = \left[ \begin{matrix} 1 & 0 & 0 \\ 0 & 
+        !! \cos{\theta_x} & -\sin{\theta_x} \\ 0 & \sin{\theta_x} & 
+        !! \cos{\theta_x} \\ \end{matrix} \right] $$
         real(real64), intent(in) :: angle
             !! The rotation angle, in radians.
         real(real64) :: rst(3, 3)
@@ -988,6 +991,52 @@ contains
         c = cos(angle)
         s = sin(angle)
         rst = reshape([1.0d0, 0.0d0, 0.0d0, 0.0d0, c, s, 0.0d0, -s, c], [3, 3])
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function rotate_y(angle) result(rst)
+        !! Constructs the rotation matrix describing a rotation about a y-axis
+        !! such that 
+        !! \( \overrightarrow{r_2} = \textbf{R}_y \overrightarrow{r_1} \).
+        !!
+        !! $$ \textbf{R}_y = \left[ \begin{matrix} \cos{\theta_y} & 0 & 
+        !! \sin{\theta_y} \\ 0 & 1 & 0 \\ -\sin{\theta_y} & 0 & 
+        !! \cos{\theta_y} \\ \end{matrix} \right] $$
+        real(real64), intent(in) :: angle
+            !! The rotation angle, in radians.
+        real(real64) :: rst(3, 3)
+            !! The resulting 3-by-3 matrix.
+
+        ! Local Variables
+        real(real64) :: c, s
+
+        ! Process
+        c = cos(angle)
+        s = sin(angle)
+        rst = reshape([c, 0.0d0, -s, 0.0d0, 1.0d0, 0.0d0, s, 0.0d0, c], [3, 3])
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function rotate_z(angle) result(rst)
+        !! Constructs the rotation matrix describing a rotation about a y-axis
+        !! such that 
+        !! \( \overrightarrow{r_2} = \textbf{R}_z \overrightarrow{r_1} \).
+        !!
+        !! $$ \textbf{R}_z = \left[ \begin{matrix} \cos{\theta_z} & 
+        !! -\sin{\theta_z} & 0 \\ \sin{\theta_z} & \cos{\theta_z} & 0 \\
+        !! 0 & 0 & 1 \\ \end{matrix} \right] $$
+        real(real64), intent(in) :: angle
+            !! The rotation angle, in radians.
+        real(real64) :: rst(3, 3)
+            !! The resulting 3-by-3 matrix.
+
+        ! Local Variables
+        real(real64) :: c, s
+
+        ! Process
+        c = cos(angle)
+        s = sin(angle)
+        rst = reshape([c, s, 0.0d0, -s, c, 0.0d0, 0.0d0, 0.0d0, 1.0d0], [3, 3])
     end function
 
 ! ------------------------------------------------------------------------------
