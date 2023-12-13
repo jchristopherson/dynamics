@@ -51,7 +51,7 @@
                  Contents <span class="caret"></span>
               </a>
               <ul class="dropdown-menu">
-                    <li><a href="../sourcefile/dynamics.f90.html">Source File</a></li>
+                    <li><a href="../lists/files.html">Source Files</a></li>
                   <li><a href="../lists/modules.html">Modules</a></li>
                   <li><a href="../lists/procedures.html">Procedures</a></li>
                   <li><a href="../lists/types.html">Derived Types</a></li>
@@ -96,7 +96,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title="<p>13.6% of total for procedures.</p>Including implementation: 75 statements, 340.9% of total for procedures.">3 statements</a>
+               title="<p> 2.3% of total for procedures.</p>Including implementation: 207 statements, 93.7% of total for procedures.">5 statements</a>
           </li>
 
             <li id="source-file">
@@ -151,6 +151,8 @@
       <div id="modprocs-0" class="panel-collapse collapse">
         <div class="list-group">
             <a class="list-group-item" href="../interface/frequency_response.html#moduleprocedure-frf_fft">frf_fft</a>
+            <a class="list-group-item" href="../interface/frequency_response.html#moduleprocedure-frf_modal_prop_damp">frf_modal_prop_damp</a>
+            <a class="list-group-item" href="../interface/frequency_response.html#moduleprocedure-frf_modal_prop_damp_2">frf_modal_prop_damp_2</a>
         </div>
       </div>
     </div>
@@ -194,6 +196,8 @@
       <div id="modprocs-1" class="panel-collapse collapse">
         <div class="list-group">
             <a class="list-group-item" href="../interface/frequency_response.html#moduleprocedure-frf_fft">frf_fft</a>
+            <a class="list-group-item" href="../interface/frequency_response.html#moduleprocedure-frf_modal_prop_damp">frf_modal_prop_damp</a>
+            <a class="list-group-item" href="../interface/frequency_response.html#moduleprocedure-frf_modal_prop_damp_2">frf_modal_prop_damp_2</a>
         </div>
       </div>
     </div>
@@ -207,7 +211,7 @@
 
         <h2>Module Procedures</h2>
             <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="proc-frf_fft"></span><h3>private  subroutine frf_fft(sys, span, iv, rst, fs, solver, win, freq, err)  
+    <div class="panel-heading codesum"><span class="anchor" id="proc-frf_fft"></span><h3>private  function frf_fft(sys, span, iv, fs, solver, win, err) result(rst)  
 </h3></div>
     <div class="panel-body">
         <p>Computes the frequency response of each equation in a system of 
@@ -274,23 +278,6 @@ N differential equations being analyzed.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              complex(kind=real64),
-            </td>
-<td>intent(out),</td>
-              <td></td>            <td>
-              allocatable, dimension(:,:)
-            </td>
-            <td>::</td>
-            <td><strong>rst</strong></td>
-            <td>
-                <p>An M-by-N matrix containing the response of each of the N 
-equations for M frequency values, where M is determined by the
-window size.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" ></span>
               real(kind=real64),
             </td>
 <td>intent(in),</td>
@@ -343,23 +330,6 @@ to contain the entirety of the solution.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              real(kind=real64),
-            </td>
-<td>intent(out),</td>
-              <td>optional,</td>            <td>
-              allocatable, dimension(:)
-            </td>
-            <td>::</td>
-            <td><strong>freq</strong></td>
-            <td>
-                <p>An optional array, that if provided, returns the M frequency 
-values, in the units of the input fs, where the frequency
-responses were calculated.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" ></span>
               class(errors),
             </td>
 <td>intent(inout),</td>
@@ -384,6 +354,419 @@ encountered are as follows.</p>
     </tbody>
   </table>
 
+    <h4>
+    Return Value
+    <small>type(<a href='../type/frf.html'>frf</a>)</small>
+    </h4>
+    <p>The resulting frequency responses.</p>
+
+    </div>
+  </div>
+
+            <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-frf_modal_prop_damp"></span><h3>private  function frf_modal_prop_damp(mass, stiff, alpha, beta, freq, frc, modes, modeshapes, err) result(rst)  
+</h3></div>
+    <div class="panel-body">
+        <p>Computes the frequency response functions for a 
+multi-degree-of-freedom system that uses proportional damping such
+that the damping matrix <script type="math/tex"> C </script> is related to the stiffness an mass
+matrices by proportional damping coefficients <script type="math/tex"> \alpha </script> and
+<script type="math/tex"> \beta </script> by <script type="math/tex"> C = \alpha M + \beta K </script>.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>mass</strong></td>
+            <td>
+                <p>The N-by-N mass matrix for the system.  This matrix must be
+symmetric.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>stiff</strong></td>
+            <td>
+                <p>The N-by-N stiffness matrix for the system.  This matrix must be
+symmetric.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>alpha</strong></td>
+            <td>
+                <p>The mass damping factor, <script type="math/tex"> \alpha </script>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>beta</strong></td>
+            <td>
+                <p>The stiffness damping factor, <script type="math/tex"> \beta </script>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>freq</strong></td>
+            <td>
+                <p>An M-element array of frequency values at which to evaluate the
+frequency response functions.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              procedure(<a href='../interface/modal_excite.html'>modal_excite</a>),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              pointer
+            </td>
+            <td>::</td>
+            <td><strong>frc</strong></td>
+            <td>
+                <p>A pointer to a routine used to compute the modal forcing 
+function.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td>optional,</td>            <td>
+              allocatable, dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>modes</strong></td>
+            <td>
+                <p>An optional N-element allocatable array that, if supplied, will
+be used to retrieve the modal frequencies, in units of Hz.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td>optional,</td>            <td>
+              allocatable, dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>modeshapes</strong></td>
+            <td>
+                <p>An optional N-by-N allocatable matrix that, if supplied, will be
+used to retrieve the N mode shapes with each vector occupying
+its own column.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(errors),
+            </td>
+<td>intent(inout),</td>
+              <td>optional,</td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>err</strong></td>
+            <td>
+                <p>An optional errors-based object that if provided 
+can be used to retrieve information relating to any errors 
+encountered during execution. If not provided, a default 
+implementation of the errors class is used internally to provide 
+error handling. Possible errors and warning messages that may be 
+encountered are as follows.</p>
+<ul>
+<li>DYN_MEMORY_ERROR: Occurs if there are issues allocating memory.</li>
+<li>DYN_MATRIX_SIZE_ERROR: Occurs if the mass or stiffness matrices
+     are not square, or if the mass and stiffness matrices are
+     different sized.</li>
+<li>DYN_NULL_POINTER_ERROR: Occurs if the forcing function pointer
+     is undefined.</li>
+</ul>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/frf.html'>frf</a>)</small>
+    </h4>
+    <p>The resulting frequency responses.</p>
+
+    </div>
+  </div>
+
+            <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-frf_modal_prop_damp_2"></span><h3>private  function frf_modal_prop_damp_2(mass, stiff, alpha, beta, nfreq, freq1, freq2, frc, modes, modeshapes, err) result(rst)  
+</h3></div>
+    <div class="panel-body">
+        <p>Computes the frequency response functions for a 
+multi-degree-of-freedom system that uses proportional damping such
+that the damping matrix <script type="math/tex"> C </script> is related to the stiffness an mass
+matrices by proportional damping coefficients <script type="math/tex"> \alpha </script> and
+<script type="math/tex"> \beta </script> by <script type="math/tex"> C = \alpha M + \beta K </script>.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>mass</strong></td>
+            <td>
+                <p>The N-by-N mass matrix for the system.  This matrix must be
+symmetric.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>stiff</strong></td>
+            <td>
+                <p>The N-by-N stiffness matrix for the system.  This matrix must be
+symmetric.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>alpha</strong></td>
+            <td>
+                <p>The mass damping factor, <script type="math/tex"> \alpha </script>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>beta</strong></td>
+            <td>
+                <p>The stiffness damping factor, <script type="math/tex"> \beta </script>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nfreq</strong></td>
+            <td>
+                <p>The number of frequency values to analyze.  This value must be
+at least 2.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>freq1</strong></td>
+            <td>
+                <p>The starting frequency.  It is recommended that the units be set
+to Hz.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>freq2</strong></td>
+            <td>
+                <p>The ending frequency.  It is recommended that the units be set to
+Hz.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              procedure(<a href='../interface/modal_excite.html'>modal_excite</a>),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              pointer
+            </td>
+            <td>::</td>
+            <td><strong>frc</strong></td>
+            <td>
+                <p>A pointer to a routine used to compute the modal forcing 
+function.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td>optional,</td>            <td>
+              allocatable, dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>modes</strong></td>
+            <td>
+                <p>An optional N-element allocatable array that, if supplied, will
+be used to retrieve the modal frequencies, in units of Hz.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td>optional,</td>            <td>
+              allocatable, dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>modeshapes</strong></td>
+            <td>
+                <p>An optional N-by-N allocatable matrix that, if supplied, will be
+used to retrieve the N mode shapes with each vector occupying
+its own column.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(errors),
+            </td>
+<td>intent(inout),</td>
+              <td>optional,</td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>err</strong></td>
+            <td>
+                <p>An optional errors-based object that if provided 
+can be used to retrieve information relating to any errors 
+encountered during execution. If not provided, a default 
+implementation of the errors class is used internally to provide 
+error handling. Possible errors and warning messages that may be 
+encountered are as follows.</p>
+<ul>
+<li>DYN_MEMORY_ERROR: Occurs if there are issues allocating memory.</li>
+<li>DYN_MATRIX_SIZE_ERROR: Occurs if the mass or stiffness matrices
+     are not square, or if the mass and stiffness matrices are
+     different sized.</li>
+<li>DYN_NULL_POINTER_ERROR: Occurs if the forcing function pointer
+     is undefined.</li>
+</ul>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/frf.html'>frf</a>)</small>
+    </h4>
+    <p>The resulting frequency responses.</p>
 
     </div>
   </div>
@@ -402,7 +785,7 @@ encountered are as follows.</p>
             <p class="text-right">
               Documentation generated by
               <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2023-12-06 13:47              </p>
+ on 2023-12-13 10:41              </p>
           </div>
         </div>
         <br>

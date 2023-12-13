@@ -52,7 +52,7 @@
                  Contents <span class="caret"></span>
               </a>
               <ul class="dropdown-menu">
-                    <li><a href="../sourcefile/dynamics.f90.html">Source File</a></li>
+                    <li><a href="../lists/files.html">Source Files</a></li>
                   <li><a href="../lists/modules.html">Modules</a></li>
                   <li><a href="../lists/procedures.html">Procedures</a></li>
                   <li><a href="../lists/types.html">Derived Types</a></li>
@@ -91,8 +91,36 @@
 			 <thead><tr><th>Procedure</th><th>Location</th><th>Procedure Type</th><th>Description</th></tr></thead>
 			 <tbody>
 			   <tr><td><a href='../proc/chirp.html'>chirp</a></td><td><a href='../module/dynamics.html'>dynamics</a></td><td>Function</td><td><p>Evaluates a linear chirp function.</p></td></tr>
+			   <tr><td><a href='../proc/compute_modal_damping.html'>compute_modal_damping</a></td><td><a href='../module/dynamics.html'>dynamics</a></td><td>Function</td><td><p>Computes the modal damping factors <script type="math/tex"> \zeta_i </script> given the
+proportional damping terms <script type="math/tex"> \alpha </script> and <script type="math/tex"> \beta </script> where
+<script type="math/tex"> \alpha + \beta \omega_{i}^2 = 2 \zeta_{i} \omega_{i} </script>,
+<script type="math/tex"> \lambda_{i} = \omega_{i}^2 </script>, and <script type="math/tex"> \lambda_i </script> is the
+<script type="math/tex"> i^{th} </script> eigenvalue of the system.</p></td></tr>
 			   <tr><td><a href='../interface/frequency_response.html'>frequency_response</a></td><td><a href='../module/dynamics.html'>dynamics</a></td><td>Interface</td><td><p>Computes the frequency response functions for a system of ODE's.</p></td></tr>
+			   <tr><td><a href='../interface/modal_excite.html'>modal_excite</a></td><td><a href='../module/dynamics.html'>dynamics</a></td><td>Interface</td><td></td></tr>
+			   <tr><td><a href='../proc/modal_response.html'>modal_response</a></td><td><a href='../module/dynamics.html'>dynamics</a></td><td>Subroutine</td><td><p>Computes the modal frequencies and modes shapes for 
+multi-degree-of-freedom system.</p></td></tr>
+			   <tr><td><a href='../proc/normalize_mode_shapes.html'>normalize_mode_shapes</a></td><td><a href='../module/dynamics.html'>dynamics</a></td><td>Subroutine</td><td><p>Normalizes mode shape vectors such that the largest magnitude
+value in the vector is one.</p></td></tr>
 			   <tr><td><a href='../interface/ode_excite.html'>ode_excite</a></td><td><a href='../module/dynamics.html'>dynamics</a></td><td>Interface</td><td></td></tr>
+			   <tr><td><a href='../proc/report_generic_counting_error.html'>report_generic_counting_error</a></td><td><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></td><td>Subroutine</td><td><p>A generic error reporting routine.</p></td></tr>
+			   <tr><td><a href='../proc/report_matrix_size_mismatch_error.html'>report_matrix_size_mismatch_error</a></td><td><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></td><td>Subroutine</td><td><p>Reports a mismatch in matrix sizes.</p></td></tr>
+			   <tr><td><a href='../proc/report_memory_error.html'>report_memory_error</a></td><td><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></td><td>Subroutine</td><td><p>Reports a memory allocation error.</p></td></tr>
+			   <tr><td><a href='../proc/report_nonsquare_mass_matrix_error.html'>report_nonsquare_mass_matrix_error</a></td><td><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></td><td>Subroutine</td><td><p>Reports an error relating to a non-square mass matrix.</p></td></tr>
+			   <tr><td><a href='../proc/report_nonsquare_stiffness_matrix_error.html'>report_nonsquare_stiffness_matrix_error</a></td><td><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></td><td>Subroutine</td><td><p>Reports an error relating to a non-square stiffness matrix.</p></td></tr>
+			   <tr><td><a href='../proc/report_null_forcing_routine_error.html'>report_null_forcing_routine_error</a></td><td><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></td><td>Subroutine</td><td><p>Reports a null forcing routine pointer error.</p></td></tr>
+			   <tr><td><a href='../proc/report_zero_difference_error.html'>report_zero_difference_error</a></td><td><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></td><td>Subroutine</td><td><p>Reports a zero-difference between two variables where a non-zero
+difference was expected.</p></td></tr>
+			   <tr><td><a href='../proc/report_zero_valued_frequency_error.html'>report_zero_valued_frequency_error</a></td><td><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></td><td>Subroutine</td><td><p>Reports an error associated with a zero-valued frequency value.</p></td></tr>
+			   <tr><td><a href='../proc/rotate_x.html'>rotate_x</a></td><td><a href='../module/dynamics.html'>dynamics</a></td><td>Function</td><td><p>Constructs the rotation matrix describing a rotation about an
+x-axis such that 
+<script type="math/tex"> \overrightarrow{r_2} = \textbf{R}_x \overrightarrow{r_1} </script>.</p><a href="../proc/rotate_x.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			   <tr><td><a href='../proc/rotate_y.html'>rotate_y</a></td><td><a href='../module/dynamics.html'>dynamics</a></td><td>Function</td><td><p>Constructs the rotation matrix describing a rotation about a y-axis
+such that 
+<script type="math/tex"> \overrightarrow{r_2} = \textbf{R}_y \overrightarrow{r_1} </script>.</p><a href="../proc/rotate_y.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			   <tr><td><a href='../proc/rotate_z.html'>rotate_z</a></td><td><a href='../module/dynamics.html'>dynamics</a></td><td>Function</td><td><p>Constructs the rotation matrix describing a rotation about a y-axis
+such that 
+<script type="math/tex"> \overrightarrow{r_2} = \textbf{R}_z \overrightarrow{r_1} </script>.</p><a href="../proc/rotate_z.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
 			 </tbody></table>
              
         </div>
@@ -109,7 +137,7 @@
             <p class="text-right">
               Documentation generated by
               <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2023-12-06 13:47              </p>
+ on 2023-12-13 10:41              </p>
           </div>
         </div>
         <br>
