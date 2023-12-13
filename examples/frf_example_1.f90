@@ -14,9 +14,10 @@ program example
 
     ! Local Variables
     type(forced_ode_container) :: mdl
-    real(real64), allocatable :: freq(:), mag(:), phase(:), amag(:), &
+    real(real64), allocatable :: mag(:), phase(:), amag(:), &
         aphase(:)
-    complex(real64), allocatable :: sol(:,:), tf(:), s(:)
+    complex(real64), allocatable :: tf(:), s(:)
+    type(frf) :: rsp
 
     ! Plot Variables
     type(multiplot) :: plt
@@ -30,14 +31,15 @@ program example
     mdl%forcing_function => example_2nd_order_forcing
 
     ! Compute the FRF's
-    call frequency_response(mdl, 5.0d0, [0.0d0, 0.0d0], sol, freq = freq)
+    rsp = frequency_response(mdl, 5.0d0, [0.0d0, 0.0d0])
 
     ! Extract the magnitude and phase
-    mag = 2.0d1 * log10(abs(sol(:,1) / sol(1,1)))
-    phase = (1.8d2 / pi) * atan2(aimag(sol(:,1)), real(sol(:,1)))
+    mag = 2.0d1 * log10(abs(rsp%responses(:,1) / rsp%responses(1,1)))
+    phase = (1.8d2 / pi) * atan2(aimag(rsp%responses(:,1)), &
+        real(rsp%responses(:,1)))
 
     ! Compute the analytical solution
-    s = j * (2.0d0 * pi * freq)
+    s = j * (2.0d0 * pi * rsp%frequency)
     tf = 1.0d0 / (s**2 + 2.0d0 * z * wn * s + wn**2)
     amag = 2.0d1 * log10(abs(tf / tf(1)))
     aphase = (1.8d2 / pi) * atan2(aimag(tf), real(tf))
@@ -54,12 +56,12 @@ program example
     call xAxis%set_limits(0.0d0, 1.0d2)
     call lgnd%set_is_visible(.true.)
 
-    call pd1%define_data(freq, mag)
+    call pd1%define_data(rsp%frequency, mag)
     call pd1%set_line_width(2.0)
     call pd1%set_name("Numerical")
     call plt1%push(pd1)
 
-    call pd2%define_data(freq, amag)
+    call pd2%define_data(rsp%frequency, amag)
     call pd2%set_line_width(2.0)
     call pd2%set_draw_markers(.true.)
     call pd2%set_marker_frequency(20)
@@ -76,10 +78,10 @@ program example
     call xAxis%set_autoscale(.false.)
     call xAxis%set_limits(0.0d0, 1.0d2)
 
-    call pd1%define_data(freq, phase)
+    call pd1%define_data(rsp%frequency, phase)
     call plt2%push(pd1)
 
-    call pd2%define_data(freq, aphase)
+    call pd2%define_data(rsp%frequency, aphase)
     call plt2%push(pd2)
 
     call plt%set(1, 1, plt1)

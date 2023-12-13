@@ -20,6 +20,9 @@ program main
     check = test_proportional_damping_frf()
     if (.not.check) flag = 3
 
+    check = test_modal_response()
+    if (.not.check) flag = 4
+
 
     ! End
     if (flag /= 0) stop flag

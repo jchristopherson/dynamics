@@ -40,8 +40,8 @@ program example
 
     ! Local Variables
     integer(int32) :: i
-    real(real64) :: df, m(3,3), k(3,3), freq(nfreq)
-    complex(real64), allocatable, dimension(:,:) :: frfs
+    real(real64) :: m(3,3), k(3,3)
+    type(frf) :: rsp
     real(real64), allocatable, dimension(:,:) :: mag, phase
     procedure(modal_excite), pointer :: fcn
 
@@ -53,8 +53,6 @@ program example
     class(legend), pointer :: lgnd
 
     ! Initialization
-    df = (fmax - fmin) / (nfreq - 1.0d0)
-    freq = (/ (df * i + fmin, i = 0, nfreq - 1) /)
     fcn => modal_frf_forcing_term
 
     ! Define the mass matrix
@@ -65,11 +63,11 @@ program example
         [3, 3])
 
     ! Compute the frequency response functions
-    call frequency_response(m, k, alpha, beta, freq, fcn, frfs)
+    rsp = frequency_response(m, k, alpha, beta, nfreq, fmin, fmax, fcn)
 
     ! Extract the magnitude and phase information.
-    mag = abs(frfs)
-    phase = (1.8d2 / pi) * atan2(aimag(frfs), real(frfs))
+    mag = abs(rsp%responses)
+    phase = (1.8d2 / pi) * atan2(aimag(rsp%responses), real(rsp%responses))
 
     ! Plot the frequency response functions
     call plt%initialize(2, 1)
@@ -86,18 +84,18 @@ program example
     call lgnd%set_layout(LEGEND_ARRANGE_HORIZONTALLY)
     call lgnd%set_draw_border(.false.)
 
-    call pd1%define_data(freq, mag(:,1))
+    call pd1%define_data(rsp%frequency, mag(:,1))
     call pd1%set_line_width(2.0)
     call pd1%set_name("X_1")
     call plt1%push(pd1)
 
-    call pd2%define_data(freq, mag(:,2))
+    call pd2%define_data(rsp%frequency, mag(:,2))
     call pd2%set_line_width(2.0)
     call pd2%set_line_style(LINE_DASHED)
     call pd2%set_name("X_2")
     call plt1%push(pd2)
 
-    call pd3%define_data(freq, mag(:,3))
+    call pd3%define_data(rsp%frequency, mag(:,3))
     call pd3%set_line_width(3.0)
     call pd3%set_line_style(LINE_DASH_DOTTED)
     call pd3%set_name("X_3")
@@ -109,13 +107,13 @@ program example
     call xAxis%set_title("f [Hz]")
     call yAxis%set_title("{/Symbol f} [deg]")
 
-    call pd1%define_data(freq, phase(:,1))
+    call pd1%define_data(rsp%frequency, phase(:,1))
     call plt2%push(pd1)
 
-    call pd2%define_data(freq, phase(:,2))
+    call pd2%define_data(rsp%frequency, phase(:,2))
     call plt2%push(pd2)
 
-    call pd3%define_data(freq, phase(:,3))
+    call pd3%define_data(rsp%frequency, phase(:,3))
     call plt2%push(pd3)
     
     call plt%set(1, 1, plt1)

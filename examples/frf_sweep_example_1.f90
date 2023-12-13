@@ -118,9 +118,8 @@ program example
     ! Local Variables
     type(duffing_container) :: sys
     integer(int32) :: i
-    real(real64) :: df, dz, fup(nfreq), fdown(nfreq), phase1(nfreq), &
-        phase2(nfreq), z(npts), w1(npts), w2(npts)
-    complex(real64), allocatable, dimension(:,:) :: solup, soldown
+    real(real64) :: dz, phase1(nfreq), phase2(nfreq), z(npts), w1(npts), w2(npts)
+    type(frf) :: solup, soldown
 
     ! Plot Variables
     type(multiplot) :: plt
@@ -129,18 +128,13 @@ program example
     class(plot_axis), pointer :: xAxis, yAxis
     class(legend), pointer :: lgnd
 
-    ! Define the frequency vectors
-    df = (f2 - f1) / (nfreq - 1.0d0)
-    fup = (/ (df * i + f1, i = 0, nfreq - 1) /)
-    fdown = (/ (df * i + f1, i = nfreq - 1, 0, -1) /)
-
     ! Perform the ascending sweep
-    solup = sys%frequency_sweep(fup, [0.0d0, 0.0d0])
-    phase1 = atan2(aimag(solup(:,1)), real(solup(:,1)))
+    solup = sys%frequency_sweep(nfreq, f1, f2, [0.0d0, 0.0d0])
+    phase1 = atan2(aimag(solup%responses(:,1)), real(solup%responses(:,1)))
 
     ! Perform the descending sweep
-    soldown = sys%frequency_sweep(fdown, [0.0d0, 0.0d0])
-    phase2 = atan2(aimag(soldown(:,1)), real(soldown(:,1)))
+    soldown = sys%frequency_sweep(nfreq, f2, f1, [0.0d0, 0.0d0])
+    phase2 = atan2(aimag(soldown%responses(:,1)), real(soldown%responses(:,1)))
 
     ! Compute the analytical solution
     dz = (zmax - zmin) / (npts - 1.0d0)
@@ -161,14 +155,14 @@ program example
     call xAxis%set_autoscale(.false.)
     call xAxis%set_limits(0.0d0, 2.0d0)
 
-    call pd1%define_data(fup, abs(solup(:,1)))
+    call pd1%define_data(solup%frequency, abs(solup%responses(:,1)))
     call pd1%set_name("Ascending")
     call pd1%set_draw_markers(.true.)
     call pd1%set_marker_style(MARKER_EMPTY_CIRCLE)
     call pd1%set_line_style(LINE_DOTTED)
     call plt1%push(pd1)
 
-    call pd2%define_data(fdown, abs(soldown(:,1)))
+    call pd2%define_data(soldown%frequency, abs(soldown%responses(:,1)))
     call pd2%set_name("Descending")
     call pd2%set_draw_markers(.true.)
     call pd2%set_marker_style(MARKER_EMPTY_SQUARE)
@@ -194,10 +188,10 @@ program example
     call xAxis%set_autoscale(.false.)
     call xAxis%set_limits(0.0d0, 2.0d0)
 
-    call pd1%define_data(fup, phase1)
+    call pd1%define_data(solup%frequency, phase1)
     call plt2%push(pd1)
 
-    call pd2%define_data(fdown, phase2)
+    call pd2%define_data(soldown%frequency, phase2)
     call plt2%push(pd2)
 
     call plt%set(1, 1, plt1)
