@@ -30,9 +30,6 @@ link_library(${PROJECT_NAME} ${linalg_LIBRARY} ${linalg_INCLUDE_DIR})
 link_library(${PROJECT_NAME} ${spectrum_LIBRARY} ${spectrum_INCLUDE_DIR})
 link_library(${PROJECT_NAME} ${diffeq_LIBRARY} ${diffeq_INCLUDE_DIR})
 
-# Installation
-add_subdirectory(install)
-
 # Testing
 option(BUILD_TESTING "Build tests")
 include(CTest)
