@@ -6,11 +6,12 @@ module dynamics
     private
     public :: ode_excite
     public :: modal_excite
+    public :: harmonic_ode
     public :: forced_ode_container
-    public :: harmonic_ode_container
     public :: frf
     public :: chirp
     public :: frequency_response
+    public :: frequency_sweep
     public :: compute_modal_damping
     public :: modal_response
     public :: normalize_mode_shapes
@@ -39,6 +40,19 @@ module dynamics
                 !! An N-element array where the forcing function should be
                 !! written.
         end subroutine
+
+        pure subroutine harmonic_ode(freq, t, x, dxdt)
+            !! Defines a system of ODE's exposed to harmonic excitation.
+            use iso_fortran_env, only : real64
+            real(real64), intent(in) :: freq
+                !! The excitation frequency.
+            real(real64), intent(in) :: t
+                !! The current time step value.
+            real(real64), intent(in), dimension(:) :: x
+                !! The value of the solution estimate at time t.
+            real(real64), intent(out), dimension(:) :: dxdt
+                !! The derivatives as computed by this routine.
+        end subroutine
     end interface
 
     type, extends(ode_container) :: forced_ode_container
@@ -47,18 +61,6 @@ module dynamics
         !! ODE's.
         procedure(ode_excite), pointer, nopass :: forcing_function
             !! A pointer to a routine defining the forcing function.
-    end type
-
-    type, extends(ode_container) :: harmonic_ode_container
-        !! An extension of the ode_container type from the DIFFEQ library
-        !! that allows for the definition and analysis of systems of ODE's
-        !! exposed to harmonic excitation.
-        real(real64) :: excitation_frequency
-            !! The excitation frequency.
-    contains
-        generic, public :: frequency_sweep => hoc_frf_sweep, hoc_frf_sweep_2
-        procedure, private :: hoc_frf_sweep
-        procedure, private :: hoc_frf_sweep_2
     end type
 
     type frf
@@ -71,6 +73,11 @@ module dynamics
         module procedure :: frf_fft
         module procedure :: frf_modal_prop_damp
         module procedure :: frf_modal_prop_damp_2
+    end interface
+
+    interface frequency_sweep
+        module procedure :: frf_sweep_1
+        module procedure :: frf_sweep_2
     end interface
 
 contains
@@ -103,7 +110,7 @@ contains
         !! Computes the frequency response of each equation in a system of 
         !! forced differential equations.
         use spectrum
-        use diffeq, only : dprk45_integrator
+        use diffeq, only : runge_kutta_45
         use dynamics_error_handling
         class(forced_ode_container), intent(inout) :: sys
             !! The forced_ode_container object containing the equations to
@@ -145,7 +152,7 @@ contains
         real(real64), allocatable, dimension(:) :: t, force
         real(real64), allocatable, dimension(:,:) :: sol
         class(ode_integrator), pointer :: integrator
-        type(dprk45_integrator), target :: defaultIntegrator
+        type(runge_kutta_45), target :: defaultIntegrator
         class(window), pointer :: w
         type(hamming_window), target :: defaultWindow
         class(errors), pointer :: errmgr
@@ -195,8 +202,9 @@ contains
         end do
 
         ! Solve the ODE's
-        sol = integrator%solve(sys, t, iv, err = errmgr)
+        call integrator%solve(sys, t, iv, err = errmgr)
         if (errmgr%has_error_occurred()) return
+        sol = integrator%get_solution()
 
         ! Compute the transfer function of each result
         do i = 1, neqn
@@ -641,19 +649,16 @@ contains
 ! ******************************************************************************
 ! HARMONIC_ODE_CONTAINER ROUTINES
 ! ------------------------------------------------------------------------------
-    function hoc_frf_sweep(sys, freq, iv, solver, ncycles, ntransient, &
+    function frf_sweep_1(fcn, freq, iv, solver, ncycles, ntransient, &
         points, err) result(rst)
         !! Computes the frequency response of each equation of a system of
         !! harmonically excited ODE's by sweeping through frequency.
         use spectrum, only : next_power_of_two
-        use diffeq, only : dprk45_integrator
+        use fftpack, only : zffti
+        use diffeq, only : runge_kutta_45
         use dynamics_error_handling
-        class(harmonic_ode_container), intent(inout) :: sys
-            !! The harmonic_ode_container object containing the equations to 
-            !! analyze.  To properly use this object, extend the 
-            !! harmonic_ode_container object and overload the ode routine to 
-            !! define the ODE's.  Use the excitation_frequency property to
-            !! obtain the desired frequency from the solver.
+        procedure(harmonic_ode), pointer, intent(in) :: fcn
+            !! A pointer to the routine containing the ODE's to integrate.
         real(real64), intent(in), dimension(:) :: freq
             !! An M-element array containing the frequency points at which the 
             !! solution should be computed.  Notice, whatever units are utilized
@@ -706,13 +711,14 @@ contains
 
         ! Local Variables
         integer(int32) :: i, j, nfreq, neqn, nc, nt, ntotal, npts, ppc, flag, &
-            nfft, i1, ncpts
-        real(real64) :: dt, tare, phase, amp
-        real(real64), allocatable, dimension(:) :: ic, t
+            nfft, i1, ncpts, lsave
+        real(real64) :: dt, tare, phase, amp, omega
+        real(real64), allocatable, dimension(:) :: ic, t, wsave
         real(real64), allocatable, dimension(:,:) :: sol
         complex(real64), allocatable, dimension(:) :: xpts
+        type(ode_container) :: sys
         class(ode_integrator), pointer :: integrator
-        type(dprk45_integrator), target :: default_integrator
+        type(runge_kutta_45), target :: default_integrator
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
         
@@ -725,12 +731,12 @@ contains
         if (present(ncycles)) then
             nc = ncycles
         else
-            nc = 20
+            nc = 200
         end if
         if (present(ntransient)) then
             nt = ntransient
         else
-            nt = 200
+            nt = 20
         end if
         if (present(points)) then
             ppc = points
@@ -744,6 +750,8 @@ contains
         ncpts = nc * ppc
         i1 = npts - ncpts + 1
         nfft = 2**next_power_of_two(ppc * nc)
+        lsave = 4 * nfft + 15
+        sys%fcn => internal_eom
 
         ! Set up the integrator
         if (present(solver)) then
@@ -767,7 +775,11 @@ contains
         if (flag == 0) allocate(ic(neqn), stat = flag, source = iv)
         if (flag == 0) allocate(t(npts), stat = flag)
         if (flag == 0) allocate(xpts(nfft), stat = flag, source = (0.0d0, 0.0d0))
+        if (flag == 0) allocate(wsave(lsave), stat = flag)
         if (flag /= 0) go to 10
+
+        ! Set up the FFT calculations for the get_magnitude_phase routine
+        call zffti(nfft, wsave)
 
         ! Cycle over each frequency point
         do i = 1, nfreq
@@ -775,20 +787,25 @@ contains
             dt = (1.0d0 / freq(i)) / (ppc - 1.0d0)
             t = (/ (dt * j, j = 0, npts - 1) /)
 
-            ! Update the frequency
-            sys%excitation_frequency = freq(i)
+            ! Set the frequency
+            omega = freq(i)
 
             ! Compute the solution
-            sol = integrator%solve(sys, t, ic, err = errmgr)
+            call integrator%solve(sys, t, ic, err = errmgr)
             if (errmgr%has_error_occurred()) return
+            sol = integrator%get_solution()
 
             ! Reset the initial conditions to the last solution point
             ic = sol(npts, 2:)
 
             ! Determine the magnitude and phase for each equation
             do j = 1, neqn
-                rst%responses(i,j) = get_magnitude_phase(sol(i1:,j+1), xpts)
+                rst%responses(i,j) = &
+                    get_magnitude_phase(sol(i1:npts,j+1), xpts, wsave)
             end do
+
+            ! Clear the solution buffer for the next time around
+            call integrator%clear_buffer()
         end do
 
         ! End
@@ -827,23 +844,38 @@ contains
     50  continue
         call report_zero_valued_frequency_error("hoc_frf_sweep", i, errmgr)
         return
+
+    ! --------------------------------------------------------------------------
+    contains
+        pure subroutine internal_eom(x_, y_, dydx_)
+            real(real64), intent(in) :: x_
+            real(real64), intent(in), dimension(:) :: y_
+            real(real64), intent(out), dimension(:) :: dydx_
+
+            call fcn(omega, x_, y_, dydx_)
+        end subroutine
     end function
 
     ! ----------
-    function get_magnitude_phase(x, xzeros) result(rst)
+    function get_magnitude_phase(x, xzeros, wsave) result(rst)
         !! Returns the magnitude and phase of a signal.
-        use fftpack, only : fft
+        use fftpack, only : zfftf
         use spectrum, only : compute_transform_length
         ! Arguments
         real(real64), intent(in), dimension(:) :: x
             !! The array containing the signal.
-        complex(real64), intent(inout), dimension(:) :: xzeros
+        complex(real64), intent(out), dimension(:) :: xzeros
             !! A workspace array for the FFT operation.
+        real(real64), intent(in), dimension(:) :: wsave
+            !! A workspace array for the FFT operation
         complex(real64) :: rst
             !! The complex-valued result defining both magnitude and phase.
 
+        ! Parameters
+        complex(real64), parameter :: czero = (0.0d0, 0.0d0)
+
         ! Local Variables
-        integer(int32) :: ind, m, n, nx
+        integer(int32) :: i, ind, m, n, nx
         real(real64) :: amp, phase
 
         ! Initialization
@@ -854,29 +886,25 @@ contains
 
         ! Zero pad the data
         xzeros(:nx) = cmplx(x, 0.0d0, real64)
-        xzeros(nx+1:) = cmplx(0.0d0, 0.0d0, real64)
+        xzeros(nx+1:) = czero
 
         ! Compute the FFT to estimate the phase
-        xzeros = fft(xzeros)
+        call zfftf(n, xzeros, wsave)
         ind = maxloc(abs(xzeros(:m)), 1)
         phase = atan2(aimag(xzeros(ind)), real(xzeros(ind)))
         rst = cmplx(amp * cos(phase), amp * sin(phase), real64)
     end function
 
 ! ------------------------------------------------------------------------------
-    function hoc_frf_sweep_2(sys, nfreq, freq1, freq2, iv, solver, ncycles, &
+    function frf_sweep_2(fcn, nfreq, freq1, freq2, iv, solver, ncycles, &
         ntransient, points, err) result(rst)
         !! Computes the frequency response of each equation of a system of
         !! harmonically excited ODE's by sweeping through frequency.
         use spectrum, only : next_power_of_two
-        use diffeq, only : dprk45_integrator
+        use diffeq, only : runge_kutta_45
         use dynamics_error_handling
-        class(harmonic_ode_container), intent(inout) :: sys
-            !! The harmonic_ode_container object containing the equations to 
-            !! analyze.  To properly use this object, extend the 
-            !! harmonic_ode_container object and overload the ode routine to 
-            !! define the ODE's.  Use the excitation_frequency property to
-            !! obtain the desired frequency from the solver.
+        procedure(harmonic_ode), pointer, intent(in) :: fcn
+            !! A pointer to the routine containing the ODE's to integrate.
         integer(int32), intent(in) :: nfreq
             !! The number of frequency values to analyze.  This value must be
             !! at least 2.
@@ -962,7 +990,7 @@ contains
             return
         end if
         freq = (/ (df * i + freq1, i = 0, nfreq - 1) /)
-        rst = sys%frequency_sweep(freq, iv, solver, ncycles, ntransient, &
+        rst = frf_sweep_1(fcn, freq, iv, solver, ncycles, ntransient, &
             points, err)
     end function
 

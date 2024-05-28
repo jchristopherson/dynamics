@@ -1,7 +1,7 @@
 module dynamics_error_handling
     use ferror
     use iso_fortran_env
-    use diffeq, only : DIFFEQ_INVALID_INPUT_ERROR, &
+    use diffeq_errors, only : DIFFEQ_INVALID_INPUT_ERROR, &
         DIFFEQ_MEMORY_ALLOCATION_ERROR, DIFFEQ_NULL_POINTER_ERROR
     implicit none
 

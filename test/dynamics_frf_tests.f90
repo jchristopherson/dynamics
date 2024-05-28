@@ -22,7 +22,7 @@ pure function example_2nd_order_forcing(t) result(rst)
     rst = chirp(t, 1.0d2, 5.0d0, 1.0d0, 1.0d2)
 end function
 
-subroutine example_2nd_order(t, x, dxdt)
+pure subroutine example_2nd_order(t, x, dxdt)
     ! Arguments
     real(real64), intent(in) :: t
     real(real64), intent(in), dimension(:) :: x
@@ -42,7 +42,7 @@ subroutine example_2nd_order(t, x, dxdt)
     dxdt(2) = f - (2.0d0 * z * wn * x(2) + wn**2 * x(1))
 end subroutine
 
-subroutine example_2nd_order_sweep(this, x, y, dydx)
+pure subroutine example_2nd_order_sweep(this, x, y, dydx)
     ! Arguments
     class(ode_sweep_object), intent(in) :: this
     real(real64), intent(in) :: x

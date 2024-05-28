@@ -14,7 +14,7 @@ contains
         rst = chirp(t, 1.0d2, 5.0d0, 1.0d0, 1.0d2)
     end function
 
-    subroutine example_2nd_order(t, x, dxdt)
+    pure subroutine example_2nd_order(t, x, dxdt)
         ! Arguments
         real(real64), intent(in) :: t
         real(real64), intent(in), dimension(:) :: x
