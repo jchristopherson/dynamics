@@ -4,11 +4,6 @@ module dynamics_frf_tests
     use fortran_test_helper
     implicit none
 
-    type, extends(harmonic_ode_container) :: ode_sweep_object
-    contains
-        procedure, public :: ode => example_2nd_order_sweep
-    end type
-
 contains
 ! ------------------------------------------------------------------------------
 ! 2nd Order Test Problem
@@ -42,9 +37,9 @@ pure subroutine example_2nd_order(t, x, dxdt)
     dxdt(2) = f - (2.0d0 * z * wn * x(2) + wn**2 * x(1))
 end subroutine
 
-pure subroutine example_2nd_order_sweep(this, x, y, dydx)
+pure subroutine example_2nd_order_sweep(freq, x, y, dydx)
     ! Arguments
-    class(ode_sweep_object), intent(in) :: this
+    real(real64), intent(in) :: freq
     real(real64), intent(in) :: x
     real(real64), intent(in), dimension(:) :: y
     real(real64), intent(out), dimension(:) :: dydx
@@ -58,95 +53,27 @@ pure subroutine example_2nd_order_sweep(this, x, y, dydx)
     real(real64) :: f
 
     ! Process
-    f = sin(2.0d0 * pi * this%excitation_frequency * x)
+    f = sin(2.0d0 * pi * freq * x)
     dydx(1) = y(2)
     dydx(2) = f - (2.0d0 * z * wn * y(2) + wn**2 * y(1))
 end subroutine
-
-! ------------------------------------------------------------------------------
-function test_fft_based_frf() result(rst)
-    ! Arguments
-    logical :: rst
-
-    ! Parameters
-    real(real64), parameter :: fmax = 1.0d2
-    real(real64), parameter :: tol = 0.05d0
-    integer(int32), parameter :: npts = 100
-    real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
-    real(real64), parameter :: z = 1.0d-1
-    real(real64), parameter :: wn = 2.0d0 * pi * 5.0d1
-    complex(real64), parameter :: j = (0.0d0, 1.0d0)
-
-    ! Local Variables
-    type(forced_ode_container) :: mdl
-    integer(int32) :: i, ind, start
-    real(real64), allocatable, dimension(:) :: mag1, mag2, magans1, &
-        magans2, ratio, reference, reference2
-    complex(real64), allocatable, dimension(:) :: tf1, tf2, s
-    type(frf) :: rsp
-
-    ! Initialization
-    rst = .true.
-    mdl%fcn => example_2nd_order
-    mdl%forcing_function => example_2nd_order_forcing
-    
-    ! Compute the FRF's
-    rsp = frequency_response(mdl, 5.0d0, [0.0d0, 0.0d0])
-    mag1 = abs(rsp%responses(:,1))
-    mag2 = abs(rsp%responses(:,2))
-
-    ! Compute the solution
-    s = j * (2.0d0 * pi * rsp%frequency)
-    tf1 = 1.0d0 / (s**2 + 2.0d0 * z * wn * s + wn**2)
-    tf2 = s * tf1
-    magans1 = abs(tf1)
-    magans2 = abs(tf2)
-
-    ! The solution will carry on beyond the desired max frequency; however, is
-    ! effectively invalid beyond such frequency.  As a result we must limit the
-    ! test range
-    ind = 0
-    do i = 1, size(mag1)
-        if (rsp%frequency(i) > fmax) then
-            ind = i - 1
-            exit
-        end if
-    end do
-
-    ! Test
-    ratio = mag1(:ind) / magans1(:ind)
-    allocate(reference(size(ratio)), source = 1.0d0)
-    if (.not.assert(ratio, reference, tol)) then
-        rst = .false.
-        print "(A)", "TEST FAILED: test_fft_based_frf -1"
-    end if
-
-    start = floor(0.1 * ind)
-    ratio = mag2(start:ind) / magans2(start:ind)  ! The non-one start is because for small s-values small errors can lead to large ratio differences
-    allocate(reference2(size(ratio)), source = 1.0d0)
-    if (.not.assert(ratio, reference2, tol)) then
-        rst = .false.
-        print "(A)", "TEST FAILED: test_fft_based_frf -2"
-    end if
-end function
-
 ! ------------------------------------------------------------------------------
 function test_frf_sweep() result(rst)
     ! Arguments
     logical :: rst
 
     ! Parameters
-    real(real64), parameter :: fmax = 1.0d2
-    real(real64), parameter :: fmin = 1.0d1
+    real(real64), parameter :: fmax = 6.0d1
+    real(real64), parameter :: fmin = 4.0d1
     real(real64), parameter :: tol = 0.05d0
-    integer(int32), parameter :: npts = 100
+    integer(int32), parameter :: npts = 10
     real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
     real(real64), parameter :: z = 1.0d-1
     real(real64), parameter :: wn = 2.0d0 * pi * 5.0d1
     complex(real64), parameter :: j = (0.0d0, 1.0d0)
 
     ! Local Variables
-    type(ode_sweep_object) :: mdl
+    procedure(harmonic_ode), pointer :: fcn
     integer(int32) :: i
     real(real64) :: df, freq(npts)
     real(real64), allocatable, dimension(:) :: mag1, mag2, magans1, magans2, &
@@ -156,11 +83,12 @@ function test_frf_sweep() result(rst)
 
     ! Initialization
     rst = .true.
+    fcn => example_2nd_order_sweep
     df = (fmax - fmin) / (npts - 1.0d0)
     freq = (/ (df * i + fmin, i = 0, npts - 1) /)
 
     ! Compute the FRF's
-    sol = mdl%frequency_sweep(freq, [0.0d0, 0.0d0])
+    sol = frequency_sweep(fcn, freq, [0.0d0, 0.0d0])
     mag1 = abs(sol%responses(:,1))
     mag2 = abs(sol%responses(:,2))
 

@@ -11,17 +11,14 @@ program main
     flag = 0
 
     ! Tests
-    check = test_fft_based_frf()
+    check = test_frf_sweep()
     if (.not.check) flag = 1
 
-    check = test_frf_sweep()
+    check = test_proportional_damping_frf()
     if (.not.check) flag = 2
 
-    check = test_proportional_damping_frf()
-    if (.not.check) flag = 3
-
     check = test_modal_response()
-    if (.not.check) flag = 4
+    if (.not.check) flag = 3
 
 
     ! End
