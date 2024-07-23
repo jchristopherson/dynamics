@@ -8,6 +8,7 @@ add_subdirectory(fortran_test_helper)
 set(dynamics_test_sources
     dynamics_tests.f90
     dynamics_frf_tests.f90
+    dynamics_structures_tests.f90
 )
 
 # Build the tests

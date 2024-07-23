@@ -1,6 +1,7 @@
 program main
     use iso_fortran_env, only : int32
     use dynamics_frf_tests
+    use dynamics_structures_tests
     implicit none
 
     ! Variables
@@ -19,6 +20,18 @@ program main
 
     check = test_modal_response()
     if (.not.check) flag = 3
+
+    check = test_beam2d_shape_functions()
+    if (.not.check) flag = 4
+
+    check = test_beam2d_strain_displacement()
+    if (.not.check) flag = 5
+
+    check = test_beam2d_stiffness_matrix()
+    if (.not.check) flag = 6
+
+    check = test_beam2d_mass_matrix()
+    if (.not.check) flag = 7
 
 
     ! End
