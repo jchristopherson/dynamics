@@ -31,4 +31,6 @@ module dynamics
     public :: element
     public :: line_element
     public :: beam_element_2d
+    public :: shape_function_derivative
+    public :: shape_function_second_derivative
 end module

@@ -11,6 +11,8 @@ module dynamics_structural
     public :: element
     public :: line_element
     public :: beam_element_2d
+    public :: shape_function_derivative
+    public :: shape_function_second_derivative
 
 ! ******************************************************************************
 ! CONSTANTS
@@ -80,6 +82,8 @@ module dynamics_structural
     contains
         procedure(line_element_get_terminal), deferred, public, pass :: &
             get_terminal_nodes
+        procedure(line_element_const_matrix_function), deferred, public, &
+            pass :: rotation_matrix
         procedure, public :: length => le_length
     end type
 
@@ -107,6 +111,7 @@ module dynamics_structural
         procedure, public :: jacobian => b2d_jacobian
         procedure, public :: stiffness_matrix => b2d_stiffness_matrix
         procedure, public :: mass_matrix => b2d_mass_matrix
+        procedure, public :: rotation_matrix => b2d_rotation_matrix
     end type
 
 ! ******************************************************************************
@@ -191,6 +196,17 @@ module dynamics_structural
                 !! The index of the node at the tail of the element.
         end subroutine
 
+        pure function line_element_const_matrix_function(this) result(rst)
+            !! Defines the signature of a routine for returning a matrix
+            !! associated with the line_element.
+            use iso_fortran_env, only : real64
+            import line_element
+            class(line_element), intent(in) :: this
+                !! The line_element object.
+            real(real64), allocatable, dimension(:,:) :: rst
+                !! The resulting matrix.
+        end function
+
         pure function integrand(elem, s) result(rst)
             !! Defines the signature of a function containing an integrand.
             use iso_fortran_env, only : real64
@@ -234,6 +250,34 @@ pure function shape_function_derivative(index, elem, s, i) result(rst)
     na = elem%evaluate_shape_function(index, s + h)
     nb = elem%evaluate_shape_function(index, s - h)
     rst = (na - nb) / (2.0d0 * h(i))
+end function
+
+! ------------------------------------------------------------------------------
+pure function shape_function_second_derivative(index, elem, s, i) result(rst)
+    !! Computes the second derivative of the shape function with respect to the
+    !! natural coordinate specified.
+    integer(int32), intent(in) :: index
+        !! The index of the shape function to evaluate.
+    class(element), intent(in) :: elem
+        !! The element object.
+    real(real64), intent(in), dimension(:) :: s
+        !! The natural coordinate at which to evaluate the derivative.
+    integer(int32), intent(in) :: i
+        !! The index of the natural coordinate to with which the derivative is
+        !! to be computed.
+    real(real64) :: rst
+        !! The result.
+
+    ! Local Variables
+    real(real64) :: na, nb, nc, h(size(s))
+
+    ! Initialization
+    h = 0.0d0
+    h(i) = (epsilon(na))**0.25d0
+    na = elem%evaluate_shape_function(index, s + h)
+    nb = elem%evaluate_shape_function(index, s)
+    nc = elem%evaluate_shape_function(index, s - h)
+    rst = (na - 2.0d0 * nb + nc) / (h(i)**2)
 end function
 
 ! ******************************************************************************
@@ -625,17 +669,17 @@ pure function b2d_strain_disp_matrix_2d(this, s) result(rst)
     l = this%length()
     dsdx = 2.0d0 / l    ! s = 2 * x / L - 1, so ds/dx = 2 / L
     dn1ds = shape_function_derivative(1, this, s, 1)
-    dn2ds = shape_function_derivative(2, this, s, 1)
-    dn3ds = shape_function_derivative(3, this, s, 1)
+    dn2ds = shape_function_second_derivative(2, this, s, 1)
+    dn3ds = shape_function_second_derivative(3, this, s, 1)
     dn4ds = shape_function_derivative(4, this, s, 1)
-    dn5ds = shape_function_derivative(5, this, s, 1)
-    dn6ds = shape_function_derivative(6, this, s, 1)
+    dn5ds = shape_function_second_derivative(5, this, s, 1)
+    dn6ds = shape_function_second_derivative(6, this, s, 1)
     rst(1,1) = dn1ds * dsdx
-    rst(2,2) = dn2ds * dsdx
-    rst(2,3) = 0.5d0 * l * dn3ds * dsdx
+    rst(2,2) = dn2ds * dsdx**2
+    rst(2,3) = 0.5d0 * l * dn3ds * dsdx**2
     rst(1,4) = dn4ds * dsdx
-    rst(2,5) = dn5ds * dsdx
-    rst(2,6) = 0.5d0 * l * dn6ds * dsdx
+    rst(2,5) = dn5ds * dsdx**2
+    rst(2,6) = 0.5d0 * l * dn6ds * dsdx**2
 end function
 
 ! ------------------------------------------------------------------------------
@@ -687,12 +731,17 @@ pure function b2d_stiffness_matrix(this, rule) result(rst)
 
     ! Local Variables
     real(real64) :: A, E, I, L
+    real(real64), allocatable, dimension(:,:) :: T, Tt
 
     ! Initialization
     A = this%area
     E = this%material%modulus
     I = this%moment_of_inertia
     l = this%length()
+
+    ! Compute the rotation matrix
+    T = this%rotation_matrix()
+    Tt = transpose(T)
 
     ! Process
     allocate(rst(6, 6), source = 0.0d0)
@@ -721,6 +770,8 @@ pure function b2d_stiffness_matrix(this, rule) result(rst)
     rst(3,6) = rst(6,3)
     rst(5,6) = rst(6,5)
     rst(6,6) = rst(3,3)
+
+    rst = matmul(Tt, matmul(rst, T))
 end function
 
 ! ------------------------------------------------------------------------------
@@ -745,6 +796,11 @@ pure function b2d_mass_matrix(this, rule) result(rst)
 
     ! Local Variables
     real(real64) :: L, x
+    real(real64), allocatable, dimension(:,:) :: T, Tt
+
+    ! Compute the rotation matrix
+    T = this%rotation_matrix()
+    Tt = transpose(T)
 
     ! Process
     allocate(rst(6, 6), source = 0.0d0)
@@ -770,6 +826,40 @@ pure function b2d_mass_matrix(this, rule) result(rst)
     rst(3,6) = -3.0d0 * L**2 * x
     rst(5,6) = -2.2d1 * L * x
     rst(6,6) = 4.0d0 * L**2 * x
+
+    rst = matmul(Tt, matmul(rst, T))
+end function
+
+! ------------------------------------------------------------------------------
+pure function b2d_rotation_matrix(this) result(rst)
+    !! Computes the rotation matrix for the element.
+    class(beam_element_2d), intent(in) :: this
+        !! The beam_element_2d object.
+    real(real64), allocatable, dimension(:,:) :: rst
+        !! The resulting 6-by-6 rotation matrix.
+
+    ! Local Variables
+    real(real64) :: theta, ct, st
+    type(node) :: n1, n2
+
+    ! Process
+    allocate(rst(6, 6), source = 0.0d0)
+    n1 = this%get_node(1)
+    n2 = this%get_node(2)
+    theta = atan2(n2%y - n1%y, n2%x - n1%x)
+    ct = cos(theta)
+    st = sin(theta)
+
+    rst(1,1) = ct
+    rst(2,1) = st
+    rst(1,2) = -st
+    rst(2,2) = ct
+    rst(3,3) = 1.0d0
+    rst(4,4) = ct
+    rst(5,4) = st
+    rst(4,5) = -st
+    rst(5,5) = st
+    rst(6,6) = 1.0d0
 end function
 
 ! ******************************************************************************

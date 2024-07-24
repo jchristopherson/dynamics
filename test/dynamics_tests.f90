@@ -24,14 +24,17 @@ program main
     check = test_beam2d_shape_functions()
     if (.not.check) flag = 4
 
-    check = test_beam2d_strain_displacement()
+    check = test_shape_function_derivatives()
     if (.not.check) flag = 5
 
-    check = test_beam2d_stiffness_matrix()
+    check = test_beam2d_strain_displacement()
     if (.not.check) flag = 6
 
-    check = test_beam2d_mass_matrix()
+    check = test_beam2d_stiffness_matrix()
     if (.not.check) flag = 7
+
+    check = test_beam2d_mass_matrix()
+    if (.not.check) flag = 8
 
 
     ! End

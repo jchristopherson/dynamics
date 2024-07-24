@@ -65,11 +65,11 @@ contains
     
         rst = reshape([ &
             -1.0d0 / l, 0.0d0, &
-            0.0d0, 3.0d0 * (s - 1.0d0) * (s + 1.0d0) / (2.0d0 * l), &
-            0.0d0, (s - 1.0d0) * (3.0d0 * s + 1.0d0) / 4.0d0, &
+            0.0d0, 6.0d0 * s / (l**2), &
+            0.0d0, (3.0d0 * s - 1.0d0) / l, &
             1.0d0 / l, 0.0d0, &
-            0.0d0, 3.0d0 * (1.0d0 - s) * (s + 1.0d0) / (2.0d0 * l), &
-            0.0d0, (s + 1.0d0) * (3.0d0 * s - 1.0d0) / 4.0d0 &
+            0.0d0, -6.0d0 * s / (l**2), &
+            0.0d0, (3.0d0 * s + 1.0d0) / l &
         ], [2, 6])
     end function
     
@@ -78,7 +78,7 @@ contains
         logical :: rst
     
         ! Parameters
-        real(real64), parameter :: s1(1) = [-sqrt(2.0d0) / 2.0d0]
+        real(real64), parameter :: s1(1) = [-sqrt(3.0d0) / 3.0d0]
         real(real64), parameter :: s2(1) = [0.0d0]
         real(real64), parameter :: s3(1) = [-s1]
     
@@ -275,14 +275,102 @@ contains
             print "(A)", "TEST FAILED: test_beam2d_shape_functions -21"
         end if
     end function
+
+! ------------------------------------------------------------------------------
+    function dN5ds(s) result(rst)
+        real(real64), intent(in) :: s
+        real(real64) :: rst
+        rst = 0.75d0 * (1.0d0 - s**2)
+    end function
+
+    function dN5ds2(s) result(rst)
+        real(real64), intent(in) :: s
+        real(real64) :: rst
+        rst = -1.5d0 * s
+    end function
+
+    function test_shape_function_derivatives() result(rst)
+        ! Arguments
+        logical :: rst
+
+        ! Parameters
+        real(real64), parameter :: tol = 1.0d-6
+        real(real64), parameter :: s1(1) = [-sqrt(3.0d0) / 3.0d0]
+        real(real64), parameter :: s2(1) = [0.0d0]
+        real(real64), parameter :: s3(1) = [-s1]
+
+        ! Local Variables
+        real(real64) :: x1, y1, x2, y2, deriv, ans
+        type(beam_element_2d) :: e
     
-    ! ------------------------------------------------------------------------------
+        ! Initialization
+        rst = .true.
+        call random_number(x1)
+        call random_number(x2)
+        call random_number(y1)
+        call random_number(y2)
+        e%node_1%index = 1
+        e%node_1%x = x1
+        e%node_1%y = y1
+        e%node_1%z = 0.0d0
+        e%node_2%index = 2
+        e%node_2%x = x2
+        e%node_2%y = y2
+        e%node_2%z = 0.0d0
+
+        ! Test the first derivatives
+        deriv = shape_function_derivative(5, e, s1, 1)
+        ans = dN5ds(s1(1))
+        if (.not.assert(deriv, ans)) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_shape_function_derivatives -1"
+        end if
+
+        deriv = shape_function_derivative(5, e, s2, 1)
+        ans = dN5ds(s2(1))
+        if (.not.assert(deriv, ans)) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_shape_function_derivatives -2"
+        end if
+
+        deriv = shape_function_derivative(5, e, s3, 1)
+        ans = dN5ds(s3(1))
+        if (.not.assert(deriv, ans)) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_shape_function_derivatives -3"
+        end if
+
+        ! Test the second derivatives
+        deriv = shape_function_second_derivative(5, e, s1, 1)
+        ans = dN5ds2(s1(1))
+        if (.not.assert(deriv, ans, tol)) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_shape_function_derivatives -4"
+        end if
+
+        deriv = shape_function_second_derivative(5, e, s2, 1)
+        ans = dN5ds2(s2(1))
+        if (.not.assert(deriv, ans, tol)) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_shape_function_derivatives -5"
+        end if
+
+        deriv = shape_function_second_derivative(5, e, s3, 1)
+        ans = dN5ds2(s3(1))
+        if (.not.assert(deriv, ans, tol)) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_shape_function_derivatives -6"
+        end if
+    end function
+    
+! ------------------------------------------------------------------------------
     function test_beam2d_strain_displacement() result(rst)
         ! Arguments
         logical :: rst
     
         ! Parameters
-        real(real64), parameter :: s1(1) = [-sqrt(2.0d0) / 2.0d0]
+        real(real64), parameter :: tol = 1.0d-6
+        real(real64), parameter :: s1(1) = [-sqrt(3.0d0) / 3.0d0]
         real(real64), parameter :: s2(1) = [0.0d0]
         real(real64), parameter :: s3(1) = [-s1]
     
@@ -310,21 +398,21 @@ contains
         ! Tests
         b = e%strain_displacement_matrix(s1)
         ans = beam2d_strain_disp_matrix(s1(1), l)
-        if (.not.assert(b, ans)) then
+        if (.not.assert(b, ans, tol)) then
             rst = .false.
             print "(A)", "TEST FAILED: test_beam2d_strain_displacement -1"
         end if
     
         b = e%strain_displacement_matrix(s2)
         ans = beam2d_strain_disp_matrix(s2(1), l)
-        if (.not.assert(b, ans)) then
+        if (.not.assert(b, ans, tol)) then
             rst = .false.
             print "(A)", "TEST FAILED: test_beam2d_strain_displacement -2"
         end if
     
         b = e%strain_displacement_matrix(s3)
         ans = beam2d_strain_disp_matrix(s3(1), l)
-        if (.not.assert(b, ans)) then
+        if (.not.assert(b, ans, tol)) then
             rst = .false.
             print "(A)", "TEST FAILED: test_beam2d_strain_displacement -3"
         end if
@@ -337,7 +425,7 @@ contains
     
         ! Local Variables
         real(real64) :: l, x1, y1, x2, y2, w, h
-        real(real64), allocatable, dimension(:,:) :: k, ans
+        real(real64), allocatable, dimension(:,:) :: k, ans, T
         type(beam_element_2d) :: e
     
         ! Initialization
@@ -355,6 +443,7 @@ contains
         e%node_2%y = y2
         e%node_2%z = 0.0d0
         l = sqrt((x2 - x1)**2 + (y2 - y1)**2)
+        T = e%rotation_matrix()
     
         ! Define the cross-sectional properties
         call random_number(w)
@@ -387,6 +476,8 @@ contains
         ans(4:6,4:6) = ans(1:3,1:3)
         ans(5,6) = -ans(2,3)
         ans(6,5) = ans(5,6)
+
+        ans = matmul(transpose(T), matmul(ans, T))
     
         ! Test
         k = e%stiffness_matrix()
@@ -403,7 +494,7 @@ contains
     
         ! Local Variables
         real(real64) :: l, x1, y1, x2, y2, w, h, f
-        real(real64), allocatable, dimension(:,:) :: m, ans
+        real(real64), allocatable, dimension(:,:) :: m, ans, T
         type(beam_element_2d) :: e
     
         ! Initialization
@@ -421,6 +512,7 @@ contains
         e%node_2%y = y2
         e%node_2%z = 0.0d0
         l = sqrt((x2 - x1)**2 + (y2 - y1)**2)
+        T = e%rotation_matrix()
     
         ! Define the cross-sectional properties
         call random_number(w)
@@ -456,6 +548,8 @@ contains
         ans(3,6) = ans(6,3)
         ans(5,6) = ans(6,5)
         ans(6,6) = ans(3,3)
+
+        ans = matmul(transpose(T), matmul(ans, T))
     
         ! Test
         m = e%mass_matrix()
