@@ -85,6 +85,8 @@ module dynamics_structural
         procedure(line_element_const_matrix_function), deferred, public, &
             pass :: rotation_matrix
         procedure, public :: length => le_length
+        procedure, public :: stiffness_matrix => le_stiffness_matrix
+        procedure, public :: mass_matrix => le_mass_matrix
     end type
 
 ! ------------------------------------------------------------------------------
@@ -109,8 +111,6 @@ module dynamics_structural
         procedure, public :: strain_displacement_matrix => b2d_strain_disp_matrix_2d
         procedure, public :: constitutive_matrix => b2d_constitutive_matrix
         procedure, public :: jacobian => b2d_jacobian
-        procedure, public :: stiffness_matrix => b2d_stiffness_matrix
-        procedure, public :: mass_matrix => b2d_mass_matrix
         procedure, public :: rotation_matrix => b2d_rotation_matrix
     end type
 
@@ -518,6 +518,71 @@ pure function le_length(this) result(rst)
     rst = sqrt(dx**2 + dy**2 + dz**2)
 end function
 
+
+! ------------------------------------------------------------------------------
+pure function le_stiffness_matrix(this, rule) result(rst)
+    !! Computes the stiffness matrix for the element.
+    class(line_element), intent(in) :: this
+        !! The line_element object.
+    integer(int32), intent(in), optional :: rule
+        !! The integration rule.  The rule must be one of the following:
+        !!
+        !! - MECH_ONE_POINT_INTEGRATION_RULE
+        !!
+        !! - MECH_TWO_POINT_INTEGRATION_RULE
+        !!
+        !! - MECH_THREE_POINT_INTEGRATION_RULE
+        !!
+        !! - MECH_FOUR_POINT_INTEGRATION_RULE
+        !!
+        !! The default integration rule is MECH_TWO_POINT_INTEGRATION_RULE.
+    real(real64), allocatable, dimension(:,:) :: rst
+        !! The resulting matrix.
+
+    ! Local Variables
+    real(real64), allocatable, dimension(:,:) :: T, Tt
+
+    ! Compute the rotation matrix
+    T = this%rotation_matrix()
+    Tt = transpose(T)
+
+    ! Compute the stiffness matrix and apply the rotation transformation
+    rst = e_stiffness_matrix(this, rule)
+    rst = matmul(Tt, matmul(rst, T))
+end function
+
+! ------------------------------------------------------------------------------
+pure function le_mass_matrix(this, rule) result(rst)
+    !! Computes the mass matrix for the element.
+    class(line_element), intent(in) :: this
+        !! The line_element object.
+    integer(int32), intent(in), optional :: rule
+        !! The integration rule.  The rule must be one of the following:
+        !!
+        !! - MECH_ONE_POINT_INTEGRATION_RULE
+        !!
+        !! - MECH_TWO_POINT_INTEGRATION_RULE
+        !!
+        !! - MECH_THREE_POINT_INTEGRATION_RULE
+        !!
+        !! - MECH_FOUR_POINT_INTEGRATION_RULE
+        !!
+        !! The default integration rule is MECH_TWO_POINT_INTEGRATION_RULE.
+    real(real64), allocatable, dimension(:,:) :: rst
+        !! The resulting matrix.
+
+    ! Local Variables
+    real(real64), allocatable, dimension(:,:) :: T, Tt
+
+    ! Compute the rotation matrix
+    T = this%rotation_matrix()
+    Tt = transpose(T)
+
+    ! Compute the mass matrix and apply the rotation transformation
+    rst = e_mass_matrix(this, rule)
+    rst = matmul(Tt, matmul(rst, T))
+end function
+
 ! ******************************************************************************
 ! BEAM_2D ROUTINES
 ! ------------------------------------------------------------------------------
@@ -707,127 +772,6 @@ pure function b2d_jacobian(this, s) result(rst)
         !! The Jacobian matrix.
 
     rst = reshape([0.5d0 * this%length()], [1, 1])
-end function
-
-! ------------------------------------------------------------------------------
-pure function b2d_stiffness_matrix(this, rule) result(rst)
-    !! Computes the stiffness matrix for the element.
-    class(beam_element_2d), intent(in) :: this
-        !! The beam_element_2d object.
-    integer(int32), intent(in), optional :: rule
-        !! The integration rule.  The rule must be one of the following:
-        !!
-        !! - MECH_ONE_POINT_INTEGRATION_RULE
-        !!
-        !! - MECH_TWO_POINT_INTEGRATION_RULE
-        !!
-        !! - MECH_THREE_POINT_INTEGRATION_RULE
-        !!
-        !! - MECH_FOUR_POINT_INTEGRATION_RULE
-        !!
-        !! The default integration rule is MECH_TWO_POINT_INTEGRATION_RULE.
-    real(real64), allocatable, dimension(:,:) :: rst
-        !! The resulting matrix.
-
-    ! Local Variables
-    real(real64) :: A, E, I, L
-    real(real64), allocatable, dimension(:,:) :: T, Tt
-
-    ! Initialization
-    A = this%area
-    E = this%material%modulus
-    I = this%moment_of_inertia
-    l = this%length()
-
-    ! Compute the rotation matrix
-    T = this%rotation_matrix()
-    Tt = transpose(T)
-
-    ! Process
-    allocate(rst(6, 6), source = 0.0d0)
-    rst(1,1) = A * E / L
-    rst(4,1) = -rst(1,1)
-
-    rst(2,2) = 12.0d0 * E * I / L**3
-    rst(3,2) = 6.0d0 * E * I / L**2
-    rst(5,2) = -rst(2,2)
-    rst(6,2) = rst(3,2)
-
-    rst(2,3) = rst(3,2)
-    rst(3,3) = 4.0d0 * E * I / L
-    rst(5,3) = -rst(3,2)
-    rst(6,3) = 2.0d0 * E * I / L
-
-    rst(1,4) = rst(4,1)
-    rst(4,4) = rst(1,1)
-
-    rst(2,5) = rst(5,2)
-    rst(3,5) = rst(5,3)
-    rst(5,5) = rst(2,2)
-    rst(6,5) = -rst(3,2)
-
-    rst(2,6) = rst(6,2)
-    rst(3,6) = rst(6,3)
-    rst(5,6) = rst(6,5)
-    rst(6,6) = rst(3,3)
-
-    rst = matmul(Tt, matmul(rst, T))
-end function
-
-! ------------------------------------------------------------------------------
-pure function b2d_mass_matrix(this, rule) result(rst)
-    !! Computes the mass matrix for the element.
-    class(beam_element_2d), intent(in) :: this
-        !! The beam_element_2d object.
-    integer(int32), intent(in), optional :: rule
-        !! The integration rule.  The rule must be one of the following:
-        !!
-        !! - MECH_ONE_POINT_INTEGRATION_RULE
-        !!
-        !! - MECH_TWO_POINT_INTEGRATION_RULE
-        !!
-        !! - MECH_THREE_POINT_INTEGRATION_RULE
-        !!
-        !! - MECH_FOUR_POINT_INTEGRATION_RULE
-        !!
-        !! The default integration rule is MECH_TWO_POINT_INTEGRATION_RULE.
-    real(real64), allocatable, dimension(:,:) :: rst
-        !! The resulting matrix.
-
-    ! Local Variables
-    real(real64) :: L, x
-    real(real64), allocatable, dimension(:,:) :: T, Tt
-
-    ! Compute the rotation matrix
-    T = this%rotation_matrix()
-    Tt = transpose(T)
-
-    ! Process
-    allocate(rst(6, 6), source = 0.0d0)
-    L = this%length()
-    x = this%area * this%material%density * L / 4.2d2
-    rst(1,1) = 1.4d2 * x
-    rst(4,1) = 7.0d1 * x
-    rst(2,2) = 1.56d2 * x
-    rst(3,2) = 2.2d1 * L * x
-    rst(5,2) = 5.4d1 * x
-    rst(6,2) = -1.3d1 * L * x
-    rst(2,3) = 2.2d1 * L * x
-    rst(3,3) = 4.0d0 * L**2 * x
-    rst(5,3) = 1.3d1 * L * x
-    rst(6,3) = -3.0d0 * L**2 * x
-    rst(1,4) = 7.0d1 * x
-    rst(4,4) = 1.4d2 * x
-    rst(2,5) = 5.4d1 * x
-    rst(3,5) = 1.3d1 * L * x
-    rst(5,5) = 1.56d2 * x
-    rst(6,5) = -2.2d1 * L * x
-    rst(2,6) = -1.3d1 * L * x
-    rst(3,6) = -3.0d0 * L**2 * x
-    rst(5,6) = -2.2d1 * L * x
-    rst(6,6) = 4.0d0 * L**2 * x
-
-    rst = matmul(Tt, matmul(rst, T))
 end function
 
 ! ------------------------------------------------------------------------------

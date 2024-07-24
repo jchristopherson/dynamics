@@ -422,6 +422,9 @@ contains
     function test_beam2d_stiffness_matrix() result(rst)
         ! Arguments
         logical :: rst
+
+        ! Parameters
+        real(real64), parameter :: tol = 1.0d-6
     
         ! Local Variables
         real(real64) :: l, x1, y1, x2, y2, w, h
@@ -481,7 +484,7 @@ contains
     
         ! Test
         k = e%stiffness_matrix()
-        if (.not.assert(ans, k)) then
+        if (.not.assert(ans, k, tol * maxval(abs(ans)))) then
             rst = .false.
             print "(A)", "TEST FAILED: test_beam2d_stiffness_matrix -1"
         end if
@@ -491,6 +494,9 @@ contains
     function test_beam2d_mass_matrix() result(rst)
         ! Arguments
         logical :: rst
+
+        ! Parameters
+        real(real64), parameter :: tol = 1.0d-6
     
         ! Local Variables
         real(real64) :: l, x1, y1, x2, y2, w, h, f
@@ -553,7 +559,7 @@ contains
     
         ! Test
         m = e%mass_matrix()
-        if (.not.assert(ans, m)) then
+        if (.not.assert(ans, m, tol * maxval(abs(ans)))) then
             rst = .false.
             print "(A)", "TEST FAILED: test_beam2d_mass_matrix -1"
         end if
