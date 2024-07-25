@@ -79,6 +79,8 @@ module dynamics_structural
 ! ------------------------------------------------------------------------------
     type, extends(element), abstract :: line_element
         !! Defines a line element type.
+        real(real64) :: area
+            !! The element cross-sectional area.
     contains
         procedure(line_element_get_terminal), deferred, public, pass :: &
             get_terminal_nodes
@@ -92,8 +94,6 @@ module dynamics_structural
 ! ------------------------------------------------------------------------------
     type, extends(line_element) :: beam_element_2d
         !! Defines a two-dimensional beam-element.
-        real(real64) :: area
-            !! The beam element cross-sectional area.
         real(real64) :: moment_of_inertia
             !! The beam moment of inertia (second moment of area).
         type(node) :: node_1
@@ -580,7 +580,7 @@ pure function le_mass_matrix(this, rule) result(rst)
 
     ! Compute the mass matrix and apply the rotation transformation
     rst = e_mass_matrix(this, rule)
-    rst = matmul(Tt, matmul(rst, T))
+    rst = this%area * matmul(Tt, matmul(rst, T))
 end function
 
 ! ******************************************************************************

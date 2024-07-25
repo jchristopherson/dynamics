@@ -559,7 +559,7 @@ contains
     
         ! Test
         m = e%mass_matrix()
-        if (.not.assert(ans, m, tol * maxval(abs(ans)))) then
+        if (.not.assert(ans, m, tol)) then
             rst = .false.
             print "(A)", "TEST FAILED: test_beam2d_mass_matrix -1"
         end if
