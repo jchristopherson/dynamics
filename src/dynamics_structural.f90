@@ -1,3 +1,7 @@
+! Shape Functions:
+! 2D Line: https://www.mm.bme.hu/~gyebro/files/ans_help_v182/ans_thry/thy_shp1.html#shp2dlinerdof
+! 3D Line: https://www.mm.bme.hu/~gyebro/files/ans_help_v182/ans_thry/thy_shp2.html#shp3d2node
+
 module dynamics_structural
     use iso_fortran_env
     implicit none
@@ -74,6 +78,7 @@ module dynamics_structural
             jacobian
         procedure, public :: stiffness_matrix => e_stiffness_matrix
         procedure, public :: mass_matrix => e_mass_matrix
+        procedure, public :: external_force_vector => e_ext_force_vector
     end type
 
 ! ------------------------------------------------------------------------------
@@ -89,6 +94,7 @@ module dynamics_structural
         procedure, public :: length => le_length
         procedure, public :: stiffness_matrix => le_stiffness_matrix
         procedure, public :: mass_matrix => le_mass_matrix
+        procedure, public :: external_force_vector => le_ext_force_vector
     end type
 
 ! ------------------------------------------------------------------------------
@@ -493,6 +499,68 @@ pure function element_mass_integrand(elem, s) result(rst)
     rst = elem%material%density * jdet * matmul(Nt, N)
 end function
 
+! ------------------------------------------------------------------------------
+pure function e_ext_force_vector(this, q, rule) result(rst)
+    !! Computes the mass matrix for the element.
+    class(element), intent(in) :: this
+        !! The element object.
+    real(real64), intent(in), dimension(:) :: q
+        !! The surface traction forces vector or body force vector.  
+        !! For instance, a 2D problem this vector would look like [qx, qy]**T.
+    integer(int32), intent(in), optional :: rule
+        !! The integration rule.  The rule must be one of the following:
+        !!
+        !! - DYN_ONE_POINT_INTEGRATION_RULE
+        !!
+        !! - DYN_TWO_POINT_INTEGRATION_RULE
+        !!
+        !! - DYN_THREE_POINT_INTEGRATION_RULE
+        !!
+        !! - DYN_FOUR_POINT_INTEGRATION_RULE
+        !!
+        !! The default integration rule is DYN_TWO_POINT_INTEGRATION_RULE.
+    real(real64), allocatable, dimension(:) :: rst
+        !! The resulting vector.
+
+    ! Local Variables
+    integer(int32) :: r
+
+    ! Initialization
+    if (present(rule)) then
+    r = rule
+    else
+    r = DYN_TWO_POINT_INTEGRATION_RULE
+    end if
+
+    ! Process
+    rst = matmul( &
+        integrate(element_ext_force_integrand, this, r), &
+        q &
+    )
+end function
+
+! ----------
+pure function element_ext_force_integrand(elem, s) result(rst)
+    !! The integrand function for computing the external force vector of an 
+    !! element.
+    class(element), intent(in) :: elem
+        !! The element object.
+    real(real64), intent(in), dimension(:) :: s
+        !! The natural coordinate vector at which to evaluate the integrand.
+    real(real64), allocatable, dimension(:,:) :: rst
+        !! The integrand.
+
+    ! Local Variables
+    real(real64) :: jdet
+    real(real64), allocatable, dimension(:,:) :: Nt, jac
+
+    ! Process
+    Nt = transpose(elem%shape_function_matrix(s))
+    jac = elem%jacobian(s)
+    jdet = det(jac)
+    rst = jdet * Nt
+end function
+
 ! ******************************************************************************
 ! LINE_ELEMENT MEMBERS
 ! ------------------------------------------------------------------------------
@@ -581,6 +649,40 @@ pure function le_mass_matrix(this, rule) result(rst)
     ! Compute the mass matrix and apply the rotation transformation
     rst = e_mass_matrix(this, rule)
     rst = this%area * matmul(Tt, matmul(rst, T))
+end function
+
+! ------------------------------------------------------------------------------
+pure function le_ext_force_vector(this, q, rule) result(rst)
+    !! Computes the mass matrix for the element.
+    class(line_element), intent(in) :: this
+        !! The line_element object.
+    real(real64), intent(in), dimension(:) :: q
+        !! The surface traction forces vector or body force vector.  
+        !! For instance, a 2D problem this vector would look like [qx, qy]**T.
+    integer(int32), intent(in), optional :: rule
+        !! The integration rule.  The rule must be one of the following:
+        !!
+        !! - DYN_ONE_POINT_INTEGRATION_RULE
+        !!
+        !! - DYN_TWO_POINT_INTEGRATION_RULE
+        !!
+        !! - DYN_THREE_POINT_INTEGRATION_RULE
+        !!
+        !! - DYN_FOUR_POINT_INTEGRATION_RULE
+        !!
+        !! The default integration rule is DYN_TWO_POINT_INTEGRATION_RULE.
+    real(real64), allocatable, dimension(:) :: rst
+        !! The resulting vector.
+
+    ! Local Variables
+    real(real64), allocatable, dimension(:,:) :: T
+
+    ! Compute the rotation matrix
+    T = this%rotation_matrix()
+
+    ! Compute the force vector
+    rst = e_ext_force_vector(this, q, rule)
+    rst = matmul(T, rst)
 end function
 
 ! ******************************************************************************
