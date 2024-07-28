@@ -4,6 +4,7 @@
 
 module dynamics_structural
     use iso_fortran_env
+    use linalg, only : csr_matrix, create_empty_csr_matrix
     implicit none
     private
     public :: DYN_ONE_POINT_INTEGRATION_RULE
@@ -43,6 +44,8 @@ module dynamics_structural
             !! The y-coordinate of the node.
         real(real64) :: z
             !! The z-coordinate of the node.
+        integer(int32) :: dof
+            !! The number of degrees of freeedom associated with this node.
     end type
 
 ! ------------------------------------------------------------------------------
@@ -381,6 +384,47 @@ pure function integrate(fcn, elem, rule) result(rst)
     class is (line_element)
         rst = integrate_1d(fcn, elem, rule)
     end select
+end function
+
+! ******************************************************************************
+! ASSEMBLY ROUTINES
+! ------------------------------------------------------------------------------
+pure function find_global_dof(n, nodes) result(rst)
+    !! Finds the index of the global DOF node in a list of nodes.
+    class(node), intent(in) :: n
+        !! The node for which to search.
+    class(node), intent(in), dimension(:) :: nodes
+        !! The list of nodes
+    integer(int32) :: rst
+        !! The requested index.
+
+    ! Local Variables
+    integer(int32) :: i
+
+    ! Process
+    rst = 0
+    do i = 1, size(nodes)
+        if (n%index == nodes(i)%index) then
+            rst = rst + 1
+            exit
+        end if
+        rst = rst + nodes(i)%dof
+    end do
+end function
+
+! ------------------------------------------------------------------------------
+pure function create_connectivity_matrix(gdof, e, nodes) result(rst)
+    !! Creates a connectivity matrix for the element.
+    integer(int32), intent(in) :: gdof
+        !! The number of global degrees of freedom.
+    class(element), intent(in) :: e
+        !! The element.
+    class(node), intent(in), dimension(:) :: nodes
+        !! The global node list.
+    type(csr_matrix) :: rst
+        !! The resulting connectivity matrix.
+
+    ! Local Variables
 end function
 
 ! ******************************************************************************

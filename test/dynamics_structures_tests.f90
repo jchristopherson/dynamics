@@ -100,6 +100,8 @@ contains
         e%node_2%x = x2
         e%node_2%y = y2
         e%node_2%z = 0.0d0
+        e%node_1%dof = 3
+        e%node_2%dof = 3
         l = sqrt((x2 - x1)**2 + (y2 - y1)**2)
     
         ! Tests - #1
@@ -317,6 +319,8 @@ contains
         e%node_2%x = x2
         e%node_2%y = y2
         e%node_2%z = 0.0d0
+        e%node_1%dof = 3
+        e%node_2%dof = 3
 
         ! Test the first derivatives
         deriv = shape_function_derivative(5, e, s1, 1)
@@ -393,6 +397,8 @@ contains
         e%node_2%x = x2
         e%node_2%y = y2
         e%node_2%z = 0.0d0
+        e%node_1%dof = 3
+        e%node_2%dof = 3
         l = sqrt((x2 - x1)**2 + (y2 - y1)**2)
     
         ! Tests
@@ -445,6 +451,8 @@ contains
         e%node_2%x = x2
         e%node_2%y = y2
         e%node_2%z = 0.0d0
+        e%node_1%dof = 3
+        e%node_2%dof = 3
         l = sqrt((x2 - x1)**2 + (y2 - y1)**2)
         T = e%rotation_matrix()
     
@@ -517,6 +525,8 @@ contains
         e%node_2%x = x2
         e%node_2%y = y2
         e%node_2%z = 0.0d0
+        e%node_1%dof = 3
+        e%node_2%dof = 3
         l = sqrt((x2 - x1)**2 + (y2 - y1)**2)
         T = e%rotation_matrix()
     
@@ -562,6 +572,66 @@ contains
         if (.not.assert(ans, m, tol)) then
             rst = .false.
             print "(A)", "TEST FAILED: test_beam2d_mass_matrix -1"
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
+    function test_beam2d_ext_force() result(rst)
+        ! Arguments
+        logical :: rst
+
+        ! Parameters
+        real(real64), parameter :: tol = 1.0d-6
+    
+        ! Local Variables
+        real(real64) :: l, x1, y1, x2, y2, w, h
+        real(real64) :: F(6), ans(6), q(2), Fe(6,2)
+        real(real64), allocatable, dimension(:,:) :: T
+        type(beam_element_2d) :: e
+    
+        ! Initialization
+        rst = .true.
+        call random_number(x1)
+        call random_number(x2)
+        call random_number(y1)
+        call random_number(y2)
+        e%node_1%index = 1
+        e%node_1%x = x1
+        e%node_1%y = y1
+        e%node_1%z = 0.0d0
+        e%node_2%index = 2
+        e%node_2%x = x2
+        e%node_2%y = y2
+        e%node_2%z = 0.0d0
+        e%node_1%dof = 3
+        e%node_2%dof = 3
+        l = sqrt((x2 - x1)**2 + (y2 - y1)**2)
+        T = e%rotation_matrix()
+        q = [0.0d0, 1.0d0]
+    
+        ! Define the cross-sectional properties
+        call random_number(w)
+        call random_number(h)
+        e%area = w * h
+        e%moment_of_inertia = w * h**3 / 12.0d0
+    
+        ! Define the material properties
+        e%material%density = 0.101d0 / 3.86d2
+        e%material%modulus = 10.0d6
+        e%material%poissons_ratio = 0.33d0
+    
+        ! Define the solution
+        Fe = l * reshape( &
+            [0.5d0, 0.0d0, 0.0d0, 0.5d0, 0.0d0, 0.0d0, &
+            0.0d0, 0.5d0, l / 1.2d1, 0.0d0, 0.5d0, -l / 1.2d1], [6, 2])
+        ans = matmul(Fe, q)
+        ans = matmul(T, ans)
+
+        ! Test
+        F = e%external_force_vector(q)
+        if (.not.assert(ans, F, tol)) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_beam2d_ext_force -1"
         end if
     end function
     

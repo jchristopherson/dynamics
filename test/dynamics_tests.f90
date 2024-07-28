@@ -36,6 +36,9 @@ program main
     check = test_beam2d_mass_matrix()
     if (.not.check) flag = 8
 
+    check = test_beam2d_ext_force()
+    if (.not.check) flag = 9
+
 
     ! End
     if (flag /= 0) stop flag
