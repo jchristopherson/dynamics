@@ -425,6 +425,29 @@ pure function create_connectivity_matrix(gdof, e, nodes) result(rst)
         !! The resulting connectivity matrix.
 
     ! Local Variables
+    integer(int32) :: i, j, col, nnodes, nnz, row
+    integer(int32), allocatable, dimension(:) :: rows, cols
+    real(real64), allocatable, dimension(:) :: vals
+
+    ! Initialization
+    nnodes = e%get_node_count()
+    nnz = e%get_dof_per_node() * nnodes
+    allocate(rows(nnz), cols(nnz), source = 0)
+    allocate(vals(nnz), source = 1.0d0)
+
+    ! Process
+    row = 0
+    do j = 1, nnodes
+        col = find_global_dof(e%get_node(j), nodes)
+        do i = 1, e%get_dof_per_node()
+            row = row + 1
+            rows(i) = row
+            cols(i) = col
+            col = col + 1
+        end do
+    end do
+
+    ! TO DO: Build the matrix
 end function
 
 ! ******************************************************************************
