@@ -4,7 +4,9 @@
 
 module dynamics_structural
     use iso_fortran_env
-    use linalg, only : csr_matrix, create_empty_csr_matrix
+    use linalg, only : csr_matrix, create_csr_matrix
+    use ferror
+    use dynamics_error_handling
     implicit none
     private
     public :: DYN_ONE_POINT_INTEGRATION_RULE
@@ -18,6 +20,7 @@ module dynamics_structural
     public :: beam_element_2d
     public :: shape_function_derivative
     public :: shape_function_second_derivative
+    public :: create_connectivity_matrix
 
 ! ******************************************************************************
 ! CONSTANTS
@@ -413,7 +416,7 @@ pure function find_global_dof(n, nodes) result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
-pure function create_connectivity_matrix(gdof, e, nodes) result(rst)
+function create_connectivity_matrix(gdof, e, nodes, err) result(rst)
     !! Creates a connectivity matrix for the element.
     integer(int32), intent(in) :: gdof
         !! The number of global degrees of freedom.
@@ -421,19 +424,29 @@ pure function create_connectivity_matrix(gdof, e, nodes) result(rst)
         !! The element.
     class(node), intent(in), dimension(:) :: nodes
         !! The global node list.
-    type(csr_matrix) :: rst
-        !! The resulting connectivity matrix.
+    class(errors), intent(inout), optional, target :: err
+        !! An optional error handling object.
+    real(real64), allocatable, dimension(:,:) :: rst
+        !! The resulting matrix.
 
     ! Local Variables
-    integer(int32) :: i, j, col, nnodes, nnz, row
-    integer(int32), allocatable, dimension(:) :: rows, cols
-    real(real64), allocatable, dimension(:) :: vals
-
+    integer(int32) :: i, j, col, nnodes, nnz, row, flag
+    class(errors), pointer :: errmgr
+    type(errors), target :: deferr
+    
     ! Initialization
+    if (present(err)) then
+        errmgr => err
+    else
+        errmgr => deferr
+    end if
     nnodes = e%get_node_count()
     nnz = e%get_dof_per_node() * nnodes
-    allocate(rows(nnz), cols(nnz), source = 0)
-    allocate(vals(nnz), source = 1.0d0)
+    allocate(rst(gdof, gdof), source = 0.0d0, stat = flag)
+    if (flag /= 0) then
+        call report_memory_error("create_connectivity_matrix", flag, errmgr)
+        return
+    end if
 
     ! Process
     row = 0
@@ -441,13 +454,64 @@ pure function create_connectivity_matrix(gdof, e, nodes) result(rst)
         col = find_global_dof(e%get_node(j), nodes)
         do i = 1, e%get_dof_per_node()
             row = row + 1
-            rows(i) = row
-            cols(i) = col
+            rst(row, col) = 1.0d0
             col = col + 1
         end do
     end do
+end function
 
-    ! TO DO: Build the matrix
+! ------------------------------------------------------------------------------
+function apply_boundary_conditions_mtx(gdof, x, err) result(rst)
+    !! Applies boundary conditions to a matrix by removal of the appropriate
+    !! rows and columns.
+    integer(int32), intent(in), dimension(:) :: gdof
+        !! The global degrees of freedom to restrain.
+    real(real64), intent(in), dimension(:,:) :: x
+        !! The matrix to constrain.
+    class(errors), intent(inout), optional, target :: err
+        !! An optional error handling object.
+    real(real64), allocatable, dimension(:,:) :: rst
+        !! The altered matrix.
+
+    ! Local Variables
+    integer(int32) :: i, m, n, nbc, mnew, nnew, minmn, flag
+    class(errors), pointer :: errmgr
+    type(errors), target :: deferr
+    
+    ! Initialization
+    if (present(err)) then
+        errmgr => err
+    else
+        errmgr => deferr
+    end if
+    m = size(x, 1)
+    n = size(x, 2)
+    minmn = min(m, n)
+    nbc = size(gdof)
+    mnew = m - nbc
+    nnew = n - nbc
+
+    ! Input Checking
+    if (mnew < 1) then
+        ! TO DO: Error
+    end if
+    if (nnew < 1) then
+        ! TO DO: Error
+    end if
+    do i = 1, nbc
+        if (gdof(i) < 1 .or. gdof(i) > minmn) then
+            ! TO DO: Error
+        end if
+    end do
+
+    ! Memory Allocation
+    allocate(rst(mnew, nnew), stat = flag)
+    if (flag /= 0) then
+        call report_memory_error("apply_boundary_conditions_mtx", flag, errmgr)
+        return
+    end if
+
+    ! Process
 end function
 
 ! ******************************************************************************
