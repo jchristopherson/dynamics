@@ -14,7 +14,13 @@ module dynamics_error_handling
     integer(int32), parameter :: DYN_MATRIX_SIZE_ERROR = 100100
         !! Defines an error associated with an incorrectly sized matrix.
     integer(int32), parameter :: DYN_ZERO_VALUED_FREQUENCY_ERROR = 100101
-        !! Defins an error associated with a zero-valued frequency.
+        !! Defines an error associated with a zero-valued frequency.
+    integer(int32), parameter :: DYN_CONSTRAINT_ERROR = 100102
+        !! Defines a constraint-related error.
+    integer(int32), parameter :: DYN_INDEX_OUT_OF_RANGE = 100103
+        !! Defines an index out of range error.
+    integer(int32), parameter :: DYN_NONMONOTONIC_ARRAY_ERROR = 100104
+        !! Defines an error related to an array being nonmonotonic.
 contains
 ! ------------------------------------------------------------------------------
     subroutine report_null_forcing_routine_error(name, err)
@@ -96,6 +102,33 @@ contains
 
         ! Report the error
         write(errmsg, 100) "The stiffness matrix is not square.  " // &
+            "It was found to be ", m, "-by-", n, "."
+        call err%report_error(name, trim(errmsg), DYN_MATRIX_SIZE_ERROR)
+
+        ! Formatting
+    100 format(A, I0, A, I0, A)
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    subroutine report_nonsquare_matrix_error(name, var, m, n, err)
+        !! Reports an error relating to a non-square matrix.
+        character(len = *), intent(in) :: name
+            !! The name of the routine in which the error was found.
+        character(len = *), intent(in) :: var
+            !! The name of the offending variable.
+        integer(int32), intent(in) :: m
+            !! The number of rows found in the matrix.
+        integer(int32), intent(in) :: n
+            !! The number of columns found in the matrix.
+        class(errors), intent(inout) :: err
+            !! An errors-based object that if provided can be used to retrieve 
+            !! information relating to any errors encountered during execution.
+
+        ! Local Variables
+        character(len = 256) :: errmsg
+
+        ! Report the error
+        write(errmsg, 100) "Matrix " // var // " is not square.  " // &
             "It was found to be ", m, "-by-", n, "."
         call err%report_error(name, trim(errmsg), DYN_MATRIX_SIZE_ERROR)
 
@@ -224,6 +257,71 @@ contains
     end subroutine
 
 ! ------------------------------------------------------------------------------
+    subroutine report_overconstraint_error(name, err)
+        !! Reports an overconstraint error.
+        character(len = *), intent(in) :: name
+            !! The name of the routine in which the error was found.
+        class(errors), intent(inout) :: err
+            !! An errors-based object that if provided can be used to retrieve 
+            !! information relating to any errors encountered during execution.
+
+        ! Report the error
+        call err%report_error(name, "The model is overconstrained.", &
+            DYN_CONSTRAINT_ERROR)
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    subroutine report_array_index_out_of_bounds_error(name, var, ind, sz, err)
+        !! Reports an array index-out-of-bounds error.
+        character(len = *), intent(in) :: name
+            !! The name of the routine in which the error was found.
+        character(len = *), intent(in) :: var
+            !! The name of the offending variable.
+        integer(int32), intent(in) :: ind
+            !! The offending index.
+        integer(int32), intent(in) :: sz
+            !! The array size.
+        class(errors), intent(inout) :: err
+            !! An errors-based object that if provided can be used to retrieve 
+            !! information relating to any errors encountered during execution.
+
+        ! Local Variables
+        character(len = 256) :: errmsg
+
+        ! Report the error
+        write(errmsg, 100) &
+            "Index ", ind, " is outside the bounds of array " // var // &
+            ", which is of size ", sz, "."
+        call err%report_error(name, trim(errmsg), DYN_INDEX_OUT_OF_RANGE)
+
+        ! Formatting
+    100 format(A, I0, A, I0, A)
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    subroutine report_nonmonotonic_array_error(name, var, ind, err)
+        !! Reports a nonmonotonic array error.
+        character(len = *), intent(in) :: name
+            !! The name of the routine in which the error was found.
+        character(len = *), intent(in) :: var
+            !! The name of the offending variable.
+        integer(int32), intent(in) :: ind
+            !! The index of the occurrence of nonmonotonicity.
+        class(errors), intent(inout) :: err
+            !! An errors-based object that if provided can be used to retrieve 
+            !! information relating to any errors encountered during execution.
+
+        ! Local Variables
+        character(len = 256) :: errmsg
+
+        ! Report the error
+        write(errmsg, 100) "Array " // var // &
+            " was found to be nonmonotonic at index ", ind, "."
+        call err%report_error(name, trim(errmsg), DYN_NONMONOTONIC_ARRAY_ERROR)
+
+        ! Formatting
+    100 format(A, I0, A)
+    end subroutine
 
 ! ------------------------------------------------------------------------------
 end module

@@ -4,7 +4,7 @@
 
 module dynamics_structural
     use iso_fortran_env
-    use linalg, only : csr_matrix, create_csr_matrix
+    use linalg, only : csr_matrix, create_csr_matrix, sort
     use ferror
     use dynamics_error_handling
     implicit none
@@ -21,6 +21,7 @@ module dynamics_structural
     public :: shape_function_derivative
     public :: shape_function_second_derivative
     public :: create_connectivity_matrix
+    public :: apply_boundary_conditions
 
 ! ******************************************************************************
 ! CONSTANTS
@@ -230,6 +231,13 @@ module dynamics_structural
             real(real64), allocatable, dimension(:,:) :: rst
                 !! The result.
         end function
+    end interface
+
+! ******************************************************************************
+! OVERLOADED ROUTINES
+! ------------------------------------------------------------------------------
+    interface apply_boundary_conditions
+        module procedure :: apply_boundary_conditions_mtx
     end interface
 
 contains
@@ -464,8 +472,8 @@ end function
 function apply_boundary_conditions_mtx(gdof, x, err) result(rst)
     !! Applies boundary conditions to a matrix by removal of the appropriate
     !! rows and columns.
-    integer(int32), intent(in), dimension(:) :: gdof
-        !! The global degrees of freedom to restrain.
+    integer(int32), intent(inout), dimension(:) :: gdof
+        !! An array of the global degrees of freedom to restrain.
     real(real64), intent(in), dimension(:,:) :: x
         !! The matrix to constrain.
     class(errors), intent(inout), optional, target :: err
@@ -474,7 +482,8 @@ function apply_boundary_conditions_mtx(gdof, x, err) result(rst)
         !! The altered matrix.
 
     ! Local Variables
-    integer(int32) :: i, m, n, nbc, mnew, nnew, minmn, flag
+    integer(int32) :: i, j, ii, m, n, nbc, mnew, flag
+    integer(int32), allocatable, dimension(:) :: indices
     class(errors), pointer :: errmgr
     type(errors), target :: deferr
     
@@ -486,32 +495,62 @@ function apply_boundary_conditions_mtx(gdof, x, err) result(rst)
     end if
     m = size(x, 1)
     n = size(x, 2)
-    minmn = min(m, n)
     nbc = size(gdof)
     mnew = m - nbc
-    nnew = n - nbc
 
     ! Input Checking
-    if (mnew < 1) then
-        ! TO DO: Error
+    if (m /= n) then
+        call report_nonsquare_matrix_error("apply_boundary_conditions_mtx", &
+            "x", m, n, errmgr)
+        return
     end if
-    if (nnew < 1) then
-        ! TO DO: Error
+    if (mnew < 1) then
+        call report_overconstraint_error("apply_boundary_conditions_mtx", &
+            errmgr)
     end if
     do i = 1, nbc
-        if (gdof(i) < 1 .or. gdof(i) > minmn) then
-            ! TO DO: Error
+        if (gdof(i) < 1 .or. gdof(i) > m) then
+            call report_array_index_out_of_bounds_error( &
+                "apply_boundary_conditions_mtx", "gdof", gdof(i), m, errmgr)
+            return
         end if
     end do
 
     ! Memory Allocation
-    allocate(rst(mnew, nnew), stat = flag)
+    allocate(rst(mnew, mnew), stat = flag)
+    if (flag == 0) allocate(indices(m - nbc))
     if (flag /= 0) then
         call report_memory_error("apply_boundary_conditions_mtx", flag, errmgr)
         return
     end if
 
+    ! Sort gdof into ascending order
+    call sort(gdof, .true.)
+
+    ! Check for duplicate values in GDOF
+    do i = 2, nbc
+        if (gdof(i) == gdof(i-1)) then
+            call report_nonmonotonic_array_error(&
+                "apply_boundary_conditions_mtx", "gdof", i, errmgr)
+            return
+        end if
+    end do
+
     ! Process
+    ii = 1
+    j = 0
+    do i = 1, m
+        if (gdof(ii) /= i) then
+            j = j + 1
+            indices(j) = i
+        else
+            ii = ii + 1
+            if (ii > nbc) ii = nbc
+        end if
+    end do
+
+    ! Now, we only need store the rows and columns stored in indices
+    rst = x(indices,indices)
 end function
 
 ! ******************************************************************************
