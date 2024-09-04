@@ -67,6 +67,10 @@ module dynamics_frequency_response
         module procedure :: frf_sweep_2
     end interface
 
+! ------------------------------------------------------------------------------
+    real(real64), private :: sweep_frequency
+    procedure(harmonic_ode), private, pointer :: sweep_ode
+
 contains
 ! ------------------------------------------------------------------------------
     pure elemental function chirp(t, amp, span, f1Hz, f2Hz) result(rst)
@@ -573,7 +577,7 @@ contains
         ! Local Variables
         integer(int32) :: i, j, nfreq, neqn, nc, nt, ntotal, npts, ppc, flag, &
             nfft, i1, ncpts, lsave
-        real(real64) :: dt, tare, phase, amp, omega
+        real(real64) :: dt, tare, phase, amp
         real(real64), allocatable, dimension(:) :: ic, t, wsave
         real(real64), allocatable, dimension(:,:) :: sol
         complex(real64), allocatable, dimension(:) :: xpts
@@ -612,7 +616,8 @@ contains
         i1 = npts - ncpts + 1
         nfft = 2**next_power_of_two(ppc * nc)
         lsave = 4 * nfft + 15
-        sys%fcn => internal_eom
+        sys%fcn => sweep_eom
+        sweep_ode => fcn
 
         ! Set up the integrator
         if (present(solver)) then
@@ -649,7 +654,7 @@ contains
             t = (/ (dt * j, j = 0, npts - 1) /)
 
             ! Set the frequency
-            omega = freq(i)
+            sweep_frequency = freq(i)
 
             ! Compute the solution
             call integrator%solve(sys, t, ic, err = errmgr)
@@ -705,17 +710,15 @@ contains
     50  continue
         call report_zero_valued_frequency_error("hoc_frf_sweep", i, errmgr)
         return
-
-    ! --------------------------------------------------------------------------
-    contains
-        pure subroutine internal_eom(x_, y_, dydx_)
-            real(real64), intent(in) :: x_
-            real(real64), intent(in), dimension(:) :: y_
-            real(real64), intent(out), dimension(:) :: dydx_
-
-            call fcn(omega, x_, y_, dydx_)
-        end subroutine
     end function
+
+    ! ----------
+    pure subroutine sweep_eom(x, y, dydx)
+        real(real64), intent(in) :: x
+        real(real64), intent(in), dimension(:) :: y
+        real(real64), intent(out), dimension(:) :: dydx
+        call sweep_ode(sweep_frequency, x, y, dydx)
+    end subroutine
 
     ! ----------
     function get_magnitude_phase(x, xzeros, wsave) result(rst)
