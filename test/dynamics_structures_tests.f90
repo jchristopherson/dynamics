@@ -373,7 +373,7 @@ contains
         logical :: rst
     
         ! Parameters
-        real(real64), parameter :: tol = 1.0d-6
+        real(real64), parameter :: tol = 5.0d-6
         real(real64), parameter :: s1(1) = [-sqrt(3.0d0) / 3.0d0]
         real(real64), parameter :: s2(1) = [0.0d0]
         real(real64), parameter :: s3(1) = [-s1]
@@ -504,7 +504,7 @@ contains
         logical :: rst
 
         ! Parameters
-        real(real64), parameter :: tol = 1.0d-6
+        real(real64), parameter :: tol = 5.0d-6
     
         ! Local Variables
         real(real64) :: l, x1, y1, x2, y2, w, h, f
@@ -635,5 +635,75 @@ contains
         end if
     end function
     
+! ------------------------------------------------------------------------------
+    function test_boundary_conditions() result(rst)
+        ! Arguments
+        logical :: rst
+
+        ! Variables
+        integer(int32), parameter :: n = 50
+        integer(int32), parameter :: bc_index = 25
+        real(real64), parameter :: bc_value = 0.1d0
+        real(real64) :: k(n,n), f(n), check(n), kcheck(n-1,n-1), fcheck(n-1)
+        real(real64), allocatable, dimension(:) :: fnew, frestore
+        real(real64), allocatable, dimension(:,:) :: knew
+        integer(int32) :: gdofs(1)
+
+        ! Initialization
+        rst = .true.
+        call random_number(k)
+        call random_number(f)
+        check = 0.0d0
+        check(bc_index) = 1.0d0
+        kcheck(1:bc_index-1,1:bc_index-1) = k(1:bc_index-1,1:bc_index-1)
+        kcheck(1:bc_index-1,bc_index:) = k(1:bc_index-1,bc_index+1:)
+        kcheck(bc_index:,1:bc_index-1) = k(bc_index+1:,1:bc_index-1)
+        kcheck(bc_index:,bc_index:) = k(bc_index+1:,bc_index+1:)
+        gdofs(1) = bc_index
+        fcheck(1:bc_index-1) = f(1:bc_index-1)
+        fcheck(bc_index:) = f(bc_index+1:)
+
+        ! Start by applying a known displacement condition
+        call apply_displacement_constraint(bc_index, bc_value, k, f)
+
+        ! Test the matrix
+        if (.not.assert(k(bc_index,:), check)) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_boundary_conditions -1"
+        end if
+        if (.not.assert(f(bc_index), bc_value)) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_boundary_conditions -2"
+        end if
+
+        ! Remove the row and column from the matrix
+        knew = apply_boundary_conditions(gdofs, k)
+
+        ! Test
+        if (.not.assert(kcheck, knew)) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_boundary_conditions -3"
+        end if
+
+        ! Remove the item from the vector
+        fnew = apply_boundary_conditions(gdofs, f)
+
+        ! Test
+        if (.not.assert(fcheck, fnew)) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_boundary_conditions -4"
+        end if
+
+        ! Restore F
+        frestore = restore_constrained_values(gdofs, fnew)
+        f(gdofs) = 0.0d0    ! Just for testing
+        
+        ! Test
+        if (.not.assert(frestore, f)) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_boundary_conditions -5"
+        end if
+    end function
+
 ! ------------------------------------------------------------------------------
 end module

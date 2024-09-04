@@ -22,6 +22,8 @@ module dynamics_structural
     public :: shape_function_second_derivative
     public :: create_connectivity_matrix
     public :: apply_boundary_conditions
+    public :: apply_displacement_constraint
+    public :: restore_constrained_values
 
 ! ******************************************************************************
 ! CONSTANTS
@@ -238,6 +240,7 @@ module dynamics_structural
 ! ------------------------------------------------------------------------------
     interface apply_boundary_conditions
         module procedure :: apply_boundary_conditions_mtx
+        module procedure :: apply_boundary_conditions_vec
     end interface
 
 contains
@@ -473,7 +476,8 @@ function apply_boundary_conditions_mtx(gdof, x, err) result(rst)
     !! Applies boundary conditions to a matrix by removal of the appropriate
     !! rows and columns.
     integer(int32), intent(inout), dimension(:) :: gdof
-        !! An array of the global degrees of freedom to restrain.
+        !! An array of the global degrees of freedom to restrain.  The array
+        !! is sorted into ascending order on output.
     real(real64), intent(in), dimension(:,:) :: x
         !! The matrix to constrain.
     class(errors), intent(inout), optional, target :: err
@@ -507,6 +511,7 @@ function apply_boundary_conditions_mtx(gdof, x, err) result(rst)
     if (mnew < 1) then
         call report_overconstraint_error("apply_boundary_conditions_mtx", &
             errmgr)
+        return
     end if
     do i = 1, nbc
         if (gdof(i) < 1 .or. gdof(i) > m) then
@@ -518,7 +523,7 @@ function apply_boundary_conditions_mtx(gdof, x, err) result(rst)
 
     ! Memory Allocation
     allocate(rst(mnew, mnew), stat = flag)
-    if (flag == 0) allocate(indices(m - nbc))
+    if (flag == 0) allocate(indices(m - nbc), stat = flag)
     if (flag /= 0) then
         call report_memory_error("apply_boundary_conditions_mtx", flag, errmgr)
         return
@@ -552,6 +557,180 @@ function apply_boundary_conditions_mtx(gdof, x, err) result(rst)
     ! Now, we only need store the rows and columns stored in indices
     rst = x(indices,indices)
 end function
+
+! ------------------------------------------------------------------------------
+function apply_boundary_conditions_vec(gdof, x, err) result(rst)
+    !! Applies boundary conditions to a vector by removal of the appropriate
+    !! items.
+    integer(int32), intent(inout), dimension(:) :: gdof
+        !! An array of the global degrees of freedom to restrain.  The array
+        !! is sorted into ascending order on output.
+    real(real64), intent(in), dimension(:) :: x
+        !! The vector to constrain.
+    class(errors), intent(inout), optional, target :: err
+        !! An optional error handling object.
+    real(real64), allocatable, dimension(:) :: rst
+        !! The altered vector.
+
+    ! Local Variables
+    integer(int32) :: i, j, ii, n, nbc, nnew, flag
+    integer(int32), allocatable, dimension(:) :: indices
+    class(errors), pointer :: errmgr
+    type(errors), target :: deferr
+    
+    ! Initialization
+    if (present(err)) then
+        errmgr => err
+    else
+        errmgr => deferr
+    end if
+    n = size(x)
+    nbc = size(gdof)
+    nnew = n - nbc
+
+    ! Input Checking
+    if (nnew < 1) then
+        call report_overconstraint_error("apply_boundary_conditions_vec", &
+            errmgr)
+        return
+    end if
+    do i = 1, nbc
+        if (gdof(i) < 1 .or. gdof(i) > n) then
+            call report_array_index_out_of_bounds_error( &
+                "apply_boundary_conditions_vec", "gdof", gdof(i), n, errmgr)
+            return
+        end if
+    end do
+
+    ! Memory Allocation
+    allocate(rst(nnew), stat = flag)
+    if (flag == 0) allocate(indices(n - nbc), stat = flag)
+    if (flag /= 0) then
+        call report_memory_error("apply_boundary_conditions_vec", flag, errmgr)
+        return
+    end if
+
+    ! Sort gdof into ascending order
+    call sort(gdof, .true.)
+
+    ! Check for duplicate values in GDOF
+    do i = 2, nbc
+        if (gdof(i) == gdof(i-1)) then
+            call report_nonmonotonic_array_error( &
+                "apply_boundary_conditions_vec", "gdof", i, errmgr)
+            return
+        end if
+    end do
+
+    ! Process
+    ii = 1
+    j = 0
+    do i = 1, n
+        if (gdof(ii) /= i) then
+            j = j + 1
+            indices(j) = i
+        else
+            ii = ii + 1
+            if (ii > nbc) ii = nbc
+        end if
+    end do
+
+    ! Now, just store the appropriate items in the output vector
+    rst = x(indices)
+end function
+
+! ------------------------------------------------------------------------------
+function restore_constrained_values(gdof, x, err) result(rst)
+    !! Restores the constrained degrees-of-freedom from the boundary conditions
+    !! applied by apply_boundary_conditions.
+    integer(int32), intent(inout), dimension(:) :: gdof
+        !! An array of the global degrees of freedom to restrain.  The array
+        !! is sorted into ascending order on output.
+    real(real64), intent(in), dimension(:) :: x
+        !! The constrained vector.
+    class(errors), intent(inout), optional, target :: err
+        !! An optional error handling object.
+    real(real64), allocatable, dimension(:) :: rst
+        !! The altered vector.
+
+    ! Local Variables
+    integer(int32) ::i, j, ii, n, nbc, nnew, flag
+    class(errors), pointer :: errmgr
+    type(errors), target :: deferr
+    
+    ! Initialization
+    if (present(err)) then
+        errmgr => err
+    else
+        errmgr => deferr
+    end if
+    n = size(x)
+    nbc = size(gdof)
+    nnew = n + nbc
+
+    ! Input Checking
+    do i = 1, nbc
+        if (gdof(i) < 1 .or. gdof(i) > n) then
+            call report_array_index_out_of_bounds_error( &
+                "restore_constrained_values", "gdof", gdof(i), n, errmgr)
+            return
+        end if
+    end do
+
+    ! Memory Allocation
+    allocate(rst(nnew), source = 0.0d0, stat = flag)
+    if (flag /= 0) then
+        call report_memory_error("restore_constrained_values", flag, errmgr)
+        return
+    end if
+
+    ! Sort gdof into ascending order
+    call sort(gdof, .true.)
+
+    ! Check for duplicate values in GDOF
+    do i = 2, nbc
+        if (gdof(i) == gdof(i-1)) then
+            call report_nonmonotonic_array_error( &
+                "restore_constrained_values", "gdof", i, errmgr)
+            return
+        end if
+    end do
+
+    ! Process
+    ii = 1
+    j = 0
+    do i = 1, nnew
+        if (i == gdof(ii)) then
+            ii = ii + 1
+            if (ii > nbc) ii = nbc
+        else
+            j = j + 1
+            rst(i) = x(j)
+        end if
+    end do
+end function
+
+! ------------------------------------------------------------------------------
+! REF: https://www.sciencedirect.com/topics/engineering/prescribed-displacement-boundary-condition
+subroutine apply_displacement_constraint(dof, val, k, f)
+    !! Applies a displacement constraint to the specified degree of freedom.
+    integer(int32), intent(in) :: dof
+        !! The global degree-of-freedom to which the constraint should be
+        !! applied.
+    real(real64), intent(in) :: val
+        !! The value of the displacement constraint.
+    real(real64), intent(inout), dimension(:,:) :: k
+        !! The stiffness matrix to which the constraint should be applied.
+    real(real64), intent(inout), dimension(:) :: f
+        !! The external force vector to which the constraint should be applied.
+
+    ! Wipe out the rows in the matrix and place a value of 1 on the diagonal
+    k(dof,:) = 0.0d0
+    k(dof,dof) = 1.0d0
+
+    ! Update the external force vector
+    f(dof) = val
+end subroutine
 
 ! ******************************************************************************
 ! ELEMENT MEMBERS

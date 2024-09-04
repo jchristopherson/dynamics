@@ -33,4 +33,8 @@ module dynamics
     public :: beam_element_2d
     public :: shape_function_derivative
     public :: shape_function_second_derivative
+    public :: create_connectivity_matrix
+    public :: apply_boundary_conditions
+    public :: apply_displacement_constraint
+    public :: restore_constrained_values
 end module

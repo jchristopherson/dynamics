@@ -39,6 +39,9 @@ program main
     check = test_beam2d_ext_force()
     if (.not.check) flag = 9
 
+    check = test_boundary_conditions()
+    if (.not.check) flag = 10
+
 
     ! End
     if (flag /= 0) stop flag
