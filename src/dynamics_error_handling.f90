@@ -324,4 +324,29 @@ contains
     end subroutine
 
 ! ------------------------------------------------------------------------------
+    subroutine report_constraint_count_error(name, expected, actual, err)
+        !! Reports an error associated with an incorrect number of constraints.
+        character(len = *), intent(in) :: name
+            !! The name of the routine in which the error was found.
+        integer(int32), intent(in) :: expected
+            !! The expected number of constraints.
+        integer(int32), intent(in) :: actual
+            !! The actual number of constraints.
+        class(errors), intent(inout) :: err
+            !! An errors-based object that if provided can be used to retrieve 
+            !! information relating to any errors encountered during execution.
+
+        ! Local Variables
+        character(len = 256) :: errmsg
+
+        ! Report the error
+        write(errmsg, 100) "Expected to find ", expected, &
+            " constraints, but found ", actual, " constraints instead."
+        call err%report_error(name, trim(errmsg), DYN_CONSTRAINT_ERROR)
+
+        ! Formatting
+    100 format(A, I0, A, I0, A)
+    end subroutine
+
+! ------------------------------------------------------------------------------
 end module

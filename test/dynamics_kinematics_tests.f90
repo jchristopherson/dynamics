@@ -59,6 +59,18 @@ function test_forward_kinematics() result(rst)
         rst = .false.
         print "(A)", "TEST FAILED: test_forward_kinematics -1"
     end if
+
+    ! Assemble via arrays
+    T = dh_forward_kinematics( &
+        [alpha1, alpha2, alpha3], &
+        [a1, a2, a3], &
+        [theta1, theta2, theta3], &
+        [d1, d2, d3] &
+    )
+    if (.not.assert(Tref, T)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_forward_kinematics -2"
+    end if
 end function
 
 ! ------------------------------------------------------------------------------

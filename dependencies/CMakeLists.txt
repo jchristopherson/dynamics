@@ -18,8 +18,12 @@ add_subdirectory(fftpack)
 set(fftpack_LIBRARY ${fftpack_LIBRARY} PARENT_SCOPE)
 set(fftpack_INCLUDE_DIR ${fftpack_INCLUDE_DIR} PARENT_SCOPE)
 
-
 # Get DIFFEQ
 add_subdirectory(diffeq)
 set(diffeq_LIBRARY ${diffeq_LIBRARY} PARENT_SCOPE)
 set(diffeq_INCLUDE_DIR ${diffeq_INCLUDE_DIR} PARENT_SCOPE)
+
+# Get NONLIN
+add_subdirectory(nonlin)
+set(nonlin_LIBRARY ${nonlin_LIBRARY} PARENT_SCOPE)
+set(nonlin_INCLUDE_DIR ${nonlin_INCLUDE_DIR} PARENT_SCOPE)
