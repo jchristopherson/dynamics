@@ -453,7 +453,7 @@ function create_connectivity_matrix(gdof, e, nodes, err) result(rst)
     end if
     nnodes = e%get_node_count()
     nnz = e%get_dof_per_node() * nnodes
-    allocate(rst(gdof, gdof), source = 0.0d0, stat = flag)
+    allocate(rst(nnz, gdof), source = 0.0d0, stat = flag)
     if (flag /= 0) then
         call report_memory_error("create_connectivity_matrix", flag, errmgr)
         return

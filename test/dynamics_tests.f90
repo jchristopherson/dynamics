@@ -42,6 +42,9 @@ program main
     check = test_boundary_conditions()
     if (.not.check) flag = 10
 
+    check = test_connectivity_matrix()
+    if (.not.check) flag = 11
+
 
     ! End
     if (flag /= 0) stop flag

@@ -706,4 +706,103 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
+    function test_connectivity_matrix() result(rst)
+        ! Arguments
+        logical :: rst
+
+        ! Variables
+    integer(int32), parameter :: gdof = 9 ! 3 dof per node, 3 nodes
+        real(real64) :: x1, y1, x2, y2, x3, y3, a1, a2, i1, i2, &
+            L1ans(6,9), L2ans(6,9)
+        real(real64), allocatable, dimension(:,:) :: L1, L2
+        type(beam_element_2d) :: b1, b2
+        type(material) :: mat
+        type(node) :: nodes(3)
+
+        ! Initialization
+        rst = .true.
+        call random_number(x1)
+        call random_number(x2)
+        call random_number(x3)
+        call random_number(y1)
+        call random_number(y2)
+        call random_number(y3)
+        call random_number(a1)
+        call random_number(a2)
+        call random_number(i1)
+        call random_number(i2)
+        mat%modulus = 1.0d7
+        mat%density = 0.1d0 / 3.86d2
+        mat%poissons_ratio = 0.33d0
+        L1ans = 0.0d0
+        L2ans = 0.0d0
+
+        L1ans(1,1) = 1.0d0
+        L1ans(2,2) = 1.0d0
+        L1ans(3,3) = 1.0d0
+        L1ans(4,4) = 1.0d0
+        L1ans(5,5) = 1.0d0
+        L1ans(6,6) = 1.0d0
+
+        L2ans(1,4) = 1.0d0
+        L2ans(2,5) = 1.0d0
+        L2ans(3,6) = 1.0d0
+        L2ans(4,7) = 1.0d0
+        L2ans(5,8) = 1.0d0
+        L2ans(6,9) = 1.0d0
+
+        ! Ensure x1 < x2 < x3
+        x2 = x2 + x1
+        x3 = x2 + x3
+
+        ! Create a mesh of two beam elements as follows:
+        !
+        ! 1 ----- 2 ----- 3
+        b1%node_1%index = 1
+        b1%node_1%x = x1
+        b1%node_1%y = y1
+        b1%node_1%z = 0.0d0
+        b1%node_1%dof = 3
+        b1%node_2%index = 2
+        b1%node_2%x = x2
+        b1%node_2%y = y2
+        b1%node_2%z = 0.0d0
+        b1%node_2%dof = 3
+        b1%area = a1
+        b1%moment_of_inertia = i1
+        b1%material = mat
+
+        b2%node_1%index = 2
+        b2%node_1%x = x2
+        b2%node_1%y = y2
+        b2%node_1%z = 0.0d0
+        b2%node_1%dof = 3
+        b2%node_2%index = 3
+        b2%node_2%x = x3
+        b2%node_2%y = y3
+        b2%node_2%z = 0.0d0
+        b2%node_2%dof = 3
+        b2%area = a2
+        b2%moment_of_inertia = i2
+        b2%material = mat
+
+        ! Initialize the node list
+        nodes = [b1%node_1, b1%node_2, b2%node_2]
+
+        ! Construct the matrices
+        L1 = create_connectivity_matrix(gdof, b1, nodes)
+        L2 = create_connectivity_matrix(gdof, b2, nodes)
+
+        ! Tests
+        if (.not.assert(L1, L1ans)) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_connectivity_matrix -1"
+        end if
+        if (.not.assert(L2, L2ans)) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_connectivity_matrix -2"
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
 end module
