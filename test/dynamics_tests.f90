@@ -2,6 +2,7 @@ program main
     use iso_fortran_env, only : int32
     use dynamics_frf_tests
     use dynamics_structures_tests
+    use dynamics_kinematics_tests
     implicit none
 
     ! Variables
@@ -45,6 +46,8 @@ program main
     check = test_connectivity_matrix()
     if (.not.check) flag = 11
 
+    check = test_forward_kinematics()
+    if (.not.check) flag = 12
 
     ! End
     if (flag /= 0) stop flag

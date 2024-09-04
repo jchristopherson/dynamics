@@ -2,6 +2,7 @@ module dynamics
     use dynamics_frequency_response
     use dynamics_rotation
     use dynamics_structural
+    use dynamics_kinematics
     implicit none
     private
     ! DYNAMICS_FREQUENCY_RESPONSE
@@ -37,4 +38,13 @@ module dynamics
     public :: apply_boundary_conditions
     public :: apply_displacement_constraint
     public :: restore_constrained_values
+
+    ! DYNAMICS_KINEMATICS
+    public :: identity_4
+    public :: dh_rotate_x
+    public :: dh_rotate_z
+    public :: dh_translate_x
+    public :: dh_translate_z
+    public :: dh_matrix
+    public :: dh_forward_kinematics
 end module
