@@ -47,4 +47,6 @@ module dynamics
     public :: dh_translate_z
     public :: dh_matrix
     public :: dh_forward_kinematics
+    public :: solve_inverse_kinematics
+    public :: vecfcn
 end module

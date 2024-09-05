@@ -13,8 +13,8 @@ module dynamics_kinematics
     public :: dh_translate_z
     public :: dh_matrix
     public :: dh_forward_kinematics
-    public :: kinematics_equations
     public :: solve_inverse_kinematics
+    public :: vecfcn
 
     interface dh_forward_kinematics
         module procedure :: dh_forward_kinematics_2
@@ -27,34 +27,10 @@ module dynamics_kinematics
         module procedure :: dh_forward_kinematics_array
     end interface
 
-    interface
-        pure function kinematics_equations(q, target, ivec, jvec, kvec) result(rst)
-            !! Defines a routine used to compute the error in each kinematics
-            !! equation given the current set of joint variables.
-            use iso_fortran_env, only : real64
-            real(real64), intent(in), dimension(:) :: q
-                !! An M-element array containing the current estimates for each
-                !! of the M joint variables.
-            real(real64), intent(in), dimension(3) :: target
-                !! A 3-element array defining the x-y-z location of the target
-                !! location of the linkage end-effector.
-            real(real64), intent(in), dimension(3) :: ivec
-                !! A 3-element array defining the unit vector representing the
-                !! orientation of the end-effector x-axis within the mechanism
-                !! coordinate system.
-            real(real64), intent(in), dimension(3) :: jvec
-                !! A 3-element array defining the unit vector representing the
-                !! orientation of the end-effector y-axis within the mechanism
-                !! coordinate system.
-            real(real64), intent(in), dimension(3) :: kvec
-                !! A 3-element array defining the unit vector representing the
-                !! orientation of the end-effector z-axis within the mechanism
-                !! coordinate system.
-            real(real64), allocatable, dimension(:) :: rst
-                !! An N-element array where the deviation in each of the N
-                !! kinematic equations is to be written.
-        end function
-    end interface
+! ------------------------------------------------------------------------------
+    ! PRIVATE VARIABLES - INVERSE KINEMATICS
+    procedure(vecfcn), pointer, private :: kinematics_equations
+    real(real64), pointer, private, dimension(:) :: kinematic_constraints
 
 contains
 ! ------------------------------------------------------------------------------
@@ -494,19 +470,23 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
-    function solve_inverse_kinematics(mdl, qo, df, slvr, ib, err) result(rst)
-        !! Solves the inverse kinematics problem for a linkage.  A 
-        !! Levenberg-Marquardt solver is utilized.
+    function solve_inverse_kinematics(mdl, qo, constraints, df, &
+        slvr, ib, err) result(rst)
+        !! Solves the inverse kinematics problem for a linkage.  An iterative
+        !! solution procedure is utilized.
         procedure(vecfcn), intent(in), pointer :: mdl
             !! A routine used to compute the error in the kinematics 
             !! equations based upon the current solution estimate.
-        real(real64), intent(out), dimension(:) :: df
-            !! An array of length N, where N is the number of kinematic 
-            !! equations, where the residual will be written.  N must be at
-            !! least equal to M (the number of joint variables).
         real(real64), intent(in), dimension(:) :: qo
             !! An M-element array containing an initial estimate of the M joint
             !! variables.
+        real(real64), intent(in), target, dimension(:) :: constraints
+            !! An N-element array containing the target values (constraints) for
+            !! each of the N kinematic equations in the model.  N must be at 
+            !! least equal to M (the number of joint variables).
+        real(real64), intent(out), optional, target, dimension(:) :: df
+            !! An optional N-element array that, if supplied, can be used to 
+            !! retrieve the residuals of each of the N kinematic equations.
         class(least_squares_solver), intent(inout), optional, target :: slvr
             !! An optional solver that can be used in place of the default
             !! Levenberg-Marquardt solver.
@@ -521,6 +501,8 @@ contains
 
         ! Local Variables
         integer(int32) :: nvar, neqn, flag
+        real(real64), pointer, dimension(:) :: resid
+        real(real64), allocatable, target, dimension(:) :: dresid
         type(vecfcn_helper) :: helper
         class(least_squares_solver), pointer :: solver
         type(least_squares_solver), target :: default_solver
@@ -535,12 +517,14 @@ contains
             errmgr => deferr
         end if
         nvar = size(qo)
-        neqn = size(df)
+        neqn = size(constraints)
         if (present(slvr)) then
             solver => slvr
         else
             solver => default_solver
         end if
+        kinematics_equations => mdl
+        kinematic_constraints => constraints
 
         ! Input Check
         if (neqn < nvar) then
@@ -548,21 +532,47 @@ contains
                 nvar, neqn, errmgr)
             return
         end if
+        if (present(df)) then
+            if (size(df) /= neqn) then
+                call report_array_size_error("solve_inverse_kinematics", "df", &
+                    neqn, size(df), errmgr)
+                return
+            end if
+        end if
 
         ! Set up the solver
-        fcn => mdl
+        fcn => inverse_kinematics_solver
         call helper%set_fcn(fcn, neqn, nvar)
 
         ! Local Memory Allocations
         allocate(rst(nvar), source = qo, stat = flag)
+        if (present(df)) then
+            resid => df
+        else
+            if (flag == 0) allocate(dresid(neqn), stat = flag)
+            if (flag == 0) resid => dresid
+        end if
         if (flag /= 0) then
             call report_memory_error("solve_inverse_kinematics", flag, errmgr)
             return
         end if
 
         ! Solve the problem
-        call solver%solve(helper, rst, df, ib = ib, err = errmgr)
+        call solver%solve(helper, rst, resid, ib = ib, err = errmgr)
     end function
+
+! ----------
+    subroutine inverse_kinematics_solver(x, f)
+        ! Routine called by the inverse kinematics solver
+        real(real64), intent(in), dimension(:) :: x
+        real(real64), intent(out), dimension(:) :: f
+
+        ! Compute the kinematics equations
+        call kinematics_equations(x, f)
+
+        ! Compare with the constraints
+        f = f - kinematic_constraints
+    end subroutine
 
 ! ------------------------------------------------------------------------------
 end module

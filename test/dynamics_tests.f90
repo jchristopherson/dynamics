@@ -49,6 +49,9 @@ program main
     check = test_forward_kinematics()
     if (.not.check) flag = 12
 
+    check = test_inverse_kinematics()
+    if (.not.check) flag = 13
+
     ! End
     if (flag /= 0) stop flag
 end program

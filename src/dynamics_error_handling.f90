@@ -21,6 +21,8 @@ module dynamics_error_handling
         !! Defines an index out of range error.
     integer(int32), parameter :: DYN_NONMONOTONIC_ARRAY_ERROR = 100104
         !! Defines an error related to an array being nonmonotonic.
+    integer(int32), parameter :: DYN_ARRAY_SIZE_ERROR = 100105
+        !! Defines an error for an improperly sized array.
 contains
 ! ------------------------------------------------------------------------------
     subroutine report_null_forcing_routine_error(name, err)
@@ -343,6 +345,33 @@ contains
         write(errmsg, 100) "Expected to find ", expected, &
             " constraints, but found ", actual, " constraints instead."
         call err%report_error(name, trim(errmsg), DYN_CONSTRAINT_ERROR)
+
+        ! Formatting
+    100 format(A, I0, A, I0, A)
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    subroutine report_array_size_error(name, var, expected, actual, err)
+        !! Reports an array size error.
+        character(len = *), intent(in) :: name
+            !! The name of the routine in which the error was found.
+        character(len = *), intent(in) :: var
+            !! The name of the offending variable.
+        integer(int32), intent(in) :: expected
+            !! The expected array size.
+        integer(int32), intent(in) :: actual
+            !! The actual array size.
+        class(errors), intent(inout) :: err
+            !! An errors-based object that if provided can be used to retrieve 
+            !! information relating to any errors encountered during execution.
+
+        ! Local Variables
+        character(len = 256) :: errmsg
+
+        ! Report the error
+        write(errmsg, 100) "Expected array " // var // " to be of size ", &
+            expected, ", but found it to be of size ", actual, "."
+        call err%report_error(name, trim(errmsg), DYN_ARRAY_SIZE_ERROR)
 
         ! Formatting
     100 format(A, I0, A, I0, A)
