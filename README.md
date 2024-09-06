@@ -3,6 +3,7 @@ A library of routines used for the analysis of dynamic systems.
 
 ## Status
 [![CMake](https://github.com/jchristopherson/dynamics/actions/workflows/cmake.yml/badge.svg)](https://github.com/jchristopherson/dynamics/actions/workflows/cmake.yml)
+[![Actions Status](https://github.com/jchristopherson/dynamics/workflows/fpm/badge.svg)](https://github.com/jchristopherson/dynamics/actions)
 
 ## Example 1
 This example illustrates how to compute the frequency response of Duffing's equation by sweeping across frequency.
