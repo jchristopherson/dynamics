@@ -15,6 +15,8 @@ module dynamics_kinematics
     public :: dh_forward_kinematics
     public :: solve_inverse_kinematics
     public :: vecfcn
+    public :: least_squares_solver
+    public :: iteration_behavior
 
     interface dh_forward_kinematics
         module procedure :: dh_forward_kinematics_2
