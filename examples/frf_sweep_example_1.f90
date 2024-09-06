@@ -3,26 +3,16 @@ module duffing_ode_container
     use dynamics
     implicit none
 
-    type, extends(harmonic_ode_container) :: duffing_container
-        ! Duffing Model Parameters
-        real(real64) :: alpha = 1.0d0
-        real(real64) :: beta = 4.0d-2
-        real(real64) :: delta = 1.0d-1
-        real(real64) :: gamma = 1.0d0
-    contains
-        procedure, public :: ode => duffing_ode
-
-        ! The following procedures are not necessary for an actual 
-        ! implementation.  They are being used for comparison for the purposes 
-        ! of the example.
-        procedure, public :: leg1
-        procedure, public :: leg2
-    end type
+    ! Duffing Model Parameters
+    real(real64), parameter :: alpha = 1.0d0
+    real(real64), parameter :: beta = 4.0d-2
+    real(real64), parameter :: delta = 1.0d-1
+    real(real64), parameter :: gamma = 1.0d0
 
 contains
-    subroutine duffing_ode(this, x, y, dydx)
-        ! The overload of the base ODE routine.
-        class(duffing_container), intent(in) :: this
+    pure subroutine duffing_ode(freq, x, y, dydx)
+        real(real64), intent(in) :: freq
+            ! The excitation frequency
         real(real64), intent(in) :: x
             ! The independent variable.
         real(real64), intent(in), dimension(:) :: y
@@ -34,20 +24,17 @@ contains
         real(real64) :: f
 
         ! Compute the harmonic forcing function
-        ! - note the use of excitation_frequency
-        f = this%gamma * sin(this%excitation_frequency * x)
+        f = gamma * sin(freq * x)
 
         ! Compute the derivatives
         dydx(1) = y(2)
-        dydx(2) = f - this%delta * y(2) - &
-            this%alpha * y(1) - this%beta * y(1)**3
+        dydx(2) = f - delta * y(2) - alpha * y(1) - beta * y(1)**3
     end subroutine
 
     ! Analytical Solution - Not necessary for the analysis, but used for 
     ! the purpose of comparison.
-    pure elemental function leg1(this, z) result(rst)
+    pure elemental function leg1(z) result(rst)
         use ieee_arithmetic
-        class(duffing_container), intent(in) :: this
         real(real64), intent(in) :: z
         real(real64) :: rst
 
@@ -56,13 +43,13 @@ contains
 
         ! Process
         nan = ieee_value(nan, ieee_quiet_nan)
-        arg = 4.0d0 * this%gamma**2 - 3.0d0 * this%beta * this%delta**2 * &
-            z**4 + (this%delta**2 - 4.0d0 * this%alpha) * this%delta**2 * z**2
+        arg = 4.0d0 * gamma**2 - 3.0d0 * beta * delta**2 * &
+            z**4 + (delta**2 - 4.0d0 * alpha) * delta**2 * z**2
         if (arg < 0.0d0) then
             s = -1.0d0
         else
-            s = (2.0d0 * sqrt(arg) + z * (3.0d0 * this%beta * z**2 - &
-                2.0d0 * this%delta**2 + 4.0d0 * this%alpha)) / (4.0d0 * z)
+            s = (2.0d0 * sqrt(arg) + z * (3.0d0 * beta * z**2 - &
+                2.0d0 * delta**2 + 4.0d0 * alpha)) / (4.0d0 * z)
         end if
         if (s < 0.0d0) then
             rst = nan
@@ -71,9 +58,8 @@ contains
         end if
     end function
 
-    pure elemental function leg2(this, z) result(rst)
+    pure elemental function leg2(z) result(rst)
         use ieee_arithmetic
-        class(duffing_container), intent(in) :: this
         real(real64), intent(in) :: z
         real(real64) :: rst
 
@@ -82,13 +68,13 @@ contains
 
         ! Process
         nan = ieee_value(nan, ieee_quiet_nan)
-        arg = 4.0d0 * this%gamma**2 - 3.0d0 * this%beta * this%delta**2 * &
-            z**4 + (this%delta**2 - 4.0d0 * this%alpha) * this%delta**2 * z**2
+        arg = 4.0d0 * gamma**2 - 3.0d0 * beta * delta**2 * &
+            z**4 + (delta**2 - 4.0d0 * alpha) * delta**2 * z**2
         if (arg < 0.0d0) then
             s = -1.0d0
         else
-            s = (-2.0d0 * sqrt(arg) + z * (3.0d0 * this%beta * z**2 - &
-                2.0d0 * this%delta**2 + 4.0d0 * this%alpha)) / (4.0d0 * z)
+            s = (-2.0d0 * sqrt(arg) + z * (3.0d0 * beta * z**2 - &
+                2.0d0 * delta**2 + 4.0d0 * alpha)) / (4.0d0 * z)
         end if
         if (s < 0.0d0) then
             rst = nan
@@ -116,7 +102,7 @@ program example
     real(real64), parameter :: zmin = 0.5d0
     
     ! Local Variables
-    type(duffing_container) :: sys
+    procedure(harmonic_ode), pointer :: fcn
     integer(int32) :: i
     real(real64) :: dz, phase1(nfreq), phase2(nfreq), z(npts), w1(npts), w2(npts)
     type(frf) :: solup, soldown
@@ -128,19 +114,22 @@ program example
     class(plot_axis), pointer :: xAxis, yAxis
     class(legend), pointer :: lgnd
 
+    ! Point to the ODE routin
+    fcn => duffing_ode
+
     ! Perform the ascending sweep
-    solup = sys%frequency_sweep(nfreq, f1, f2, [0.0d0, 0.0d0])
+    solup = frequency_sweep(fcn, nfreq, f1, f2, [0.0d0, 0.0d0])
     phase1 = atan2(aimag(solup%responses(:,1)), real(solup%responses(:,1)))
 
     ! Perform the descending sweep
-    soldown = sys%frequency_sweep(nfreq, f2, f1, [0.0d0, 0.0d0])
+    soldown = frequency_sweep(fcn, nfreq, f2, f1, [0.0d0, 0.0d0])
     phase2 = atan2(aimag(soldown%responses(:,1)), real(soldown%responses(:,1)))
 
     ! Compute the analytical solution
     dz = (zmax - zmin) / (npts - 1.0d0)
     z = (/ (dz * i + zmin, i = 0, npts - 1) /)
-    w1 = sys%leg1(z)
-    w2 = sys%leg2(z)
+    w1 = leg1(z)
+    w2 = leg2(z)
 
     ! Plot the results
     call plt%initialize(2, 1)
