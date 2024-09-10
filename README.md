@@ -151,7 +151,7 @@ program example
     procedure(harmonic_ode), pointer :: fcn
     type(frf) :: solup, soldown
 
-    ! Point to the ODE routin
+    ! Point to the ODE routine
     fcn => duffing_ode
 
     ! Perform the ascending sweep
