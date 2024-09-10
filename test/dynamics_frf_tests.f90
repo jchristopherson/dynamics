@@ -75,7 +75,7 @@ function test_frf_sweep() result(rst)
     ! Local Variables
     procedure(harmonic_ode), pointer :: fcn
     integer(int32) :: i
-    real(real64) :: df, freq(npts)
+    real(real64) :: df, freq(npts), omega(npts)
     real(real64), allocatable, dimension(:) :: mag1, mag2, magans1, magans2, &
         ratio1, ratio2, ref
     type(frf) :: sol
@@ -86,6 +86,7 @@ function test_frf_sweep() result(rst)
     fcn => example_2nd_order_sweep
     df = (fmax - fmin) / (npts - 1.0d0)
     freq = (/ (df * i + fmin, i = 0, npts - 1) /)
+    omega = 2.0d0 * pi * freq
 
     ! Compute the FRF's
     sol = frequency_sweep(fcn, freq, [0.0d0, 0.0d0])
@@ -93,7 +94,7 @@ function test_frf_sweep() result(rst)
     mag2 = abs(sol%responses(:,2))
 
     ! Compute the solution
-    s = j * (2.0d0 * pi * freq)
+    s = j * omega
     tf1 = 1.0d0 / (s**2 + 2.0d0 * z * wn * s + wn**2)
     tf2 = s * tf1
     magans1 = abs(tf1)
@@ -131,6 +132,7 @@ function test_proportional_damping_frf() result(rst)
     logical :: rst
 
     ! Parameters
+    real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
     real(real64), parameter :: tol = 1.0d-3
     integer(int32), parameter :: nfreq = 100
     real(real64), parameter :: fmin = 10.0d0
@@ -150,7 +152,7 @@ function test_proportional_damping_frf() result(rst)
 
     ! Local Variables
     integer(int32) :: i
-    real(real64) :: df, m(3,3), k(3,3), freq(nfreq)
+    real(real64) :: df, m(3,3), k(3,3), freq(nfreq), omega(nfreq)
     real(real64), allocatable, dimension(:) :: modes
     real(real64), allocatable, dimension(:,:) :: modeshapes
     procedure(modal_excite), pointer :: fcn
@@ -160,6 +162,7 @@ function test_proportional_damping_frf() result(rst)
     rst = .true.
     df = (fmax - fmin) / (nfreq - 1.0d0)
     freq = (/ (df * i + fmin, i = 0, nfreq - 1) /)
+    omega = 2.0d0 * pi * freq
     fcn => modal_frf_forcing_term
 
     ! Define the mass matrix
@@ -170,10 +173,10 @@ function test_proportional_damping_frf() result(rst)
         [3, 3])
 
     ! Compute the frequency response functions, along with the modal information
-    rsp = frequency_response(m, k, alpha, beta, freq, fcn, modes, modeshapes)
+    rsp = frequency_response(m, k, alpha, beta, omega, fcn, modes, modeshapes)
 
     ! Verify the modal results
-    if (.not.assert(ans1, modes, tol)) then
+    if (.not.assert(2.0d0 * pi * ans1, modes, tol)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_proportional_damping_frf -1"
     end if
@@ -186,6 +189,7 @@ function test_modal_response() result(rst)
     logical :: rst
 
     ! Parameters
+    real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
     real(real64), parameter :: tol = 1.0d-3
     integer(int32), parameter :: nfreq = 100
     real(real64), parameter :: fmin = 10.0d0
@@ -228,7 +232,7 @@ function test_modal_response() result(rst)
     call normalize_mode_shapes(modeshapes)
 
     ! Verify the modal frequencies
-    if (.not.assert(ans1, modes, tol)) then
+    if (.not.assert(2.0d0 * pi * ans1, modes, tol)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_modal_response -1"
     end if

@@ -23,11 +23,11 @@ program example
 
     ! Parameters
     integer(int32), parameter :: nfreq = 1000
-    real(real64), parameter :: fmin = 10.0d0
-    real(real64), parameter :: fmax = 1.0d3
+    real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
+    real(real64), parameter :: fmin = 2.0d0 * pi * 10.0d0
+    real(real64), parameter :: fmax = 2.0d0 * pi * 1.0d3
     real(real64), parameter :: alpha = 1.0d-3
     real(real64), parameter :: beta = 2.0d-6
-    real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
 
     ! Define the model parameters
     real(real64), parameter :: m1 = 0.5d0
@@ -42,6 +42,7 @@ program example
     integer(int32) :: i
     real(real64) :: m(3,3), k(3,3)
     type(frf) :: rsp
+    real(real64), allocatable, dimension(:) :: freq
     real(real64), allocatable, dimension(:,:) :: mag, phase
     procedure(modal_excite), pointer :: fcn
 
@@ -66,6 +67,7 @@ program example
     rsp = frequency_response(m, k, alpha, beta, nfreq, fmin, fmax, fcn)
 
     ! Extract the magnitude and phase information.
+    freq = rsp%frequency / (2.0d0 * pi)
     mag = abs(rsp%responses)
     phase = (1.8d2 / pi) * atan2(aimag(rsp%responses), real(rsp%responses))
 
@@ -84,18 +86,18 @@ program example
     call lgnd%set_layout(LEGEND_ARRANGE_HORIZONTALLY)
     call lgnd%set_draw_border(.false.)
 
-    call pd1%define_data(rsp%frequency, mag(:,1))
+    call pd1%define_data(freq, mag(:,1))
     call pd1%set_line_width(2.0)
     call pd1%set_name("X_1")
     call plt1%push(pd1)
 
-    call pd2%define_data(rsp%frequency, mag(:,2))
+    call pd2%define_data(freq, mag(:,2))
     call pd2%set_line_width(2.0)
     call pd2%set_line_style(LINE_DASHED)
     call pd2%set_name("X_2")
     call plt1%push(pd2)
 
-    call pd3%define_data(rsp%frequency, mag(:,3))
+    call pd3%define_data(freq, mag(:,3))
     call pd3%set_line_width(3.0)
     call pd3%set_line_style(LINE_DASH_DOTTED)
     call pd3%set_name("X_3")
@@ -106,14 +108,16 @@ program example
     yAxis => plt2%get_y_axis()
     call xAxis%set_title("f [Hz]")
     call yAxis%set_title("{/Symbol f} [deg]")
+    call yAxis%set_use_default_tic_label_format(.false.)
+    call yAxis%set_tic_label_format("%4.0f")
 
-    call pd1%define_data(rsp%frequency, phase(:,1))
+    call pd1%define_data(freq, phase(:,1))
     call plt2%push(pd1)
 
-    call pd2%define_data(rsp%frequency, phase(:,2))
+    call pd2%define_data(freq, phase(:,2))
     call plt2%push(pd2)
 
-    call pd3%define_data(rsp%frequency, phase(:,3))
+    call pd3%define_data(freq, phase(:,3))
     call plt2%push(pd3)
     
     call plt%set(1, 1, plt1)
