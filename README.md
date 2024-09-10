@@ -12,11 +12,15 @@ Consider the following 3 DOF system.  The following example illustrates how to u
 
 The equations describing this system are as follows.
 
-$$ \begin{bmatrix} m_1 & 0 & 0 \\ 0 & m_2 & 0 \\ 0 & 0 & m_3 \end{bmatrix} \begin{Bmatrix} \ddot{x}_1 \\ \ddot{x}_2 \\ \ddot{x}_3 \end{Bmatrix} + \begin{bmatrix} b_1 + b_2 & -b_2 & 0 \\ -b_2 & b_2 + b_3 & -b_3 \\ 0 & -b_3 & b_3 + b_4 \end{bmatrix} \begin{Bmatrix} \dot{x}_1 \\ \dot{x}_2 \\ \dot{x}_3 \end{Bmatrix} + \begin{bmatrix} k_1 + k_2 & -k_2 & 0 \\ -k_2 & k_2 + k_3 & -k_3 \\ 0 & -k_3 & k_3 + k_4 \end{bmatrix} \begin{Bmatrix} x_{1} \\ x_{2} \\ x_{3} \end{Bmatrix} = \begin{Bmatrix} F(t) \\ 0 \\ 0 \end{Bmatrix} $$
+```math
+\begin{bmatrix} m_1 & 0 & 0 \\ 0 & m_2 & 0 \\ 0 & 0 & m_3 \end{bmatrix} \begin{Bmatrix} \ddot{x}_1 \\ \ddot{x}_2 \\ \ddot{x}_3 \end{Bmatrix} + \begin{bmatrix} b_1 + b_2 & -b_2 & 0 \\ -b_2 & b_2 + b_3 & -b_3 \\ 0 & -b_3 & b_3 + b_4 \end{bmatrix} \begin{Bmatrix} \dot{x}_1 \\ \dot{x}_2 \\ \dot{x}_3 \end{Bmatrix} + \begin{bmatrix} k_1 + k_2 & -k_2 & 0 \\ -k_2 & k_2 + k_3 & -k_3 \\ 0 & -k_3 & k_3 + k_4 \end{bmatrix} \begin{Bmatrix} x_{1} \\ x_{2} \\ x_{3} \end{Bmatrix} = \begin{Bmatrix} F(t) \\ 0 \\ 0 \end{Bmatrix}
+```
 
 This analysis makes use of proportional damping.  Using proportional damping, the damping matrix is determined as follows.
 
-$$ B = \alpha M + \beta K $$
+```math
+B = \alpha M + \beta K
+```
 
 The following module contains the forcing term.
 ```fortran
@@ -88,7 +92,9 @@ The computed frequency response functions.
 # Nonlinear FRF Example
 Computing the frequency response function for a nonlinear system is not as straight-forward courtesy of behaviors such as jump phenomenon.  A technique for capturing such nonlinear behaviors is to sweep through frequency, in both an ascending and a descending manner.  This example illustrates such a frequency sweeping using the famous Duffing equation as the model.
 
-$$ \ddot{x} + \delta \dot{x} + \alpha x + \beta x^3 = \gamma \sin \omega t $$
+```math
+\ddot{x} + \delta \dot{x} + \alpha x + \beta x^3 = \gamma \sin \omega t
+```
 
 The following module contains the forcing term.
 ```fortran
