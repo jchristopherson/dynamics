@@ -5,6 +5,9 @@ A library of routines used for the analysis of dynamic systems.
 [![CMake](https://github.com/jchristopherson/dynamics/actions/workflows/cmake.yml/badge.svg)](https://github.com/jchristopherson/dynamics/actions/workflows/cmake.yml)
 [![Actions Status](https://github.com/jchristopherson/dynamics/workflows/fpm/badge.svg)](https://github.com/jchristopherson/dynamics/actions)
 
+## Documentation
+The documentation can be found [here](https://jchristopherson.github.io/dynamics/).
+
 ## Frequency Response Example
 Consider the following 3 DOF system.  The following example illustrates how to use this library to compute the frequency response functions for this system.  
 
@@ -88,7 +91,7 @@ end program
 The computed frequency response functions.
 ![](images/frf_proportional_example_1.png?raw=true)
 
-# Nonlinear FRF Example
+## Nonlinear FRF Example
 Computing the frequency response function for a nonlinear system is not as straight-forward courtesy of behaviors such as jump phenomenon.  A technique for capturing such nonlinear behaviors is to sweep through frequency, in both an ascending and a descending manner.  This example illustrates such a frequency sweeping using the famous Duffing equation as the model.
 
 ```math
