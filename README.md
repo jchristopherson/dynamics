@@ -45,7 +45,6 @@ The calling program is as follows.
 program example
     use iso_fortran_env
     use dynamics
-    use fplot_core
     use excitation
     implicit none
 
@@ -137,7 +136,6 @@ The calling program is as follows.
 program example
     use iso_fortran_env
     use dynamics
-    use fplot_core
     use duffing_ode_container
     implicit none
 
