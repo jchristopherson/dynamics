@@ -71,6 +71,9 @@ program example
     mag = abs(rsp%responses)
     phase = (1.8d2 / pi) * atan2(aimag(rsp%responses), real(rsp%responses))
 
+! ------------------------------------------------------------------------------
+! PLOTTING CODE ONLY
+! ------------------------------------------------------------------------------
     ! Plot the frequency response functions
     call plt%initialize(2, 1)
     call plt1%initialize()
