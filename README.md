@@ -92,7 +92,7 @@ The computed frequency response functions.
 ![](images/frf_proportional_example_1.png?raw=true)
 
 ## Nonlinear FRF Example
-Computing the frequency response function for a nonlinear system is not as straight-forward courtesy of behaviors such as jump phenomenon.  A technique for capturing such nonlinear behaviors is to sweep through frequency, in both an ascending and a descending manner.  This example illustrates such a frequency sweeping using the famous Duffing equation as the model.
+Computing the frequency response function for a nonlinear system is not as straight-forward.  A technique for capturing nonlinear behaviors, such as jump phenomenon, is to sweep through frequency, in both an ascending and a descending manner.  This example illustrates such a frequency sweeping using the famous Duffing equation as the model.
 
 ```math
 \ddot{x} + \delta \dot{x} + \alpha x + \beta x^3 = \gamma \sin \omega t
