@@ -156,11 +156,9 @@ program example
 
     ! Perform the ascending sweep
     solup = frequency_sweep(fcn, nfreq, f1, f2, [0.0d0, 0.0d0])
-    phase1 = atan2(aimag(solup%responses(:,1)), real(solup%responses(:,1)))
 
     ! Perform the descending sweep
     soldown = frequency_sweep(fcn, nfreq, f2, f1, [0.0d0, 0.0d0])
-    phase2 = atan2(aimag(soldown%responses(:,1)), real(soldown%responses(:,1)))
 end program
 ```
 The computed frequency response functions, both ascending and descending, as compared with the analytical approximation.
