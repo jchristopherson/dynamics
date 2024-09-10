@@ -96,7 +96,7 @@ Computing the frequency response function for a nonlinear system is not as strai
 \ddot{x} + \delta \dot{x} + \alpha x + \beta x^3 = \gamma \sin \omega t
 ```
 
-The following module contains the forcing term.
+The following module contains the equation.
 ```fortran
 module duffing_ode_container
     use iso_fortran_env
