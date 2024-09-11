@@ -26,3 +26,10 @@ add_executable(
 )
 link_library(rotation_example_1 ${PROJECT_NAME} ${PROJECT_INCLUDE_DIR})
 link_library(rotation_example_1 ${fplot_LIBRARY} ${fplot_INCLUDE_DIR})
+
+# Kinematics Example 1
+add_executable(
+    kinematics_example_1
+    kinematics_example_1.f90
+)
+link_library(kinematics_example_1 ${PROJECT_NAME} ${PROJECT_INCLUDE_DIR})
