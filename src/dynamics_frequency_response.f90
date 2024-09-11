@@ -31,7 +31,10 @@ module dynamics_frequency_response
             !! function for a modal frequency analysis.
             use iso_fortran_env, only : real64
             real(real64), intent(in) :: freq
-                !! The excitation frequency.
+                !! The excitation frequency.  When used as a part of a frequency
+                !! response calculation, this value will have the same units as
+                !! the frequency values provided to the frequency response
+                !! routine.
             complex(real64), intent(out), dimension(:) :: frc
                 !! An N-element array where the forcing function should be
                 !! written.
@@ -52,8 +55,16 @@ module dynamics_frequency_response
     end interface
 
     type frf
+        !! A container for a frequency response function, or series of frequency
+        !! response functions.
         real(real64), allocatable, dimension(:) :: frequency
+            !! An N-element array containing the frequency values at which the 
+            !! FRF is provided.  The units of this array are the same as the
+            !! units of the frequency values passed to the routine used to 
+            !! compute the frequency response.
         complex(real64), allocatable, dimension(:,:) :: responses
+            !! An N-by-M matrix containing the M frequency response functions
+            !! evaluated at each of the N frequency points.
     end type
 
     interface frequency_response
@@ -118,14 +129,14 @@ contains
             !! The stiffness damping factor, \( \beta \).
         real(real64), intent(in), dimension(:) :: freq
             !! An M-element array of frequency values at which to evaluate the
-            !! frequency response functions.
+            !! frequency response functions, in units of rad/s.
         procedure(modal_excite), pointer, intent(in) :: frc
             !! A pointer to a routine used to compute the modal forcing 
             !! function.
         real(real64), intent(out), allocatable, optional, &
             dimension(:) :: modes
             !! An optional N-element allocatable array that, if supplied, will
-            !! be used to retrieve the modal frequencies, in units of Hz.
+            !! be used to retrieve the modal frequencies, in units of rad/s.
         real(real64), intent(out), allocatable, optional, &
             dimension(:,:) :: modeshapes
             !! An optional N-by-N allocatable matrix that, if supplied, will be
@@ -149,7 +160,6 @@ contains
             !! The resulting frequency responses.
 
         ! Parameters
-        real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
         complex(real64), parameter :: j = (0.0d0, 1.0d0)
         complex(real64), parameter :: zero = (0.0d0, 0.0d0)
         complex(real64), parameter :: one = (1.0d0, 0.0d0)
@@ -208,7 +218,7 @@ contains
         do i = 1, m
             call frc(freq(i), f)
             call mtx_mult(LA_TRANSPOSE, one, vecs, f, zero, u)
-            s = j * (2.0d0 * pi * freq(i))
+            s = j * freq(i)
             q = u / (s**2 + 2.0d0 * zeta * sqrt(lambda) * s + lambda)
             call mtx_mult(LA_NO_OPERATION, one, vecs, q, zero, rst%responses(i,:))
         end do
@@ -220,7 +230,7 @@ contains
         end if
 
         if (present(modes)) then
-            allocate(modes(n), source = sqrt(real(vals)) / (2.0d0 * pi), &
+            allocate(modes(n), source = sqrt(real(vals)), &
                 stat = flag)
             if (flag /= 0) go to 10
         end if
@@ -288,18 +298,16 @@ contains
             !! The number of frequency values to analyze.  This value must be
             !! at least 2.
         real(real64), intent(in) :: freq1
-            !! The starting frequency.  It is recommended that the units be set
-            !! to Hz.
+            !! The starting frequency, in units of rad/s.
         real(real64), intent(in) :: freq2
-            !! The ending frequency.  It is recommended that the units be set to
-            !! Hz.
+            !! The ending frequency, in units of rad/s.
         procedure(modal_excite), pointer, intent(in) :: frc
             !! A pointer to a routine used to compute the modal forcing 
             !! function.
         real(real64), intent(out), allocatable, optional, &
             dimension(:) :: modes
             !! An optional N-element allocatable array that, if supplied, will
-            !! be used to retrieve the modal frequencies, in units of Hz.
+            !! be used to retrieve the modal frequencies, in units of rad/s.
         real(real64), intent(out), allocatable, optional, &
             dimension(:,:) :: modeshapes
             !! An optional N-by-N allocatable matrix that, if supplied, will be
@@ -401,16 +409,13 @@ contains
             !! be symmetric.
         real(real64), intent(out), allocatable, dimension(:) :: freqs
             !! An allocatable N-element array where the modal frequencies will
-            !! be returned in ascending order with units of Hz.
+            !! be returned in ascending order with units of rad/s.
         real(real64), intent(out), allocatable, optional, dimension(:,:) :: &
             modeshapes
             !! An optional, allocatable N-by-N matrix where the N mode shapes
             !! for the system will be returned.  The mode shapes are stored in
             !! columns.
         class(errors), intent(inout), optional, target :: err
-
-        ! Parameters
-        real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
 
         ! Local Variables
         integer(int32) :: n, flag
@@ -458,7 +463,7 @@ contains
         end if
 
         ! Convert the eigenvalues to frequency values
-        allocate(freqs(n), source = sqrt(abs(real(vals))) / (2.0d0 * pi), &
+        allocate(freqs(n), source = sqrt(abs(real(vals))), &
             stat = flag)
         if (flag /= 0) go to 40
 
