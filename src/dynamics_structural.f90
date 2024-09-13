@@ -670,9 +670,9 @@ function restore_constrained_values(gdof, x, err) result(rst)
 
     ! Input Checking
     do i = 1, nbc
-        if (gdof(i) < 1 .or. gdof(i) > n) then
+        if (gdof(i) < 1 .or. gdof(i) > nnew) then
             call report_array_index_out_of_bounds_error( &
-                "restore_constrained_values", "gdof", gdof(i), n, errmgr)
+                "restore_constrained_values", "gdof", gdof(i), nnew, errmgr)
             return
         end if
     end do

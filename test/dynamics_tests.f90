@@ -52,6 +52,9 @@ program main
     check = test_inverse_kinematics()
     if (.not.check) flag = 13
 
+    check = test_boundary_conditions_2()
+    if (.not.check) flag = 14
+
     ! End
     if (flag /= 0) stop flag
 end program
