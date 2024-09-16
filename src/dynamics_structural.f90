@@ -1253,7 +1253,7 @@ pure function b2d_rotation_matrix(this) result(rst)
     rst(4,4) = ct
     rst(5,4) = st
     rst(4,5) = -st
-    rst(5,5) = st
+    rst(5,5) = ct
     rst(6,6) = 1.0d0
 end function
 
