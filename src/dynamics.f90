@@ -21,6 +21,7 @@ module dynamics
     public :: rotate_x
     public :: rotate_y
     public :: rotate_z
+    public :: rotate
 
     ! DYNAMICS_STRUCTURAL
     public :: DYN_ONE_POINT_INTEGRATION_RULE
@@ -38,6 +39,8 @@ module dynamics
     public :: apply_boundary_conditions
     public :: apply_displacement_constraint
     public :: restore_constrained_values
+    public :: point
+    public :: beam_element_3d
 
     ! DYNAMICS_KINEMATICS
     public :: identity_4
