@@ -55,6 +55,18 @@ program main
     check = test_boundary_conditions_2()
     if (.not.check) flag = 14
 
+    check = test_beam3d_shape_function_matrix()
+    if (.not.check) flag = 15
+
+    check = test_beam3d_strain_displacement()
+    if (.not.check) flag = 16
+
+    check = test_beam3d_stiffness_matrix()
+    if (.not.check) flag = 17
+
+    check = test_beam3d_mass_matrix()
+    if (.not.check) flag = 18
+
     ! End
     if (flag /= 0) stop flag
 end program

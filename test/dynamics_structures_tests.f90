@@ -504,7 +504,7 @@ contains
         logical :: rst
 
         ! Parameters
-        real(real64), parameter :: tol = 5.0d-6
+        real(real64), parameter :: tol = 1.0d-6
     
         ! Local Variables
         real(real64) :: l, x1, y1, x2, y2, w, h, f
@@ -569,7 +569,7 @@ contains
     
         ! Test
         m = e%mass_matrix()
-        if (.not.assert(ans, m, tol)) then
+        if (.not.assert(ans, m, tol * maxval(abs(ans)))) then
             rst = .false.
             print "(A)", "TEST FAILED: test_beam2d_mass_matrix -1"
         end if
@@ -781,7 +781,7 @@ contains
         logical :: rst
 
         ! Variables
-    integer(int32), parameter :: gdof = 9 ! 3 dof per node, 3 nodes
+        integer(int32), parameter :: gdof = 9 ! 3 dof per node, 3 nodes
         real(real64) :: x1, y1, x2, y2, x3, y3, a1, a2, i1, i2, &
             L1ans(6,9), L2ans(6,9)
         real(real64), allocatable, dimension(:,:) :: L1, L2
@@ -873,6 +873,377 @@ contains
             print "(A)", "TEST FAILED: test_connectivity_matrix -2"
         end if
     end function
+
+! ------------------------------------------------------------------------------
+function test_beam3d_shape_function_matrix() result(rst)
+    ! Arguments
+    logical :: rst
+
+    ! Parameters
+    real(real64), parameter :: tol = 1.0d-6
+
+    ! Local Variables
+    real(real64) :: x1, y1, z1, x2, y2, z2, A, rho, E, nu, Ixx, Iyy, Izz, L, G, s
+    real(real64), allocatable, dimension(:,:) :: N, ans
+    type(beam_element_3d) :: b
+    type(material) :: mat
+
+    ! Initialization
+    rst = .true.
+    E = 1.0d7
+    nu = 0.33d0
+    rho = 0.1d0 / 3.86d2
+    G = E / (2.0d0 * (1.0d0 + nu))
+    call random_number(x1)
+    call random_number(y1)
+    call random_number(z1)
+    call random_number(x2)
+    call random_number(y2)
+    call random_number(z2)
+    call random_number(A)
+    call random_number(Ixx)
+    call random_number(Iyy)
+    call random_number(Izz)
+    b%area = A
+    b%Ixx = Ixx
+    b%Iyy = Iyy
+    b%Izz = Izz
+    b%material%density = rho
+    b%material%modulus = E
+    b%material%poissons_ratio = nu
+    b%node_1%dof = 6
+    b%node_1%index = 1
+    b%node_1%x = x1
+    b%node_1%y = y1
+    b%node_1%z = z1
+    b%node_2%dof = 6
+    b%node_2%index = 2
+    b%node_2%x = x2
+    b%node_2%y = y2
+    b%node_2%z = z2
+    L = b%length()
+
+    ! Define the answer
+    call random_number(s)
+    allocate(ans(4,12), source = 0.0d0)
+    ans(1,1) = 0.5d0 * (1.0d0 - s)
+    ans(2,2) = 0.25d0 * (s - 1.0d0)**2 * (s + 2.0d0)
+    ans(3,3) = 0.25d0 * (s - 1.0d0)**2 * (s + 2.0d0)
+    ans(4,4) = 0.5d0 * (1.0d0 - s)
+    ans(3,5) = -0.125d0 * L * (s - 1.0d0)**2 * (s + 1.0d0)
+    ans(2,6) = 0.125d0 * L * (s - 1.0d0)**2 * (s + 1.0d0)
+    ans(1,7) = 0.5d0 * (1.0d0 + s)
+    ans(2,8) = 0.25d0 * (2.0d0 - s) * (s + 1.0d0)**2
+    ans(3,9) = 0.25d0 * (2.0d0 - s) * (s + 1.0d0)**2
+    ans(4,10) = 0.5d0 * (1.0d0 + s)
+    ans(3,11) = 0.125d0 * L * (1.0d0 - s) * (1.0d0 + s)**2
+    ans(2,12) = 0.125d0 * L * (s - 1.0d0) * (1.0d0 + s)**2
+
+    ! Compute the matrix
+    N = b%shape_function_matrix([s])
+
+    ! Test
+    if (.not.assert(N, ans, tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_beam3d_shape_function_matrix -1"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_beam3d_strain_displacement() result(rst)
+    ! Arguments
+    logical :: rst
+
+    ! Parameters
+    real(real64), parameter :: tol = 1.0d-6
+
+    ! Local Variables
+    real(real64) :: x1, y1, z1, x2, y2, z2, A, rho, E, nu, Ixx, Iyy, Izz, L, G, s
+    real(real64), allocatable, dimension(:,:) :: Be, ans
+    type(beam_element_3d) :: b
+    type(material) :: mat
+
+    ! Initialization
+    rst = .true.
+    E = 1.0d7
+    nu = 0.33d0
+    rho = 0.1d0 / 3.86d2
+    G = E / (2.0d0 * (1.0d0 + nu))
+    call random_number(x1)
+    call random_number(y1)
+    call random_number(z1)
+    call random_number(x2)
+    call random_number(y2)
+    call random_number(z2)
+    call random_number(A)
+    call random_number(Ixx)
+    call random_number(Iyy)
+    call random_number(Izz)
+    b%area = A
+    b%Ixx = Ixx
+    b%Iyy = Iyy
+    b%Izz = Izz
+    b%material%density = rho
+    b%material%modulus = E
+    b%material%poissons_ratio = nu
+    b%node_1%dof = 6
+    b%node_1%index = 1
+    b%node_1%x = x1
+    b%node_1%y = y1
+    b%node_1%z = z1
+    b%node_2%dof = 6
+    b%node_2%index = 2
+    b%node_2%x = x2
+    b%node_2%y = y2
+    b%node_2%z = z2
+    L = b%length()
+
+    ! Define the answer
+    call random_number(s)
+    allocate(ans(4,12), source = 0.0d0)
+    ans(1,1) = -1.0d0 / L
+    ans(2,2) = 6.0d0 * s / L**2
+    ans(3,3) = 6.0d0 * s / L**2
+    ans(4,4) = -1.0d0 / L
+    ans(3,5) = (1.0d0 - 3.0d0 * s) / L
+    ans(2,6) = (3.0d0 * s - 1.0d0) / L
+    ans(1,7) = 1.0d0 / L
+    ans(2,8) = -6.0d0 * s / L**2
+    ans(3,9) = -6.0d0 * s / L**2
+    ans(4,10) = 1.0d0 / L
+    ans(3,11) = -(3.0d0 * s + 1.0d0) / L
+    ans(2,12) = (3.0d0 * s + 1.0d0) / L
+
+    ! Compute the matrix
+    Be = b%strain_displacement_matrix([s])
+
+    ! Test
+    if (.not.assert(Be, ans, tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_beam3d_strain_displacement -1"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_beam3d_stiffness_matrix() result(rst)
+    ! Arguments
+    logical :: rst
+
+    ! Parameters
+    real(real64), parameter :: tol = 1.0d-6
+
+    ! Local Variables
+    real(real64) :: x1, y1, z1, x2, y2, z2, x3, y3, z3, A, rho, E, nu, Ixx, &
+        Iyy, Izz, L, G, s
+    real(real64), allocatable, dimension(:,:) :: T, K, ans
+    type(beam_element_3d) :: b
+    type(material) :: mat
+
+    ! Initialization
+    rst = .true.
+    E = 1.0d7
+    nu = 0.33d0
+    rho = 0.1d0 / 3.86d2
+    G = E / (2.0d0 * (1.0d0 + nu))
+    call random_number(x1)
+    call random_number(y1)
+    call random_number(z1)
+    call random_number(x2)
+    call random_number(y2)
+    call random_number(z2)
+    call random_number(x3)
+    call random_number(y3)
+    call random_number(z3)
+    call random_number(A)
+    call random_number(Ixx)
+    call random_number(Iyy)
+    call random_number(Izz)
+    b%area = A
+    b%Ixx = Ixx
+    b%Iyy = Iyy
+    b%Izz = Izz
+    b%material%density = rho
+    b%material%modulus = E
+    b%material%poissons_ratio = nu
+    b%node_1%dof = 6
+    b%node_1%index = 1
+    b%node_1%x = x1
+    b%node_1%y = y1
+    b%node_1%z = z1
+    b%node_2%dof = 6
+    b%node_2%index = 2
+    b%node_2%x = x2
+    b%node_2%y = y2
+    b%node_2%z = z2
+    b%orientation_point%x = x3
+    b%orientation_point%y = y3
+    b%orientation_point%z = z3
+    L = b%length()
+    T = b%rotation_matrix()
+
+    ! Define the answer
+    allocate(ans(12, 12), source = 0.0d0)
+    ans(1,1) = A * E / L
+    ans(7,1) = -ans(1,1)
+    ans(2,2) = 1.2d1 * E * Izz / L**3
+    ans(6,2) = 6.0d0 * E * Izz / L**2
+    ans(8,2) = -ans(2,2)
+    ans(12,2) = ans(6,2)
+    ans(3,3) = 1.2d1 * E * Iyy / L**3
+    ans(5,3) = -6.0d0 * E * Iyy / L**2
+    ans(9,3) = -ans(3,3)
+    ans(11,3) = ans(5,3)
+    ans(4,4) = G * Ixx / L
+    ans(10,4) = -ans(4,4)
+    ans(3,5) = ans(5,3)
+    ans(5,5) = 4.0d0 * E * Iyy / L
+    ans(9,5) = -ans(11,3)
+    ans(11,5) = 2.0d0 * E * Iyy / L
+    ans(2,6) = ans(6,2)
+    ans(6,6) = 4.0d0 * E * Izz / L
+    ans(8,6) = -ans(12,2)
+    ans(12,6) = 2.0d0 * E * Izz / L
+    ans(1,7) = ans(7,1)
+    ans(7,7) = ans(1,1)
+    ans(2,8) = ans(8,2)
+    ans(6,8) = ans(8,6)
+    ans(8,8) = ans(2,2)
+    ans(12,8) = -ans(6,2)
+    ans(3,9) = ans(9,3)
+    ans(5,9) = ans(9,5)
+    ans(9,9) = ans(3,3)
+    ans(11,9) = -ans(5,3)
+    ans(4,10) = ans(10,4)
+    ans(10,10) = ans(4,4)
+    ans(3,11) = ans(11,3)
+    ans(5,11) = ans(11,5)
+    ans(9,11) = ans(11,9)
+    ans(11,11) = ans(5,5)
+    ans(2,12) = ans(12,2)
+    ans(6,12) = ans(12,6)
+    ans(8,12) = ans(12,8)
+    ans(12,12) = ans(6,6)
+    ans = matmul(transpose(T), matmul(ans, T))
+
+    ! Compute the matrix
+    K = b%stiffness_matrix()
+
+    ! Test
+    if (.not.assert(K, ans, tol * maxval(abs(ans)))) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_beam3d_stiffness_matrix -1"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_beam3d_mass_matrix() result(rst)
+    ! Arguments
+    logical :: rst
+
+    ! Parameters
+    real(real64), parameter :: tol = 1.0d-6
+
+    ! Local Variables
+    real(real64) :: x1, y1, z1, x2, y2, z2, x3, y3, z3, A, rho, E, nu, Ixx, &
+        Iyy, Izz, L, G, s
+    real(real64), allocatable, dimension(:,:) :: T, M, ans
+    type(beam_element_3d) :: b
+    type(material) :: mat
+
+    ! Initialization
+    rst = .true.
+    E = 1.0d7
+    nu = 0.33d0
+    rho = 0.1d0 / 3.86d2
+    G = E / (2.0d0 * (1.0d0 + nu))
+    call random_number(x1)
+    call random_number(y1)
+    call random_number(z1)
+    call random_number(x2)
+    call random_number(y2)
+    call random_number(z2)
+    call random_number(x3)
+    call random_number(y3)
+    call random_number(z3)
+    call random_number(A)
+    call random_number(Ixx)
+    call random_number(Iyy)
+    call random_number(Izz)
+    b%area = A
+    b%Ixx = Ixx
+    b%Iyy = Iyy
+    b%Izz = Izz
+    b%material%density = rho
+    b%material%modulus = E
+    b%material%poissons_ratio = nu
+    b%node_1%dof = 6
+    b%node_1%index = 1
+    b%node_1%x = x1
+    b%node_1%y = y1
+    b%node_1%z = z1
+    b%node_2%dof = 6
+    b%node_2%index = 2
+    b%node_2%x = x2
+    b%node_2%y = y2
+    b%node_2%z = z2
+    b%orientation_point%x = x3
+    b%orientation_point%y = y3
+    b%orientation_point%z = z3
+    L = b%length()
+    T = b%rotation_matrix()
+
+    ! Define the answer
+    allocate(ans(12, 12), source = 0.0d0)
+    ans(1,1) = L * rho / 3.0d0
+    ans(7,1) = L * rho / 6.0d0
+    ans(2,2) = 1.3d1 * L * rho / 3.5d1
+    ans(6,2) = 1.1d1 * rho * L**2 / 2.1d2
+    ans(8,2) = 9.0d0 * L * rho / 7.0d1
+    ans(12,2) = -1.3d1 * rho * L**2 / 4.2d2
+    ans(3,3) = 1.3d0 * rho * L / 3.5d1
+    ans(5,3) = -1.1d0 * rho * L**2 / 2.1d2
+    ans(9,3) = 9.0d0 * rho * L / 7.0d1
+    ans(11,3) = 1.3d1 * rho * L**2 / 4.2d2
+    ans(4,4) = rho * L / 3.0d0
+    ans(10,4) = rho * L / 6.0d0
+    ans(3,5) = ans(5,3)
+    ans(5,5) = rho * L**3 / 1.05d2
+    ans(9,5) = -1.3d1 * rho * L**2 / 4.2d2
+    ans(11,5) = -rho * L**3 / 1.4d2
+    ans(2,6) = ans(6,2)
+    ans(6,6) = rho * L**3 / 1.05d2
+    ans(8,6) = 1.3d1 * rho * L**2 / 4.2d2
+    ans(12,6) = -rho * L**3 / 1.4d2
+    ans(1,7) = ans(7,1)
+    ans(7,7) = ans(1,1)
+    ans(2,8) = ans(8,2)
+    ans(6,8) = ans(8,6)
+    ans(8,8) = ans(2,2)
+    ans(12,8) = -1.1d1 * rho * L**2 / 2.1d2
+    ans(3,9) = ans(9,3)
+    ans(5,9) = ans(9,5)
+    ans(9,9) = ans(3,3)
+    ans(11,9) = 1.1d1 * rho * L**2 / 2.1d2
+    ans(4,10) = ans(10,4)
+    ans(10,10) = ans(4,4)
+    ans(3,11) = ans(11,3)
+    ans(9,11) = ans(11,9)
+    ans(11,11) = ans(5,5)
+    ans(2,12) = ans(12,2)
+    ans(6,12) = ans(12,6)
+    ans(8,12) = ans(12,8)
+    ans(12,12) = ans(6,6)
+    ans = matmul(transpose(T), matmul(ans, T))
+
+    ! Compute the matrix
+    M = b%mass_matrix()
+
+    ! Test
+    if (.not.assert(M, ans, tol * maxval(abs(ans)))) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_beam3d_mass_matrix -1"
+    end if
+end function
 
 ! ------------------------------------------------------------------------------
 end module
