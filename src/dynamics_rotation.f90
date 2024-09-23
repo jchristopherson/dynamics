@@ -93,7 +93,7 @@ pure function rotate_x(angle) result(rst)
         !! \vec{I_p} \cdot \vec{i} & \vec{I_p} \cdot \vec{j} & 
         !! \vec{I_p} \cdot \vec{k} \\ \vec{J_p} \cdot \vec{i} &
         !! \vec{J_p} \cdot \vec{j} & \vec{J_p} \cdot \vec{k} \\ 
-        !! \vec{K_p} \cdot \vec{i} & \vec{K_p} \cdot \vec{j}
+        !! \vec{K_p} \cdot \vec{i} & \vec{K_p} \cdot \vec{j} &
         !! \vec{K_p} \cdot \vec{k} \\ \end{matrix} \right] $$
         !!
         !! This routine does not check for orthogonallity or unit vector length;
@@ -139,16 +139,16 @@ pure function rotate_x(angle) result(rst)
         !! \vec{I_p} \cdot \vec{i} & \vec{I_p} \cdot \vec{j} & 
         !! \vec{I_p} \cdot \vec{k} \\ \vec{J_p} \cdot \vec{i} &
         !! \vec{J_p} \cdot \vec{j} & \vec{J_p} \cdot \vec{k} \\ 
-        !! \vec{K_p} \cdot \vec{i} & \vec{K_p} \cdot \vec{j}
+        !! \vec{K_p} \cdot \vec{i} & \vec{K_p} \cdot \vec{j} &
         !! \vec{K_p} \cdot \vec{k} \\ \end{matrix} \right] $$
         !!
         !! The parent coordinate frame is assumed to be as follows.
         !!
-        !! $$ \vec{I_p} = \left( \begin{matrix} 1 & 0 & 0  \end{matrix} \right)
+        !! $$ \vec{I_p} = \left( \begin{matrix} 1 & 0 & 0  \end{matrix} \right) $$
         !!
-        !! $$ \vec{J_p} = \left( \begin{matrix} 0 & 1 & 0  \end{matrix} \right)
+        !! $$ \vec{J_p} = \left( \begin{matrix} 0 & 1 & 0  \end{matrix} \right) $$
         !!
-        !! $$ \vec{K_p} = \left( \begin{matrix} 0 & 0 & 1  \end{matrix} \right)
+        !! $$ \vec{K_p} = \left( \begin{matrix} 0 & 0 & 1  \end{matrix} \right) $$
         !!
         !! This routine does not check for orthogonallity or unit vector length;
         !! therefore, to ensure correct results it is the callers responsibility
