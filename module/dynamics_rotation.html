@@ -88,7 +88,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 1.9% of total for modules and submodules.">33 statements</a>
+               title=" 3.0% of total for modules and submodules.">63 statements</a>
           </li>
 
             <li id="source-file">
@@ -123,7 +123,19 @@
   
   
   
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#inters-0">Interfaces</a>
+        </h3>
+      </div>
+      <div id="inters-0" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_rotation.html#interface-rotate">rotate</a>
+        </div>
+      </div>
+    </div>
+
   
   
       <div class="panel panel-primary">
@@ -182,7 +194,19 @@
   
   
   
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#inters-1">Interfaces</a>
+        </h3>
+      </div>
+      <div id="inters-1" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_rotation.html#interface-rotate">rotate</a>
+        </div>
+      </div>
+    </div>
+
   
   
       <div class="panel panel-primary">
@@ -215,6 +239,243 @@
 
     
     
+    <section>
+   <h2>Interfaces</h2>
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="interface-rotate"></span>
+      <h3>public        interface <a href='../interface/rotate.html'>rotate</a> 
+      </h3>
+    </div>
+    <ul class="list-group">
+          <li class="list-group-item">
+                <h3>
+    private pure function rotate_general_1(i, j, k, Ip, Jp, Kp) result(rst)  
+
+    </h3>
+  <p>Constructs a rotation matrix when the orientation of the coordinate
+frame of interest is known relative to the parent coordinate frame.</p>
+<p>The matrix is of the following form.</p>
+<p>
+<script type="math/tex; mode=display"> \textbf{R} = \left[ \begin{matrix} 
+\vec{I_p} \cdot \vec{i} & \vec{I_p} \cdot \vec{j} & 
+\vec{I_p} \cdot \vec{k} \\ \vec{J_p} \cdot \vec{i} &
+\vec{J_p} \cdot \vec{j} & \vec{J_p} \cdot \vec{k} \\ 
+\vec{K_p} \cdot \vec{i} & \vec{K_p} \cdot \vec{j}
+\vec{K_p} \cdot \vec{k} \\ \end{matrix} \right] </script>
+</p>
+<p>This routine does not check for orthogonallity or unit vector length;
+therefore, to ensure correct results it is the callers responsibility
+to ensure each vector is of unit length and that the unit vectors
+are properly orthogonal.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>i</strong>(3)</td>
+            <td>
+                <p>The rotated coordinate frame x-axis unit vector.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>j</strong>(3)</td>
+            <td>
+                <p>The rotated coordinate frame y-axis unit vector.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>k</strong>(3)</td>
+            <td>
+                <p>The rotated coordinate frame z-axis unit vector.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>Ip</strong>(3)</td>
+            <td>
+                <p>The parent coordinate frame x-axis unit vector.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>Jp</strong>(3)</td>
+            <td>
+                <p>The parent coordinate frame y-axis unit vector.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>Kp</strong>(3)</td>
+            <td>
+                <p>The parent coordinate frame z-axis unit vector.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), (3,3)</small>
+    </h4>
+    <p>The resulting 3-by-3 matrix.</p>
+
+          </li>
+          <li class="list-group-item">
+                <h3>
+    private pure function rotate_general_2(i, j, k) result(rst)  
+
+    </h3>
+  <p>Constructs a rotation matrix when the orientation of the coordinate
+frame of interest is known relative to the parent coordinate frame.</p>
+<p>The matrix is of the following form.</p>
+<p>
+<script type="math/tex; mode=display"> \textbf{R} = \left[ \begin{matrix} 
+\vec{I_p} \cdot \vec{i} & \vec{I_p} \cdot \vec{j} & 
+\vec{I_p} \cdot \vec{k} \\ \vec{J_p} \cdot \vec{i} &
+\vec{J_p} \cdot \vec{j} & \vec{J_p} \cdot \vec{k} \\ 
+\vec{K_p} \cdot \vec{i} & \vec{K_p} \cdot \vec{j}
+\vec{K_p} \cdot \vec{k} \\ \end{matrix} \right] </script>
+</p>
+<p>The parent coordinate frame is assumed to be as follows.</p>
+<p>$$ \vec{I_p} = \left( <script type="math/tex; mode=display">\begin{matrix} 1 & 0 & 0  \end{matrix}</script> \right)</p>
+<p>$$ \vec{J_p} = \left( <script type="math/tex; mode=display">\begin{matrix} 0 & 1 & 0  \end{matrix}</script> \right)</p>
+<p>$$ \vec{K_p} = \left( <script type="math/tex; mode=display">\begin{matrix} 0 & 0 & 1  \end{matrix}</script> \right)</p>
+<p>This routine does not check for orthogonallity or unit vector length;
+therefore, to ensure correct results it is the callers responsibility
+to ensure each vector is of unit length and that the unit vectors
+are properly orthogonal.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>i</strong>(3)</td>
+            <td>
+                <p>The rotated coordinate frame x-axis unit vector.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>j</strong>(3)</td>
+            <td>
+                <p>The rotated coordinate frame y-axis unit vector.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>k</strong>(3)</td>
+            <td>
+                <p>The rotated coordinate frame z-axis unit vector.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), (3,3)</small>
+    </h4>
+    <p>The resulting 3-by-3 matrix.</p>
+
+          </li>
+    </ul>
+  </div>
+
+    </section>
+  <br>
 
     
     
@@ -383,7 +644,7 @@ such that
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2024-09-16 14:39            </p>
+ on 2024-09-23 19:36            </p>
         </div>
       </div>
       <br>

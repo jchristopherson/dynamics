@@ -8,7 +8,7 @@
     <meta name="author" content="Jason Christopherson" >
     <link rel="icon" href="../favicon.png">
 
-    <title>report_array_index_out_of_bounds_error &ndash; DYNAMICS</title>
+    <title>point &ndash; DYNAMICS </title>
 
     <link href="../css/bootstrap.min.css" rel="stylesheet">
     <link href="../css/pygments.css" rel="stylesheet">
@@ -76,8 +76,8 @@
 
     <div class="container">
   <div class="row">
-    <h1>report_array_index_out_of_bounds_error
-      <small>Subroutine</small>
+    <h1>point
+      <small>Derived Type</small>
       
     </h1>
       <div class="row" id="info-bar">
@@ -88,18 +88,18 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 1.7% of total for procedures.">11 statements</a>
+               title="<p> 5.9% of total for derived types.</p>Including implementation: 5 statements,  0.7% of total for derived types.">5 statements</a>
           </li>
 
             <li id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dynamics_error_handling.f90"> Source File</a>
+              <a href="../src/dynamics_structural.f90"> Source File</a>
             </li>
         </ul>
         <ol class="breadcrumb in-well text-right">
-              <li><a href='../sourcefile/dynamics_error_handling.f90.html'>dynamics_error_handling.f90</a></li>
-              <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
-          <li class="active">report_array_index_out_of_bounds_error</li>
+              <li><a href='../sourcefile/dynamics_structural.f90.html'>dynamics_structural.f90</a></li>
+              <li><a href='../module/dynamics_structural.html'>dynamics_structural</a></li>
+          <li class="active">point</li>
         </ol>
       </div>
     </div>
@@ -125,7 +125,9 @@
       </div>
       <div id="vars-0" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../proc/report_array_index_out_of_bounds_error.html#variable-errmsg">errmsg</a>
+            <a class="list-group-item" href="../type/point.html#variable-x~5">x</a>
+            <a class="list-group-item" href="../type/point.html#variable-y">y</a>
+            <a class="list-group-item" href="../type/point.html#variable-z">z</a>
         </div>
       </div>
     </div>
@@ -154,102 +156,8 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>public  subroutine report_array_index_out_of_bounds_error(name, var, ind, sz, err)  
-</h2>
-    
-
-    <p>Reports an array index-out-of-bounds error.</p>
-
-    <h3>Arguments</h3>
-        <table class="table table-striped varlist">
-    <thead>
-      <tr>
-        <th>Type</th>
-<th>Intent</th><th>Optional</th>        <th>Attributes</th>
-        <th></th>
-        <th>Name</th>
-        <th></th>
-    </thead>
-    <tbody>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-name~11"></span>
-              character(len=*),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>name</strong></td>
-            <td>
-                <p>The name of the routine in which the error was found.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-var~2"></span>
-              character(len=*),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>var</strong></td>
-            <td>
-                <p>The name of the offending variable.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-ind"></span>
-              integer(kind=int32),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>ind</strong></td>
-            <td>
-                <p>The offending index.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-sz"></span>
-              integer(kind=int32),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>sz</strong></td>
-            <td>
-                <p>The array size.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-err~15"></span>
-              class(errors),
-            </td>
-<td>intent(inout)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>err</strong></td>
-            <td>
-                <p>An errors-based object that if provided can be used to retrieve 
-information relating to any errors encountered during execution.</p>
-            </td>
-        </tr>
-    </tbody>
-  </table>
-
+      <h2>type, public :: point</h2>
+    <p>Defines a point in 3D, Cartesian space.</p>
     <br>
 
     <section class="visible-xs visible-sm hidden-md">
@@ -263,7 +171,9 @@ information relating to any errors encountered during execution.</p>
       </div>
       <div id="vars-1" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../proc/report_array_index_out_of_bounds_error.html#variable-errmsg">errmsg</a>
+            <a class="list-group-item" href="../type/point.html#variable-x~5">x</a>
+            <a class="list-group-item" href="../type/point.html#variable-y">y</a>
+            <a class="list-group-item" href="../type/point.html#variable-z">z</a>
         </div>
       </div>
     </div>
@@ -290,9 +200,8 @@ information relating to any errors encountered during execution.</p>
     </section>
     <br class="visible-xs visible-sm hidden-md">
 
-
-    <section>    
-      <h2>Variables</h2>
+    <section>
+    <h2>Components</h2>
       <table class="table table-striped varlist">
     <thead>
       <tr>
@@ -305,19 +214,53 @@ information relating to any errors encountered during execution.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-errmsg"></span>
-              character(len=256),
+              <span class="anchor" id="variable-x~5"></span>
+              real(kind=real64),
             </td>
               <td>public</td>
             <td>
               
             </td>
             <td>::</td>
-            <td><strong>errmsg</strong></td>
+            <td><strong>x</strong></td>
                 <td></td>
                 <td></td>
             <td>
-                
+                <p>The x-coordinate.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-y"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>y</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>The y-coordinate.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-z"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>z</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>The z-coordinate.</p>
             </td>
         </tr>
     </tbody>
@@ -326,13 +269,9 @@ information relating to any errors encountered during execution.</p>
     </section>
     <br>
     
-    
-
-    
-    
 
 
-    
+
     
     </div>
   </div>

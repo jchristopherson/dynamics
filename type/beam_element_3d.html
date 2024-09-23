@@ -8,7 +8,7 @@
     <meta name="author" content="Jason Christopherson" >
     <link rel="icon" href="../favicon.png">
 
-    <title>beam_element_2d &ndash; DYNAMICS </title>
+    <title>beam_element_3d &ndash; DYNAMICS </title>
 
     <link href="../css/bootstrap.min.css" rel="stylesheet">
     <link href="../css/pygments.css" rel="stylesheet">
@@ -76,7 +76,7 @@
 
     <div class="container">
   <div class="row">
-    <h1>beam_element_2d
+    <h1>beam_element_3d
       <small>Derived Type</small>
       
     </h1>
@@ -88,7 +88,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title="<p>22.4% of total for derived types.</p>Including implementation: 242 statements, 35.4% of total for derived types.">19 statements</a>
+               title="<p>25.9% of total for derived types.</p>Including implementation: 317 statements, 46.3% of total for derived types.">22 statements</a>
           </li>
 
             <li id="source-file">
@@ -99,7 +99,7 @@
         <ol class="breadcrumb in-well text-right">
               <li><a href='../sourcefile/dynamics_structural.f90.html'>dynamics_structural.f90</a></li>
               <li><a href='../module/dynamics_structural.html'>dynamics_structural</a></li>
-          <li class="active">beam_element_2d</li>
+          <li class="active">beam_element_3d</li>
         </ol>
       </div>
     </div>
@@ -125,11 +125,14 @@
       </div>
       <div id="vars-0" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../type/beam_element_2d.html#variable-area">area</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#variable-material">material</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#variable-moment_of_inertia">moment_of_inertia</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#variable-node_1">node_1</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#variable-node_2">node_2</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#variable-ixx">Ixx</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#variable-iyy">Iyy</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#variable-izz">Izz</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#variable-area">area</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#variable-material">material</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#variable-node_1~2">node_1</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#variable-node_2~2">node_2</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#variable-orientation_point">orientation_point</a>
         </div>
       </div>
     </div>
@@ -157,21 +160,21 @@
       </div>
       <div id="boundprocs-0" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../type/beam_element_2d.html#boundprocedure-constitutive_matrix">constitutive_matrix</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#boundprocedure-evaluate_shape_function">evaluate_shape_function</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#boundprocedure-external_force_vector">external_force_vector</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#boundprocedure-get_dimensionality">get_dimensionality</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#boundprocedure-get_dof_per_node">get_dof_per_node</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#boundprocedure-get_node">get_node</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#boundprocedure-get_node_count">get_node_count</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#boundprocedure-get_terminal_nodes">get_terminal_nodes</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#boundprocedure-jacobian">jacobian</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#boundprocedure-length">length</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#boundprocedure-mass_matrix">mass_matrix</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#boundprocedure-rotation_matrix">rotation_matrix</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#boundprocedure-shape_function_matrix">shape_function_matrix</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#boundprocedure-stiffness_matrix">stiffness_matrix</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#boundprocedure-strain_displacement_matrix">strain_displacement_matrix</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#boundprocedure-constitutive_matrix~2">constitutive_matrix</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#boundprocedure-evaluate_shape_function~2">evaluate_shape_function</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#boundprocedure-external_force_vector">external_force_vector</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#boundprocedure-get_dimensionality~2">get_dimensionality</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#boundprocedure-get_dof_per_node~2">get_dof_per_node</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#boundprocedure-get_node~2">get_node</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#boundprocedure-get_node_count~2">get_node_count</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#boundprocedure-get_terminal_nodes~2">get_terminal_nodes</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#boundprocedure-jacobian~2">jacobian</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#boundprocedure-length">length</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#boundprocedure-mass_matrix~2">mass_matrix</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#boundprocedure-rotation_matrix~2">rotation_matrix</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#boundprocedure-shape_function_matrix~2">shape_function_matrix</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#boundprocedure-stiffness_matrix~2">stiffness_matrix</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#boundprocedure-strain_displacement_matrix~2">strain_displacement_matrix</a>
         </div>
       </div>
     </div>
@@ -184,8 +187,8 @@
     </div>
     
     <div class="col-md-9" id='text'>
-      <h2>type, public, extends(<a href='../type/line_element.html'>line_element</a>) :: beam_element_2d</h2>
-    <p>Defines a two-dimensional Bernoulli-Euler beam element.</p>
+      <h2>type, public, extends(<a href='../type/line_element.html'>line_element</a>) :: beam_element_3d</h2>
+    <p>Defines a three-dimensional Bernoulli-Euler beam element.</p>
     <br>
 
     <section class="visible-xs visible-sm hidden-md">
@@ -199,11 +202,14 @@
       </div>
       <div id="vars-1" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../type/beam_element_2d.html#variable-area">area</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#variable-material">material</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#variable-moment_of_inertia">moment_of_inertia</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#variable-node_1">node_1</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#variable-node_2">node_2</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#variable-ixx">Ixx</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#variable-iyy">Iyy</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#variable-izz">Izz</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#variable-area">area</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#variable-material">material</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#variable-node_1~2">node_1</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#variable-node_2~2">node_2</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#variable-orientation_point">orientation_point</a>
         </div>
       </div>
     </div>
@@ -231,21 +237,21 @@
       </div>
       <div id="boundprocs-1" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../type/beam_element_2d.html#boundprocedure-constitutive_matrix">constitutive_matrix</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#boundprocedure-evaluate_shape_function">evaluate_shape_function</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#boundprocedure-external_force_vector">external_force_vector</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#boundprocedure-get_dimensionality">get_dimensionality</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#boundprocedure-get_dof_per_node">get_dof_per_node</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#boundprocedure-get_node">get_node</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#boundprocedure-get_node_count">get_node_count</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#boundprocedure-get_terminal_nodes">get_terminal_nodes</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#boundprocedure-jacobian">jacobian</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#boundprocedure-length">length</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#boundprocedure-mass_matrix">mass_matrix</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#boundprocedure-rotation_matrix">rotation_matrix</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#boundprocedure-shape_function_matrix">shape_function_matrix</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#boundprocedure-stiffness_matrix">stiffness_matrix</a>
-            <a class="list-group-item" href="../type/beam_element_2d.html#boundprocedure-strain_displacement_matrix">strain_displacement_matrix</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#boundprocedure-constitutive_matrix~2">constitutive_matrix</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#boundprocedure-evaluate_shape_function~2">evaluate_shape_function</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#boundprocedure-external_force_vector">external_force_vector</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#boundprocedure-get_dimensionality~2">get_dimensionality</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#boundprocedure-get_dof_per_node~2">get_dof_per_node</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#boundprocedure-get_node~2">get_node</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#boundprocedure-get_node_count~2">get_node_count</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#boundprocedure-get_terminal_nodes~2">get_terminal_nodes</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#boundprocedure-jacobian~2">jacobian</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#boundprocedure-length">length</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#boundprocedure-mass_matrix~2">mass_matrix</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#boundprocedure-rotation_matrix~2">rotation_matrix</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#boundprocedure-shape_function_matrix~2">shape_function_matrix</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#boundprocedure-stiffness_matrix~2">stiffness_matrix</a>
+            <a class="list-group-item" href="../type/beam_element_3d.html#boundprocedure-strain_displacement_matrix~2">strain_displacement_matrix</a>
         </div>
       </div>
     </div>
@@ -268,6 +274,57 @@
 <th></th><th>Initial</th>        <th></th>
     </thead>
     <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ixx"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>Ixx</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>The beam moment of inertia about the element x-axis.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-iyy"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>Iyy</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>The beam moment of inertia about the element y-axis.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-izz"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>Izz</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>The beam moment of inertia about the element z-axis.</p>
+            </td>
+        </tr>
         <tr>
             <td>
               <span class="anchor" id="variable-area"></span>
@@ -304,24 +361,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-moment_of_inertia"></span>
-              real(kind=real64),
-            </td>
-              <td>public</td>
-            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>moment_of_inertia</strong></td>
-                <td></td>
-                <td></td>
-            <td>
-                <p>The beam moment of inertia (second moment of area).</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-node_1"></span>
+              <span class="anchor" id="variable-node_1~2"></span>
               type(<a href='../type/node.html'>node</a>),
             </td>
               <td>public</td>
@@ -338,7 +378,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-node_2"></span>
+              <span class="anchor" id="variable-node_2~2"></span>
               type(<a href='../type/node.html'>node</a>),
             </td>
               <td>public</td>
@@ -353,6 +393,27 @@
                 <p>The second node of the element (s = 1).</p>
             </td>
         </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-orientation_point"></span>
+              type(<a href='../type/point.html'>point</a>),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>orientation_point</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>A point used to determine the orientation of the beam in 3D
+space.  The orientation point is measured relative to the first
+node in the element.  Specifically, the element z axis is assumed
+to be defined by the location of this point relative to the
+location of node 1.</p>
+            </td>
+        </tr>
     </tbody>
   </table>
 
@@ -364,12 +425,12 @@
       <section>
         <h2>Type-Bound Procedures</h2>
             <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-constitutive_matrix"></span><h3>procedure, public :: <strong>constitutive_matrix</strong>  => b2d_constitutive_matrix         
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-constitutive_matrix~2"></span><h3>procedure, public :: <strong>constitutive_matrix</strong>  => b3d_constitutive_matrix         
     </h3></div>
     <ul class="list-group">
         <li class="list-group-item">
                   <h3>
-    private pure function b2d_constitutive_matrix(this) result(rst)  
+    private pure function b3d_constitutive_matrix(this) result(rst)  
 </h3>
   <p>Computes the constitutive matrix for the element.</p>
 
@@ -387,7 +448,7 @@
         <tr>
             <td>
               <span class="anchor" ></span>
-              class(<a href='../type/beam_element_2d.html'>beam_element_2d</a>),
+              class(<a href='../type/beam_element_3d.html'>beam_element_3d</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -396,7 +457,7 @@
             <td>::</td>
             <td><strong>this</strong></td>
             <td>
-                <p>The beam_element_2d object.</p>
+                <p>The beam_element_3d object.</p>
             </td>
         </tr>
     </tbody>
@@ -413,12 +474,12 @@
   </div>
 
             <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-evaluate_shape_function"></span><h3>procedure, public :: <strong>evaluate_shape_function</strong>  => b2d_shape_function         
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-evaluate_shape_function~2"></span><h3>procedure, public :: <strong>evaluate_shape_function</strong>  => b3d_shape_function         
     </h3></div>
     <ul class="list-group">
         <li class="list-group-item">
                   <h3>
-    private pure function b2d_shape_function(this, i, s) result(rst)  
+    private pure function b3d_shape_function(this, i, s) result(rst)  
 </h3>
   <p>Evaluates the i-th shape function at natural coordinate s.</p>
 
@@ -436,7 +497,7 @@
         <tr>
             <td>
               <span class="anchor" ></span>
-              class(<a href='../type/beam_element_2d.html'>beam_element_2d</a>),
+              class(<a href='../type/beam_element_3d.html'>beam_element_3d</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -445,7 +506,7 @@
             <td>::</td>
             <td><strong>this</strong></td>
             <td>
-                <p>The beam_element_2d object.</p>
+                <p>The beam_element_3d object.</p>
             </td>
         </tr>
         <tr>
@@ -588,12 +649,12 @@ For instance, a 2D problem this vector would look like [qx, qy]**T.</p>
   </div>
 
             <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-get_dimensionality"></span><h3>procedure, public :: <strong>get_dimensionality</strong>  => b2d_dimensionality         
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-get_dimensionality~2"></span><h3>procedure, public :: <strong>get_dimensionality</strong>  => b3d_dimensionality         
     </h3></div>
     <ul class="list-group">
         <li class="list-group-item">
                   <h3>
-    private pure function b2d_dimensionality(this) result(rst)  
+    private pure function b3d_dimensionality(this) result(rst)  
 </h3>
   <p>Gets the dimensionality of the element.</p>
 
@@ -611,7 +672,7 @@ For instance, a 2D problem this vector would look like [qx, qy]**T.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              class(<a href='../type/beam_element_2d.html'>beam_element_2d</a>),
+              class(<a href='../type/beam_element_3d.html'>beam_element_3d</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -620,7 +681,7 @@ For instance, a 2D problem this vector would look like [qx, qy]**T.</p>
             <td>::</td>
             <td><strong>this</strong></td>
             <td>
-                <p>The beam_element_2d object.</p>
+                <p>The beam_element_3d object.</p>
             </td>
         </tr>
     </tbody>
@@ -637,12 +698,12 @@ For instance, a 2D problem this vector would look like [qx, qy]**T.</p>
   </div>
 
             <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-get_dof_per_node"></span><h3>procedure, public :: <strong>get_dof_per_node</strong>  => b2d_dof_per_node         
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-get_dof_per_node~2"></span><h3>procedure, public :: <strong>get_dof_per_node</strong>  => b3d_dof_per_node         
     </h3></div>
     <ul class="list-group">
         <li class="list-group-item">
                   <h3>
-    private pure function b2d_dof_per_node(this) result(rst)  
+    private pure function b3d_dof_per_node(this) result(rst)  
 </h3>
   <p>Gets the number of degrees of freedom per node.</p>
 
@@ -660,7 +721,7 @@ For instance, a 2D problem this vector would look like [qx, qy]**T.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              class(<a href='../type/beam_element_2d.html'>beam_element_2d</a>),
+              class(<a href='../type/beam_element_3d.html'>beam_element_3d</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -669,7 +730,7 @@ For instance, a 2D problem this vector would look like [qx, qy]**T.</p>
             <td>::</td>
             <td><strong>this</strong></td>
             <td>
-                <p>The beam_element_2d object.</p>
+                <p>The beam_element_3d object.</p>
             </td>
         </tr>
     </tbody>
@@ -686,12 +747,12 @@ For instance, a 2D problem this vector would look like [qx, qy]**T.</p>
   </div>
 
             <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-get_node"></span><h3>procedure, public :: <strong>get_node</strong>  => b2d_get_node         
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-get_node~2"></span><h3>procedure, public :: <strong>get_node</strong>  => b3d_get_node         
     </h3></div>
     <ul class="list-group">
         <li class="list-group-item">
                   <h3>
-    private pure function b2d_get_node(this, i) result(rst)  
+    private pure function b3d_get_node(this, i) result(rst)  
 </h3>
   <p>Gets the requested node from the element.</p>
 
@@ -709,7 +770,7 @@ For instance, a 2D problem this vector would look like [qx, qy]**T.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              class(<a href='../type/beam_element_2d.html'>beam_element_2d</a>),
+              class(<a href='../type/beam_element_3d.html'>beam_element_3d</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -718,7 +779,7 @@ For instance, a 2D problem this vector would look like [qx, qy]**T.</p>
             <td>::</td>
             <td><strong>this</strong></td>
             <td>
-                <p>The beam_element_2d object.</p>
+                <p>The beam_element_3d object.</p>
             </td>
         </tr>
         <tr>
@@ -750,12 +811,12 @@ For instance, a 2D problem this vector would look like [qx, qy]**T.</p>
   </div>
 
             <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-get_node_count"></span><h3>procedure, public :: <strong>get_node_count</strong>  => b2d_get_node_count         
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-get_node_count~2"></span><h3>procedure, public :: <strong>get_node_count</strong>  => b3d_get_node_count         
     </h3></div>
     <ul class="list-group">
         <li class="list-group-item">
                   <h3>
-    private pure function b2d_get_node_count(this) result(rst)  
+    private pure function b3d_get_node_count(this) result(rst)  
 </h3>
   <p>Gets the number of nodes for the element.</p>
 
@@ -773,7 +834,7 @@ For instance, a 2D problem this vector would look like [qx, qy]**T.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              class(<a href='../type/beam_element_2d.html'>beam_element_2d</a>),
+              class(<a href='../type/beam_element_3d.html'>beam_element_3d</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -782,7 +843,7 @@ For instance, a 2D problem this vector would look like [qx, qy]**T.</p>
             <td>::</td>
             <td><strong>this</strong></td>
             <td>
-                <p>The beam_element_2d object.</p>
+                <p>The beam_element_3d object.</p>
             </td>
         </tr>
     </tbody>
@@ -799,12 +860,12 @@ For instance, a 2D problem this vector would look like [qx, qy]**T.</p>
   </div>
 
             <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-get_terminal_nodes"></span><h3>procedure, public :: <strong>get_terminal_nodes</strong>  => b2d_terminal_nodes         
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-get_terminal_nodes~2"></span><h3>procedure, public :: <strong>get_terminal_nodes</strong>  => b3d_terminal_nodes         
     </h3></div>
     <ul class="list-group">
         <li class="list-group-item">
                   <h3>
-    private pure subroutine b2d_terminal_nodes(this, i1, i2)  
+    private pure subroutine b3d_terminal_nodes(this, i1, i2)  
 </h3>
   <p>Gets the terminal node numbers for the element.</p>
 
@@ -822,7 +883,7 @@ For instance, a 2D problem this vector would look like [qx, qy]**T.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              class(<a href='../type/beam_element_2d.html'>beam_element_2d</a>),
+              class(<a href='../type/beam_element_3d.html'>beam_element_3d</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -831,7 +892,7 @@ For instance, a 2D problem this vector would look like [qx, qy]**T.</p>
             <td>::</td>
             <td><strong>this</strong></td>
             <td>
-                <p>The beam_element_2d object.</p>
+                <p>The beam_element_3d object.</p>
             </td>
         </tr>
         <tr>
@@ -873,14 +934,14 @@ For instance, a 2D problem this vector would look like [qx, qy]**T.</p>
   </div>
 
             <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-jacobian"></span><h3>procedure, public :: <strong>jacobian</strong>  => b2d_jacobian         
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-jacobian~2"></span><h3>procedure, public :: <strong>jacobian</strong>  => b3d_jacobian         
     </h3></div>
     <ul class="list-group">
         <li class="list-group-item">
                   <h3>
-    private pure function b2d_jacobian(this, s) result(rst)  
+    private pure function b3d_jacobian(this, s) result(rst)  
 </h3>
-  <p>Computes the Jacobian matrix for a 2D beam element.</p>
+  <p>Computes the Jacobian matrix for a 3D beam element.</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -896,7 +957,7 @@ For instance, a 2D problem this vector would look like [qx, qy]**T.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              class(<a href='../type/beam_element_2d.html'>beam_element_2d</a>),
+              class(<a href='../type/beam_element_3d.html'>beam_element_3d</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -905,7 +966,7 @@ For instance, a 2D problem this vector would look like [qx, qy]**T.</p>
             <td>::</td>
             <td><strong>this</strong></td>
             <td>
-                <p>The beam_element_2d object.</p>
+                <p>The beam_element_3d object.</p>
             </td>
         </tr>
         <tr>
@@ -986,12 +1047,12 @@ For instance, a 2D problem this vector would look like [qx, qy]**T.</p>
   </div>
 
             <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-mass_matrix"></span><h3>procedure, public :: <strong>mass_matrix</strong>  => b2d_mass_matrix         
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-mass_matrix~2"></span><h3>procedure, public :: <strong>mass_matrix</strong>  => b3d_mass_matrix         
     </h3></div>
     <ul class="list-group">
         <li class="list-group-item">
                   <h3>
-    private pure function b2d_mass_matrix(this, rule) result(rst)  
+    private pure function b3d_mass_matrix(this, rule) result(rst)  
 </h3>
   <p>Computes the mass matrix for the element.</p>
 
@@ -1009,7 +1070,7 @@ For instance, a 2D problem this vector would look like [qx, qy]**T.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              class(<a href='../type/beam_element_2d.html'>beam_element_2d</a>),
+              class(<a href='../type/beam_element_3d.html'>beam_element_3d</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -1018,7 +1079,7 @@ For instance, a 2D problem this vector would look like [qx, qy]**T.</p>
             <td>::</td>
             <td><strong>this</strong></td>
             <td>
-                <p>The beam_element_2d object.</p>
+                <p>The beam_element_3d object.</p>
             </td>
         </tr>
         <tr>
@@ -1065,12 +1126,12 @@ For instance, a 2D problem this vector would look like [qx, qy]**T.</p>
   </div>
 
             <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-rotation_matrix"></span><h3>procedure, public :: <strong>rotation_matrix</strong>  => b2d_rotation_matrix         
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-rotation_matrix~2"></span><h3>procedure, public :: <strong>rotation_matrix</strong>  => b3d_rotation_matrix         
     </h3></div>
     <ul class="list-group">
         <li class="list-group-item">
                   <h3>
-    private pure function b2d_rotation_matrix(this) result(rst)  
+    private pure function b3d_rotation_matrix(this) result(rst)  
 </h3>
   <p>Computes the rotation matrix for the element.</p>
 
@@ -1088,7 +1149,7 @@ For instance, a 2D problem this vector would look like [qx, qy]**T.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              class(<a href='../type/beam_element_2d.html'>beam_element_2d</a>),
+              class(<a href='../type/beam_element_3d.html'>beam_element_3d</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -1097,7 +1158,7 @@ For instance, a 2D problem this vector would look like [qx, qy]**T.</p>
             <td>::</td>
             <td><strong>this</strong></td>
             <td>
-                <p>The beam_element_2d object.</p>
+                <p>The beam_element_3d object.</p>
             </td>
         </tr>
     </tbody>
@@ -1107,19 +1168,19 @@ For instance, a 2D problem this vector would look like [qx, qy]**T.</p>
     Return Value
     <small>real(kind=real64), allocatable, dimension(:,:)</small>
     </h4>
-    <p>The resulting 6-by-6 rotation matrix.</p>
+    <p>The resulting 12-by-12 rotation matrix.</p>
 
         </li>
     </ul>
   </div>
 
             <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-shape_function_matrix"></span><h3>procedure, public :: <strong>shape_function_matrix</strong>  => b2d_shape_function_matrix_2d         
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-shape_function_matrix~2"></span><h3>procedure, public :: <strong>shape_function_matrix</strong>  => b3d_shape_function_matrix_3d         
     </h3></div>
     <ul class="list-group">
         <li class="list-group-item">
                   <h3>
-    private pure function b2d_shape_function_matrix_2d(this, s) result(rst)  
+    private pure function b3d_shape_function_matrix_3d(this, s) result(rst)  
 </h3>
   <p>Computes the shape function matrix for a beam element.</p>
 
@@ -1137,7 +1198,7 @@ For instance, a 2D problem this vector would look like [qx, qy]**T.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              class(<a href='../type/beam_element_2d.html'>beam_element_2d</a>),
+              class(<a href='../type/beam_element_3d.html'>beam_element_3d</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -1146,7 +1207,7 @@ For instance, a 2D problem this vector would look like [qx, qy]**T.</p>
             <td>::</td>
             <td><strong>this</strong></td>
             <td>
-                <p>The beam_element_2d object.</p>
+                <p>The beam_element_3d object.</p>
             </td>
         </tr>
         <tr>
@@ -1179,12 +1240,12 @@ functions.</p>
   </div>
 
             <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-stiffness_matrix"></span><h3>procedure, public :: <strong>stiffness_matrix</strong>  => b2d_stiffness_matrix         
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-stiffness_matrix~2"></span><h3>procedure, public :: <strong>stiffness_matrix</strong>  => b3d_stiffness_matrix         
     </h3></div>
     <ul class="list-group">
         <li class="list-group-item">
                   <h3>
-    private pure function b2d_stiffness_matrix(this, rule) result(rst)  
+    private pure function b3d_stiffness_matrix(this, rule) result(rst)  
 </h3>
   <p>Computes the stiffness matrix for the element.</p>
 
@@ -1202,7 +1263,7 @@ functions.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              class(<a href='../type/beam_element_2d.html'>beam_element_2d</a>),
+              class(<a href='../type/beam_element_3d.html'>beam_element_3d</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -1211,7 +1272,7 @@ functions.</p>
             <td>::</td>
             <td><strong>this</strong></td>
             <td>
-                <p>The beam_element_2d object.</p>
+                <p>The beam_element_3d object.</p>
             </td>
         </tr>
         <tr>
@@ -1258,14 +1319,14 @@ functions.</p>
   </div>
 
             <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-strain_displacement_matrix"></span><h3>procedure, public :: <strong>strain_displacement_matrix</strong>  => b2d_strain_disp_matrix_2d         
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-strain_displacement_matrix~2"></span><h3>procedure, public :: <strong>strain_displacement_matrix</strong>  => b3d_strain_disp_matrix_3d         
     </h3></div>
     <ul class="list-group">
         <li class="list-group-item">
                   <h3>
-    private pure function b2d_strain_disp_matrix_2d(this, s) result(rst)  
+    private pure function b3d_strain_disp_matrix_3d(this, s) result(rst)  
 </h3>
-  <p>Computes the strain-displacement matrix for a 2D beam element.</p>
+  <p>Computes the strain-displacement matrix for a 3D beam element.</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -1281,7 +1342,7 @@ functions.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              class(<a href='../type/beam_element_2d.html'>beam_element_2d</a>),
+              class(<a href='../type/beam_element_3d.html'>beam_element_3d</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -1290,7 +1351,7 @@ functions.</p>
             <td>::</td>
             <td><strong>this</strong></td>
             <td>
-                <p>The beam_element_2d object.</p>
+                <p>The beam_element_3d object.</p>
             </td>
         </tr>
         <tr>
