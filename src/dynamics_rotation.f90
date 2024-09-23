@@ -144,11 +144,11 @@ pure function rotate_x(angle) result(rst)
         !!
         !! The parent coordinate frame is assumed to be as follows.
         !!
-        !! $$ \vec{I_p} = \left( \begin{matrix} 1 & 0 & 0  \end{matrix} \right)
+        !! $$ \vec{I_p} = \left( \begin{matrix} 1 & 0 & 0  \end{matrix} \right) $$
         !!
-        !! $$ \vec{J_p} = \left( \begin{matrix} 0 & 1 & 0  \end{matrix} \right)
+        !! $$ \vec{J_p} = \left( \begin{matrix} 0 & 1 & 0  \end{matrix} \right) $$
         !!
-        !! $$ \vec{K_p} = \left( \begin{matrix} 0 & 0 & 1  \end{matrix} \right)
+        !! $$ \vec{K_p} = \left( \begin{matrix} 0 & 0 & 1  \end{matrix} \right) $$
         !!
         !! This routine does not check for orthogonallity or unit vector length;
         !! therefore, to ensure correct results it is the callers responsibility
