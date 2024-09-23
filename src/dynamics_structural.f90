@@ -1765,6 +1765,11 @@ pure function b3d_rotation_matrix(this) result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+! https://www.researchgate.net/publication/352816965_3-D_Beam_Finite_Element_Programming_-A_Practical_Guide_Part_1
+! https://homes.civil.aau.dk/jc/FemteSemester/Beams3D.pdf
+! https://www.sesamx.io/blog/beam_finite_element/
+! https://www.brown.edu/Departments/Engineering/Courses/En2340/Projects/Projects_2015/Wenqiang_Fan.pdf
+! https://www.mm.bme.hu/~gyebro/files/ans_help_v182/ans_thry/thy_shp2.html#shp3d2node
 pure function b3d_stiffness_matrix(this, rule) result(rst)
     !! Computes the stiffness matrix for the element.
     class(beam_element_3d), intent(in) :: this
