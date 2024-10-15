@@ -2,6 +2,8 @@ module dynamics_frequency_response
     use iso_fortran_env
     use ferror
     use diffeq, only : ode_container, ode_integrator
+    use dynamics_error_handling
+    use spectrum
     implicit none
     private
     public :: ode_excite
@@ -71,6 +73,7 @@ module dynamics_frequency_response
         !! Computes the frequency response functions for a system of ODE's.
         module procedure :: frf_modal_prop_damp
         module procedure :: frf_modal_prop_damp_2
+        module procedure :: siso_frf
     end interface
 
     interface frequency_sweep
@@ -860,4 +863,100 @@ contains
             points, err)
     end function
 
+! ******************************************************************************
+! VERSION 1.0.5 ADDITIONS
+! ------------------------------------------------------------------------------
+function siso_frf(x, y, fs, win, method, err) result(rst)
+    !! Estimates the frequency response of a single-input, single-output (SISO)
+    !! system.
+    real(real64), intent(in), dimension(:) :: x
+        !! An N-element array containing the excitation signal.
+    real(real64), intent(in), dimension(:) :: y
+        !! An N-element array containing the response signal.
+    real(real64), intent(in) :: fs
+        !! The sampling frequency, in Hz.
+    class(window), intent(in), optional, target :: win
+        !! The window to apply to the data.  If nothing is supplied, no window
+        !! is applied.
+    integer(int32), intent(in), optional :: method
+        !! Enter 1 to utilize an H1 estimator; else, enter 2 to utilize an
+        !! H2 estimator.  The default is an H1 estimator.
+        !!
+        !! An H1 estimator is defined as the cross-spectrum of the input and
+        !! response signals divided by the energy spectral density of the input.
+        !! An H2 estimator is defined as the energy spectral density of the
+        !! response divided by the cross-spectrum of the input and response
+        !! signals.
+        !!
+        !! $$ H_{1} = \frac{P_{xy}}{P_{xx}} $$
+        !!
+        !! $$ H_{2} = \frac{P_{yy}}{P_{xy}} $$
+    class(errors), intent(inout), optional, target :: err
+        !! An optional errors-based object that if provided 
+        !! can be used to retrieve information relating to any errors 
+        !! encountered during execution. If not provided, a default 
+        !! implementation of the errors class is used internally to provide 
+        !! error handling. Possible errors and warning messages that may be 
+        !! encountered are as follows.
+        !!
+        !! - DYN_MEMORY_ERROR: Occurs if there are issues allocating memory.
+        !! - DYN_ARRAY_SIZE_ERROR: Occurs if x and y are not the same size.
+    type(frf) :: rst
+        !! The resulting frequency response function.
+
+    ! Local Variables
+    integer(int32) :: i, npts, nfreq, meth, flag
+    real(real64) :: df
+    class(window), pointer :: wptr
+    type(rectangular_window), target :: defwin
+    class(errors), pointer :: errmgr
+    type(errors), target :: deferr
+    
+    ! Initialization
+    if (present(err)) then
+        errmgr => err
+    else
+        errmgr => deferr
+    end if
+    npts = size(x)
+    if (present(win)) then
+        wptr => win
+    else
+        defwin%size = npts
+        wptr => defwin
+    end if
+    if (present(method)) then
+        if (method == 2) then
+            meth = SPCTRM_H2_ESTIMATOR
+        else
+            meth = SPCTRM_H1_ESTIMATOR
+        end if
+    else
+        meth = SPCTRM_H1_ESTIMATOR
+    end if
+    nfreq = compute_transform_length(wptr%size)
+    allocate(rst%frequency(nfreq), stat = flag)
+    if (flag == 0) allocate(rst%responses(nfreq, 1), stat = flag)
+    if (flag /= 0) then
+        call report_memory_error("siso_frf", flag, errmgr)
+        return
+    end if
+
+    ! Input Checking
+    if (size(y) /= npts) then
+        call report_array_size_error("siso_frf", "y", npts, size(y), errmgr)
+        return
+    end if
+
+    ! Compute the transfer function
+    rst%responses(:,1) = siso_transfer_function(wptr, x, y, etype = meth, &
+        err = errmgr)
+    if (errmgr%has_error_occurred()) return
+
+    ! Compute the frequency vector
+    df = frequency_bin_width(fs, wptr%size)
+    rst%frequency = (/ (df * i, i = 0, nfreq - 1) /)
+end function
+
+! ------------------------------------------------------------------------------
 end module
