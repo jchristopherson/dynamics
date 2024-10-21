@@ -378,4 +378,38 @@ contains
     end subroutine
 
 ! ------------------------------------------------------------------------------
+    subroutine report_matrix_size_error(name, var, expect_rows, expect_cols, &
+        actual_rows, actual_cols, err)
+        !! Reports a matrix size error.
+        character(len = *), intent(in) :: name
+            !! The name of the routine in which the error was found.
+        character(len = *), intent(in) :: var
+            !! The name of the offending variable.
+        integer(int32), intent(in) :: expect_rows
+            !! The expected number of rows.
+        integer(int32), intent(in) :: expect_cols
+            !! The expected number of columns.
+        integer(int32), intent(in) :: actual_rows
+            !! The actual number of rows.
+        integer(int32), intent(in) :: actual_cols
+            !! The actual number of columns.
+        class(errors), intent(inout) :: err
+            !! An errors-based object that if provided can be used to retrieve 
+            !! information relating to any errors encountered during execution.
+
+        ! Local Variables
+        character(len = 512) :: errmsg
+
+        ! Report the error
+        write(errmsg, 100) "Expected matrix " // var // " to be of size (", &
+            expect_rows, "-by-", expect_cols, &
+            "), but found it to be of size (", actual_rows, "-by-", &
+            actual_cols, ")."
+        call err%report_error(name, trim(errmsg), DYN_MATRIX_SIZE_ERROR)
+
+        ! Formatting
+    100 format(A, I0, A, I0, A, I0, A, I0, A)
+    end subroutine
+
+! ------------------------------------------------------------------------------
 end module

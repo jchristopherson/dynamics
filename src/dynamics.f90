@@ -10,6 +10,7 @@ module dynamics
     public :: modal_excite
     public :: harmonic_ode
     public :: frf
+    public :: mimo_frf
     public :: chirp
     public :: frequency_response
     public :: frequency_sweep

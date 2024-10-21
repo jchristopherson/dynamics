@@ -88,7 +88,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 7.4% of total for modules and submodules.">156 statements</a>
+               title=" 7.5% of total for modules and submodules.">169 statements</a>
           </li>
 
             <li id="source-file">
@@ -159,6 +159,7 @@
             <a class="list-group-item" href="../module/dynamics_error_handling.html#proc-report_array_size_error">report_array_size_error</a>
             <a class="list-group-item" href="../module/dynamics_error_handling.html#proc-report_constraint_count_error">report_constraint_count_error</a>
             <a class="list-group-item" href="../module/dynamics_error_handling.html#proc-report_generic_counting_error">report_generic_counting_error</a>
+            <a class="list-group-item" href="../module/dynamics_error_handling.html#proc-report_matrix_size_error">report_matrix_size_error</a>
             <a class="list-group-item" href="../module/dynamics_error_handling.html#proc-report_matrix_size_mismatch_error">report_matrix_size_mismatch_error</a>
             <a class="list-group-item" href="../module/dynamics_error_handling.html#proc-report_memory_error">report_memory_error</a>
             <a class="list-group-item" href="../module/dynamics_error_handling.html#proc-report_nonmonotonic_array_error">report_nonmonotonic_array_error</a>
@@ -194,9 +195,9 @@
       <ul class="list-group">
           <li class="list-group-item">
             <ul class="list-inline">
-                <li>ferror</li>
-                <li>diffeq_errors</li>
                 <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
+                <li>diffeq_errors</li>
+                <li>ferror</li>
             </ul>
           </li>
       </ul>
@@ -251,6 +252,7 @@
             <a class="list-group-item" href="../module/dynamics_error_handling.html#proc-report_array_size_error">report_array_size_error</a>
             <a class="list-group-item" href="../module/dynamics_error_handling.html#proc-report_constraint_count_error">report_constraint_count_error</a>
             <a class="list-group-item" href="../module/dynamics_error_handling.html#proc-report_generic_counting_error">report_generic_counting_error</a>
+            <a class="list-group-item" href="../module/dynamics_error_handling.html#proc-report_matrix_size_error">report_matrix_size_error</a>
             <a class="list-group-item" href="../module/dynamics_error_handling.html#proc-report_matrix_size_mismatch_error">report_matrix_size_mismatch_error</a>
             <a class="list-group-item" href="../module/dynamics_error_handling.html#proc-report_memory_error">report_memory_error</a>
             <a class="list-group-item" href="../module/dynamics_error_handling.html#proc-report_nonmonotonic_array_error">report_nonmonotonic_array_error</a>
@@ -834,6 +836,137 @@ information relating to any errors encountered during execution.</p>
             <td><strong>flag</strong></td>
             <td>
 <p>The error flag.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(errors),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>err</strong></td>
+            <td>
+<p>An errors-based object that if provided can be used to retrieve 
+information relating to any errors encountered during execution.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-report_matrix_size_error"></span><h3>public  subroutine <a href='../proc/report_matrix_size_error.html'>report_matrix_size_error</a>(name, var, expect_rows, expect_cols, actual_rows, actual_cols, err)  
+</h3></div>
+    <div class="panel-body">
+          
+  <p>Reports a matrix size error.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>name</strong></td>
+            <td>
+<p>The name of the routine in which the error was found.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>var</strong></td>
+            <td>
+<p>The name of the offending variable.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>expect_rows</strong></td>
+            <td>
+<p>The expected number of rows.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>expect_cols</strong></td>
+            <td>
+<p>The expected number of columns.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>actual_rows</strong></td>
+            <td>
+<p>The actual number of rows.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>actual_cols</strong></td>
+            <td>
+<p>The actual number of columns.</p>
             </td>
         </tr>
         <tr>
@@ -1770,7 +1903,7 @@ information relating to any errors encountered during execution.</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2024-09-23 19:50            </p>
+ on 2024-10-21 16:09            </p>
         </div>
       </div>
       <br>

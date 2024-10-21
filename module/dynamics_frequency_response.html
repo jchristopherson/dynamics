@@ -88,7 +88,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title="20.6% of total for modules and submodules.">434 statements</a>
+               title="24.6% of total for modules and submodules.">551 statements</a>
           </li>
 
             <li id="source-file">
@@ -150,6 +150,7 @@
       <div id="types-0" class="panel-collapse collapse">
         <div class="list-group">
             <a class="list-group-item" href="../module/dynamics_frequency_response.html#type-frf">frf</a>
+            <a class="list-group-item" href="../module/dynamics_frequency_response.html#type-mimo_frf">mimo_frf</a>
         </div>
       </div>
     </div>
@@ -203,9 +204,11 @@
       <ul class="list-group">
           <li class="list-group-item">
             <ul class="list-inline">
-                <li>ferror</li>
-                <li>diffeq</li>
                 <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
+                <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
+                <li>spectrum</li>
+                <li>diffeq</li>
+                <li>ferror</li>
             </ul>
           </li>
       </ul>
@@ -251,6 +254,7 @@
       <div id="types-1" class="panel-collapse collapse">
         <div class="list-group">
             <a class="list-group-item" href="../module/dynamics_frequency_response.html#type-frf">frf</a>
+            <a class="list-group-item" href="../module/dynamics_frequency_response.html#type-mimo_frf">mimo_frf</a>
         </div>
       </div>
     </div>
@@ -711,6 +715,297 @@ encountered are as follows.</p>
     <small>type(<a href='../type/frf.html'>frf</a>)</small>
     </h4>
     <p>The resulting frequency responses.</p>
+
+          </li>
+          <li class="list-group-item">
+                <h3>
+    private  function siso_freqres(x, y, fs, win, method, err) result(rst)  
+
+    </h3>
+  <p>Estimates the frequency response of a single-input, single-output (SISO)
+system.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+                <p>An N-element array containing the excitation signal.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>y</strong></td>
+            <td>
+                <p>An N-element array containing the response signal.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>fs</strong></td>
+            <td>
+                <p>The sampling frequency, in Hz.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(window),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>win</strong></td>
+            <td>
+                <p>The window to apply to the data.  If nothing is supplied, no window
+is applied.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>method</strong></td>
+            <td>
+                <p>Enter 1 to utilize an H1 estimator; else, enter 2 to utilize an
+H2 estimator.  The default is an H1 estimator.</p>
+<p>An H1 estimator is defined as the cross-spectrum of the input and
+response signals divided by the energy spectral density of the input.
+An H2 estimator is defined as the energy spectral density of the
+response divided by the cross-spectrum of the input and response
+signals.</p>
+<p>
+<script type="math/tex; mode=display"> H_{1} = \frac{P_{xy}}{P_{xx}} </script>
+</p>
+<p>
+<script type="math/tex; mode=display"> H_{2} = \frac{P_{yy}}{P_{xy}} </script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(errors),
+            </td>
+<td>intent(inout),</td>
+              <td>optional,</td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>err</strong></td>
+            <td>
+                <p>An optional errors-based object that if provided 
+can be used to retrieve information relating to any errors 
+encountered during execution. If not provided, a default 
+implementation of the errors class is used internally to provide 
+error handling. Possible errors and warning messages that may be 
+encountered are as follows.</p>
+<ul>
+<li>
+<p>DYN_MEMORY_ERROR: Occurs if there are issues allocating memory.</p>
+</li>
+<li>
+<p>DYN_ARRAY_SIZE_ERROR: Occurs if x and y are not the same size.</p>
+</li>
+</ul>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/frf.html'>frf</a>)</small>
+    </h4>
+    <p>The resulting frequency response function.</p>
+
+          </li>
+          <li class="list-group-item">
+                <h3>
+    private  function mimo_freqres(x, y, fs, win, method, err) result(rst)  
+
+    </h3>
+  <p>Estimates the frequency responses of a multiple-input, multiple-output
+(MIMO) system.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+                <p>An N-by-P array containing the P inputs to the system.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>y</strong></td>
+            <td>
+                <p>An N-by-M array containing the M outputs from the system.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>fs</strong></td>
+            <td>
+                <p>The sampling frequency, in Hz.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(window),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>win</strong></td>
+            <td>
+                <p>The window to apply to the data.  If nothing is supplied, no window
+is applied.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>method</strong></td>
+            <td>
+                <p>Enter 1 to utilize an H1 estimator; else, enter 2 to utilize an
+H2 estimator.  The default is an H1 estimator.</p>
+<p>An H1 estimator is defined as the cross-spectrum of the input and
+response signals divided by the energy spectral density of the input.
+An H2 estimator is defined as the energy spectral density of the
+response divided by the cross-spectrum of the input and response
+signals.</p>
+<p>
+<script type="math/tex; mode=display"> H_{1} = \frac{P_{xy}}{P_{xx}} </script>
+</p>
+<p>
+<script type="math/tex; mode=display"> H_{2} = \frac{P_{yy}}{P_{xy}} </script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(errors),
+            </td>
+<td>intent(inout),</td>
+              <td>optional,</td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>err</strong></td>
+            <td>
+                <p>An optional errors-based object that if provided 
+can be used to retrieve information relating to any errors 
+encountered during execution. If not provided, a default 
+implementation of the errors class is used internally to provide 
+error handling. Possible errors and warning messages that may be 
+encountered are as follows.</p>
+<ul>
+<li>
+<p>DYN_MEMORY_ERROR: Occurs if there are issues allocating memory.</p>
+</li>
+<li>
+<p>DYN_ARRAY_SIZE_ERROR: Occurs if x and y do not have the same number
+  of rows.</p>
+</li>
+</ul>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/mimo_frf.html'>mimo_frf</a>)</small>
+    </h4>
+    <p>The resulting frequency response functions.</p>
 
           </li>
     </ul>
@@ -1405,6 +1700,77 @@ evaluated at each of the N frequency points.</p>
     </div>
   </div>
 
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="type-mimo_frf"></span>
+      <h3>
+        type, public&nbsp;::&nbsp;
+        <a href='../type/mimo_frf.html'>mimo_frf</a>
+        
+      </h3>
+    </div>
+    <div class="panel-body">
+      <p>A container for the frequency responses of a system of multiple 
+inputs and multiple outputs (MIMO).</p>
+
+        <h4>Components</h4>
+          <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Visibility</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+<th></th><th>Initial</th>        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-frequency~2"></span>
+              real(kind=real64),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>frequency</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>An N-element array containing the frequency values at which the 
+FRF is provided.  The units of this array are the same as the
+units of the frequency values passed to the routine used to 
+compute the frequency response.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-responses~2"></span>
+              complex(kind=real64),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>responses</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>An N-by-M-by-P array containing the frequency response functions
+for each of the M outputs corresponding to each of the P inputs.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+
+    </div>
+  </div>
+
     </section>
   <br>
     
@@ -1769,7 +2135,7 @@ value in the vector is one.</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2024-09-23 19:50            </p>
+ on 2024-10-21 16:09            </p>
         </div>
       </div>
       <br>

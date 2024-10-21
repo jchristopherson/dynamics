@@ -8,7 +8,7 @@
     <meta name="author" content="Jason Christopherson" >
     <link rel="icon" href="../favicon.png">
 
-    <title>report_zero_valued_frequency_error &ndash; DYNAMICS</title>
+    <title>report_matrix_size_error &ndash; DYNAMICS</title>
 
     <link href="../css/bootstrap.min.css" rel="stylesheet">
     <link href="../css/pygments.css" rel="stylesheet">
@@ -76,7 +76,7 @@
 
     <div class="container">
   <div class="row">
-    <h1>report_zero_valued_frequency_error
+    <h1>report_matrix_size_error
       <small>Subroutine</small>
       
     </h1>
@@ -88,7 +88,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 1.4% of total for procedures.">9 statements</a>
+               title=" 2.0% of total for procedures.">13 statements</a>
           </li>
 
             <li id="source-file">
@@ -99,7 +99,7 @@
         <ol class="breadcrumb in-well text-right">
               <li><a href='../sourcefile/dynamics_error_handling.f90.html'>dynamics_error_handling.f90</a></li>
               <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
-          <li class="active">report_zero_valued_frequency_error</li>
+          <li class="active">report_matrix_size_error</li>
         </ol>
       </div>
     </div>
@@ -125,7 +125,7 @@
       </div>
       <div id="vars-0" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../proc/report_zero_valued_frequency_error.html#variable-errmsg~13">errmsg</a>
+            <a class="list-group-item" href="../proc/report_matrix_size_error.html#variable-errmsg~5">errmsg</a>
         </div>
       </div>
     </div>
@@ -154,11 +154,11 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>public  subroutine report_zero_valued_frequency_error(name, index, err)  
+    <h2>public  subroutine report_matrix_size_error(name, var, expect_rows, expect_cols, actual_rows, actual_cols, err)  
 </h2>
     
 
-    <p>Reports an error associated with a zero-valued frequency value.</p>
+    <p>Reports a matrix size error.</p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -173,7 +173,7 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-name~7"></span>
+              <span class="anchor" id="variable-name~15"></span>
               character(len=*),
             </td>
 <td>intent(in)</td>
@@ -188,7 +188,22 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-index~4"></span>
+              <span class="anchor" id="variable-var~5"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>var</strong></td>
+            <td>
+                <p>The name of the offending variable.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-expect_rows"></span>
               integer(kind=int32),
             </td>
 <td>intent(in)</td>
@@ -196,14 +211,59 @@
               
             </td>
             <td>::</td>
-            <td><strong>index</strong></td>
+            <td><strong>expect_rows</strong></td>
             <td>
-                <p>The array index at which the zero-valued frequency was found.</p>
+                <p>The expected number of rows.</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-err~17"></span>
+              <span class="anchor" id="variable-expect_cols"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>expect_cols</strong></td>
+            <td>
+                <p>The expected number of columns.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-actual_rows"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>actual_rows</strong></td>
+            <td>
+                <p>The actual number of rows.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-actual_cols"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>actual_cols</strong></td>
+            <td>
+                <p>The actual number of columns.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-err~25"></span>
               class(errors),
             </td>
 <td>intent(inout)</td>
@@ -233,7 +293,7 @@ information relating to any errors encountered during execution.</p>
       </div>
       <div id="vars-1" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../proc/report_zero_valued_frequency_error.html#variable-errmsg~13">errmsg</a>
+            <a class="list-group-item" href="../proc/report_matrix_size_error.html#variable-errmsg~5">errmsg</a>
         </div>
       </div>
     </div>
@@ -275,8 +335,8 @@ information relating to any errors encountered during execution.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-errmsg~13"></span>
-              character(len=256),
+              <span class="anchor" id="variable-errmsg~5"></span>
+              character(len=512),
             </td>
               <td>public</td>
             <td>

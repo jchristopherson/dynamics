@@ -8,7 +8,7 @@
     <meta name="author" content="Jason Christopherson" >
     <link rel="icon" href="../favicon.png">
 
-    <title>report_zero_valued_frequency_error &ndash; DYNAMICS</title>
+    <title>mimo_frf &ndash; DYNAMICS </title>
 
     <link href="../css/bootstrap.min.css" rel="stylesheet">
     <link href="../css/pygments.css" rel="stylesheet">
@@ -76,8 +76,8 @@
 
     <div class="container">
   <div class="row">
-    <h1>report_zero_valued_frequency_error
-      <small>Subroutine</small>
+    <h1>mimo_frf
+      <small>Derived Type</small>
       
     </h1>
       <div class="row" id="info-bar">
@@ -88,18 +88,18 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 1.4% of total for procedures.">9 statements</a>
+               title="<p> 4.5% of total for derived types.</p>Including implementation: 4 statements,  0.6% of total for derived types.">4 statements</a>
           </li>
 
             <li id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dynamics_error_handling.f90"> Source File</a>
+              <a href="../src/dynamics_frequency_response.f90"> Source File</a>
             </li>
         </ul>
         <ol class="breadcrumb in-well text-right">
-              <li><a href='../sourcefile/dynamics_error_handling.f90.html'>dynamics_error_handling.f90</a></li>
-              <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
-          <li class="active">report_zero_valued_frequency_error</li>
+              <li><a href='../sourcefile/dynamics_frequency_response.f90.html'>dynamics_frequency_response.f90</a></li>
+              <li><a href='../module/dynamics_frequency_response.html'>dynamics_frequency_response</a></li>
+          <li class="active">mimo_frf</li>
         </ol>
       </div>
     </div>
@@ -125,7 +125,8 @@
       </div>
       <div id="vars-0" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../proc/report_zero_valued_frequency_error.html#variable-errmsg~13">errmsg</a>
+            <a class="list-group-item" href="../type/mimo_frf.html#variable-frequency~2">frequency</a>
+            <a class="list-group-item" href="../type/mimo_frf.html#variable-responses~2">responses</a>
         </div>
       </div>
     </div>
@@ -154,72 +155,9 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>public  subroutine report_zero_valued_frequency_error(name, index, err)  
-</h2>
-    
-
-    <p>Reports an error associated with a zero-valued frequency value.</p>
-
-    <h3>Arguments</h3>
-        <table class="table table-striped varlist">
-    <thead>
-      <tr>
-        <th>Type</th>
-<th>Intent</th><th>Optional</th>        <th>Attributes</th>
-        <th></th>
-        <th>Name</th>
-        <th></th>
-    </thead>
-    <tbody>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-name~7"></span>
-              character(len=*),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>name</strong></td>
-            <td>
-                <p>The name of the routine in which the error was found.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-index~4"></span>
-              integer(kind=int32),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>index</strong></td>
-            <td>
-                <p>The array index at which the zero-valued frequency was found.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-err~17"></span>
-              class(errors),
-            </td>
-<td>intent(inout)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>err</strong></td>
-            <td>
-                <p>An errors-based object that if provided can be used to retrieve 
-information relating to any errors encountered during execution.</p>
-            </td>
-        </tr>
-    </tbody>
-  </table>
-
+      <h2>type, public :: mimo_frf</h2>
+    <p>A container for the frequency responses of a system of multiple 
+inputs and multiple outputs (MIMO).</p>
     <br>
 
     <section class="visible-xs visible-sm hidden-md">
@@ -233,7 +171,8 @@ information relating to any errors encountered during execution.</p>
       </div>
       <div id="vars-1" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../proc/report_zero_valued_frequency_error.html#variable-errmsg~13">errmsg</a>
+            <a class="list-group-item" href="../type/mimo_frf.html#variable-frequency~2">frequency</a>
+            <a class="list-group-item" href="../type/mimo_frf.html#variable-responses~2">responses</a>
         </div>
       </div>
     </div>
@@ -260,9 +199,8 @@ information relating to any errors encountered during execution.</p>
     </section>
     <br class="visible-xs visible-sm hidden-md">
 
-
-    <section>    
-      <h2>Variables</h2>
+    <section>
+    <h2>Components</h2>
       <table class="table table-striped varlist">
     <thead>
       <tr>
@@ -275,19 +213,40 @@ information relating to any errors encountered during execution.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-errmsg~13"></span>
-              character(len=256),
+              <span class="anchor" id="variable-frequency~2"></span>
+              real(kind=real64),
             </td>
-              <td>public</td>
+              <td>public,</td>
             <td>
-              
+              allocatable, dimension(:)
             </td>
             <td>::</td>
-            <td><strong>errmsg</strong></td>
+            <td><strong>frequency</strong></td>
                 <td></td>
                 <td></td>
             <td>
-                
+                <p>An N-element array containing the frequency values at which the 
+FRF is provided.  The units of this array are the same as the
+units of the frequency values passed to the routine used to 
+compute the frequency response.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-responses~2"></span>
+              complex(kind=real64),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>responses</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>An N-by-M-by-P array containing the frequency response functions
+for each of the M outputs corresponding to each of the P inputs.</p>
             </td>
         </tr>
     </tbody>
@@ -296,13 +255,9 @@ information relating to any errors encountered during execution.</p>
     </section>
     <br>
     
-    
-
-    
-    
 
 
-    
+
     
     </div>
   </div>
