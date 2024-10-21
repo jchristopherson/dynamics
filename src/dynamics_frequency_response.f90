@@ -10,6 +10,7 @@ module dynamics_frequency_response
     public :: modal_excite
     public :: harmonic_ode
     public :: frf
+    public :: mimo_frf
     public :: chirp
     public :: frequency_response
     public :: frequency_sweep
@@ -69,11 +70,25 @@ module dynamics_frequency_response
             !! evaluated at each of the N frequency points.
     end type
 
+    type mimo_frf
+        !! A container for the frequency responses of a system of multiple 
+        !! inputs and multiple outputs (MIMO).
+        real(real64), allocatable, dimension(:) :: frequency
+            !! An N-element array containing the frequency values at which the 
+            !! FRF is provided.  The units of this array are the same as the
+            !! units of the frequency values passed to the routine used to 
+            !! compute the frequency response.
+        complex(real64), allocatable, dimension(:,:,:) :: responses
+            !! An N-by-M-by-P array containing the frequency response functions
+            !! for each of the M outputs corresponding to each of the P inputs.
+    end type
+
     interface frequency_response
         !! Computes the frequency response functions for a system of ODE's.
         module procedure :: frf_modal_prop_damp
         module procedure :: frf_modal_prop_damp_2
-        module procedure :: siso_frf
+        module procedure :: siso_freqres
+        module procedure :: mimo_freqres
     end interface
 
     interface frequency_sweep
@@ -866,7 +881,7 @@ contains
 ! ******************************************************************************
 ! VERSION 1.0.5 ADDITIONS
 ! ------------------------------------------------------------------------------
-function siso_frf(x, y, fs, win, method, err) result(rst)
+function siso_freqres(x, y, fs, win, method, err) result(rst)
     !! Estimates the frequency response of a single-input, single-output (SISO)
     !! system.
     real(real64), intent(in), dimension(:) :: x
@@ -900,6 +915,7 @@ function siso_frf(x, y, fs, win, method, err) result(rst)
         !! encountered are as follows.
         !!
         !! - DYN_MEMORY_ERROR: Occurs if there are issues allocating memory.
+        !!
         !! - DYN_ARRAY_SIZE_ERROR: Occurs if x and y are not the same size.
     type(frf) :: rst
         !! The resulting frequency response function.
@@ -938,13 +954,13 @@ function siso_frf(x, y, fs, win, method, err) result(rst)
     allocate(rst%frequency(nfreq), stat = flag)
     if (flag == 0) allocate(rst%responses(nfreq, 1), stat = flag)
     if (flag /= 0) then
-        call report_memory_error("siso_frf", flag, errmgr)
+        call report_memory_error("siso_freqres", flag, errmgr)
         return
     end if
 
     ! Input Checking
     if (size(y) /= npts) then
-        call report_array_size_error("siso_frf", "y", npts, size(y), errmgr)
+        call report_array_size_error("siso_freqres", "y", npts, size(y), errmgr)
         return
     end if
 
@@ -952,6 +968,108 @@ function siso_frf(x, y, fs, win, method, err) result(rst)
     rst%responses(:,1) = siso_transfer_function(wptr, x, y, etype = meth, &
         err = errmgr)
     if (errmgr%has_error_occurred()) return
+
+    ! Compute the frequency vector
+    df = frequency_bin_width(fs, wptr%size)
+    rst%frequency = (/ (df * i, i = 0, nfreq - 1) /)
+end function
+
+! ------------------------------------------------------------------------------
+function mimo_freqres(x, y, fs, win, method, err) result(rst)
+    !! Estimates the frequency responses of a multiple-input, multiple-output
+    !! (MIMO) system.
+    real(real64), intent(in), dimension(:,:) :: x
+        !! An N-by-P array containing the P inputs to the system.
+    real(real64), intent(in), dimension(:,:) :: y
+        !! An N-by-M array containing the M outputs from the system.
+    real(real64), intent(in) :: fs
+        !! The sampling frequency, in Hz.
+    class(window), intent(in), optional, target :: win
+        !! The window to apply to the data.  If nothing is supplied, no window
+        !! is applied.
+    integer(int32), intent(in), optional :: method
+        !! Enter 1 to utilize an H1 estimator; else, enter 2 to utilize an
+        !! H2 estimator.  The default is an H1 estimator.
+        !!
+        !! An H1 estimator is defined as the cross-spectrum of the input and
+        !! response signals divided by the energy spectral density of the input.
+        !! An H2 estimator is defined as the energy spectral density of the
+        !! response divided by the cross-spectrum of the input and response
+        !! signals.
+        !!
+        !! $$ H_{1} = \frac{P_{xy}}{P_{xx}} $$
+        !!
+        !! $$ H_{2} = \frac{P_{yy}}{P_{xy}} $$
+    class(errors), intent(inout), optional, target :: err
+        !! An optional errors-based object that if provided 
+        !! can be used to retrieve information relating to any errors 
+        !! encountered during execution. If not provided, a default 
+        !! implementation of the errors class is used internally to provide 
+        !! error handling. Possible errors and warning messages that may be 
+        !! encountered are as follows.
+        !!
+        !! - DYN_MEMORY_ERROR: Occurs if there are issues allocating memory.
+        !!
+        !! - DYN_ARRAY_SIZE_ERROR: Occurs if x and y do not have the same number
+        !!   of rows.
+    type(mimo_frf) :: rst
+        !! The resulting frequency response functions.
+
+    ! Local Variables
+    integer(int32) :: i, j, npts, m, p, nfreq, meth, flag
+    real(real64) :: df
+    class(window), pointer :: wptr
+    type(rectangular_window), target :: defwin
+    class(errors), pointer :: errmgr
+    type(errors), target :: deferr
+    
+    ! Initialization
+    if (present(err)) then
+        errmgr => err
+    else
+        errmgr => deferr
+    end if
+    npts = size(x, 1)
+    m = size(y, 2)
+    p = size(x, 2)
+    if (present(win)) then
+        wptr => win
+    else
+        defwin%size = npts
+        wptr => defwin
+    end if
+    if (present(method)) then
+        if (method == 2) then
+            meth = SPCTRM_H2_ESTIMATOR
+        else
+            meth = SPCTRM_H1_ESTIMATOR
+        end if
+    else
+        meth = SPCTRM_H1_ESTIMATOR
+    end if
+    nfreq = compute_transform_length(wptr%size)
+    allocate(rst%frequency(nfreq), stat = flag)
+    if (flag == 0) allocate(rst%responses(nfreq, m, p))
+    if (flag /= 0) then
+        call report_memory_error("mimo_freqres", flag, errmgr)
+        return
+    end if
+
+    ! Input Checking
+    if (size(y, 1) /= npts) then
+        call report_matrix_size_error("mimo_freqres", "y", npts, size(y, 2), &
+            size(y, 1), size(y, 2), errmgr)
+        return
+    end if
+
+    ! Compute the transfer functions for each possible combination
+    do j = 1, p
+        do i = 1, m
+            rst%responses(:,i,j) = siso_transfer_function(wptr, &
+                x(:,j), y(:,i), etype = meth, err = errmgr)
+            if (errmgr%has_error_occurred()) return
+        end do
+    end do
 
     ! Compute the frequency vector
     df = frequency_bin_width(fs, wptr%size)

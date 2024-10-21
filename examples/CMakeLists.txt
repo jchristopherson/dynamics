@@ -41,3 +41,11 @@ add_executable(
 )
 link_library(siso_frf_example_1 ${PROJECT_NAME} ${PROJECT_INCLUDE_DIR})
 link_library(siso_frf_example_1 ${fplot_LIBRARY} ${fplot_INCLUDE_DIR})
+
+# MIMO FRF Example 1
+add_executable(
+    mimo_frf_example_1
+    mimo_frf_example_1.f90
+)
+link_library(mimo_frf_example_1 ${PROJECT_NAME} ${PROJECT_INCLUDE_DIR})
+link_library(mimo_frf_example_1 ${fplot_LIBRARY} ${fplot_INCLUDE_DIR})
