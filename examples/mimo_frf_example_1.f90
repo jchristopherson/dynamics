@@ -3,16 +3,16 @@ module dynamic_system
     use dynamics
     implicit none
 
-    ! System Model:
+    ! MISO System Model:
     !
-    ! m x1" + 2 b x1' - b x2' + 2 k x1 - k x2 = F1(t)
-    ! m x2" + 2 b x2' - b x1' + 2 k x2 - k x1 = F2(t)
+    ! m x1" + 2 b x1' - b x2' + 2 k x1 - k x2 = F(t)
+    ! m x2" + 2 b x2' - b x1' + 2 k x2 - k x1 = 0
 
     ! Simulation Parameters
     real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
     real(real64), parameter :: sample_rate = 6.0d2
     real(real64), parameter :: max_time = 1.0d1
-    real(real64), parameter :: input_amplitude = 1.0d6
+    real(real64), parameter :: input_amplitude = 1.0d9
     real(real64), parameter :: min_freq = 1.0d0
     real(real64), parameter :: max_freq = 0.5d0 * sample_rate
 
@@ -36,7 +36,7 @@ contains
         dxdt(1) = x(2)
         dxdt(2) = (f - b * (2.0d0 * x(2) + x(4)) - k * (2.0d0 * x(1) + x(3))) / m1
         dxdt(3) = x(4)
-        dxdt(4) = (f - b * (2.0d0 * x(4) + x(2)) - k * (2.0d0 * x(3) + x(1))) / m2
+        dxdt(4) = (-b * (2.0d0 * x(4) + x(2)) - k * (2.0d0 * x(3) + x(1))) / m2
     end subroutine
 end module
 
@@ -50,7 +50,7 @@ program example
 
     ! Variables
     integer(int32) :: i, n
-    real(real64), allocatable, dimension(:) :: t, amp11, amp12, amp21, amp22
+    real(real64), allocatable, dimension(:) :: t, amp11, amp12, phase11, phase12
     real(real64), allocatable, dimension(:,:) :: x, y, z1
     type(ode_container) :: mdl
     type(runge_kutta_45) :: solver
@@ -61,13 +61,13 @@ program example
     type(plot_2d) :: plt1, plt2, plt3, plt4
     type(plot_data_2d) :: pd
     class(plot_axis), pointer :: x1, x2, x3, x4, y1, y2, y3, y4
+    class(terminal), pointer :: term
     
     ! Define the input signal
     n = floor(max_time * sample_rate) + 1
-    allocate(t(n), x(n,2))
+    allocate(t(n), x(n,1))
     t = (/ (i / sample_rate, i = 0, n - 1) /)
     x(:,1) = chirp(t, input_amplitude, max_time, min_freq, max_freq)
-    x(:,2) = x(:,1)
 
     ! Compute the response of the dynamic system to the specified inputs
     mdl%fcn => equations_of_motion
@@ -83,8 +83,12 @@ program example
     ! Convert to amplitude
     amp11 = 2.0d1 * log10(abs(rsp%responses(:,1,1) / rsp%responses(1,1,1)))
     amp12 = 2.0d1 * log10(abs(rsp%responses(:,2,1) / rsp%responses(1,2,1)))
-    amp21 = 2.0d1 * log10(abs(rsp%responses(:,1,2) / rsp%responses(1,1,2)))
-    amp22 = 2.0d1 * log10(abs(rsp%responses(:,2,2) / rsp%responses(1,2,2)))
+
+    ! Compute the phase terms
+    phase11 = 1.8d2 * atan2(aimag(rsp%responses(:,1,1)), &
+        real(rsp%responses(:,1,1))) / pi
+    phase12 = 1.8d2 * atan2(aimag(rsp%responses(:,2,1)), &
+        real(rsp%responses(:,2,1))) / pi
 
 ! ------------------------------------------------------------------------------
 ! PLOTTING
@@ -103,6 +107,11 @@ program example
     y3 => plt3%get_y_axis()
     x4 => plt4%get_x_axis()
     y4 => plt4%get_y_axis()
+    term => plt%get_terminal()
+
+    ! Define the window size
+    call term%set_window_width(1000)
+    call term%set_window_height(600)
 
     ! Define Labels
     call x1%set_title("Frequency [Hz]")
@@ -110,15 +119,13 @@ program example
     call x2%set_title("Frequency [Hz]")
     call y2%set_title("Magnitude [dB]")
     call x3%set_title("Frequency [Hz]")
-    call y3%set_title("Magnitude [dB]")
+    call y3%set_title("Phase [deg]")
     call x4%set_title("Frequency [Hz]")
-    call y4%set_title("Magnitude [dB]")
+    call y4%set_title("Phase [deg]")
 
     ! Define Titles
     call plt1%set_title("Input 1, Output 1")
     call plt2%set_title("Input 1, Output 2")
-    call plt3%set_title("Input 2, Output 1")
-    call plt4%set_title("Input 2, Output 2")
 
     ! Plot
     call pd%define_data(rsp%frequency, amp11)
@@ -130,11 +137,11 @@ program example
     call plt2%push(pd)
     call plt%set(1, 2, plt2)
 
-    call pd%define_data(rsp%frequency, amp21)
+    call pd%define_data(rsp%frequency, phase11)
     call plt3%push(pd)
     call plt%set(2, 1, plt3)
 
-    call pd%define_data(rsp%frequency, amp22)
+    call pd%define_data(rsp%frequency, phase12)
     call plt4%push(pd)
     call plt%set(2, 2, plt4)
 
