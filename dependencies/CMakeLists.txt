@@ -27,3 +27,13 @@ set(diffeq_INCLUDE_DIR ${diffeq_INCLUDE_DIR} PARENT_SCOPE)
 add_subdirectory(nonlin)
 set(nonlin_LIBRARY ${nonlin_LIBRARY} PARENT_SCOPE)
 set(nonlin_INCLUDE_DIR ${nonlin_INCLUDE_DIR} PARENT_SCOPE)
+
+# Get FSTATS
+add_subdirectory(fstats)
+set(fstats_LIBRARY ${fstats_LIBRARY} PARENT_SCOPE)
+set(fstats_INCLUDE_DIR ${fstats_INCLUDE_DIR} PARENT_SCOPE)
+
+# Get PEAKS
+add_subdirectory(peaks)
+set(peaks_LIBRARY ${peaks_LIBRARY} PARENT_SCOPE)
+set(peaks_INCLUDE_DIR ${peaks_INCLUDE_DIR} PARENT_SCOPE)

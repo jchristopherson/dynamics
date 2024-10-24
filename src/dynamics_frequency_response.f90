@@ -17,6 +17,8 @@ module dynamics_frequency_response
     public :: compute_modal_damping
     public :: modal_response
     public :: normalize_mode_shapes
+    public :: evaluate_frf_accel_model
+    public :: evaluate_frf_force_model
 
     interface
         function ode_excite(t) result(rst)
@@ -94,6 +96,16 @@ module dynamics_frequency_response
     interface frequency_sweep
         module procedure :: frf_sweep_1
         module procedure :: frf_sweep_2
+    end interface
+
+    interface evaluate_frf_accel_model
+        module procedure :: evaluate_frf_accel_model_scalar
+        module procedure :: evaluate_frf_accel_model_array
+    end interface
+
+    interface evaluate_frf_force_model
+        module procedure :: evaluate_frf_force_model_scalar
+        module procedure :: evaluate_frf_force_model_array
     end interface
 
 ! ------------------------------------------------------------------------------
@@ -1074,6 +1086,176 @@ function mimo_freqres(x, y, fs, win, method, err) result(rst)
     ! Compute the frequency vector
     df = frequency_bin_width(fs, wptr%size)
     rst%frequency = (/ (df * i, i = 0, nfreq - 1) /)
+end function
+
+! ******************************************************************************
+! V1.0.6 ADDITIONS
+! ------------------------------------------------------------------------------
+subroutine frf_accel_fit_fcn(xdata, mdl, rst, stop)
+    !! The FRF fitting function for an accelerance FRF (acceleration-excited).
+    real(real64), intent(in), dimension(:) :: xdata
+        !! The independent variable data.
+    real(real64), intent(in), dimension(:) :: mdl
+        !! The model parameters.
+    real(real64), intent(out), dimension(:) :: rst
+        !! The model results.
+    logical, intent(out) :: stop
+        !! Stop the simulation?
+
+end subroutine
+
+! ------------------------------------------------------------------------------
+pure function evaluate_frf_accel_model_scalar(mdl, w) result(rst)
+    !! Evaluates the specified acceleration-excited FRF model.  The model is of
+    !! the following form.
+    !!
+    !! $$ H(\omega) = \sum_{i=1}^{n} \frac{-A_{i} \omega^{2}}{\omega_{ni}^{2} - 
+    !! \omega^{2} + 2 j \zeta_{i} \omega_{ni} \omega}  $$
+    real(real64), intent(in), dimension(:) :: mdl
+        !! The model parameter array.  The elements of the array are stored
+        !! as $$ \left[ A_{1}, \omega_{n1}, \zeta_{1}, A_{2}, \omega_{n2}, 
+        !! \zeta_{2} ... \right] $$.
+    real(real64), intent(in) :: w
+        !! The frequency value, in rad/s, at which to evaluate the model.
+    complex(real64) :: rst
+        !! The resulting frequency response function.
+
+    ! Local Variables
+    integer(int32) :: i, j, n
+
+    ! Process
+    j = 1
+    n = size(mdl) / 3
+    rst = (0.0d0, 0.0d0)
+    do i = 1, n
+        rst = rst + frf_accel_model_driver(mdl(j), mdl(j+1), mdl(j+2), w)
+        j = j + 3
+    end do
+end function
+
+! ----------
+pure function evaluate_frf_accel_model_array(mdl, w) result(rst)
+    !! Evaluates the specified acceleration-excited FRF model.  The model is of
+    !! the following form.
+    !!
+    !! $$ H(\omega) = \sum_{i=1}^{n} \frac{-A_{i} \omega^{2}}{\omega_{ni}^{2} - 
+    !! \omega^{2} + 2 j \zeta_{i} \omega_{ni} \omega}  $$
+    real(real64), intent(in), dimension(:) :: mdl
+        !! The model parameter array.  The elements of the array are stored
+        !! as $$ \left[ A_{1}, \omega_{n1}, \zeta_{1}, A_{2}, \omega_{n2}, 
+        !! \zeta_{2} ... \right] $$.
+    real(real64), intent(in), dimension(:) :: w
+        !! The frequency value, in rad/s, at which to evaluate the model.
+    complex(real64), allocatable, dimension(:) :: rst
+        !! The resulting frequency response function.
+
+    ! Local Variables
+    integer(int32) :: n
+
+    ! Process
+    n = size(w)
+    allocate(rst(n))
+    do i = 1, n
+        rst(i) = evaluate_frf_accel_model_scalar(mdl, w(i))
+    end do
+end function
+
+! ----------
+pure elemental function frf_accel_model_driver(A, wn, zeta, w) result(rst)
+    !! Evaluates a single term of the acceleration driven FRF model.
+    real(real64), intent(in) :: A
+        !! The amplitude term.
+    real(real64), intent(in) :: wn
+        !! The natural frequency term.
+    real(real64), intent(in) :: zeta
+        !! The damping ratio term.
+    real(real64), intent(in) :: w
+        !! The excitation frequency.
+    complex(real64) :: rst
+        !! The result.
+
+    ! Parameters
+    complex(real64), parameter :: j = (0.0d0, 1.0d0)
+
+    ! Process
+    rst = -A * w**2 / (wn**2 - w**2 + 2.0d0 * j * zeta * wn * w)
+end function
+
+! ------------------------------------------------------------------------------
+pure function evaluate_frf_force_model_scalar(mdl, w) result(rst)
+    !! Evaluates the specified force-excited FRF model.  The model is of
+    !! the following form.
+    !!
+    !! $$ H(\omega) = \sum_{i=1}^{n} \frac{A_{i}}{\omega_{ni}^{2} - 
+    !! \omega^{2} + 2 j \zeta_{i} \omega_{ni} \omega}  $$
+    real(real64), intent(in), dimension(:) :: mdl
+        !! The model parameter array.  The elements of the array are stored
+        !! as $$ \left[ A_{1}, \omega_{n1}, \zeta_{1}, A_{2}, \omega_{n2}, 
+        !! \zeta_{2} ... \right] $$.
+    real(real64), intent(in) :: w
+        !! The frequency value, in rad/s, at which to evaluate the model.
+    complex(real64) :: rst
+        !! The resulting frequency response function.
+
+    ! Local Variables
+    integer(int32) :: i, j, n
+
+    ! Process
+    j = 1
+    n = size(mdl) / 3
+    rst = (0.0d0, 0.0d0)
+    do i = 1, n
+        rst = rst + frf_force_model_driver(mdl(j), mdl(j+1), mdl(j+2), w)
+        j = j + 3
+    end do
+end function
+
+! ----------
+pure function evaluate_frf_force_model_array(mdl, w) result(rst)
+    !! Evaluates the specified force-excited FRF model.  The model is of
+    !! the following form.
+    !!
+    !! $$ H(\omega) = \sum_{i=1}^{n} \frac{A_{i}}{\omega_{ni}^{2} - 
+    !! \omega^{2} + 2 j \zeta_{i} \omega_{ni} \omega}  $$
+    real(real64), intent(in), dimension(:) :: mdl
+        !! The model parameter array.  The elements of the array are stored
+        !! as $$ \left[ A_{1}, \omega_{n1}, \zeta_{1}, A_{2}, \omega_{n2}, 
+        !! \zeta_{2} ... \right] $$.
+    real(real64), intent(in), dimension(:) :: w
+        !! The frequency value, in rad/s, at which to evaluate the model.
+    complex(real64), allocatable, dimension(:) :: rst
+        !! The resulting frequency response function.
+
+    ! Local Variables
+    integer(int32) :: n
+
+    ! Process
+    n = size(w)
+    allocate(rst(n))
+    do i = 1, n
+        rst(i) = evaluate_frf_force_model_scalar(mdl, w(i))
+    end do
+end function
+
+! ----------
+pure elemental function frf_force_model_driver(A, wn, zeta, w) result(rst)
+    !! Evaluates a single term of the force driven FRF model.
+    real(real64), intent(in) :: A
+        !! The amplitude term.
+    real(real64), intent(in) :: wn
+        !! The natural frequency term.
+    real(real64), intent(in) :: zeta
+        !! The damping ratio term.
+    real(real64), intent(in) :: w
+        !! The excitation frequency.
+    complex(real64) :: rst
+        !! The result.
+
+    ! Parameters
+    complex(real64), parameter :: j = (0.0d0, 1.0d0)
+
+    ! Process
+    rst = A / (wn**2 - w**2 + 2.0d0 * j * zeta * wn * w)
 end function
 
 ! ------------------------------------------------------------------------------
