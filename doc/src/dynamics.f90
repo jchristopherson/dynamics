@@ -17,6 +17,8 @@ module dynamics
     public :: compute_modal_damping
     public :: modal_response
     public :: normalize_mode_shapes
+    public :: evaluate_frf_accel_model
+    public :: evaluate_frf_force_model
 
     ! DYNAMICS_ROTATION
     public :: rotate_x
