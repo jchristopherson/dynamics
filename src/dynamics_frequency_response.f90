@@ -18,11 +18,11 @@ module dynamics_frequency_response
     public :: compute_modal_damping
     public :: modal_response
     public :: normalize_mode_shapes
-    public :: evaluate_frf_accel_model
-    public :: evaluate_frf_force_model
+    public :: evaluate_accelerance_frf_model
+    public :: evaluate_receptance_frf_model
     public :: fit_frf
-    public :: FRF_ACCELERATION_EXCITATION
-    public :: FRF_FORCE_EXCITATION
+    public :: FRF_ACCELERANCE_MODEL
+    public :: FRF_RECEPTANCE_MODEL
     public :: regression_statistics
     public :: iteration_controls
     public :: lm_solver_options
@@ -106,20 +106,20 @@ module dynamics_frequency_response
         module procedure :: frf_sweep_2
     end interface
 
-    interface evaluate_frf_accel_model
-        module procedure :: evaluate_frf_accel_model_scalar
-        module procedure :: evaluate_frf_accel_model_array
+    interface evaluate_accelerance_frf_model
+        module procedure :: evaluate_accelerance_frf_model_scalar
+        module procedure :: evaluate_accelerance_frf_model_array
     end interface
 
-    interface evaluate_frf_force_model
-        module procedure :: evaluate_frf_force_model_scalar
-        module procedure :: evaluate_frf_force_model_array
+    interface evaluate_receptance_frf_model
+        module procedure :: evaluate_receptance_frf_model_scalar
+        module procedure :: evaluate_receptance_frf_model_array
     end interface
 
 ! ------------------------------------------------------------------------------
-    integer(int32), parameter :: FRF_ACCELERATION_EXCITATION = 1
+    integer(int32), parameter :: FRF_ACCELERANCE_MODEL = 1
         !! Defines a frequency response model that is acceleration excited.
-    integer(int32), parameter :: FRF_FORCE_EXCITATION = 2
+    integer(int32), parameter :: FRF_RECEPTANCE_MODEL = 2
         !! Defines a frequency response model that is force excited.
 
 ! ------------------------------------------------------------------------------
@@ -1128,7 +1128,7 @@ subroutine frf_accel_fit_fcn(xdata, mdl, rst, stop)
     ! second "N" locations.
     n = size(xdata) / 2
     do i = 1, n
-        h = evaluate_frf_accel_model(mdl, xdata(i))
+        h = evaluate_accelerance_frf_model(mdl, xdata(i))
         rst(i) = abs(h)
         rst(i + n) = atan2(aimag(h), real(h))
     end do
@@ -1157,23 +1157,23 @@ subroutine frf_force_fit_fcn(xdata, mdl, rst, stop)
     ! second "N" locations.
     n = size(xdata) / 2
     do i = 1, n
-        h = evaluate_frf_force_model(mdl, xdata(i))
+        h = evaluate_receptance_frf_model(mdl, xdata(i))
         rst(i) = abs(h)
         rst(i + n) = atan2(aimag(h), real(h))
     end do
 end subroutine
 
 ! ------------------------------------------------------------------------------
-function fit_frf(frc, n, freq, rsp, maxp, minp, init, stats, alpha, controls, &
+function fit_frf(mt, n, freq, rsp, maxp, minp, init, stats, alpha, controls, &
     settings, info, err) result(rst)
     use peaks
     !! Fits an experimentally obtained frequency response by model for either a
-    !! force-excited system:
+    !! receptance model:
     !!
     !! $$ H(\omega) = \sum_{i=1}^{n} \frac{A_{i}}{\omega_{ni}^{2} - 
     !! \omega^{2} + 2 j \zeta_{i} \omega_{ni} \omega} $$
     !!
-    !! or an acceleration-excited system:
+    !! or an accelerance model:
     !!
     !! $$ H(\omega) = \sum_{i=1}^{n} \frac{-A_{i} \omega^{2}}{\omega_{ni}^{2} - 
     !! \omega^{2} + 2 j \zeta_{i} \omega_{ni} \omega} $$.
@@ -1184,12 +1184,12 @@ function fit_frf(frc, n, freq, rsp, maxp, minp, init, stats, alpha, controls, &
     !! from this result, estimates for both the amplitude and natural frequency
     !! values are obtained.  The damping parameters are assumed to be equal
     !! for all modes and set to a default value of 0.1.
-    integer(int32), intent(in) :: frc
+    integer(int32), intent(in) :: mt
         !! The excitation method.  The options are as follows.
         !!
-        !! - FRF_ACCELERATION_EXCITATION: The FRF model is acceleration excited.
+        !! - FRF_ACCELERANCE_MODEL: Use an accelerance model.
         !!
-        !! - FRF_FORCE_EXCITATION: The FRF model is force excited.
+        !! - FRF_RECEPTANCE_MODEL: Use a receptance model.
     integer(int32), intent(in) :: n
         !! The model order (# of resonant modes).
     real(real64), intent(in), dimension(:) :: freq
@@ -1269,15 +1269,15 @@ function fit_frf(frc, n, freq, rsp, maxp, minp, init, stats, alpha, controls, &
     else
         errmgr => deferr
     end if
-    select case (frc)
-    case (FRF_ACCELERATION_EXCITATION)
+    select case (mt)
+    case (FRF_ACCELERANCE_MODEL)
         fcn => frf_accel_fit_fcn
-    case (FRF_FORCE_EXCITATION)
+    case (FRF_RECEPTANCE_MODEL)
         fcn => frf_force_fit_fcn
     case default
         call errmgr%report_error("fit_frf", "Invalid entry for the " // &
-            "variable frc.  Must be either FRF_ACCELERATION_EXCITATION or " // &
-            "FRF_FORCE_EXCITATION.", DYN_INVALID_INPUT_ERROR)
+            "variable mt.  Must be either FRF_ACCELERANCE_MODEL or " // &
+            "FRF_RECEPTANCE_MODEL.", DYN_INVALID_INPUT_ERROR)
         return
     end select
     npts = size(freq)
@@ -1367,8 +1367,8 @@ function fit_frf(frc, n, freq, rsp, maxp, minp, init, stats, alpha, controls, &
 end function
 
 ! ------------------------------------------------------------------------------
-pure function evaluate_frf_accel_model_scalar(mdl, w) result(rst)
-    !! Evaluates the specified acceleration-excited FRF model.  The model is of
+pure function evaluate_accelerance_frf_model_scalar(mdl, w) result(rst)
+    !! Evaluates the specified accelerance FRF model.  The model is of
     !! the following form.
     !!
     !! $$ H(\omega) = \sum_{i=1}^{n} \frac{-A_{i} \omega^{2}}{\omega_{ni}^{2} - 
@@ -1396,8 +1396,8 @@ pure function evaluate_frf_accel_model_scalar(mdl, w) result(rst)
 end function
 
 ! ----------
-pure function evaluate_frf_accel_model_array(mdl, w) result(rst)
-    !! Evaluates the specified acceleration-excited FRF model.  The model is of
+pure function evaluate_accelerance_frf_model_array(mdl, w) result(rst)
+    !! Evaluates the specified accelerance FRF model.  The model is of
     !! the following form.
     !!
     !! $$ H(\omega) = \sum_{i=1}^{n} \frac{-A_{i} \omega^{2}}{\omega_{ni}^{2} - 
@@ -1418,13 +1418,13 @@ pure function evaluate_frf_accel_model_array(mdl, w) result(rst)
     n = size(w)
     allocate(rst(n))
     do i = 1, n
-        rst(i) = evaluate_frf_accel_model_scalar(mdl, w(i))
+        rst(i) = evaluate_accelerance_frf_model_scalar(mdl, w(i))
     end do
 end function
 
 ! ----------
 pure elemental function frf_accel_model_driver(A, wn, zeta, w) result(rst)
-    !! Evaluates a single term of the acceleration driven FRF model.
+    !! Evaluates a single term of the accelerance FRF model.
     real(real64), intent(in) :: A
         !! The amplitude term.
     real(real64), intent(in) :: wn
@@ -1444,8 +1444,8 @@ pure elemental function frf_accel_model_driver(A, wn, zeta, w) result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
-pure function evaluate_frf_force_model_scalar(mdl, w) result(rst)
-    !! Evaluates the specified force-excited FRF model.  The model is of
+pure function evaluate_receptance_frf_model_scalar(mdl, w) result(rst)
+    !! Evaluates the specified receptance FRF model.  The model is of
     !! the following form.
     !!
     !! $$ H(\omega) = \sum_{i=1}^{n} \frac{A_{i}}{\omega_{ni}^{2} - 
@@ -1467,14 +1467,14 @@ pure function evaluate_frf_force_model_scalar(mdl, w) result(rst)
     n = size(mdl) / 3
     rst = (0.0d0, 0.0d0)
     do i = 1, n
-        rst = rst + frf_force_model_driver(mdl(j), mdl(j+1), mdl(j+2), w)
+        rst = rst + frf_receptance_model_driver(mdl(j), mdl(j+1), mdl(j+2), w)
         j = j + 3
     end do
 end function
 
 ! ----------
-pure function evaluate_frf_force_model_array(mdl, w) result(rst)
-    !! Evaluates the specified force-excited FRF model.  The model is of
+pure function evaluate_receptance_frf_model_array(mdl, w) result(rst)
+    !! Evaluates the specified receptance FRF model.  The model is of
     !! the following form.
     !!
     !! $$ H(\omega) = \sum_{i=1}^{n} \frac{A_{i}}{\omega_{ni}^{2} - 
@@ -1495,13 +1495,13 @@ pure function evaluate_frf_force_model_array(mdl, w) result(rst)
     n = size(w)
     allocate(rst(n))
     do i = 1, n
-        rst(i) = evaluate_frf_force_model_scalar(mdl, w(i))
+        rst(i) = evaluate_receptance_frf_model_scalar(mdl, w(i))
     end do
 end function
 
 ! ----------
-pure elemental function frf_force_model_driver(A, wn, zeta, w) result(rst)
-    !! Evaluates a single term of the force driven FRF model.
+pure elemental function frf_receptance_model_driver(A, wn, zeta, w) result(rst)
+    !! Evaluates a single term of the receptance FRF model.
     real(real64), intent(in) :: A
         !! The amplitude term.
     real(real64), intent(in) :: wn

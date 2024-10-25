@@ -69,10 +69,10 @@ program example
     rsp = frequency_response(m, k, alpha, beta, nfreq, fmin, fmax, fcn)
 
     ! Attempt to fit the modeled frequency response function
-    mdl = fit_frf(FRF_FORCE_EXCITATION, 3, rsp%frequency, rsp%responses(:,1))
+    mdl = fit_frf(FRF_RECEPTANCE_MODEL, 3, rsp%frequency, rsp%responses(:,1))
 
     ! Evaluate the model
-    mdlrsp = evaluate_frf_force_model(mdl, rsp%frequency)
+    mdlrsp = evaluate_receptance_frf_model(mdl, rsp%frequency)
 
     ! Extract amplitude and phase information
     amp = 2.0d1 * log10(abs(rsp%responses(:,1) / rsp%responses(1,1)))

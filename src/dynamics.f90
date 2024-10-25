@@ -17,11 +17,11 @@ module dynamics
     public :: compute_modal_damping
     public :: modal_response
     public :: normalize_mode_shapes
-    public :: evaluate_frf_accel_model
-    public :: evaluate_frf_force_model
+    public :: evaluate_accelerance_frf_model
+    public :: evaluate_receptance_frf_model
     public :: fit_frf
-    public :: FRF_ACCELERATION_EXCITATION
-    public :: FRF_FORCE_EXCITATION
+    public :: FRF_ACCELERANCE_MODEL
+    public :: FRF_RECEPTANCE_MODEL
     public :: regression_statistics
     public :: iteration_controls
     public :: lm_solver_options
