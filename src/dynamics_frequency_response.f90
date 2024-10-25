@@ -4,6 +4,7 @@ module dynamics_frequency_response
     use diffeq, only : ode_container, ode_integrator
     use dynamics_error_handling
     use spectrum
+    use fstats
     implicit none
     private
     public :: ode_excite
@@ -19,6 +20,13 @@ module dynamics_frequency_response
     public :: normalize_mode_shapes
     public :: evaluate_frf_accel_model
     public :: evaluate_frf_force_model
+    public :: fit_frf
+    public :: FRF_ACCELERATION_EXCITATION
+    public :: FRF_FORCE_EXCITATION
+    public :: regression_statistics
+    public :: iteration_controls
+    public :: lm_solver_options
+    public :: convergence_info
 
     interface
         function ode_excite(t) result(rst)
@@ -107,6 +115,12 @@ module dynamics_frequency_response
         module procedure :: evaluate_frf_force_model_scalar
         module procedure :: evaluate_frf_force_model_array
     end interface
+
+! ------------------------------------------------------------------------------
+    integer(int32), parameter :: FRF_ACCELERATION_EXCITATION = 1
+        !! Defines a frequency response model that is acceleration excited.
+    integer(int32), parameter :: FRF_FORCE_EXCITATION = 2
+        !! Defines a frequency response model that is force excited.
 
 ! ------------------------------------------------------------------------------
     real(real64), private :: sweep_frequency
@@ -1091,6 +1105,7 @@ end function
 ! ******************************************************************************
 ! V1.0.6 ADDITIONS
 ! ------------------------------------------------------------------------------
+! SEE: https://www.researchgate.net/publication/224619803_Reduction_of_structure-borne_noise_in_automobiles_by_multivariable_feedback
 subroutine frf_accel_fit_fcn(xdata, mdl, rst, stop)
     !! The FRF fitting function for an accelerance FRF (acceleration-excited).
     real(real64), intent(in), dimension(:) :: xdata
@@ -1102,7 +1117,243 @@ subroutine frf_accel_fit_fcn(xdata, mdl, rst, stop)
     logical, intent(out) :: stop
         !! Stop the simulation?
 
+    ! Local Variables
+    integer(int32) :: i, n
+    complex(real64) :: h
+
+    ! Process:
+    ! 
+    ! The amplitude portion of the response is stored in the first "N" locations
+    ! in the output with the phase portion (in radians) is stored in the
+    ! second "N" locations.
+    n = size(xdata) / 2
+    do i = 1, n
+        h = evaluate_frf_accel_model(mdl, xdata(i))
+        rst(i) = abs(h)
+        rst(i + n) = atan2(aimag(h), real(h))
+    end do
 end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine frf_force_fit_fcn(xdata, mdl, rst, stop)
+    !! The FRF fitting function for an force-excited FRF.
+    real(real64), intent(in), dimension(:) :: xdata
+        !! The independent variable data.
+    real(real64), intent(in), dimension(:) :: mdl
+        !! The model parameters.
+    real(real64), intent(out), dimension(:) :: rst
+        !! The model results.
+    logical, intent(out) :: stop
+        !! Stop the simulation?
+
+    ! Local Variables
+    integer(int32) :: i, n
+    complex(real64) :: h
+
+    ! Process:
+    ! 
+    ! The amplitude portion of the response is stored in the first "N" locations
+    ! in the output with the phase portion (in radians) is stored in the
+    ! second "N" locations.
+    n = size(xdata) / 2
+    do i = 1, n
+        h = evaluate_frf_force_model(mdl, xdata(i))
+        rst(i) = abs(h)
+        rst(i + n) = atan2(aimag(h), real(h))
+    end do
+end subroutine
+
+! ------------------------------------------------------------------------------
+function fit_frf(frc, n, freq, rsp, maxp, minp, init, stats, alpha, controls, &
+    settings, info, err) result(rst)
+    use peaks
+    !! Fits an experimentally obtained frequency response by model for either a
+    !! force-excited system:
+    !!
+    !! $$ H(\omega) = \sum_{i=1}^{n} \frac{A_{i}}{\omega_{ni}^{2} - 
+    !! \omega^{2} + 2 j \zeta_{i} \omega_{ni} \omega} $$
+    !!
+    !! or an acceleration-excited system:
+    !!
+    !! $$ H(\omega) = \sum_{i=1}^{n} \frac{-A_{i} \omega^{2}}{\omega_{ni}^{2} - 
+    !! \omega^{2} + 2 j \zeta_{i} \omega_{ni} \omega} $$.
+    !!
+    !! Internally, the code uses a Levenberg-Marquardt solver to determine the
+    !! parameters.  The initial guess for the solver is determined by a 
+    !! peak finding algorithm used to locate the resonant modes in frequency.
+    !! from this result, estimates for both the amplitude and natural frequency
+    !! values are obtained.  The damping parameters are assumed to be equal
+    !! for all modes and set to a default value of 0.1.
+    integer(int32), intent(in) :: frc
+        !! The excitation method.  The options are as follows.
+        !!
+        !! - FRF_ACCELERATION_EXCITATION: The FRF model is acceleration excited.
+        !!
+        !! - FRF_FORCE_EXCITATION: The FRF model is force excited.
+    integer(int32), intent(in) :: n
+        !! The model order (# of resonant modes).
+    real(real64), intent(in), dimension(:) :: freq
+        !! An M-element array containing the excitation frequency values in 
+        !! units of rad/s.
+    complex(real64), intent(in), dimension(:) :: rsp
+        !! An M-element array containing the frequency response to fit.
+    real(real64), intent(in), dimension(:), optional :: maxp
+        !! An optional 3*N-element array that can be used as upper limits on 
+        !! the parameter values. If no upper limit is requested for a particular
+        !! parameter, utilize a very large value. The internal default is to 
+        !! utilize huge() as a value.
+    real(real64), intent(in), dimension(:), optional :: minp
+        !! An optional 3*N-element array that can be used as lower limits on 
+        !! the parameter values. If no lower limit is requested for a particalar
+        !! parameter, utilize a very large magnitude, but negative, value. The 
+        !! internal default is to utilize -huge() as a value.
+    real(real64), intent(in), dimension(:), optional :: init
+        !! An optional 3*N-element array that, if supplied, provides an initial
+        !! guess for each of the 3*N model parameters for the iterative solver.
+        !! If supplied, this array replaces the peak finding algorithm for
+        !! estimating an initial guess.
+    type(regression_statistics), intent(out), dimension(:), optional :: stats
+        !! An optional 3*N-element array that, if supplied, will be used to
+        !! return statistics about the fit for each model parameter.
+    real(real64), intent(in), optional :: alpha
+        !! The significance level at which to evaluate the confidence intervals.
+        !! The default value is 0.05 such that a 95% confidence interval is 
+        !! calculated.
+    type(iteration_controls), intent(in), optional :: controls
+        !! An optional input providing custom iteration controls.
+    type(lm_solver_options), intent(in), optional :: settings
+        !! An optional input providing custom settings for the solver.
+    type(convergence_info), intent(out), optional :: info
+        !! An optional output that can be used to gain information about the 
+        !! iterative solution and the nature of the convergence.
+    class(errors), intent(inout), optional, target :: err
+        !! An optional errors-based object that if provided 
+        !! can be used to retrieve information relating to any errors 
+        !! encountered during execution. If not provided, a default 
+        !! implementation of the errors class is used internally to provide 
+        !! error handling. Possible errors and warning messages that may be 
+        !! encountered are as follows.
+        !!
+        !! - DYN_MEMORY_ERROR: Occurs if there are issues allocating memory.
+        !!
+        !! - DYN_ARRAY_SIZE_ERROR: Occurs if freq and rsp are not the same size.
+        !!
+        !! - DYN_UNDERDEFINED_PROBLEM_EROR: Occurs if the requested model 
+        !!      order is too high for the number of data points available.
+        !!
+        !! - DYN_TOLERANCE_TOO_SMALL_ERROR: Occurs if the requested solver 
+        !!      tolerance is too small to be practical for this problem.
+        !!
+        !! - DYN_TOO_FEW_ITERATIONS_ERROR: Occurs if convergence cannot be 
+        !!      achieved in the allowed number of solver iterations.
+    real(real64), allocatable, dimension(:) :: rst
+        !! An array containing the model parameters stored as $$ \left[ A_{1}, 
+        !! \omega_{n1}, \zeta_{1}, A_{2}, \omega_{n2}, \zeta_{2} ... \right] $$.
+
+    ! Parameters
+    real(real64), parameter :: zeta = 0.1d0
+
+    ! Local Variables
+    class(errors), pointer :: errmgr
+    type(errors), target :: deferr
+    procedure(regression_function), pointer :: fcn
+    integer(int32) :: i, npts, nparam, flag
+    integer(int32), allocatable, dimension(:) :: maxinds, mininds
+    real(real64) :: maxamp, minamp, amprange, delta
+    real(real64), allocatable, dimension(:) :: x, y, maxvals, minvals, &
+        ymod, resid
+    
+    ! Initialization
+    if (present(err)) then
+        errmgr => err
+    else
+        errmgr => deferr
+    end if
+    select case (frc)
+    case (FRF_ACCELERATION_EXCITATION)
+        fcn => frf_accel_fit_fcn
+    case (FRF_FORCE_EXCITATION)
+        fcn => frf_force_fit_fcn
+    case default
+        call errmgr%report_error("fit_frf", "Invalid entry for the " // &
+            "variable frc.  Must be either FRF_ACCELERATION_EXCITATION or " // &
+            "FRF_FORCE_EXCITATION.", DYN_INVALID_INPUT_ERROR)
+        return
+    end select
+    npts = size(freq)
+    nparam = 3 * n
+
+    ! Input Checking
+    if (size(rsp) /= npts) then
+        call report_array_size_error("fit_frf", "rsp", npts, size(rsp), errmgr)
+        return
+    end if
+
+    ! Memory Allocations
+    allocate(rst(nparam), stat = flag)
+    if (flag == 0) allocate( &
+        x(2 * npts), &
+        y(2 * npts), &
+        ymod(2 * npts), &
+        resid(2 * npts), &
+        stat = flag)
+    if (flag /= 0) then
+        call report_memory_error("fit_frf", flag, errmgr)
+        return
+    end if
+
+    ! Determine phase and amplitude terms, and store frequency values
+    do i = 1, npts
+        ! Store frequency values
+        x(i) = freq(i)
+        x(i + npts) = freq(i)
+
+        ! Store amplitude and phase values
+        y(i) = abs(rsp(i))
+        y(i + npts) = atan2(aimag(rsp(i)), real(rsp(i)))
+
+        ! Determine max and min amplitudes
+        if (i == 1) then
+            maxamp = y(i)
+            minamp = y(i)
+        else
+            if (y(i) > maxamp) maxamp = y(i)
+            if (y(i) < minamp) minamp = y(i)
+        end if
+    end do
+    amprange = maxamp - minamp
+
+    if (present(init)) then
+        ! Check the array size
+        if (size(init) /= nparam) then
+            call report_array_size_error("fit_frf", "init", nparam, &
+                size(init), errmgr)
+            return
+        end if
+
+        ! Copy init to rst
+        rst = init
+    else
+        ! Perform the peak location to determine an initial guess at parameters
+        delta = 0.005d0 * amprange
+        call peak_detect(y(1:npts), delta, maxinds, maxvals, mininds, minvals)
+        do i = 1, min(n, size(maxvals))
+            rst(3 * i - 2) = maxvals(i)         ! amplitude
+            rst(3 * i - 1) = freq(maxinds(i))   ! frequency
+            rst(3 * i) = zeta                   ! damping
+        end do
+        if (size(maxvals) < n) then
+            ! The peak detection did not find enough peaks. 
+            
+            ! TO DO: Figure out how to estimate additional modes?
+        end if
+    end if
+
+    ! Fit the model
+    call nonlinear_least_squares(fcn, x, y, rst, ymod, resid, maxp = maxp, &
+        minp = minp, stats = stats, alpha = alpha, controls = controls, &
+        settings = settings, info = info, err = errmgr)
+end function
 
 ! ------------------------------------------------------------------------------
 pure function evaluate_frf_accel_model_scalar(mdl, w) result(rst)
@@ -1150,7 +1401,7 @@ pure function evaluate_frf_accel_model_array(mdl, w) result(rst)
         !! The resulting frequency response function.
 
     ! Local Variables
-    integer(int32) :: n
+    integer(int32) :: i, n
 
     ! Process
     n = size(w)
@@ -1227,7 +1478,7 @@ pure function evaluate_frf_force_model_array(mdl, w) result(rst)
         !! The resulting frequency response function.
 
     ! Local Variables
-    integer(int32) :: n
+    integer(int32) :: i, n
 
     ! Process
     n = size(w)

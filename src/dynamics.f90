@@ -19,6 +19,13 @@ module dynamics
     public :: normalize_mode_shapes
     public :: evaluate_frf_accel_model
     public :: evaluate_frf_force_model
+    public :: fit_frf
+    public :: FRF_ACCELERATION_EXCITATION
+    public :: FRF_FORCE_EXCITATION
+    public :: regression_statistics
+    public :: iteration_controls
+    public :: lm_solver_options
+    public :: convergence_info
 
     ! DYNAMICS_ROTATION
     public :: rotate_x
