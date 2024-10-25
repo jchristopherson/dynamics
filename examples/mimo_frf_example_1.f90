@@ -1,4 +1,4 @@
-module dynamic_system
+module mdof_dynamic_system
     use iso_fortran_env
     use dynamics
     implicit none
@@ -45,7 +45,7 @@ program example
     use dynamics
     use diffeq
     use fplot_core
-    use dynamic_system
+    use mdof_dynamic_system
     implicit none
 
     ! Variables
