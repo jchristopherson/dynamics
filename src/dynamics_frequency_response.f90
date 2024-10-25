@@ -118,9 +118,9 @@ module dynamics_frequency_response
 
 ! ------------------------------------------------------------------------------
     integer(int32), parameter :: FRF_ACCELERANCE_MODEL = 1
-        !! Defines a frequency response model that is acceleration excited.
+        !! Defines an accelerance frequency response model.
     integer(int32), parameter :: FRF_RECEPTANCE_MODEL = 2
-        !! Defines a frequency response model that is force excited.
+        !! Defines a receptance frequency response model.
 
 ! ------------------------------------------------------------------------------
     real(real64), private :: sweep_frequency
