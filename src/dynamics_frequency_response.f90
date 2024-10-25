@@ -1343,9 +1343,20 @@ function fit_frf(frc, n, freq, rsp, maxp, minp, init, stats, alpha, controls, &
             rst(3 * i) = zeta                   ! damping
         end do
         if (size(maxvals) < n) then
-            ! The peak detection did not find enough peaks. 
-            
-            ! TO DO: Figure out how to estimate additional modes?
+            ! The peak detection did not find enough peaks.
+            if (size(maxvals) == 0) then
+                ! No peaks found.  This is suspicious, but just use a random
+                ! estimate to get started.  Maybe the solver will be able
+                ! to sort it out.
+                call random_number(rst)
+            else
+                ! Fill in the remaining parameters with the last set estimate
+                do i = size(maxvals) + 1, n
+                    rst(3 * i - 2) = rst(3 * (i - 1) - 2)
+                    rst(3 * i - 1) = rst(3 * (i - 1) - 1)
+                    rst(3 * i) = rst(3 * (i - 1))
+                end do
+            end if
         end if
     end if
 
