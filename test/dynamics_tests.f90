@@ -67,6 +67,9 @@ program main
     check = test_beam3d_mass_matrix()
     if (.not.check) flag = 18
 
+    check = test_frf_fit()
+    if (.not.check) flag = 19
+
     ! End
     if (flag /= 0) stop flag
 end program
