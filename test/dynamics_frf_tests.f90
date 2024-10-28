@@ -259,7 +259,7 @@ function test_frf_fit() result(rst)
 
     ! Parameters
     real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
-    real(real64), parameter :: tol = 1.0d-3
+    real(real64), parameter :: tol = 1.0d-6
     integer(int32), parameter :: nfreq = 100
     real(real64), parameter :: fmin = 2.0d0 * pi * 10.0d0
     real(real64), parameter :: fmax = 2.0d0 * pi * 1.0d2
