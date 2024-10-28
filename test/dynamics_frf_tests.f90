@@ -293,7 +293,7 @@ function test_frf_fit() result(rst)
     k = reshape([k1 + k2, -k2, 0.0d0, -k2, k2 + k3, -k3, 0.0d0, -k3, k3 + k4], &
         [3, 3])
 
-    ! Compute the frequency response functions, along with the modal information
+    ! Compute the frequency response functions
     rsp = frequency_response(m, k, alpha, beta, nfreq, fmin, fmax, fcn)
 
     ! Fit the response
