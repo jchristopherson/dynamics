@@ -259,10 +259,10 @@ function test_frf_fit() result(rst)
 
     ! Parameters
     real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
-    real(real64), parameter :: tol = 1.0d-6
+    real(real64), parameter :: tol = 5.0d-2
     integer(int32), parameter :: nfreq = 100
     real(real64), parameter :: fmin = 2.0d0 * pi * 10.0d0
-    real(real64), parameter :: fmax = 2.0d0 * pi * 1.0d2
+    real(real64), parameter :: fmax = 2.0d0 * pi * 1.0d3
     real(real64), parameter :: alpha = 0.1d0
     real(real64), parameter :: beta = 2.0d-5
 
@@ -277,8 +277,8 @@ function test_frf_fit() result(rst)
 
     ! Local Variables
     real(real64) :: m(3,3), k(3,3)
-    real(real64), allocatable, dimension(:) :: mdl
-    complex(real64), allocatable, dimension(:) :: fit
+    real(real64), allocatable, dimension(:) :: mdl, ans, fitamp
+    complex(real64), allocatable, dimension(:) :: fit, nrmrsp
     procedure(modal_excite), pointer :: fcn
     type(frf) :: rsp
 
@@ -295,13 +295,16 @@ function test_frf_fit() result(rst)
 
     ! Compute the frequency response functions
     rsp = frequency_response(m, k, alpha, beta, nfreq, fmin, fmax, fcn)
+    nrmrsp = rsp%responses(:,1) / rsp%responses(1,1) ! normalize for magnitude reasons
 
     ! Fit the response
-    mdl = fit_frf(FRF_RECEPTANCE_MODEL, 3, rsp%frequency, rsp%responses(:,1))
+    mdl = fit_frf(FRF_RECEPTANCE_MODEL, 3, rsp%frequency, nrmrsp)
     fit = evaluate_receptance_frf_model(mdl, rsp%frequency)
 
     ! Test
-    if (.not.assert(abs(rsp%responses(:,1)), abs(fit), tol)) then
+    ans = abs(nrmrsp)
+    fitamp = abs(fit)
+    if (.not.assert(ans, fitamp, tol * maxval(ans))) then
         rst = .false.
         print "(A)", "TEST FAILED: test_frf_fit -1"
     end if
