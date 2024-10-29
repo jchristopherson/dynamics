@@ -253,4 +253,62 @@ function test_modal_response() result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+function test_frf_fit() result(rst)
+    ! Arguments
+    logical :: rst
+
+    ! Parameters
+    real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
+    real(real64), parameter :: tol = 5.0d-2
+    integer(int32), parameter :: nfreq = 100
+    real(real64), parameter :: fmin = 2.0d0 * pi * 10.0d0
+    real(real64), parameter :: fmax = 2.0d0 * pi * 1.0d3
+    real(real64), parameter :: alpha = 0.1d0
+    real(real64), parameter :: beta = 2.0d-5
+
+    ! Define the model parameters
+    real(real64), parameter :: m1 = 0.5d0
+    real(real64), parameter :: m2 = 2.5d0
+    real(real64), parameter :: m3 = 0.75d0
+    real(real64), parameter :: k1 = 5.0d6
+    real(real64), parameter :: k2 = 10.0d6
+    real(real64), parameter :: k3 = 10.0d6
+    real(real64), parameter :: k4 = 5.0d6
+
+    ! Local Variables
+    real(real64) :: m(3,3), k(3,3)
+    real(real64), allocatable, dimension(:) :: mdl, ans, fitamp
+    complex(real64), allocatable, dimension(:) :: fit, nrmrsp
+    procedure(modal_excite), pointer :: fcn
+    type(frf) :: rsp
+
+    ! Initialization
+    rst = .true.
+    fcn => modal_frf_forcing_term
+
+    ! Define the mass matrix
+    m = reshape([m1, 0.0d0, 0.0d0, 0.0d0, m2, 0.0d0, 0.0d0, 0.0d0, m3], [3, 3])
+
+    ! Define the stiffness matrix
+    k = reshape([k1 + k2, -k2, 0.0d0, -k2, k2 + k3, -k3, 0.0d0, -k3, k3 + k4], &
+        [3, 3])
+
+    ! Compute the frequency response functions
+    rsp = frequency_response(m, k, alpha, beta, nfreq, fmin, fmax, fcn)
+    nrmrsp = rsp%responses(:,1) / rsp%responses(1,1) ! normalize for magnitude reasons
+
+    ! Fit the response
+    mdl = fit_frf(FRF_RECEPTANCE_MODEL, 3, rsp%frequency, nrmrsp)
+    fit = evaluate_receptance_frf_model(mdl, rsp%frequency)
+
+    ! Test
+    ans = abs(nrmrsp)
+    fitamp = abs(fit)
+    if (.not.assert(ans, fitamp, tol * maxval(ans))) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_frf_fit -1"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
 end module

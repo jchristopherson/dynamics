@@ -1,5 +1,5 @@
 name = "dynamics"
-version = "1.0.5"
+version = "1.0.6"
 license = "GPL-3.0"
 author = "Jason Christopherson"
 maintainer = "Jason Christopherson"
@@ -17,6 +17,8 @@ nonlin = { git = "https://github.com/jchristopherson/nonlin" }
 diffeq = { git = "https://github.com/jchristopherson/diffeq" }
 spectrum = { git = "https://github.com/jchristopherson/spectrum" }
 fftpack = { git = "https://github.com/fortran-lang/fftpack" }
+fstats = { git = "https://github.com/jchristopherson/fstats" } 
+peaks = { git = "https://github.com/jchristopherson/peaks" }
 
 [dev-dependencies]
 fortran_test_helper = { git = "https://github.com/jchristopherson/fortran_test_helper" }
