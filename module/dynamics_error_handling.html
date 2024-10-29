@@ -88,7 +88,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 7.5% of total for modules and submodules.">169 statements</a>
+               title=" 7.0% of total for modules and submodules.">173 statements</a>
           </li>
 
             <li id="source-file">
@@ -132,6 +132,9 @@
             <a class="list-group-item" href="../module/dynamics_error_handling.html#variable-dyn_memory_error">DYN_MEMORY_ERROR</a>
             <a class="list-group-item" href="../module/dynamics_error_handling.html#variable-dyn_nonmonotonic_array_error">DYN_NONMONOTONIC_ARRAY_ERROR</a>
             <a class="list-group-item" href="../module/dynamics_error_handling.html#variable-dyn_null_pointer_error">DYN_NULL_POINTER_ERROR</a>
+            <a class="list-group-item" href="../module/dynamics_error_handling.html#variable-dyn_tolerance_too_small_error">DYN_TOLERANCE_TOO_SMALL_ERROR</a>
+            <a class="list-group-item" href="../module/dynamics_error_handling.html#variable-dyn_too_few_iterations_error">DYN_TOO_FEW_ITERATIONS_ERROR</a>
+            <a class="list-group-item" href="../module/dynamics_error_handling.html#variable-dyn_underdefined_problem_eror">DYN_UNDERDEFINED_PROBLEM_EROR</a>
             <a class="list-group-item" href="../module/dynamics_error_handling.html#variable-dyn_zero_valued_frequency_error">DYN_ZERO_VALUED_FREQUENCY_ERROR</a>
         </div>
       </div>
@@ -195,9 +198,10 @@
       <ul class="list-group">
           <li class="list-group-item">
             <ul class="list-inline">
+                <li>fstats_errors</li>
+                <li>diffeq_errors</li>
                 <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
                 <li>ferror</li>
-                <li>diffeq_errors</li>
             </ul>
           </li>
       </ul>
@@ -225,6 +229,9 @@
             <a class="list-group-item" href="../module/dynamics_error_handling.html#variable-dyn_memory_error">DYN_MEMORY_ERROR</a>
             <a class="list-group-item" href="../module/dynamics_error_handling.html#variable-dyn_nonmonotonic_array_error">DYN_NONMONOTONIC_ARRAY_ERROR</a>
             <a class="list-group-item" href="../module/dynamics_error_handling.html#variable-dyn_null_pointer_error">DYN_NULL_POINTER_ERROR</a>
+            <a class="list-group-item" href="../module/dynamics_error_handling.html#variable-dyn_tolerance_too_small_error">DYN_TOLERANCE_TOO_SMALL_ERROR</a>
+            <a class="list-group-item" href="../module/dynamics_error_handling.html#variable-dyn_too_few_iterations_error">DYN_TOO_FEW_ITERATIONS_ERROR</a>
+            <a class="list-group-item" href="../module/dynamics_error_handling.html#variable-dyn_underdefined_problem_eror">DYN_UNDERDEFINED_PROBLEM_EROR</a>
             <a class="list-group-item" href="../module/dynamics_error_handling.html#variable-dyn_zero_valued_frequency_error">DYN_ZERO_VALUED_FREQUENCY_ERROR</a>
         </div>
       </div>
@@ -425,6 +432,58 @@ parameter
                 <td>DIFFEQ_NULL_POINTER_ERROR</td>
             <td>
                 <p>Defines an error associated with a null pointer.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dyn_tolerance_too_small_error"></span>
+              integer(kind=int32),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>DYN_TOLERANCE_TOO_SMALL_ERROR</strong></td>
+<td> =</td>
+                <td>FS_TOLERANCE_TOO_SMALL_ERROR</td>
+            <td>
+                <p>Defines an error related to the request of a too small tolerance 
+value.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dyn_too_few_iterations_error"></span>
+              integer(kind=int32),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>DYN_TOO_FEW_ITERATIONS_ERROR</strong></td>
+<td> =</td>
+                <td>FS_TOO_FEW_ITERATION_ERROR</td>
+            <td>
+                <p>Defines an error when too few iterations were allowed.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dyn_underdefined_problem_eror"></span>
+              integer(kind=int32),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>DYN_UNDERDEFINED_PROBLEM_EROR</strong></td>
+<td> =</td>
+                <td>FS_UNDERDEFINED_PROBLEM_ERROR</td>
+            <td>
+                <p>Defines an error for an underdefined problem.</p>
             </td>
         </tr>
         <tr>
@@ -1903,7 +1962,7 @@ information relating to any errors encountered during execution.</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2024-10-21 16:20            </p>
+ on 2024-10-29 10:35            </p>
         </div>
       </div>
       <br>

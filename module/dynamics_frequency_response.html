@@ -88,7 +88,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title="24.6% of total for modules and submodules.">551 statements</a>
+               title="30.8% of total for modules and submodules.">757 statements</a>
           </li>
 
             <li id="source-file">
@@ -116,7 +116,20 @@
       <div id="sidebar">
       <h3>Contents</h3>
   
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#vars-0">Variables</a>
+        </h3>
+      </div>
+      <div id="vars-0" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_frequency_response.html#variable-frf_accelerance_model">FRF_ACCELERANCE_MODEL</a>
+            <a class="list-group-item" href="../module/dynamics_frequency_response.html#variable-frf_receptance_model">FRF_RECEPTANCE_MODEL</a>
+        </div>
+      </div>
+    </div>
+
   
   
   
@@ -131,6 +144,8 @@
       </div>
       <div id="inters-0" class="panel-collapse collapse">
         <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_frequency_response.html#interface-evaluate_accelerance_frf_model">evaluate_accelerance_frf_model</a>
+            <a class="list-group-item" href="../module/dynamics_frequency_response.html#interface-evaluate_receptance_frf_model">evaluate_receptance_frf_model</a>
             <a class="list-group-item" href="../module/dynamics_frequency_response.html#interface-frequency_response">frequency_response</a>
             <a class="list-group-item" href="../module/dynamics_frequency_response.html#interface-frequency_sweep">frequency_sweep</a>
             <a class="list-group-item" href="../module/dynamics_frequency_response.html#interface-harmonic_ode">harmonic_ode</a>
@@ -165,6 +180,7 @@
         <div class="list-group">
             <a class="list-group-item" href="../module/dynamics_frequency_response.html#proc-chirp">chirp</a>
             <a class="list-group-item" href="../module/dynamics_frequency_response.html#proc-compute_modal_damping">compute_modal_damping</a>
+            <a class="list-group-item" href="../module/dynamics_frequency_response.html#proc-fit_frf">fit_frf</a>
         </div>
       </div>
     </div>
@@ -204,11 +220,12 @@
       <ul class="list-group">
           <li class="list-group-item">
             <ul class="list-inline">
-                <li>ferror</li>
                 <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
-                <li>diffeq</li>
+                <li>ferror</li>
                 <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
+                <li>fstats</li>
                 <li>spectrum</li>
+                <li>diffeq</li>
             </ul>
           </li>
       </ul>
@@ -220,7 +237,20 @@
     <section class="visible-xs visible-sm hidden-md">
         <h3>Contents</h3>
   
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#vars-1">Variables</a>
+        </h3>
+      </div>
+      <div id="vars-1" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_frequency_response.html#variable-frf_accelerance_model">FRF_ACCELERANCE_MODEL</a>
+            <a class="list-group-item" href="../module/dynamics_frequency_response.html#variable-frf_receptance_model">FRF_RECEPTANCE_MODEL</a>
+        </div>
+      </div>
+    </div>
+
   
   
   
@@ -235,6 +265,8 @@
       </div>
       <div id="inters-1" class="panel-collapse collapse">
         <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_frequency_response.html#interface-evaluate_accelerance_frf_model">evaluate_accelerance_frf_model</a>
+            <a class="list-group-item" href="../module/dynamics_frequency_response.html#interface-evaluate_receptance_frf_model">evaluate_receptance_frf_model</a>
             <a class="list-group-item" href="../module/dynamics_frequency_response.html#interface-frequency_response">frequency_response</a>
             <a class="list-group-item" href="../module/dynamics_frequency_response.html#interface-frequency_sweep">frequency_sweep</a>
             <a class="list-group-item" href="../module/dynamics_frequency_response.html#interface-harmonic_ode">harmonic_ode</a>
@@ -269,6 +301,7 @@
         <div class="list-group">
             <a class="list-group-item" href="../module/dynamics_frequency_response.html#proc-chirp">chirp</a>
             <a class="list-group-item" href="../module/dynamics_frequency_response.html#proc-compute_modal_damping">compute_modal_damping</a>
+            <a class="list-group-item" href="../module/dynamics_frequency_response.html#proc-fit_frf">fit_frf</a>
         </div>
       </div>
     </div>
@@ -299,10 +332,341 @@
     <br class="visible-xs visible-sm hidden-md">
 
 
+    <section>
+    <h2>Variables</h2>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Visibility</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+<th></th><th>Initial</th>        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-frf_accelerance_model"></span>
+              integer(kind=int32),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>FRF_ACCELERANCE_MODEL</strong></td>
+<td> =</td>
+                <td>1</td>
+            <td>
+                <p>Defines an accelerance frequency response model.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-frf_receptance_model"></span>
+              integer(kind=int32),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>FRF_RECEPTANCE_MODEL</strong></td>
+<td> =</td>
+                <td>2</td>
+            <td>
+                <p>Defines a receptance frequency response model.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    </section>
+    <br>
     
     
     <section>
    <h2>Interfaces</h2>
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="interface-evaluate_accelerance_frf_model"></span>
+      <h3>public        interface <a href='../interface/evaluate_accelerance_frf_model.html'>evaluate_accelerance_frf_model</a> 
+      </h3>
+    </div>
+    <ul class="list-group">
+          <li class="list-group-item">
+                <h3>
+    private pure function evaluate_accelerance_frf_model_scalar(mdl, w) result(rst)  
+
+    </h3>
+  <p>Evaluates the specified accelerance FRF model.  The model is of
+the following form.</p>
+<p>
+<script type="math/tex; mode=display"> H(\omega) = \sum_{i=1}^{n} \frac{-A_{i} \omega^{2}}{\omega_{ni}^{2} - 
+\omega^{2} + 2 j \zeta_{i} \omega_{ni} \omega}  </script>
+</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>mdl</strong></td>
+            <td>
+                <p>The model parameter array.  The elements of the array are stored
+as <script type="math/tex; mode=display"> \left[ A_{1}, \omega_{n1}, \zeta_{1}, A_{2}, \omega_{n2}, 
+\zeta_{2} ... \right] </script>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>w</strong></td>
+            <td>
+                <p>The frequency value, in rad/s, at which to evaluate the model.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>complex(kind=real64)</small>
+    </h4>
+    <p>The resulting frequency response function.</p>
+
+          </li>
+          <li class="list-group-item">
+                <h3>
+    private pure function evaluate_accelerance_frf_model_array(mdl, w) result(rst)  
+
+    </h3>
+  <p>Evaluates the specified accelerance FRF model.  The model is of
+the following form.</p>
+<p>
+<script type="math/tex; mode=display"> H(\omega) = \sum_{i=1}^{n} \frac{-A_{i} \omega^{2}}{\omega_{ni}^{2} - 
+\omega^{2} + 2 j \zeta_{i} \omega_{ni} \omega}  </script>
+</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>mdl</strong></td>
+            <td>
+                <p>The model parameter array.  The elements of the array are stored
+as <script type="math/tex; mode=display"> \left[ A_{1}, \omega_{n1}, \zeta_{1}, A_{2}, \omega_{n2}, 
+\zeta_{2} ... \right] </script>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>w</strong></td>
+            <td>
+                <p>The frequency value, in rad/s, at which to evaluate the model.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>complex(kind=real64), allocatable, dimension(:)</small>
+    </h4>
+    <p>The resulting frequency response function.</p>
+
+          </li>
+    </ul>
+  </div>
+
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="interface-evaluate_receptance_frf_model"></span>
+      <h3>public        interface <a href='../interface/evaluate_receptance_frf_model.html'>evaluate_receptance_frf_model</a> 
+      </h3>
+    </div>
+    <ul class="list-group">
+          <li class="list-group-item">
+                <h3>
+    private pure function evaluate_receptance_frf_model_scalar(mdl, w) result(rst)  
+
+    </h3>
+  <p>Evaluates the specified receptance FRF model.  The model is of
+the following form.</p>
+<p>
+<script type="math/tex; mode=display"> H(\omega) = \sum_{i=1}^{n} \frac{A_{i}}{\omega_{ni}^{2} - 
+\omega^{2} + 2 j \zeta_{i} \omega_{ni} \omega}  </script>
+</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>mdl</strong></td>
+            <td>
+                <p>The model parameter array.  The elements of the array are stored
+as <script type="math/tex; mode=display"> \left[ A_{1}, \omega_{n1}, \zeta_{1}, A_{2}, \omega_{n2}, 
+\zeta_{2} ... \right] </script>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>w</strong></td>
+            <td>
+                <p>The frequency value, in rad/s, at which to evaluate the model.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>complex(kind=real64)</small>
+    </h4>
+    <p>The resulting frequency response function.</p>
+
+          </li>
+          <li class="list-group-item">
+                <h3>
+    private pure function evaluate_receptance_frf_model_array(mdl, w) result(rst)  
+
+    </h3>
+  <p>Evaluates the specified receptance FRF model.  The model is of
+the following form.</p>
+<p>
+<script type="math/tex; mode=display"> H(\omega) = \sum_{i=1}^{n} \frac{A_{i}}{\omega_{ni}^{2} - 
+\omega^{2} + 2 j \zeta_{i} \omega_{ni} \omega}  </script>
+</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>mdl</strong></td>
+            <td>
+                <p>The model parameter array.  The elements of the array are stored
+as <script type="math/tex; mode=display"> \left[ A_{1}, \omega_{n1}, \zeta_{1}, A_{2}, \omega_{n2}, 
+\zeta_{2} ... \right] </script>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>w</strong></td>
+            <td>
+                <p>The frequency value, in rad/s, at which to evaluate the model.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>complex(kind=real64), allocatable, dimension(:)</small>
+    </h4>
+    <p>The resulting frequency response function.</p>
+
+          </li>
+    </ul>
+  </div>
+
        <div class="panel panel-default">
     <div class="panel-heading codesum">
       <span class="anchor" id="interface-frequency_response"></span>
@@ -1963,6 +2327,252 @@ proportional damping terms <script type="math/tex"> \alpha </script> and <script
     </div>
   </div>
 
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-fit_frf"></span><h3>public  function <a href='../proc/fit_frf.html'>fit_frf</a>(mt, n, freq, rsp, maxp, minp, init, stats, alpha, controls, settings, info, err) result(rst)  
+</h3></div>
+    <div class="panel-body">
+          
+  <p>Fits an experimentally obtained frequency response by model for either a
+receptance model:</p><a href="../proc/fit_frf.html" class="pull-right"><emph>Read more&hellip;</emph></a>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>mt</strong></td>
+            <td>
+<p>The excitation method.  The options are as follows.</p><a href="../proc/fit_frf.html#variable-mt" class="pull-right"><emph>Read more&hellip;</emph></a>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>n</strong></td>
+            <td>
+<p>The model order (# of resonant modes).</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>freq</strong></td>
+            <td>
+<p>An M-element array containing the excitation frequency values in 
+units of rad/s.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              complex(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>rsp</strong></td>
+            <td>
+<p>An M-element array containing the frequency response to fit.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>maxp</strong></td>
+            <td>
+<p>An optional 3*N-element array that can be used as upper limits on 
+the parameter values. If no upper limit is requested for a particular
+parameter, utilize a very large value. The internal default is to 
+utilize huge() as a value.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>minp</strong></td>
+            <td>
+<p>An optional 3*N-element array that can be used as lower limits on 
+the parameter values. If no lower limit is requested for a particalar
+parameter, utilize a very large magnitude, but negative, value. The 
+internal default is to utilize -huge() as a value.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>init</strong></td>
+            <td>
+<p>An optional 3<em>N-element array that, if supplied, provides an initial
+guess for each of the 3</em>N model parameters for the iterative solver.
+If supplied, this array replaces the peak finding algorithm for
+estimating an initial guess.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(regression_statistics),
+            </td>
+<td>intent(out),</td>
+              <td>optional,</td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>stats</strong></td>
+            <td>
+<p>An optional 3*N-element array that, if supplied, will be used to
+return statistics about the fit for each model parameter.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>alpha</strong></td>
+            <td>
+<p>The significance level at which to evaluate the confidence intervals.
+The default value is 0.05 such that a 95% confidence interval is 
+calculated.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(iteration_controls),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>controls</strong></td>
+            <td>
+<p>An optional input providing custom iteration controls.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(lm_solver_options),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>settings</strong></td>
+            <td>
+<p>An optional input providing custom settings for the solver.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(convergence_info),
+            </td>
+<td>intent(out),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>info</strong></td>
+            <td>
+<p>An optional output that can be used to gain information about the 
+iterative solution and the nature of the convergence.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(errors),
+            </td>
+<td>intent(inout),</td>
+              <td>optional,</td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>err</strong></td>
+            <td>
+<p>An optional errors-based object that if provided 
+can be used to retrieve information relating to any errors 
+encountered during execution. If not provided, a default 
+implementation of the errors class is used internally to provide 
+error handling. Possible errors and warning messages that may be 
+encountered are as follows.</p><a href="../proc/fit_frf.html#variable-err~11" class="pull-right"><emph>Read more&hellip;</emph></a>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), allocatable, dimension(:)</small>
+    </h4>
+    <p>An array containing the model parameters stored as <script type="math/tex; mode=display"> \left[ A_{1}, 
+\omega_{n1}, \zeta_{1}, A_{2}, \omega_{n2}, \zeta_{2} ... \right] </script>.</p>
+
+    </div>
+  </div>
+
     </section>
     <br>
 
@@ -2135,7 +2745,7 @@ value in the vector is one.</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2024-10-21 16:20            </p>
+ on 2024-10-29 10:35            </p>
         </div>
       </div>
       <br>

@@ -3,6 +3,8 @@ module dynamics_error_handling
     use iso_fortran_env
     use diffeq_errors, only : DIFFEQ_INVALID_INPUT_ERROR, &
         DIFFEQ_MEMORY_ALLOCATION_ERROR, DIFFEQ_NULL_POINTER_ERROR
+    use fstats_errors, only : FS_UNDERDEFINED_PROBLEM_ERROR, &
+        FS_TOLERANCE_TOO_SMALL_ERROR, FS_TOO_FEW_ITERATION_ERROR
     implicit none
 
     integer(int32), parameter :: DYN_MEMORY_ERROR = DIFFEQ_MEMORY_ALLOCATION_ERROR
@@ -23,6 +25,13 @@ module dynamics_error_handling
         !! Defines an error related to an array being nonmonotonic.
     integer(int32), parameter :: DYN_ARRAY_SIZE_ERROR = 100105
         !! Defines an error for an improperly sized array.
+    integer(int32), parameter :: DYN_UNDERDEFINED_PROBLEM_EROR = FS_UNDERDEFINED_PROBLEM_ERROR
+        !! Defines an error for an underdefined problem.
+    integer(int32), parameter :: DYN_TOLERANCE_TOO_SMALL_ERROR = FS_TOLERANCE_TOO_SMALL_ERROR
+        !! Defines an error related to the request of a too small tolerance 
+        !! value.
+    integer(int32), parameter :: DYN_TOO_FEW_ITERATIONS_ERROR = FS_TOO_FEW_ITERATION_ERROR
+        !! Defines an error when too few iterations were allowed.
 contains
 ! ------------------------------------------------------------------------------
     subroutine report_null_forcing_routine_error(name, err)

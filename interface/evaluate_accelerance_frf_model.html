@@ -8,7 +8,7 @@
     <meta name="author" content="Jason Christopherson" >
     <link rel="icon" href="../favicon.png">
 
-    <title>dh_rotate_x &ndash; DYNAMICS</title>
+    <title>evaluate_accelerance_frf_model &ndash; DYNAMICS</title>
 
     <link href="../css/bootstrap.min.css" rel="stylesheet">
     <link href="../css/pygments.css" rel="stylesheet">
@@ -76,8 +76,8 @@
 
     <div class="container">
   <div class="row">
-    <h1>dh_rotate_x
-      <small>Function</small>
+    <h1>evaluate_accelerance_frf_model
+      <small>Interface</small>
       
     </h1>
       <div class="row" id="info-bar">
@@ -88,18 +88,18 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 3.3% of total for procedures.">25 statements</a>
+               title="<p> 0.5% of total for procedures.</p>Including implementation: 28 statements,  3.7% of total for procedures.">4 statements</a>
           </li>
 
             <li id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dynamics_kinematics.f90"> Source File</a>
+              <a href="../src/dynamics_frequency_response.f90"> Source File</a>
             </li>
         </ul>
         <ol class="breadcrumb in-well text-right">
-              <li><a href='../sourcefile/dynamics_kinematics.f90.html'>dynamics_kinematics.f90</a></li>
-              <li><a href='../module/dynamics_kinematics.html'>dynamics_kinematics</a></li>
-          <li class="active">dh_rotate_x</li>
+              <li><a href='../sourcefile/dynamics_frequency_response.f90.html'>dynamics_frequency_response.f90</a></li>
+              <li><a href='../module/dynamics_frequency_response.html'>dynamics_frequency_response</a></li>
+          <li class="active">evaluate_accelerance_frf_model</li>
         </ol>
       </div>
     </div>
@@ -114,7 +114,7 @@
   
   <div class="row">
     <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
-      <div id="sidebar">
+        <div id="sidebar">
       <h3>Contents</h3>
   
   
@@ -134,7 +134,20 @@
   
   
   
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#modprocs-0">Module Procedures</a>
+        </h3>
+      </div>
+      <div id="modprocs-0" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../interface/evaluate_accelerance_frf_model.html#moduleprocedure-evaluate_accelerance_frf_model_scalar">evaluate_accelerance_frf_model_scalar</a>
+            <a class="list-group-item" href="../interface/evaluate_accelerance_frf_model.html#moduleprocedure-evaluate_accelerance_frf_model_array">evaluate_accelerance_frf_model_array</a>
+        </div>
+      </div>
+    </div>
+
 
 
   </div>
@@ -142,14 +155,64 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>public pure function dh_rotate_x(alpha) result(rst)  
-</h2>
-    
+      <h2>public interface evaluate_accelerance_frf_model</h2>
+   
 
-    <p>Computes the Denavit-Hartenberg matrix for a local x-axis rotation.</p>
+     <section class="visible-xs visible-sm hidden-md">
+         <h3>Contents</h3>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#modprocs-1">Module Procedures</a>
+        </h3>
+      </div>
+      <div id="modprocs-1" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../interface/evaluate_accelerance_frf_model.html#moduleprocedure-evaluate_accelerance_frf_model_scalar">evaluate_accelerance_frf_model_scalar</a>
+            <a class="list-group-item" href="../interface/evaluate_accelerance_frf_model.html#moduleprocedure-evaluate_accelerance_frf_model_array">evaluate_accelerance_frf_model_array</a>
+        </div>
+      </div>
+    </div>
 
-    <h3>Arguments</h3>
-        <table class="table table-striped varlist">
+
+
+     </section>
+     <br class="visible-xs visible-sm hidden-md">
+     
+
+
+   <h2>Module Procedures</h2>
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-evaluate_accelerance_frf_model_scalar"></span><h3>private pure function evaluate_accelerance_frf_model_scalar(mdl, w) result(rst)  
+</h3></div>
+    <div class="panel-body">
+        <p>Evaluates the specified accelerance FRF model.  The model is of
+the following form.</p>
+<p>
+<script type="math/tex; mode=display"> H(\omega) = \sum_{i=1}^{n} \frac{-A_{i} \omega^{2}}{\omega_{ni}^{2} - 
+\omega^{2} + 2 j \zeta_{i} \omega_{ni} \omega}  </script>
+</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
     <thead>
       <tr>
         <th>Type</th>
@@ -161,7 +224,24 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-alpha~5"></span>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>mdl</strong></td>
+            <td>
+                <p>The model parameter array.  The elements of the array are stored
+as <script type="math/tex; mode=display"> \left[ A_{1}, \omega_{n1}, \zeta_{1}, A_{2}, \omega_{n2}, 
+\zeta_{2} ... \right] </script>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
               real(kind=real64),
             </td>
 <td>intent(in)</td>
@@ -169,61 +249,92 @@
               
             </td>
             <td>::</td>
-            <td><strong>alpha</strong></td>
+            <td><strong>w</strong></td>
             <td>
-                <p>The rotation angle, in radians.</p>
+                <p>The frequency value, in rad/s, at which to evaluate the model.</p>
             </td>
         </tr>
     </tbody>
   </table>
 
-      <h3>Return Value
-        <small>
-          <span class="anchor" id="variable-rst~79"></span>
-          real(kind=real64), (4,4)
-        </small>
-      </h3>
-      <p>The matrix.</p>
-    <br>
+    <h4>
+    Return Value
+    <small>complex(kind=real64)</small>
+    </h4>
+    <p>The resulting frequency response function.</p>
 
-    <section class="visible-xs visible-sm hidden-md">
-        <h3>Contents</h3>
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-
-
-    </section>
-    <br class="visible-xs visible-sm hidden-md">
-
-
-    
-    
-
-    
-    
-
-
-    
-    
     </div>
   </div>
+
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-evaluate_accelerance_frf_model_array"></span><h3>private pure function evaluate_accelerance_frf_model_array(mdl, w) result(rst)  
+</h3></div>
+    <div class="panel-body">
+        <p>Evaluates the specified accelerance FRF model.  The model is of
+the following form.</p>
+<p>
+<script type="math/tex; mode=display"> H(\omega) = \sum_{i=1}^{n} \frac{-A_{i} \omega^{2}}{\omega_{ni}^{2} - 
+\omega^{2} + 2 j \zeta_{i} \omega_{ni} \omega}  </script>
+</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>mdl</strong></td>
+            <td>
+                <p>The model parameter array.  The elements of the array are stored
+as <script type="math/tex; mode=display"> \left[ A_{1}, \omega_{n1}, \zeta_{1}, A_{2}, \omega_{n2}, 
+\zeta_{2} ... \right] </script>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>w</strong></td>
+            <td>
+                <p>The frequency value, in rad/s, at which to evaluate the model.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>complex(kind=real64), allocatable, dimension(:)</small>
+    </h4>
+    <p>The resulting frequency response function.</p>
+
+    </div>
+  </div>
+
+
+ </div>
+</div>
 
     <hr>    
     </div> <!-- /container -->

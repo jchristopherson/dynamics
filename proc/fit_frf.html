@@ -8,7 +8,7 @@
     <meta name="author" content="Jason Christopherson" >
     <link rel="icon" href="../favicon.png">
 
-    <title>solve_inverse_kinematics &ndash; DYNAMICS</title>
+    <title>fit_frf &ndash; DYNAMICS</title>
 
     <link href="../css/bootstrap.min.css" rel="stylesheet">
     <link href="../css/pygments.css" rel="stylesheet">
@@ -76,7 +76,7 @@
 
     <div class="container">
   <div class="row">
-    <h1>solve_inverse_kinematics
+    <h1>fit_frf
       <small>Function</small>
       
     </h1>
@@ -88,18 +88,18 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 7.6% of total for procedures.">57 statements</a>
+               title="12.3% of total for procedures.">92 statements</a>
           </li>
 
             <li id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dynamics_kinematics.f90"> Source File</a>
+              <a href="../src/dynamics_frequency_response.f90"> Source File</a>
             </li>
         </ul>
         <ol class="breadcrumb in-well text-right">
-              <li><a href='../sourcefile/dynamics_kinematics.f90.html'>dynamics_kinematics.f90</a></li>
-              <li><a href='../module/dynamics_kinematics.html'>dynamics_kinematics</a></li>
-          <li class="active">solve_inverse_kinematics</li>
+              <li><a href='../sourcefile/dynamics_frequency_response.f90.html'>dynamics_frequency_response.f90</a></li>
+              <li><a href='../module/dynamics_frequency_response.html'>dynamics_frequency_response</a></li>
+          <li class="active">fit_frf</li>
         </ol>
       </div>
     </div>
@@ -142,12 +142,38 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>public  function solve_inverse_kinematics(mdl, qo, constraints, df, slvr, ib, err) result(rst)  
+    <h2>public  function fit_frf(mt, n, freq, rsp, maxp, minp, init, stats, alpha, controls, settings, info, err) result(rst)  
 </h2>
-    
+        <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">Uses</h3>
+      </div>
+      <ul class="list-group">
+          <li class="list-group-item">
+            <ul class="list-inline">
+                <li>peaks</li>
+            </ul>
+          </li>
+      </ul>
+    </div>
 
-    <p>Solves the inverse kinematics problem for a linkage.  An iterative
-solution procedure is utilized.</p>
+
+    <p>Fits an experimentally obtained frequency response by model for either a
+receptance model:</p>
+<p>
+<script type="math/tex; mode=display"> H(\omega) = \sum_{i=1}^{n} \frac{A_{i}}{\omega_{ni}^{2} - 
+\omega^{2} + 2 j \zeta_{i} \omega_{ni} \omega} </script>
+</p>
+<p>or an accelerance model:</p>
+<p>
+<script type="math/tex; mode=display"> H(\omega) = \sum_{i=1}^{n} \frac{-A_{i} \omega^{2}}{\omega_{ni}^{2} - 
+\omega^{2} + 2 j \zeta_{i} \omega_{ni} \omega} </script>.</p>
+<p>Internally, the code uses a Levenberg-Marquardt solver to determine the
+parameters.  The initial guess for the solver is determined by a 
+peak finding algorithm used to locate the resonant modes in frequency.
+from this result, estimates for both the amplitude and natural frequency
+values are obtained.  The damping parameters are assumed to be equal
+for all modes and set to a default value of 0.1.</p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -162,23 +188,45 @@ solution procedure is utilized.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-mdl~7"></span>
-              procedure(vecfcn),
+              <span class="anchor" id="variable-mt"></span>
+              integer(kind=int32),
             </td>
-<td>intent(in),</td>
+<td>intent(in)</td>
               <td></td>            <td>
-              pointer
+              
             </td>
             <td>::</td>
-            <td><strong>mdl</strong></td>
+            <td><strong>mt</strong></td>
             <td>
-                <p>A routine used to compute the error in the kinematics 
-equations based upon the current solution estimate.</p>
+                <p>The excitation method.  The options are as follows.</p>
+<ul>
+<li>
+<p>FRF_ACCELERANCE_MODEL: Use an accelerance model.</p>
+</li>
+<li>
+<p>FRF_RECEPTANCE_MODEL: Use a receptance model.</p>
+</li>
+</ul>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qo"></span>
+              <span class="anchor" id="variable-n~2"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>n</strong></td>
+            <td>
+                <p>The model order (# of resonant modes).</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-freq~3"></span>
               real(kind=real64),
             </td>
 <td>intent(in),</td>
@@ -186,80 +234,163 @@ equations based upon the current solution estimate.</p>
               dimension(:)
             </td>
             <td>::</td>
-            <td><strong>qo</strong></td>
+            <td><strong>freq</strong></td>
             <td>
-                <p>An M-element array containing an initial estimate of the M joint
-variables.</p>
+                <p>An M-element array containing the excitation frequency values in 
+units of rad/s.</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-constraints"></span>
-              real(kind=real64),
+              <span class="anchor" id="variable-rsp"></span>
+              complex(kind=real64),
             </td>
 <td>intent(in),</td>
               <td></td>            <td>
-              target, dimension(:)
+              dimension(:)
             </td>
             <td>::</td>
-            <td><strong>constraints</strong></td>
+            <td><strong>rsp</strong></td>
             <td>
-                <p>An N-element array containing the target values (constraints) for
-each of the N kinematic equations in the model.  N must be at 
-least equal to M (the number of joint variables).</p>
+                <p>An M-element array containing the frequency response to fit.</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-df"></span>
+              <span class="anchor" id="variable-maxp"></span>
               real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>maxp</strong></td>
+            <td>
+                <p>An optional 3*N-element array that can be used as upper limits on 
+the parameter values. If no upper limit is requested for a particular
+parameter, utilize a very large value. The internal default is to 
+utilize huge() as a value.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-minp"></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>minp</strong></td>
+            <td>
+                <p>An optional 3*N-element array that can be used as lower limits on 
+the parameter values. If no lower limit is requested for a particalar
+parameter, utilize a very large magnitude, but negative, value. The 
+internal default is to utilize -huge() as a value.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-init"></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>init</strong></td>
+            <td>
+                <p>An optional 3<em>N-element array that, if supplied, provides an initial
+guess for each of the 3</em>N model parameters for the iterative solver.
+If supplied, this array replaces the peak finding algorithm for
+estimating an initial guess.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-stats"></span>
+              type(regression_statistics),
             </td>
 <td>intent(out),</td>
               <td>optional,</td>            <td>
-              target, dimension(:)
+              dimension(:)
             </td>
             <td>::</td>
-            <td><strong>df</strong></td>
+            <td><strong>stats</strong></td>
             <td>
-                <p>An optional N-element array that, if supplied, can be used to 
-retrieve the residuals of each of the N kinematic equations.</p>
+                <p>An optional 3*N-element array that, if supplied, will be used to
+return statistics about the fit for each model parameter.</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-slvr"></span>
-              class(least_squares_solver),
+              <span class="anchor" id="variable-alpha~4"></span>
+              real(kind=real64),
             </td>
-<td>intent(inout),</td>
-              <td>optional,</td>            <td>
-              target
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
             </td>
             <td>::</td>
-            <td><strong>slvr</strong></td>
+            <td><strong>alpha</strong></td>
             <td>
-                <p>An optional solver that can be used in place of the default
-Levenberg-Marquardt solver.</p>
+                <p>The significance level at which to evaluate the confidence intervals.
+The default value is 0.05 such that a 95% confidence interval is 
+calculated.</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ib"></span>
-              type(iteration_behavior),
+              <span class="anchor" id="variable-controls"></span>
+              type(iteration_controls),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>controls</strong></td>
+            <td>
+                <p>An optional input providing custom iteration controls.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-settings"></span>
+              type(lm_solver_options),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>settings</strong></td>
+            <td>
+                <p>An optional input providing custom settings for the solver.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-info"></span>
+              type(convergence_info),
             </td>
 <td>intent(out),</td>
               <td>optional</td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>ib</strong></td>
+            <td><strong>info</strong></td>
             <td>
-                <p>An optional output that can be used to gather information on the
-solver.</p>
+                <p>An optional output that can be used to gain information about the 
+iterative solution and the nature of the convergence.</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-err~27"></span>
+              <span class="anchor" id="variable-err~11"></span>
               class(errors),
             </td>
 <td>intent(inout),</td>
@@ -269,8 +400,32 @@ solver.</p>
             <td>::</td>
             <td><strong>err</strong></td>
             <td>
-                <p>An errors-based object that if provided can be used to retrieve 
-information relating to any errors encountered during execution.</p>
+                <p>An optional errors-based object that if provided 
+can be used to retrieve information relating to any errors 
+encountered during execution. If not provided, a default 
+implementation of the errors class is used internally to provide 
+error handling. Possible errors and warning messages that may be 
+encountered are as follows.</p>
+<ul>
+<li>
+<p>DYN_MEMORY_ERROR: Occurs if there are issues allocating memory.</p>
+</li>
+<li>
+<p>DYN_ARRAY_SIZE_ERROR: Occurs if freq and rsp are not the same size.</p>
+</li>
+<li>
+<p>DYN_UNDERDEFINED_PROBLEM_EROR: Occurs if the requested model 
+     order is too high for the number of data points available.</p>
+</li>
+<li>
+<p>DYN_TOLERANCE_TOO_SMALL_ERROR: Occurs if the requested solver 
+     tolerance is too small to be practical for this problem.</p>
+</li>
+<li>
+<p>DYN_TOO_FEW_ITERATIONS_ERROR: Occurs if convergence cannot be 
+     achieved in the allowed number of solver iterations.</p>
+</li>
+</ul>
             </td>
         </tr>
     </tbody>
@@ -278,11 +433,12 @@ information relating to any errors encountered during execution.</p>
 
       <h3>Return Value
         <small>
-          <span class="anchor" id="variable-rst~92"></span>
+          <span class="anchor" id="variable-rst~68"></span>
           real(kind=real64), allocatable, dimension(:)
         </small>
       </h3>
-      <p>An M-element array containing the computed joint variables.</p>
+      <p>An array containing the model parameters stored as <script type="math/tex; mode=display"> \left[ A_{1}, 
+\omega_{n1}, \zeta_{1}, A_{2}, \omega_{n2}, \zeta_{2} ... \right] </script>.</p>
     <br>
 
     <section class="visible-xs visible-sm hidden-md">
