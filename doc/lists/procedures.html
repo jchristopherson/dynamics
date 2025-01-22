@@ -108,6 +108,10 @@ specified DH parameters.</p></td></tr>
 translation.</p></td></tr>
 			   <tr><td><a href='../proc/dh_translate_z.html'>dh_translate_z</a></td><td><a href='../module/dynamics_kinematics.html'>dynamics_kinematics</a></td><td>Function</td><td><p>Computes the Denavit-Hartenberg matrix for a local z-axis 
 translation.</p></td></tr>
+			   <tr><td><a href='../proc/estimate_bandwidth.html'>estimate_bandwidth</a></td><td><a href='../module/dynamics_vibrations.html'>dynamics_vibrations</a></td><td>Function</td><td><p>Estimates the bandwidth of the resonant mode of a vibratory system.
+The bandwidth is the width of the range of frequencies for which the
+energy is at least half its peak value and is computed as 
+<script type="math/tex">\Delta f = \frac{f_n}{Q}</script>.</p></td></tr>
 			   <tr><td><a href='../interface/evaluate_accelerance_frf_model.html'>evaluate_accelerance_frf_model</a></td><td><a href='../module/dynamics_frequency_response.html'>dynamics_frequency_response</a></td><td>Interface</td><td></td></tr>
 			   <tr><td><a href='../interface/evaluate_receptance_frf_model.html'>evaluate_receptance_frf_model</a></td><td><a href='../module/dynamics_frequency_response.html'>dynamics_frequency_response</a></td><td>Interface</td><td></td></tr>
 			   <tr><td><a href='../proc/fit_frf.html'>fit_frf</a></td><td><a href='../module/dynamics_frequency_response.html'>dynamics_frequency_response</a></td><td>Function</td><td><p>Fits an experimentally obtained frequency response by model for either a
@@ -116,12 +120,17 @@ receptance model:</p><a href="../proc/fit_frf.html" class="pull-right"><emph>Rea
 			   <tr><td><a href='../interface/frequency_sweep.html'>frequency_sweep</a></td><td><a href='../module/dynamics_frequency_response.html'>dynamics_frequency_response</a></td><td>Interface</td><td></td></tr>
 			   <tr><td><a href='../interface/harmonic_ode.html'>harmonic_ode</a></td><td><a href='../module/dynamics_frequency_response.html'>dynamics_frequency_response</a></td><td>Interface</td><td></td></tr>
 			   <tr><td><a href='../proc/identity_4.html'>identity_4</a></td><td><a href='../module/dynamics_kinematics.html'>dynamics_kinematics</a></td><td>Function</td><td><p>Computes a 4-by-4 identity matrix.</p></td></tr>
+			   <tr><td><a href='../proc/logarithmic_decrement.html'>logarithmic_decrement</a></td><td><a href='../module/dynamics_vibrations.html'>dynamics_vibrations</a></td><td>Function</td><td><p>Computes the logarithmic decrement given the value of two  successive
+peaks in the time history of the free vibratory response of the system.
+The logarithmic decrement is calculated as follows.</p><a href="../proc/logarithmic_decrement.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
 			   <tr><td><a href='../interface/modal_excite.html'>modal_excite</a></td><td><a href='../module/dynamics_frequency_response.html'>dynamics_frequency_response</a></td><td>Interface</td><td></td></tr>
 			   <tr><td><a href='../proc/modal_response.html'>modal_response</a></td><td><a href='../module/dynamics_frequency_response.html'>dynamics_frequency_response</a></td><td>Subroutine</td><td><p>Computes the modal frequencies and modes shapes for 
 multi-degree-of-freedom system.</p></td></tr>
 			   <tr><td><a href='../proc/normalize_mode_shapes.html'>normalize_mode_shapes</a></td><td><a href='../module/dynamics_frequency_response.html'>dynamics_frequency_response</a></td><td>Subroutine</td><td><p>Normalizes mode shape vectors such that the largest magnitude
 value in the vector is one.</p></td></tr>
 			   <tr><td><a href='../interface/ode_excite.html'>ode_excite</a></td><td><a href='../module/dynamics_frequency_response.html'>dynamics_frequency_response</a></td><td>Interface</td><td></td></tr>
+			   <tr><td><a href='../proc/q_factor.html'>q_factor</a></td><td><a href='../module/dynamics_vibrations.html'>dynamics_vibrations</a></td><td>Function</td><td><p>Estimates the Q-factor for a vibratory system.  The Q-factor is computed
+<script type="math/tex">Q = \frac{1}{2 \zeta}</script>.</p></td></tr>
 			   <tr><td><a href='../proc/report_array_index_out_of_bounds_error.html'>report_array_index_out_of_bounds_error</a></td><td><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></td><td>Subroutine</td><td><p>Reports an array index-out-of-bounds error.</p></td></tr>
 			   <tr><td><a href='../proc/report_array_size_error.html'>report_array_size_error</a></td><td><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></td><td>Subroutine</td><td><p>Reports an array size error.</p></td></tr>
 			   <tr><td><a href='../proc/report_constraint_count_error.html'>report_constraint_count_error</a></td><td><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></td><td>Subroutine</td><td><p>Reports an error associated with an incorrect number of constraints.</p></td></tr>
@@ -165,14 +174,14 @@ solution procedure is utilized.</p></td></tr>
     <footer>
       <div class="container">
         <div class="row">
-          <div class="col-xs-6 col-md-6"><p>DYNAMICS was developed by Jason Christopherson<br>&copy; 2024 
+          <div class="col-xs-6 col-md-6"><p>DYNAMICS was developed by Jason Christopherson<br>&copy; 2025 
 </p>
           </div>
           <div class="col-xs-6 col-md-6">
             <p class="text-right">
               Documentation generated by
               <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2024-10-25 10:02              </p>
+ on 2025-01-22 15:40              </p>
           </div>
         </div>
         <br>
