@@ -72,4 +72,5 @@ module dynamics
     public :: estimate_bandwidth
     public :: logarithmic_decrement
     public :: damping_from_log_decrement
+    public :: find_free_response_properties
 end module
