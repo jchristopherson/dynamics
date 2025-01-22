@@ -68,4 +68,7 @@ module dynamics
     public :: iteration_behavior
 
     ! DYNAMICS_VIBRATIONS
+    public :: q_factor
+    public :: estimate_bandwidth
+    public :: logarithmic_decrement
 end module

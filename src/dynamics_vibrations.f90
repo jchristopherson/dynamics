@@ -4,7 +4,8 @@ module dynamics_vibrations
     private
     public :: q_factor
     public :: estimate_bandwidth
-    
+    public :: logarithmic_decrement
+
 contains
 ! ------------------------------------------------------------------------------
 pure function q_factor(zeta) result(rst)
@@ -36,6 +37,27 @@ pure function estimate_bandwidth(fn, zeta) result(rst)
 
     ! Process
     rst = fn / q_factor(zeta)
+end function
+
+! ------------------------------------------------------------------------------
+pure function logarithmic_decrement(x1, x2, n) result(rst)
+    !! Computes the logarithmic decrement given the value of two  successive
+    !! peaks in the time history of the free vibratory response of the system.
+    !! The logarithmic decrement is calculated as follows.
+    !!
+    !! $$ \delta = \frac{1}{N} \ln \left( \frac{x(t)}{x(t + N T)} \right) $$
+    real(real64), intent(in) :: x1
+        !! The amplitude of the first peak.
+    real(real64), intent(in) :: x2
+        !! The amplitude of the second peak that occurs N periods after the
+        !! first.
+    integer(int32), intent(in) :: n
+        !! The number of periods of oscillation seperating the two peaks.
+    real(real64) :: rst
+        !! The logarithmic decrement \(\delta\).
+
+    ! Process
+    rst = (1.0d0 / n) * log(x1 / x2)
 end function
 
 ! ------------------------------------------------------------------------------
