@@ -5,6 +5,7 @@ module dynamics_vibrations
     public :: q_factor
     public :: estimate_bandwidth
     public :: logarithmic_decrement
+    public :: damping_from_log_decrement
 
 contains
 ! ------------------------------------------------------------------------------
@@ -59,6 +60,23 @@ pure function logarithmic_decrement(x1, x2, n) result(rst)
 
     ! Process
     rst = (1.0d0 / n) * log(x1 / x2)
+end function
+
+! ------------------------------------------------------------------------------
+pure function damping_from_log_decrement(delta) result(rst)
+    !! Computes the damping ratio from the logarithmic decrement \(\delta\).
+    !! The damping ratio is related to the logarithmic decrement by the 
+    !! following relationship.
+    !!
+    !! $$ \zeta = \frac{\delta}{\sqrt{4 \pi^2 + \delta^2}} $$
+    real(real64), intent(in) :: delta
+        !! The logarithmic decrement.
+    real(real64) :: rst
+        !! The damping ratio.
+
+    ! Process
+    real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
+    rst = delta / sqrt(4.0d0 * pi**2 + delta**2)
 end function
 
 ! ------------------------------------------------------------------------------

@@ -71,4 +71,5 @@ module dynamics
     public :: q_factor
     public :: estimate_bandwidth
     public :: logarithmic_decrement
+    public :: damping_from_log_decrement
 end module
