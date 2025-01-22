@@ -45,7 +45,8 @@ pure function logarithmic_decrement(x1, x2, n) result(rst)
     !! peaks in the time history of the free vibratory response of the system.
     !! The logarithmic decrement is calculated as follows.
     !!
-    !! $$ \delta = \frac{1}{N} \ln \left( \frac{x(t)}{x(t + N T)} \right) $$
+    !! $$ \delta = \frac{1}{N} \ln \left( \frac{x(t)}{x(t + N T)} \right) =  
+    !! \frac{1}{N} \ln \left( \frac{x_1}{x_2} \right) $$
     real(real64), intent(in) :: x1
         !! The amplitude of the first peak.
     real(real64), intent(in) :: x2
