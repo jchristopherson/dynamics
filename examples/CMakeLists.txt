@@ -57,3 +57,11 @@ add_executable(
 )
 link_library(frf_fit_example_1 ${PROJECT_NAME} ${PROJECT_INCLUDE_DIR})
 link_library(frf_fit_example_1 ${fplot_LIBRARY} ${fplot_INCLUDE_DIR})
+
+# Free Vibration Example
+add_executable(
+    free_vibration_example
+    free_vibration_example.f90
+)
+link_library(free_vibration_example ${PROJECT_NAME} ${PROJECT_INCLUDE_DIR})
+link_library(free_vibration_example ${fplot_LIBRARY} ${fplot_INCLUDE_DIR})

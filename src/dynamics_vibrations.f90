@@ -165,8 +165,8 @@ subroutine find_free_response_properties(t, x, delta, fn, x1, x2, t1, t2, s, n)
         go to 10
     end if
     i1 = maxind(1)
-    j2 = min(np, size(maxind))
-    np = j2 - i1 + 1
+    np = min(np, size(maxind) - 1)
+    j2 = np + 1
     i2 = maxind(j2)
     t1p = t(i1)
     t2p = t(i2)
