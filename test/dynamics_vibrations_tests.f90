@@ -48,8 +48,49 @@ function test_bandwidth() result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+function test_log_decrement() result(rst)
+    ! Arguments
+    logical :: rst
+
+    ! Variables
+    integer(int32), parameter :: n = 2
+    real(real64) :: x1, x2, ans, delta
+
+    ! Initialization
+    rst = .true.
+    call random_number(x1)
+    x2 = 0.8d0 * x1
+    ans = log(x1 / x2) / n
+
+    ! Test
+    delta = logarithmic_decrement(x1, x2, n)
+    if (.not.assert(delta, ans)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_log_decrement -1"
+    end if
+end function
 
 ! ------------------------------------------------------------------------------
+function test_damping_from_decrement() result(rst)
+    ! Arguments
+    logical :: rst
+
+    ! Variables
+    real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
+    real(real64) :: delta, zeta, ans
+
+    ! Initialization
+    rst = .true.
+    call random_number(delta)
+    ans = delta / sqrt(4.0d0 * pi**2 + delta**2)
+
+    ! Test
+    zeta = damping_from_log_decrement(delta)
+    if (.not.assert(zeta, ans)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_damping_from_decrement -1"
+    end if
+end function
 
 ! ------------------------------------------------------------------------------
 

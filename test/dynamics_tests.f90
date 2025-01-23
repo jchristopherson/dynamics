@@ -77,6 +77,12 @@ program main
     check = test_bandwidth()
     if (.not.check) flag = 21
 
+    check = test_log_decrement()
+    if (.not.check) flag = 22
+
+    check = test_damping_from_decrement()
+    if (.not.check) flag = 23
+
     ! End
     if (flag /= 0) stop flag
 end program
