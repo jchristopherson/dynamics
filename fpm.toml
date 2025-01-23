@@ -19,6 +19,7 @@ spectrum = { git = "https://github.com/jchristopherson/spectrum" }
 fftpack = { git = "https://github.com/fortran-lang/fftpack" }
 fstats = { git = "https://github.com/jchristopherson/fstats" } 
 peaks = { git = "https://github.com/jchristopherson/peaks" }
+openmp = "*"
 
 [dev-dependencies]
 fortran_test_helper = { git = "https://github.com/jchristopherson/fortran_test_helper" }
