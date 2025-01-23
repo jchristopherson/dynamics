@@ -3,6 +3,7 @@ program main
     use dynamics_frf_tests
     use dynamics_structures_tests
     use dynamics_kinematics_tests
+    use dynamics_vibrations_tests
     implicit none
 
     ! Variables
@@ -69,6 +70,12 @@ program main
 
     check = test_frf_fit()
     if (.not.check) flag = 19
+
+    check = test_q_factor()
+    if (.not.check) flag = 20
+
+    check = test_bandwidth()
+    if (.not.check) flag = 21
 
     ! End
     if (flag /= 0) stop flag
