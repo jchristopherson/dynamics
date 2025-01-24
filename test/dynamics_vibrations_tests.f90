@@ -137,6 +137,30 @@ function test_find_free_rsp_props() result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+function test_rise_time() result(rst)
+    ! Arguments
+    logical :: rst
+
+    ! Parameters
+    real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
+
+    ! Local Variables
+    real(real64) :: wn, zeta, ans, tr
+
+    ! Initialization
+    rst = .true.
+    call random_number(wn)
+    call random_number(zeta)
+    ans = (1.0d0 / (wn * sqrt(1.0d0 - zeta**2))) * (pi - &
+        atan(sqrt(1.0d0 - zeta**2) / zeta))
+
+    ! Test
+    tr = rise_time(wn, zeta)
+    if (.not.assert(ans, tr)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_rise_time -1"
+    end if
+end function
 
 ! ------------------------------------------------------------------------------
 end module
