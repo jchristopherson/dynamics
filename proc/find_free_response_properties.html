@@ -8,7 +8,7 @@
     <meta name="author" content="Jason Christopherson" >
     <link rel="icon" href="../favicon.png">
 
-    <title>report_nonsquare_matrix_error &ndash; DYNAMICS</title>
+    <title>find_free_response_properties &ndash; DYNAMICS</title>
 
     <link href="../css/bootstrap.min.css" rel="stylesheet">
     <link href="../css/pygments.css" rel="stylesheet">
@@ -76,7 +76,7 @@
 
     <div class="container">
   <div class="row">
-    <h1>report_nonsquare_matrix_error
+    <h1>find_free_response_properties
       <small>Subroutine</small>
       
     </h1>
@@ -88,18 +88,18 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 1.3% of total for procedures.">11 statements</a>
+               title=" 6.3% of total for procedures.">54 statements</a>
           </li>
 
             <li id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dynamics_error_handling.f90"> Source File</a>
+              <a href="../src/dynamics_vibrations.f90"> Source File</a>
             </li>
         </ul>
         <ol class="breadcrumb in-well text-right">
-              <li><a href='../sourcefile/dynamics_error_handling.f90.html'>dynamics_error_handling.f90</a></li>
-              <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
-          <li class="active">report_nonsquare_matrix_error</li>
+              <li><a href='../sourcefile/dynamics_vibrations.f90.html'>dynamics_vibrations.f90</a></li>
+              <li><a href='../module/dynamics_vibrations.html'>dynamics_vibrations</a></li>
+          <li class="active">find_free_response_properties</li>
         </ol>
       </div>
     </div>
@@ -117,19 +117,7 @@
       <div id="sidebar">
       <h3>Contents</h3>
   
-      <div class="panel panel-primary">
-      <div class="panel-heading text-left">
-        <h3 class="panel-title">
-          <a data-toggle="collapse" href="#vars-0">Variables</a>
-        </h3>
-      </div>
-      <div id="vars-0" class="panel-collapse collapse">
-        <div class="list-group">
-            <a class="list-group-item" href="../proc/report_nonsquare_matrix_error.html#variable-errmsg~10">errmsg</a>
-        </div>
-      </div>
-    </div>
-
+  
   
   
   
@@ -154,11 +142,14 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>public  subroutine report_nonsquare_matrix_error(name, var, m, n, err)  
+    <h2>public  subroutine find_free_response_properties(t, x, delta, fn, x1, x2, t1, t2, s, n)  
 </h2>
     
 
-    <p>Reports an error relating to a non-square matrix.</p>
+    <p>Given a free-response time history, this routine attempts to find the 
+logarithmic decrement and resonant frequency of a vibratory system. The
+logarithmic decrement is estimated by finding successive peaks by
+means of peak detection.</p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -173,78 +164,170 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-name~5"></span>
-              character(len=*),
+              <span class="anchor" id="variable-t~5"></span>
+              real(kind=real64),
             </td>
-<td>intent(in)</td>
+<td>intent(in),</td>
               <td></td>            <td>
-              
+              dimension(:)
             </td>
             <td>::</td>
-            <td><strong>name</strong></td>
+            <td><strong>t</strong></td>
             <td>
-                <p>The name of the routine in which the error was found.</p>
+                <p>An N-element array containing the values in time</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-var"></span>
-              character(len=*),
+              <span class="anchor" id="variable-x~8"></span>
+              real(kind=real64),
             </td>
-<td>intent(in)</td>
+<td>intent(in),</td>
               <td></td>            <td>
-              
+              dimension(:)
             </td>
             <td>::</td>
-            <td><strong>var</strong></td>
+            <td><strong>x</strong></td>
             <td>
-                <p>The name of the offending variable.</p>
+                <p>An N-element array containing the response sampled at the time points
+given in t.</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-m~3"></span>
+              <span class="anchor" id="variable-delta~2"></span>
+              real(kind=real64),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>delta</strong></td>
+            <td>
+                <p>The logarithmic decrement estimate.  If sufficient peaks cannot be
+located, the routine returns NaN.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fn~2"></span>
+              real(kind=real64),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>fn</strong></td>
+            <td>
+                <p>The damped resonant frequency in units of Hz, assuming that the
+time values are in seconds.  If the time units are not in seconds,
+the units will be cycle/unit time with unit time being the units
+in which t is supplied.  If sufficient peaks cannot be located, the 
+routine returns NaN.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-x1~2"></span>
+              real(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>x1</strong></td>
+            <td>
+                <p>An optional parameter that, if provided, allows for the routine to
+return the amplitude of the first peak.  If sufficient peaks cannot 
+be located, the routine returns NaN.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-x2~2"></span>
+              real(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>x2</strong></td>
+            <td>
+                <p>An optional parameter that, if provided, allows for the routine to
+return the amplitude of the second peak.  If sufficient peaks cannot 
+be located, the routine returns NaN.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-t1"></span>
+              real(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>t1</strong></td>
+            <td>
+                <p>An optional parameter that, if provided, allows for the routine to
+return the time at which the first peak was located.  If sufficient
+peaks cannot be located, the routine returns NaN.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-t2"></span>
+              real(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>t2</strong></td>
+            <td>
+                <p>An optional parameter that, if provided, allows for the routine to
+return the time at which the second peak was located.  If sufficient
+peaks cannot be located, the routine returns NaN.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-s"></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>s</strong></td>
+            <td>
+                <p>An optional input that, if provided, allows for control of the 
+sensitivity of the peak detection algorithm.  The default is 0.1%
+of the peak-peak amplitude of the signal.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-n~3"></span>
               integer(kind=int32),
             </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>m</strong></td>
-            <td>
-                <p>The number of rows found in the matrix.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-n~7"></span>
-              integer(kind=int32),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
               
             </td>
             <td>::</td>
             <td><strong>n</strong></td>
             <td>
-                <p>The number of columns found in the matrix.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-err~16"></span>
-              class(errors),
-            </td>
-<td>intent(inout)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>err</strong></td>
-            <td>
-                <p>An errors-based object that if provided can be used to retrieve 
-information relating to any errors encountered during execution.</p>
+                <p>An optional input that, if provided, determines the number of 
+periods to allow between peak selection for the logarithmic 
+decrement calculation.  The default is 1.</p>
             </td>
         </tr>
     </tbody>
@@ -255,19 +338,7 @@ information relating to any errors encountered during execution.</p>
     <section class="visible-xs visible-sm hidden-md">
         <h3>Contents</h3>
   
-      <div class="panel panel-primary">
-      <div class="panel-heading text-left">
-        <h3 class="panel-title">
-          <a data-toggle="collapse" href="#vars-1">Variables</a>
-        </h3>
-      </div>
-      <div id="vars-1" class="panel-collapse collapse">
-        <div class="list-group">
-            <a class="list-group-item" href="../proc/report_nonsquare_matrix_error.html#variable-errmsg~10">errmsg</a>
-        </div>
-      </div>
-    </div>
-
+  
   
   
   
@@ -291,40 +362,6 @@ information relating to any errors encountered during execution.</p>
     <br class="visible-xs visible-sm hidden-md">
 
 
-    <section>    
-      <h2>Variables</h2>
-      <table class="table table-striped varlist">
-    <thead>
-      <tr>
-        <th>Type</th>
-<th>Visibility</th>        <th>Attributes</th>
-        <th></th>
-        <th>Name</th>
-<th></th><th>Initial</th>        <th></th>
-    </thead>
-    <tbody>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-errmsg~10"></span>
-              character(len=256),
-            </td>
-              <td>public</td>
-            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>errmsg</strong></td>
-                <td></td>
-                <td></td>
-            <td>
-                
-            </td>
-        </tr>
-    </tbody>
-  </table>
-
-    </section>
-    <br>
     
     
 

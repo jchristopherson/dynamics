@@ -8,7 +8,7 @@
     <meta name="author" content="Jason Christopherson" >
     <link rel="icon" href="../favicon.png">
 
-    <title>report_nonsquare_matrix_error &ndash; DYNAMICS</title>
+    <title>rise_time &ndash; DYNAMICS</title>
 
     <link href="../css/bootstrap.min.css" rel="stylesheet">
     <link href="../css/pygments.css" rel="stylesheet">
@@ -76,8 +76,8 @@
 
     <div class="container">
   <div class="row">
-    <h1>report_nonsquare_matrix_error
-      <small>Subroutine</small>
+    <h1>rise_time
+      <small>Function</small>
       
     </h1>
       <div class="row" id="info-bar">
@@ -88,18 +88,18 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 1.3% of total for procedures.">11 statements</a>
+               title=" 1.0% of total for procedures.">9 statements</a>
           </li>
 
             <li id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dynamics_error_handling.f90"> Source File</a>
+              <a href="../src/dynamics_vibrations.f90"> Source File</a>
             </li>
         </ul>
         <ol class="breadcrumb in-well text-right">
-              <li><a href='../sourcefile/dynamics_error_handling.f90.html'>dynamics_error_handling.f90</a></li>
-              <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
-          <li class="active">report_nonsquare_matrix_error</li>
+              <li><a href='../sourcefile/dynamics_vibrations.f90.html'>dynamics_vibrations.f90</a></li>
+              <li><a href='../module/dynamics_vibrations.html'>dynamics_vibrations</a></li>
+          <li class="active">rise_time</li>
         </ol>
       </div>
     </div>
@@ -117,19 +117,7 @@
       <div id="sidebar">
       <h3>Contents</h3>
   
-      <div class="panel panel-primary">
-      <div class="panel-heading text-left">
-        <h3 class="panel-title">
-          <a data-toggle="collapse" href="#vars-0">Variables</a>
-        </h3>
-      </div>
-      <div id="vars-0" class="panel-collapse collapse">
-        <div class="list-group">
-            <a class="list-group-item" href="../proc/report_nonsquare_matrix_error.html#variable-errmsg~10">errmsg</a>
-        </div>
-      </div>
-    </div>
-
+  
   
   
   
@@ -154,11 +142,17 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>public  subroutine report_nonsquare_matrix_error(name, var, m, n, err)  
+    <h2>public pure elemental function rise_time(wn, zeta) result(rst)  
 </h2>
     
 
-    <p>Reports an error relating to a non-square matrix.</p>
+    <p>Computes the rise time for an underdamped, second-order system.  The
+rise time is the time it takes for the system response to go from 0%
+to 100% of its final value and is given by the following relationship.</p>
+<p>
+<script type="math/tex; mode=display"> t_r = \frac{1}{\omega_d} \left( \pi - 
+\arctan \frac{\sqrt{1 - zeta^2}}{\zeta} \right) </script>
+</p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -173,101 +167,51 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-name~5"></span>
-              character(len=*),
+              <span class="anchor" id="variable-wn~3"></span>
+              real(kind=real64),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>name</strong></td>
+            <td><strong>wn</strong></td>
             <td>
-                <p>The name of the routine in which the error was found.</p>
+                <p>The resonant frequency of the system, in rad/s.</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-var"></span>
-              character(len=*),
+              <span class="anchor" id="variable-zeta~5"></span>
+              real(kind=real64),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>var</strong></td>
+            <td><strong>zeta</strong></td>
             <td>
-                <p>The name of the offending variable.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-m~3"></span>
-              integer(kind=int32),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>m</strong></td>
-            <td>
-                <p>The number of rows found in the matrix.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-n~7"></span>
-              integer(kind=int32),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>n</strong></td>
-            <td>
-                <p>The number of columns found in the matrix.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-err~16"></span>
-              class(errors),
-            </td>
-<td>intent(inout)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>err</strong></td>
-            <td>
-                <p>An errors-based object that if provided can be used to retrieve 
-information relating to any errors encountered during execution.</p>
+                <p>The damping ratio of the system.  This value must be less than 1
+as this relationship is only valid for an underdamped system.</p>
             </td>
         </tr>
     </tbody>
   </table>
 
+      <h3>Return Value
+        <small>
+          <span class="anchor" id="variable-rst~24"></span>
+          real(kind=real64)
+        </small>
+      </h3>
+      <p>The rise time, in units of seconds.</p>
     <br>
 
     <section class="visible-xs visible-sm hidden-md">
         <h3>Contents</h3>
   
-      <div class="panel panel-primary">
-      <div class="panel-heading text-left">
-        <h3 class="panel-title">
-          <a data-toggle="collapse" href="#vars-1">Variables</a>
-        </h3>
-      </div>
-      <div id="vars-1" class="panel-collapse collapse">
-        <div class="list-group">
-            <a class="list-group-item" href="../proc/report_nonsquare_matrix_error.html#variable-errmsg~10">errmsg</a>
-        </div>
-      </div>
-    </div>
-
+  
   
   
   
@@ -291,40 +235,6 @@ information relating to any errors encountered during execution.</p>
     <br class="visible-xs visible-sm hidden-md">
 
 
-    <section>    
-      <h2>Variables</h2>
-      <table class="table table-striped varlist">
-    <thead>
-      <tr>
-        <th>Type</th>
-<th>Visibility</th>        <th>Attributes</th>
-        <th></th>
-        <th>Name</th>
-<th></th><th>Initial</th>        <th></th>
-    </thead>
-    <tbody>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-errmsg~10"></span>
-              character(len=256),
-            </td>
-              <td>public</td>
-            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>errmsg</strong></td>
-                <td></td>
-                <td></td>
-            <td>
-                
-            </td>
-        </tr>
-    </tbody>
-  </table>
-
-    </section>
-    <br>
     
     
 

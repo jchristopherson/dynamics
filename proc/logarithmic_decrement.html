@@ -8,7 +8,7 @@
     <meta name="author" content="Jason Christopherson" >
     <link rel="icon" href="../favicon.png">
 
-    <title>report_nonsquare_matrix_error &ndash; DYNAMICS</title>
+    <title>logarithmic_decrement &ndash; DYNAMICS</title>
 
     <link href="../css/bootstrap.min.css" rel="stylesheet">
     <link href="../css/pygments.css" rel="stylesheet">
@@ -76,8 +76,8 @@
 
     <div class="container">
   <div class="row">
-    <h1>report_nonsquare_matrix_error
-      <small>Subroutine</small>
+    <h1>logarithmic_decrement
+      <small>Function</small>
       
     </h1>
       <div class="row" id="info-bar">
@@ -88,18 +88,18 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 1.3% of total for procedures.">11 statements</a>
+               title=" 0.8% of total for procedures.">7 statements</a>
           </li>
 
             <li id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dynamics_error_handling.f90"> Source File</a>
+              <a href="../src/dynamics_vibrations.f90"> Source File</a>
             </li>
         </ul>
         <ol class="breadcrumb in-well text-right">
-              <li><a href='../sourcefile/dynamics_error_handling.f90.html'>dynamics_error_handling.f90</a></li>
-              <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
-          <li class="active">report_nonsquare_matrix_error</li>
+              <li><a href='../sourcefile/dynamics_vibrations.f90.html'>dynamics_vibrations.f90</a></li>
+              <li><a href='../module/dynamics_vibrations.html'>dynamics_vibrations</a></li>
+          <li class="active">logarithmic_decrement</li>
         </ol>
       </div>
     </div>
@@ -117,19 +117,7 @@
       <div id="sidebar">
       <h3>Contents</h3>
   
-      <div class="panel panel-primary">
-      <div class="panel-heading text-left">
-        <h3 class="panel-title">
-          <a data-toggle="collapse" href="#vars-0">Variables</a>
-        </h3>
-      </div>
-      <div id="vars-0" class="panel-collapse collapse">
-        <div class="list-group">
-            <a class="list-group-item" href="../proc/report_nonsquare_matrix_error.html#variable-errmsg~10">errmsg</a>
-        </div>
-      </div>
-    </div>
-
+  
   
   
   
@@ -154,11 +142,17 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>public  subroutine report_nonsquare_matrix_error(name, var, m, n, err)  
+    <h2>public pure elemental function logarithmic_decrement(x1, x2, n) result(rst)  
 </h2>
     
 
-    <p>Reports an error relating to a non-square matrix.</p>
+    <p>Computes the logarithmic decrement given the value of two  successive
+peaks in the time history of the free vibratory response of the system.
+The logarithmic decrement is calculated as follows.</p>
+<p>
+<script type="math/tex; mode=display"> \delta = \frac{1}{N} \ln \left( \frac{x(t)}{x(t + N T)} \right) =  
+\frac{1}{N} \ln \left( \frac{x_1}{x_2} \right) </script>
+</p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -173,52 +167,38 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-name~5"></span>
-              character(len=*),
+              <span class="anchor" id="variable-x1"></span>
+              real(kind=real64),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>name</strong></td>
+            <td><strong>x1</strong></td>
             <td>
-                <p>The name of the routine in which the error was found.</p>
+                <p>The amplitude of the first peak.</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-var"></span>
-              character(len=*),
+              <span class="anchor" id="variable-x2"></span>
+              real(kind=real64),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>var</strong></td>
+            <td><strong>x2</strong></td>
             <td>
-                <p>The name of the offending variable.</p>
+                <p>The amplitude of the second peak that occurs N periods after the
+first.</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-m~3"></span>
-              integer(kind=int32),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>m</strong></td>
-            <td>
-                <p>The number of rows found in the matrix.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-n~7"></span>
+              <span class="anchor" id="variable-n~2"></span>
               integer(kind=int32),
             </td>
 <td>intent(in)</td>
@@ -228,46 +208,25 @@
             <td>::</td>
             <td><strong>n</strong></td>
             <td>
-                <p>The number of columns found in the matrix.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-err~16"></span>
-              class(errors),
-            </td>
-<td>intent(inout)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>err</strong></td>
-            <td>
-                <p>An errors-based object that if provided can be used to retrieve 
-information relating to any errors encountered during execution.</p>
+                <p>The number of periods of oscillation seperating the two peaks.</p>
             </td>
         </tr>
     </tbody>
   </table>
 
+      <h3>Return Value
+        <small>
+          <span class="anchor" id="variable-rst~22"></span>
+          real(kind=real64)
+        </small>
+      </h3>
+      <p>The logarithmic decrement <script type="math/tex">\delta</script>.</p>
     <br>
 
     <section class="visible-xs visible-sm hidden-md">
         <h3>Contents</h3>
   
-      <div class="panel panel-primary">
-      <div class="panel-heading text-left">
-        <h3 class="panel-title">
-          <a data-toggle="collapse" href="#vars-1">Variables</a>
-        </h3>
-      </div>
-      <div id="vars-1" class="panel-collapse collapse">
-        <div class="list-group">
-            <a class="list-group-item" href="../proc/report_nonsquare_matrix_error.html#variable-errmsg~10">errmsg</a>
-        </div>
-      </div>
-    </div>
-
+  
   
   
   
@@ -291,40 +250,6 @@ information relating to any errors encountered during execution.</p>
     <br class="visible-xs visible-sm hidden-md">
 
 
-    <section>    
-      <h2>Variables</h2>
-      <table class="table table-striped varlist">
-    <thead>
-      <tr>
-        <th>Type</th>
-<th>Visibility</th>        <th>Attributes</th>
-        <th></th>
-        <th>Name</th>
-<th></th><th>Initial</th>        <th></th>
-    </thead>
-    <tbody>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-errmsg~10"></span>
-              character(len=256),
-            </td>
-              <td>public</td>
-            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>errmsg</strong></td>
-                <td></td>
-                <td></td>
-            <td>
-                
-            </td>
-        </tr>
-    </tbody>
-  </table>
-
-    </section>
-    <br>
     
     
 
