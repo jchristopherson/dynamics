@@ -163,4 +163,101 @@ function test_rise_time() result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+function test_step_response() result(rst)
+    ! Arguments
+    logical :: rst
+
+    ! Parameters
+    integer(int32), parameter :: n = 1000
+    real(real64), parameter :: dt = 1.0d-3
+    real(real64), parameter :: fn = 1.0d1
+    real(real64), parameter :: zeta = 1.0d-1
+    real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
+    real(real64), parameter :: xs = 2.0d0
+
+    ! Variables
+    integer(int32) :: i
+    real(real64) :: t(n), x(n), ans(n), wn, wd, A
+
+    ! Initialization
+    rst = .true.
+    wn = 2.0d0 * pi * fn
+    wd = wn * sqrt(1.0d0 - zeta**2)
+    A = zeta * wn / wd
+    t = (/ (i * dt, i = 0, n - 1) /)
+    ans = xs * (1.0d0 - exp(-zeta * wn * t) * (A * sin(wd * t) + cos(wd * t)))
+
+    ! Test
+    x = evaluate_step_response(wn, zeta, xs, t)
+    if (.not.assert(x, ans)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_step_response -1"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_settling_amplitude() result(rst)
+    ! Arguments
+    logical :: rst
+
+    ! Parameters
+    integer(int32), parameter :: n = 1000
+    real(real64), parameter :: dt = 1.0d-3
+    real(real64), parameter :: fn = 1.0d1
+    real(real64), parameter :: zeta = 1.0d-1
+    real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
+    real(real64), parameter :: xs = 2.0d0
+    real(real64), parameter :: tol = 5.0d-2
+
+    ! Variables
+    integer(int32) :: i
+    real(real64) :: t(n), x(n), xf, wn
+
+    ! Initialization
+    rst = .true.
+    wn = 2.0d0 * pi * fn
+    t = (/ (i * dt, i = 0, n - 1) /)
+    x = evaluate_step_response(wn, zeta, xs, t)
+
+    ! Test
+    xf = find_settling_amplitude(x)
+    if (.not.assert(xf, xs, tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_settling_amplitude -1"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_damping_from_overshoot() result(rst)
+    ! Arguments
+    logical :: rst
+
+    ! Parameters
+    integer(int32), parameter :: n = 1000
+    real(real64), parameter :: dt = 1.0d-3
+    real(real64), parameter :: fn = 1.0d1
+    real(real64), parameter :: zeta = 6.0d-1
+    real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
+    real(real64), parameter :: xs = 2.0d0
+    real(real64), parameter :: tol = 5.0d-2
+
+    ! Variables
+    integer(int32) :: i
+    real(real64) :: t(n), x(n), wn, zx
+
+    ! Initialization
+    rst = .true.
+    wn = 2.0d0 * pi * fn
+    t = (/ (i * dt, i = 0, n - 1) /)
+    x = evaluate_step_response(wn, zeta, xs, t)
+
+    ! Test
+    zx = damping_from_fractional_overshoot(x)
+    if (.not.assert(zx, zeta, tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_damping_from_overshoot -1"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
 end module

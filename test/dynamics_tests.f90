@@ -86,6 +86,15 @@ program main
     check = test_find_free_rsp_props()
     if (.not.check) flag = 24
 
+    check = test_step_response()
+    if (.not.check) flag = 25
+
+    check = test_settling_amplitude()
+    if (.not.check) flag = 26
+
+    check = test_damping_from_overshoot()
+    if (.not.check) flag = 27
+
     ! End
     if (flag /= 0) stop flag
 end program
