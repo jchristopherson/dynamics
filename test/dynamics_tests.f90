@@ -83,6 +83,9 @@ program main
     check = test_damping_from_decrement()
     if (.not.check) flag = 23
 
+    check = test_find_free_rsp_props()
+    if (.not.check) flag = 24
+
     ! End
     if (flag /= 0) stop flag
 end program

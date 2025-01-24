@@ -93,6 +93,48 @@ function test_damping_from_decrement() result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+function test_find_free_rsp_props() result(rst)
+    ! Arguments
+    logical :: rst
+
+    ! Parameters
+    real(real64), parameter :: fn = 1.0d1
+    real(real64), parameter :: zeta = 1.0d-1
+    real(real64), parameter :: xo = 0.0d0
+    real(real64), parameter :: vo = 1.0d0
+    real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
+    real(real64), parameter :: dt = 1.0d-3
+    integer(int32), parameter :: n = 1000
+
+    ! Variables
+    integer(int32) :: i
+    real(real64) :: t(n), x(n), wn, wd, A, B, fnx, delta, zx, tol
+
+    ! Initialization
+    rst = .true.
+    t = (/ (i * dt, i = 0, n - 1) /)
+    wn = 2.0d0 * pi * fn
+    wd = wn * sqrt(1.0d0 - zeta**2)
+    A = (vo + zeta * wn * xo) / wd
+    B = xo
+    x = exp(-zeta * wn * t) * (A * sin(wd * t) + B * cos(wd * t))
+    tol = 1.0d-3
+
+    ! Test
+    call find_free_response_properties(t, x, delta, fnx)
+    zx = damping_from_log_decrement(delta)
+
+    if (.not.assert(zx, zeta, tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_find_free_rsp_props -1"
+    end if
+
+    tol = abs(wn - wd)
+    if (.not.assert(fnx, fn, tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_find_free_rsp_props -2"
+    end if
+end function
 
 ! ------------------------------------------------------------------------------
 
