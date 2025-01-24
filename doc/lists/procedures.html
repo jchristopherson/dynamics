@@ -99,6 +99,10 @@ proportional damping terms <script type="math/tex"> \alpha </script> and <script
 <script type="math/tex"> \lambda_{i} = \omega_{i}^2 </script>, and <script type="math/tex"> \lambda_i </script> is the
 <script type="math/tex"> i^{th} </script> eigenvalue of the system.</p></td></tr>
 			   <tr><td><a href='../proc/create_connectivity_matrix.html'>create_connectivity_matrix</a></td><td><a href='../module/dynamics_structural.html'>dynamics_structural</a></td><td>Function</td><td><p>Creates a connectivity matrix for the element.</p></td></tr>
+			   <tr><td><a href='../proc/damping_from_fractional_overshoot.html'>damping_from_fractional_overshoot</a></td><td><a href='../module/dynamics_vibrations.html'>dynamics_vibrations</a></td><td>Function</td><td><p>Employs the method of fractional overshoot to estimate the damping ratio
+from the response of a system to a step input.  This method is useful
+for cases where the damping ratio is between approximately 0.5 to 0.8.
+In such range, the logarithmic decrement approach becomes less precise.</p><a href="../proc/damping_from_fractional_overshoot.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
 			   <tr><td><a href='../proc/damping_from_log_decrement.html'>damping_from_log_decrement</a></td><td><a href='../module/dynamics_vibrations.html'>dynamics_vibrations</a></td><td>Function</td><td><p>Computes the damping ratio from the logarithmic decrement <script type="math/tex">\delta</script>.
 The damping ratio is related to the logarithmic decrement by the 
 following relationship.</p><a href="../proc/damping_from_log_decrement.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
@@ -117,10 +121,13 @@ energy is at least half its peak value and is computed as
 <script type="math/tex">\Delta f = \frac{f_n}{Q}</script>.</p></td></tr>
 			   <tr><td><a href='../interface/evaluate_accelerance_frf_model.html'>evaluate_accelerance_frf_model</a></td><td><a href='../module/dynamics_frequency_response.html'>dynamics_frequency_response</a></td><td>Interface</td><td></td></tr>
 			   <tr><td><a href='../interface/evaluate_receptance_frf_model.html'>evaluate_receptance_frf_model</a></td><td><a href='../module/dynamics_frequency_response.html'>dynamics_frequency_response</a></td><td>Interface</td><td></td></tr>
+			   <tr><td><a href='../proc/evaluate_step_response.html'>evaluate_step_response</a></td><td><a href='../module/dynamics_vibrations.html'>dynamics_vibrations</a></td><td>Function</td><td><p>Evaluates the response of an underdamped single-degree-of-freedom, 
+linear system to a step function of amplitude <script type="math/tex">X_s</script>.</p><a href="../proc/evaluate_step_response.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
 			   <tr><td><a href='../proc/find_free_response_properties.html'>find_free_response_properties</a></td><td><a href='../module/dynamics_vibrations.html'>dynamics_vibrations</a></td><td>Subroutine</td><td><p>Given a free-response time history, this routine attempts to find the 
 logarithmic decrement and resonant frequency of a vibratory system. The
 logarithmic decrement is estimated by finding successive peaks by
 means of peak detection.</p></td></tr>
+			   <tr><td><a href='../proc/find_settling_amplitude.html'>find_settling_amplitude</a></td><td><a href='../module/dynamics_vibrations.html'>dynamics_vibrations</a></td><td>Function</td><td><p>Estimates the settling amplitude for a step response.</p></td></tr>
 			   <tr><td><a href='../proc/fit_frf.html'>fit_frf</a></td><td><a href='../module/dynamics_frequency_response.html'>dynamics_frequency_response</a></td><td>Function</td><td><p>Fits an experimentally obtained frequency response by model for either a
 receptance model:</p><a href="../proc/fit_frf.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
 			   <tr><td><a href='../interface/frequency_response.html'>frequency_response</a></td><td><a href='../module/dynamics_frequency_response.html'>dynamics_frequency_response</a></td><td>Interface</td><td><p>Computes the frequency response functions for a system of ODE's.</p></td></tr>
@@ -156,6 +163,9 @@ difference was expected.</p></td></tr>
 			   <tr><td><a href='../proc/report_zero_valued_frequency_error.html'>report_zero_valued_frequency_error</a></td><td><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></td><td>Subroutine</td><td><p>Reports an error associated with a zero-valued frequency value.</p></td></tr>
 			   <tr><td><a href='../proc/restore_constrained_values.html'>restore_constrained_values</a></td><td><a href='../module/dynamics_structural.html'>dynamics_structural</a></td><td>Function</td><td><p>Restores the constrained degrees-of-freedom from the boundary conditions
 applied by apply_boundary_conditions.</p></td></tr>
+			   <tr><td><a href='../proc/rise_time.html'>rise_time</a></td><td><a href='../module/dynamics_vibrations.html'>dynamics_vibrations</a></td><td>Function</td><td><p>Computes the rise time for an underdamped, second-order system.  The
+rise time is the time it takes for the system response to go from 0%
+to 100% of its final value and is given by the following relationship.</p><a href="../proc/rise_time.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
 			   <tr><td><a href='../interface/rotate.html'>rotate</a></td><td><a href='../module/dynamics_rotation.html'>dynamics_rotation</a></td><td>Interface</td><td></td></tr>
 			   <tr><td><a href='../proc/rotate_x.html'>rotate_x</a></td><td><a href='../module/dynamics_rotation.html'>dynamics_rotation</a></td><td>Function</td><td><p>Constructs the rotation matrix describing a rotation about an
 x-axis such that 
@@ -188,7 +198,7 @@ solution procedure is utilized.</p></td></tr>
             <p class="text-right">
               Documentation generated by
               <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2025-01-22 16:25              </p>
+ on 2025-01-24 12:48              </p>
           </div>
         </div>
         <br>

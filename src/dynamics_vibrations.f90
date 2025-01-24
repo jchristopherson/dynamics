@@ -277,13 +277,13 @@ pure elemental function evaluate_step_response(wn, zeta, xs, t) result(rst)
     !!
     !! $$ \ddot{x} + 2 \zeta \omega_n \dot{x} + \omega_n^2 x = \frac{F(t)}{m} $$
     !!
-    !! $$ x(t) / X_s = 1 - e^{-\zeta \omega_n t} \left( 
+    !! $$ \frac{x(t)}{X_s} = 1 - e^{-\zeta \omega_n t} \left( 
     !! \frac{\zeta \omega_n}{\omega_d} \sin{\omega_d t} + \cos{\omega_d t}
     !! \right) $$
     !!
     !! where,
     !!
-    !! $$ \omega_d = \omega_n \sqrt{1 - \zeta**2} $$
+    !! $$ \omega_d = \omega_n \sqrt{1 - \zeta^2} $$
     !!
     !! and
     !!

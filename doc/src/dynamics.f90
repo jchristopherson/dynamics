@@ -73,4 +73,8 @@ module dynamics
     public :: logarithmic_decrement
     public :: damping_from_log_decrement
     public :: find_free_response_properties
+    public :: rise_time
+    public :: find_settling_amplitude
+    public :: damping_from_fractional_overshoot
+    public :: evaluate_step_response
 end module
