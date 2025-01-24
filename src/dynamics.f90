@@ -3,8 +3,10 @@ module dynamics
     use dynamics_rotation
     use dynamics_structural
     use dynamics_kinematics
+    use dynamics_vibrations
     implicit none
     private
+
     ! DYNAMICS_FREQUENCY_RESPONSE
     public :: ode_excite
     public :: modal_excite
@@ -64,4 +66,15 @@ module dynamics
     public :: vecfcn
     public :: least_squares_solver
     public :: iteration_behavior
+
+    ! DYNAMICS_VIBRATIONS
+    public :: q_factor
+    public :: estimate_bandwidth
+    public :: logarithmic_decrement
+    public :: damping_from_log_decrement
+    public :: find_free_response_properties
+    public :: rise_time
+    public :: find_settling_amplitude
+    public :: damping_from_fractional_overshoot
+    public :: evaluate_step_response
 end module

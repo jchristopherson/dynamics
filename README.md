@@ -8,6 +8,18 @@ A library of routines used for the analysis of dynamic systems.
 ## Documentation
 The documentation can be found [here](https://jchristopherson.github.io/dynamics/).
 
+## Capabilities
+Here is a high-level list of the capabilities of this library.
+- Compute linear frequency response functions for LTI systems.
+- Perform modal analysis of an LTI system.
+- Compute the frequency response of nonlinear systems in such a manner as to expose nonlinear behaviors such as jump phenomenon.
+- Fit transfer functions to experimental data.
+- Describe rigid body rotation and translation.
+- Perform forward and inverse kinematic analysis for linkages.
+- Analyze structural vibrations problems via linear 2D and 3D beam FEM.
+- Determine properties of vibrating systems from experimental data such as resonant frequency, damping ratio, Q-factor, rise time, settling amplitudes, etc.
+- Evaluate the step response behavior of SDOF systems.
+
 ## Kinematics Example
 The following example illustrates the forward and inverse kinematic models of the illustrated 3R mechanism.  This example is Example 127 from Jazar's text "Theory of Applied Robotics, Kinematics, Dynamics, & Control."
 

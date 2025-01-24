@@ -10,6 +10,7 @@ set(dynamics_test_sources
     dynamics_frf_tests.f90
     dynamics_structures_tests.f90
     dynamics_kinematics_tests.f90
+    dynamics_vibrations_tests.f90
 )
 
 # Build the tests

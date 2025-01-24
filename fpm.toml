@@ -1,9 +1,9 @@
 name = "dynamics"
-version = "1.0.6"
+version = "1.0.7"
 license = "GPL-3.0"
 author = "Jason Christopherson"
 maintainer = "Jason Christopherson"
-copyright = "Copyright 2022-2024, Jason Christopherson"
+copyright = "Copyright 2022-2025, Jason Christopherson"
 description = "A library of routines used for the analysis of dynamic systems."
 homepage = "https://github.com/jchristopherson/dynamics"
 
