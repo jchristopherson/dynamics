@@ -9,8 +9,8 @@ program example
     real(real64), parameter :: zeta = 1.0d-1
 
     ! Initial Conditions
-    real(real64), parameter :: xo = 1.0d0
-    real(real64), parameter :: vo = 0.0d0
+    real(real64), parameter :: xo = 0.0d0
+    real(real64), parameter :: vo = 1.0d0
 
     ! Additional Parameters
     real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
@@ -24,6 +24,7 @@ program example
     ! Plot Variables
     type(plot_2d) :: plt
     type(plot_data_2d) :: pd
+    class(plot_axis), pointer :: xAxis, yAxis
 
     ! Generate the response of an SDOF undamped free response
     wn = 2.0d0 * pi * fn
@@ -46,13 +47,21 @@ program example
 
     ! Plot the response
     call plt%initialize()
+    xAxis => plt%get_x_axis()
+    yAxis => plt%get_y_axis()
+
+    call xAxis%set_title("t")
+    call yAxis%set_title("x(t)")
 
     call pd%define_data(t, x)
+    call pd%set_line_width(2.0)
     call plt%push(pd)
     
     call pd%define_data([t1, t2], [x1, x2])
     call pd%set_draw_line(.false.)
     call pd%set_draw_markers(.true.)
+    call pd%set_marker_style(MARKER_EMPTY_CIRCLE)
+    call pd%set_marker_scaling(1.5)
     call plt%push(pd)
 
     call plt%draw()

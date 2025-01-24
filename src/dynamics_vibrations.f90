@@ -125,7 +125,7 @@ subroutine find_free_response_properties(t, x, delta, fn, x1, x2, t1, t2, s, n)
     integer(int32), intent(in), optional :: n
         !! An optional input that, if provided, determines the number of 
         !! periods to allow between peak selection for the logarithmic 
-        !! decrement calculation.  The default is 3.
+        !! decrement calculation.  The default is 1.
 
     ! Local Variables
     integer(int32) :: np, i1, i2, j2
@@ -146,7 +146,7 @@ subroutine find_free_response_properties(t, x, delta, fn, x1, x2, t1, t2, s, n)
     if (present(n)) then
         np = n
     else
-        np = 3
+        np = 1
     end if
 
     ! Additional initialization
