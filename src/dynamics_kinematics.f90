@@ -597,8 +597,7 @@ contains
 pure function jacobian_generating_vector(d, k, R, jtype) result(rst)
     !! Computes a single Jacobian generating vector given the position vector
     !! of the link origin, \(\vec{d}\), and the joint axis unit vector, 
-    !! \(\vec{k}\).  Both vectors must be expressed in the base coordinate
-    !! frame.
+    !! \(\vec{k}\).
     !!
     !! For a revolute joint:
     !!
@@ -618,10 +617,14 @@ pure function jacobian_generating_vector(d, k, R, jtype) result(rst)
     !! \end{matrix} \right] $$
     real(real64), intent(in) :: d(3)
         !! The position vector of the end-effector, \(\vec{d}\), relative to the
-        !! link coordinate frame given in the base coordinate frame.
+        !! link coordinate frame given in the base coordinate frame.  An easy
+        !! way to compute this vector is to extract the first 3 elements of the
+        !! 4th column of the transformation matrix: \(T_{i} T_{i+1} ... T_{n}\).
     real(real64), intent(in) :: k(3)
         !! The unit vector defining the joint axis, \(\vec{k}\), given in the
-        !! base coordinate frame.
+        !! base coordinate frame.  This vector can be computed most easily by
+        !! using the transformation matrix: \(T = T_1 T_2 ... T_{i-1}\) and
+        !! then computing \(\vec{k_{i-1}} = T \hat{k}\).
     real(real64), intent(in) :: R(3, 3)
         !! The rotation matrix defining the orientation of the link coordinate
         !! frame relative to the base coordinate frame.

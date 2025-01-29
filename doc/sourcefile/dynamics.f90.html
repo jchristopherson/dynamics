@@ -96,7 +96,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 2.8% of total for source files.">74 statements</a>
+               title=" 2.8% of total for source files.">76 statements</a>
           </li>
 
             <li id="source-file">
@@ -284,21 +284,23 @@
 <a id="ln-69" name="ln-69" href="#ln-69"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">iteration_behavior</span><span class="w"></span>
 <a id="ln-70" name="ln-70" href="#ln-70"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">jacobian_generating_vector</span><span class="w"></span>
 <a id="ln-71" name="ln-71" href="#ln-71"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dh_jacobian</span><span class="w"></span>
-<a id="ln-72" name="ln-72" href="#ln-72"></a>
-<a id="ln-73" name="ln-73" href="#ln-73"></a><span class="w">    </span><span class="c">! DYNAMICS_VIBRATIONS</span>
-<a id="ln-74" name="ln-74" href="#ln-74"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">q_factor</span><span class="w"></span>
-<a id="ln-75" name="ln-75" href="#ln-75"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">estimate_bandwidth</span><span class="w"></span>
-<a id="ln-76" name="ln-76" href="#ln-76"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">logarithmic_decrement</span><span class="w"></span>
-<a id="ln-77" name="ln-77" href="#ln-77"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">damping_from_log_decrement</span><span class="w"></span>
-<a id="ln-78" name="ln-78" href="#ln-78"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">find_free_response_properties</span><span class="w"></span>
-<a id="ln-79" name="ln-79" href="#ln-79"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">rise_time</span><span class="w"></span>
-<a id="ln-80" name="ln-80" href="#ln-80"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">find_settling_amplitude</span><span class="w"></span>
-<a id="ln-81" name="ln-81" href="#ln-81"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">damping_from_fractional_overshoot</span><span class="w"></span>
-<a id="ln-82" name="ln-82" href="#ln-82"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">evaluate_step_response</span><span class="w"></span>
-<a id="ln-83" name="ln-83" href="#ln-83"></a>
-<a id="ln-84" name="ln-84" href="#ln-84"></a><span class="w">    </span><span class="c">! DYNAMICS_HELPER</span>
-<a id="ln-85" name="ln-85" href="#ln-85"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">cross_product</span><span class="w"></span>
-<a id="ln-86" name="ln-86" href="#ln-86"></a><span class="k">end module</span><span class="w"></span>
+<a id="ln-72" name="ln-72" href="#ln-72"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">REVOLUTE_JOINT</span><span class="w"></span>
+<a id="ln-73" name="ln-73" href="#ln-73"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">PRISMATIC_JOINT</span><span class="w"></span>
+<a id="ln-74" name="ln-74" href="#ln-74"></a>
+<a id="ln-75" name="ln-75" href="#ln-75"></a><span class="w">    </span><span class="c">! DYNAMICS_VIBRATIONS</span>
+<a id="ln-76" name="ln-76" href="#ln-76"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">q_factor</span><span class="w"></span>
+<a id="ln-77" name="ln-77" href="#ln-77"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">estimate_bandwidth</span><span class="w"></span>
+<a id="ln-78" name="ln-78" href="#ln-78"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">logarithmic_decrement</span><span class="w"></span>
+<a id="ln-79" name="ln-79" href="#ln-79"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">damping_from_log_decrement</span><span class="w"></span>
+<a id="ln-80" name="ln-80" href="#ln-80"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">find_free_response_properties</span><span class="w"></span>
+<a id="ln-81" name="ln-81" href="#ln-81"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">rise_time</span><span class="w"></span>
+<a id="ln-82" name="ln-82" href="#ln-82"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">find_settling_amplitude</span><span class="w"></span>
+<a id="ln-83" name="ln-83" href="#ln-83"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">damping_from_fractional_overshoot</span><span class="w"></span>
+<a id="ln-84" name="ln-84" href="#ln-84"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">evaluate_step_response</span><span class="w"></span>
+<a id="ln-85" name="ln-85" href="#ln-85"></a>
+<a id="ln-86" name="ln-86" href="#ln-86"></a><span class="w">    </span><span class="c">! DYNAMICS_HELPER</span>
+<a id="ln-87" name="ln-87" href="#ln-87"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">cross_product</span><span class="w"></span>
+<a id="ln-88" name="ln-88" href="#ln-88"></a><span class="k">end module</span><span class="w"></span>
 </pre></div>
 
     </section>
@@ -317,7 +319,7 @@
             <p class="text-right">
               Documentation generated by
               <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2025-01-29 12:33              </p>
+ on 2025-01-29 16:08              </p>
           </div>
         </div>
         <br>
