@@ -633,7 +633,7 @@ pure function jacobian_generating_vector(d, k, R) result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
-pure function dh_build_jacobian(alpha, a, theta, d) result(rst)
+function dh_build_jacobian(alpha, a, theta, d) result(rst)
     !! Builds the Jacobian matrix for a linkage given the Denavit-Hartenberg
     !! parameters.  The first entry in each array must be from the first link
     !! nearest ground.
@@ -659,7 +659,7 @@ pure function dh_build_jacobian(alpha, a, theta, d) result(rst)
 
     ! Local Variables
     integer(int32) :: i, j, n
-    real(real64) :: Ti(4, 4), T(4, 4), R(4, 4), Te(4, 4), di_1(3), ki_1(4)
+    real(real64) :: Ti(4, 4), T(4, 4), Te(4, 4), temp(4, 4), di_1(3), ki_1(4)
 
     ! Initialization
     n = size(alpha)
@@ -671,35 +671,27 @@ pure function dh_build_jacobian(alpha, a, theta, d) result(rst)
         ! Compute the orientation vector
         ki_1 = matmul(T, zi_1)
 
-        ! Update the transformation matrix
+        ! Compute the link transformation matrix
         Ti = dh_matrix(alpha(i), a(i), theta(i), d(i))
-        T = matmul(T, Ti)
 
         ! Compute the transformation matrix relating the link to the end 
         ! effector.
         Te = Ti
         do j = i + 1, n
-            Ti = dh_matrix(alpha(j), a(j), theta(j), d(j))
-            Te = matmul(Te, Ti)
+            temp = dh_matrix(alpha(j), a(j), theta(j), d(j))
+            Te = matmul(Te, temp)
         end do
 
         ! Compute the end-effector position vector
         di_1 = Te(1:3,4)
 
-        ! Compute the rotation matrix defining the orientation of the link
-        ! relative to the base coordinate frame
-        R = identity_4()
-        do j = 1, i - 1
-            Ti = dh_matrix(alpha(j), a(j), theta(j), d(j))
-            R = matmul(R, Ti)
-        end do
-
         ! Compute the Jacobian generating vector
-        rst(:,i) = jacobian_generating_vector(di_1, ki_1(1:3), R(1:3,1:3))
+        rst(:,i) = jacobian_generating_vector(di_1, ki_1(1:3), T(1:3,1:3))
+
+        ! Update the transformation matrix
+        T = matmul(T, Ti)
     end do
 end function
-
-! ------------------------------------------------------------------------------
 
 ! ------------------------------------------------------------------------------
 end module
