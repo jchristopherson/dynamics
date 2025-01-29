@@ -20,6 +20,8 @@ module dynamics_kinematics
     public :: iteration_behavior
     public :: jacobian_generating_vector
     public :: dh_jacobian
+    public :: REVOLUTE_JOINT
+    public :: PRISMATIC_JOINT
 
     interface dh_forward_kinematics
         module procedure :: dh_forward_kinematics_2
@@ -35,6 +37,11 @@ module dynamics_kinematics
     interface dh_jacobian
         module procedure :: dh_build_jacobian
     end interface
+
+    integer(int32), parameter :: REVOLUTE_JOINT = 0
+        !! Defines a revolute joint.
+    integer(int32), parameter :: PRISMATIC_JOINT = 1
+        !! Defines a prismatic joint.
 
 ! ------------------------------------------------------------------------------
     ! PRIVATE VARIABLES - INVERSE KINEMATICS
@@ -587,7 +594,7 @@ contains
 ! V1.0.8 ADDITIONS
 ! JAN. 29, 2025
 ! ------------------------------------------------------------------------------
-pure function jacobian_generating_vector(d, k, R) result(rst)
+pure function jacobian_generating_vector(d, k, R, jtype) result(rst)
     !! Computes a single Jacobian generating vector given the position vector
     !! of the link origin, \(\vec{d}\), and the joint axis unit vector, 
     !! \(\vec{k}\).  Both vectors must be expressed in the base coordinate
@@ -611,6 +618,9 @@ pure function jacobian_generating_vector(d, k, R) result(rst)
     real(real64), intent(in) :: R(3, 3)
         !! The rotation matrix defining the orientation of the link coordinate
         !! frame relative to the base coordinate frame.
+    integer(int32), intent(in) :: jtype
+        !! The joint type.  Must be either REVOLUTE_JOINT or PRISMATIC_JOINT.
+        !! If incorrectly specified, the code defaults to a REVOLUTE_JOINT type.
     real(real64) :: rst(6)
         !! The resulting 6-element Jacobian generating vector.
 
@@ -624,15 +634,21 @@ pure function jacobian_generating_vector(d, k, R) result(rst)
     kmag = norm2(k)
     kunit = k / kmag
 
-    ! Compute the cross-product term
-    rst(1:3) = matmul(R, cross_product(zi, d))
+    ! Process
+    if (jtype == PRISMATIC_JOINT) then
+        rst(1:3) = kunit
+        rst(4:6) = 0.0d0
+    else
+        ! Compute the cross-product term
+        rst(1:3) = matmul(R, cross_product(zi, d))
 
-    ! Fill in the remaining components
-    rst(4:6) = kunit
+        ! Fill in the remaining components
+        rst(4:6) = kunit
+    end if
 end function
 
 ! ------------------------------------------------------------------------------
-function dh_build_jacobian(alpha, a, theta, d) result(rst)
+function dh_build_jacobian(alpha, a, theta, d, jtypes) result(rst)
     !! Builds the Jacobian matrix for a linkage given the Denavit-Hartenberg
     !! parameters.  The first entry in each array must be from the first link
     !! nearest ground.  The Jacobian matrix relates the joint velocities 
@@ -651,6 +667,9 @@ function dh_build_jacobian(alpha, a, theta, d) result(rst)
     real(real64), intent(in), dimension(size(alpha)) :: d
         !! The joint offsets distance measured as the distance between the
         !! x(i-1) axis and the link's x-axis along the z(i-1) axis.
+    integer(int32), intent(in), dimension(size(alpha)) :: jtypes
+        !! The types of each joint.  Must be either REVOLUTE_JOINT or
+        !! PRISMATIC_JOINT.  The code defaults to REVOLUTE_JOINT.
     real(real64), allocatable, dimension(:,:) :: rst
         !! The resulting 6-by-N Jacobian matrix where N is the number of joint
         !! variables (i.e. the length of the input arrays).
@@ -687,7 +706,8 @@ function dh_build_jacobian(alpha, a, theta, d) result(rst)
         di_1 = Te(1:3,4)
 
         ! Compute the Jacobian generating vector
-        rst(:,i) = jacobian_generating_vector(di_1, ki_1(1:3), T(1:3,1:3))
+        rst(:,i) = jacobian_generating_vector(di_1, ki_1(1:3), T(1:3,1:3), &
+            jtypes(i))
 
         ! Update the transformation matrix
         T = matmul(T, Ti)

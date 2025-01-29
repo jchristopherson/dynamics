@@ -69,6 +69,8 @@ module dynamics
     public :: iteration_behavior
     public :: jacobian_generating_vector
     public :: dh_jacobian
+    public :: REVOLUTE_JOINT
+    public :: PRISMATIC_JOINT
 
     ! DYNAMICS_VIBRATIONS
     public :: q_factor
