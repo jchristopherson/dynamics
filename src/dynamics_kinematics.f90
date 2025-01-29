@@ -600,9 +600,16 @@ pure function jacobian_generating_vector(d, k, R, jtype) result(rst)
     !! \(\vec{k}\).  Both vectors must be expressed in the base coordinate
     !! frame.
     !!
+    !! For a revolute joint:
+    !!
     !! $$ \vec{c_{i}} = \left( \begin{matrix}
     !! R \left( \hat{k} \times \vec{d_{i-1}} \right) \\
     !! \vec{k_{i-1}} \end{matrix} \right) $$
+    !!
+    !! For a prismatic joint:
+    !!
+    !! $$ \vec{c_{i}} = \left( \begin{matrix} \vec{k_{i-1}} \\ 0 \end{matrix} 
+    !! \right) $$
     !!
     !! The Jacobian matrix is then constructed from the Jacobian generating
     !! vectors as follows.
