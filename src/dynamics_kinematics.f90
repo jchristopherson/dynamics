@@ -635,7 +635,9 @@ end function
 function dh_build_jacobian(alpha, a, theta, d) result(rst)
     !! Builds the Jacobian matrix for a linkage given the Denavit-Hartenberg
     !! parameters.  The first entry in each array must be from the first link
-    !! nearest ground.
+    !! nearest ground.  The Jacobian matrix relates the joint velocities 
+    !! \(\dot{\vec{q}}\) to the end-effector velocity \(\dot{\vec{X}}\) by
+    !! \(\dot{\vec{X}} = J \dot{\vec{q}}\).
     real(real64), intent(in), dimension(:) :: alpha
         !! The link twist angles, in radians.  This angle is the required
         !! rotation of the z(i-1) axis about the link's x-axis to become
