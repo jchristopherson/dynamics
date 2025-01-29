@@ -4,6 +4,7 @@ module dynamics
     use dynamics_structural
     use dynamics_kinematics
     use dynamics_vibrations
+    use dynamics_helper
     implicit none
     private
 
@@ -66,6 +67,8 @@ module dynamics
     public :: vecfcn
     public :: least_squares_solver
     public :: iteration_behavior
+    public :: jacobian_generating_vector
+    public :: dh_jacobian
 
     ! DYNAMICS_VIBRATIONS
     public :: q_factor
@@ -77,4 +80,7 @@ module dynamics
     public :: find_settling_amplitude
     public :: damping_from_fractional_overshoot
     public :: evaluate_step_response
+
+    ! DYNAMICS_HELPER
+    public :: cross_product
 end module

@@ -593,10 +593,9 @@ pure function jacobian_generating_vector(d, k, R) result(rst)
     !! \(\vec{k}\).  Both vectors must be expressed in the base coordinate
     !! frame.
     !!
-    !! $$ \vec{c_{i}} = \left[ \begin{matrix} \end{matrix}
-    !! \vec{k_{i-1}} \times \vec{d_{i-1}} \\
-    !! \vec{k_{i-1}}
-    !!  \right] $$
+    !! $$ \vec{c_{i}} = \left( \begin{matrix}
+    !! R \left( \hat{k} \times \vec{d_{i-1}} \right) \\
+    !! \vec{k_{i-1}} \end{matrix} \right) $$
     !!
     !! The Jacobian matrix is then constructed from the Jacobian generating
     !! vectors as follows.
