@@ -207,6 +207,7 @@ function test_jacobian() result(rst)
         c1(6), c2(6), c3(6), Jans(6, 3), T1(4, 4), T2(4, 4), T3(4, 4), &
         di_1(3), ki_1(4), T1ans(4, 4), T2ans(4, 4), T3ans(4, 4), T2a(4, 4), &
         T3a(4, 4), T(4, 4), k1ans(3), d1ans(3), k2ans(3), R(3, 3), J(6, 3)
+    integer(int32) :: jtypes(3)
 
     ! Initialization
     rst = .true.
@@ -219,6 +220,12 @@ function test_jacobian() result(rst)
     theta = [theta1, theta2, 0.0d0]
     a = [0.0d0, 0.0d0, 0.0d0]
     d = [l0, 0.0d0, d3]
+
+    jtypes = [ &
+        REVOLUTE_JOINT, &
+        REVOLUTE_JOINT, &
+        PRISMATIC_JOINT &
+    ]
 
     ! Compute the transformation matrices
     T1 = dh_matrix(alpha(1), a(1), theta(1), d(1))
@@ -245,12 +252,12 @@ function test_jacobian() result(rst)
         0.0d0 &
     ]
     Jans(:,3) = [ &
-        0.0d0, &
-        0.0d0, &
-        0.0d0, &
         cos(theta1) * sin(theta2), &
         sin(theta1) * sin(theta2), &
-        cos(theta2) &
+        cos(theta2), &
+        0.0d0, &
+        0.0d0, &
+        0.0d0 &
     ]
 
     ! Verify the transformation matrices are correct
@@ -303,7 +310,7 @@ function test_jacobian() result(rst)
         0.0d0, 1.0d0, 0.0d0, &
         0.0d0, 0.0d0, 1.0d0], & 
         [3, 3])
-    c1 = jacobian_generating_vector(di_1, ki_1(1:3), R)
+    c1 = jacobian_generating_vector(di_1, ki_1(1:3), R, jtypes(1))
     if (.not.assert(c1, Jans(:,1), tol)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_jacobian -6"
@@ -323,7 +330,7 @@ function test_jacobian() result(rst)
         print "(A)", "TEST FAILED: test_jacobian -7"
     end if
     R = T1(1:3,1:3)
-    c2 = jacobian_generating_vector(di_1, ki_1(1:3), R)
+    c2 = jacobian_generating_vector(di_1, ki_1(1:3), R, jtypes(2))
     if (.not.assert(c2, Jans(:,2), tol)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_jacobian -8"
@@ -334,14 +341,14 @@ function test_jacobian() result(rst)
     di_1 = T(1:3,4)
     ki_1 = matmul(T2, zi_1)
     R = T2(1:3,1:3)
-    c3 = jacobian_generating_vector(di_1, ki_1(1:3), R)
+    c3 = jacobian_generating_vector(di_1, ki_1(1:3), R, jtypes(3))
     if (.not.assert(c3, Jans(:,3), tol)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_jacobian -9"
     end if
 
     ! Test the entire Jacobian
-    J = dh_jacobian(alpha, a, theta, d)
+    J = dh_jacobian(alpha, a, theta, d, jtypes)
     if (.not.assert(J, Jans, tol)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_jacobian -10"

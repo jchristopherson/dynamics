@@ -65,3 +65,11 @@ add_executable(
 )
 link_library(free_vibration_example ${PROJECT_NAME} ${PROJECT_INCLUDE_DIR})
 link_library(free_vibration_example ${fplot_LIBRARY} ${fplot_INCLUDE_DIR})
+
+# Jacobian Example 1
+add_executable(
+    jacobian_example_1
+    jacobian_example_1.f90
+)
+link_library(jacobian_example_1 ${PROJECT_NAME} ${PROJECT_INCLUDE_DIR})
+link_library(jacobian_example_1 ${fplot_LIBRARY} ${fplot_INCLUDE_DIR})
