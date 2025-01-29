@@ -192,4 +192,161 @@ subroutine inverse_test_kinematics_equation(q, f)
 end subroutine
 
 ! ------------------------------------------------------------------------------
+function test_jacobian() result(rst)
+    ! This is Example 214 from Jazar's kinematics text.
+
+    ! Arguments
+    logical :: rst
+
+    ! Parameters
+    real(real64), parameter :: tol = 1.0d-8
+    real(real64), parameter :: zi_1(4) = [0.0d0, 0.0d0, 1.0d0, 0.0d0]
+
+    ! Local Variables
+    real(real64) :: l0, theta1, theta2, d3, alpha(3), theta(3), a(3), d(3), &
+        c1(6), c2(6), c3(6), Jans(6, 3), T1(4, 4), T2(4, 4), T3(4, 4), &
+        di_1(3), ki_1(4), T1ans(4, 4), T2ans(4, 4), T3ans(4, 4), T2a(4, 4), &
+        T3a(4, 4), T(4, 4), k1ans(3), d1ans(3), k2ans(3), R(3, 3), J(6, 3)
+
+    ! Initialization
+    rst = .true.
+    call random_number(l0)
+    call random_number(theta1)
+    call random_number(theta2)
+    call random_number(d3)
+    
+    alpha = [-0.5d0 * pi, 0.5d0 * pi, 0.0d0]
+    theta = [theta1, theta2, 0.0d0]
+    a = [0.0d0, 0.0d0, 0.0d0]
+    d = [l0, 0.0d0, d3]
+
+    ! Compute the transformation matrices
+    T1 = dh_matrix(alpha(1), a(1), theta(1), d(1))
+    T2a = dh_matrix(alpha(2), a(2), theta(2), d(2))
+    T2 = matmul(T1, T2a)
+    T3a = dh_matrix(alpha(3), a(3), theta(3), d(3))
+    T3 = matmul(T2, T3a)
+
+    ! The Jacobian generating vectors
+    Jans(:,1) = [ &
+        -d3 * sin(theta1) * sin(theta2), &
+        d3 * cos(theta1) * sin(theta2), &
+        0.0d0, &
+        0.0d0, &
+        0.0d0, &
+        1.0d0 &
+    ]
+    Jans(:,2) = [ &
+        d3 * cos(theta1) * cos(theta2), &
+        d3 * cos(theta2) * sin(theta1), &
+        -d3 * sin(theta2), &
+        -sin(theta1), &
+        cos(theta1), &
+        0.0d0 &
+    ]
+    Jans(:,3) = [ &
+        0.0d0, &
+        0.0d0, &
+        0.0d0, &
+        cos(theta1) * sin(theta2), &
+        sin(theta1) * sin(theta2), &
+        cos(theta2) &
+    ]
+
+    ! Verify the transformation matrices are correct
+    T1ans = reshape([ &
+        cos(theta1), sin(theta1), 0.0d0, 0.0d0, &
+        0.0d0, 0.0d0, -1.0d0, 0.0d0, &
+        -sin(theta1), cos(theta1), 0.0d0, 0.0d0, &
+        0.0d0, 0.0d0, l0, 1.0d0 &
+    ], [4, 4])
+    T2ans = reshape([ &
+        cos(theta1) * cos(theta2), cos(theta2) * sin(theta1), -sin(theta2), 0.0d0, &
+        -sin(theta1), cos(theta1), 0.0d0, 0.0d0, &
+        cos(theta1) * sin(theta2), sin(theta1) * sin(theta2), cos(theta2), 0.0d0, &
+        0.0d0, 0.0d0, l0, 1.0d0 &
+    ], [4, 4])
+    T3ans = matmul(T2ans, dh_translate_z(d3))
+
+    if (.not.assert(T1, T1ans, tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_jacobian -1"
+    end if
+    if (.not.assert(T2, T2ans, tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_jacobian -2"
+    end if
+    if (.not.assert(T3, T3ans, tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_jacobian -3"
+    end if
+
+    ! Compute each Jacobian generating vector
+    di_1 = T3(1:3,4)
+    d1ans = [&
+        d3 * cos(theta1) * sin(theta2), &
+        d3 * sin(theta1) * sin(theta2), &
+        l0 + d3 * cos(theta2) &
+    ]
+    if (.not.assert(di_1, d1ans, tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_jacobian -4"
+    end if
+    ki_1 = zi_1
+    k1ans = [0.0d0, 0.0d0, 1.0d0]
+    if (.not.assert(ki_1(1:3), k1ans, tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_jacobian -5"
+    end if
+    R = reshape( &
+        [1.0d0, 0.0d0, 0.0d0, &
+        0.0d0, 1.0d0, 0.0d0, &
+        0.0d0, 0.0d0, 1.0d0], & 
+        [3, 3])
+    c1 = jacobian_generating_vector(di_1, ki_1(1:3), R)
+    if (.not.assert(c1, Jans(:,1), tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_jacobian -6"
+    end if
+
+    ! -----
+    T = matmul(T2a, T3a)
+    di_1 = T(1:3,4)
+    ki_1 = matmul(T1, zi_1)
+    k2ans = [ &
+        -sin(theta1), &
+        cos(theta1), &
+        0.0d0 &
+    ]
+    if (.not.assert(ki_1(1:3), k2ans, tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_jacobian -7"
+    end if
+    R = T1(1:3,1:3)
+    c2 = jacobian_generating_vector(di_1, ki_1(1:3), R)
+    if (.not.assert(c2, Jans(:,2), tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_jacobian -8"
+    end if
+
+    ! -----
+    T = T3a
+    di_1 = T(1:3,4)
+    ki_1 = matmul(T2, zi_1)
+    R = T2(1:3,1:3)
+    c3 = jacobian_generating_vector(di_1, ki_1(1:3), R)
+    if (.not.assert(c3, Jans(:,3), tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_jacobian -9"
+    end if
+
+    ! Test the entire Jacobian
+    J = dh_jacobian(alpha, a, theta, d)
+    if (.not.assert(J, Jans, tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_jacobian -10"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
 end module

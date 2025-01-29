@@ -4,6 +4,7 @@ module dynamics_kinematics
     use nonlin_least_squares, only : least_squares_solver
     use ferror
     use dynamics_error_handling
+    use dynamics_helper
     implicit none
     private
     public :: identity_4
@@ -17,6 +18,8 @@ module dynamics_kinematics
     public :: vecfcn
     public :: least_squares_solver
     public :: iteration_behavior
+    public :: jacobian_generating_vector
+    public :: dh_jacobian
 
     interface dh_forward_kinematics
         module procedure :: dh_forward_kinematics_2
@@ -27,6 +30,10 @@ module dynamics_kinematics
         module procedure :: dh_forward_kinematics_7
         module procedure :: dh_forward_kinematics_8
         module procedure :: dh_forward_kinematics_array
+    end interface
+
+    interface dh_jacobian
+        module procedure :: dh_build_jacobian
     end interface
 
 ! ------------------------------------------------------------------------------
@@ -575,6 +582,124 @@ contains
         ! Compare with the constraints
         f = f - kinematic_constraints
     end subroutine
+
+! ******************************************************************************
+! V1.0.8 ADDITIONS
+! JAN. 29, 2025
+! ------------------------------------------------------------------------------
+pure function jacobian_generating_vector(d, k, R) result(rst)
+    !! Computes a single Jacobian generating vector given the position vector
+    !! of the link origin, \(\vec{d}\), and the joint axis unit vector, 
+    !! \(\vec{k}\).  Both vectors must be expressed in the base coordinate
+    !! frame.
+    !!
+    !! $$ \vec{c_{i}} = \left[ \begin{matrix} \end{matrix}
+    !! \vec{k_{i-1}} \times \vec{d_{i-1}} \\
+    !! \vec{k_{i-1}}
+    !!  \right] $$
+    !!
+    !! The Jacobian matrix is then constructed from the Jacobian generating
+    !! vectors as follows.
+    !!
+    !! $$ J = \left[ \begin{matrix} \vec{c_1} & \vec{c_2} & ... & \vec{c_n}
+    !! \end{matrix} \right] $$
+    real(real64), intent(in) :: d(3)
+        !! The position vector of the end-effector, \(\vec{d}\), relative to the
+        !! link coordinate frame given in the base coordinate frame.
+    real(real64), intent(in) :: k(3)
+        !! The unit vector defining the joint axis, \(\vec{k}\), given in the
+        !! base coordinate frame.
+    real(real64), intent(in) :: R(3, 3)
+        !! The rotation matrix defining the orientation of the link coordinate
+        !! frame relative to the base coordinate frame.
+    real(real64) :: rst(6)
+        !! The resulting 6-element Jacobian generating vector.
+
+    ! Parameter
+    real(real64), parameter :: zi(3) = [0.0d0, 0.0d0, 1.0d0]
+
+    ! Local Variables
+    real(real64) :: kmag, kcrossd, kunit(3)
+
+    ! Ensure k is a unit vector
+    kmag = norm2(k)
+    kunit = k / kmag
+
+    ! Compute the cross-product term
+    rst(1:3) = matmul(R, cross_product(zi, d))
+
+    ! Fill in the remaining components
+    rst(4:6) = kunit
+end function
+
+! ------------------------------------------------------------------------------
+pure function dh_build_jacobian(alpha, a, theta, d) result(rst)
+    !! Builds the Jacobian matrix for a linkage given the Denavit-Hartenberg
+    !! parameters.  The first entry in each array must be from the first link
+    !! nearest ground.
+    real(real64), intent(in), dimension(:) :: alpha
+        !! The link twist angles, in radians.  This angle is the required
+        !! rotation of the z(i-1) axis about the link's x-axis to become
+        !! parallel with the link's z-axis.
+    real(real64), intent(in), dimension(size(alpha)) :: a
+        !! The link lengths as measured along the link's x-axis.
+    real(real64), intent(in), dimension(size(alpha)) :: theta
+        !! The joint angles, in radians.  This angle is the required rotation
+        !! of the z(i-1) axis about the z(i-1) axis to become parallel with
+        !! the link's x-axis.
+    real(real64), intent(in), dimension(size(alpha)) :: d
+        !! The joint offsets distance measured as the distance between the
+        !! x(i-1) axis and the link's x-axis along the z(i-1) axis.
+    real(real64), allocatable, dimension(:,:) :: rst
+        !! The resulting 6-by-N Jacobian matrix where N is the number of joint
+        !! variables (i.e. the length of the input arrays).
+
+    ! Parameters
+    real(real64), parameter :: zi_1(4) = [0.0d0, 0.0d0, 1.0d0, 0.0d0]
+
+    ! Local Variables
+    integer(int32) :: i, j, n
+    real(real64) :: Ti(4, 4), T(4, 4), R(4, 4), Te(4, 4), di_1(3), ki_1(4)
+
+    ! Initialization
+    n = size(alpha)
+    T = identity_4()
+    allocate(rst(6, n))
+
+    ! Process
+    do i = 1, n
+        ! Compute the orientation vector
+        ki_1 = matmul(T, zi_1)
+
+        ! Update the transformation matrix
+        Ti = dh_matrix(alpha(i), a(i), theta(i), d(i))
+        T = matmul(T, Ti)
+
+        ! Compute the transformation matrix relating the link to the end 
+        ! effector.
+        Te = Ti
+        do j = i + 1, n
+            Ti = dh_matrix(alpha(j), a(j), theta(j), d(j))
+            Te = matmul(Te, Ti)
+        end do
+
+        ! Compute the end-effector position vector
+        di_1 = Te(1:3,4)
+
+        ! Compute the rotation matrix defining the orientation of the link
+        ! relative to the base coordinate frame
+        R = identity_4()
+        do j = 1, i - 1
+            Ti = dh_matrix(alpha(j), a(j), theta(j), d(j))
+            R = matmul(R, Ti)
+        end do
+
+        ! Compute the Jacobian generating vector
+        rst(:,i) = jacobian_generating_vector(di_1, ki_1(1:3), R(1:3,1:3))
+    end do
+end function
+
+! ------------------------------------------------------------------------------
 
 ! ------------------------------------------------------------------------------
 end module

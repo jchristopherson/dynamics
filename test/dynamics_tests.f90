@@ -95,6 +95,9 @@ program main
     check = test_damping_from_overshoot()
     if (.not.check) flag = 27
 
+    check = test_jacobian()
+    if (.not.check) flag = 28
+
     ! End
     if (flag /= 0) stop flag
 end program
