@@ -4,6 +4,7 @@ module dynamics
     use dynamics_structural
     use dynamics_kinematics
     use dynamics_vibrations
+    use dynamics_helper
     implicit none
     private
 
@@ -34,6 +35,8 @@ module dynamics
     public :: rotate_y
     public :: rotate_z
     public :: rotate
+    public :: acceleration_transform
+    public :: velocity_transform
 
     ! DYNAMICS_STRUCTURAL
     public :: DYN_ONE_POINT_INTEGRATION_RULE
@@ -66,6 +69,10 @@ module dynamics
     public :: vecfcn
     public :: least_squares_solver
     public :: iteration_behavior
+    public :: jacobian_generating_vector
+    public :: dh_jacobian
+    public :: REVOLUTE_JOINT
+    public :: PRISMATIC_JOINT
 
     ! DYNAMICS_VIBRATIONS
     public :: q_factor
@@ -77,4 +84,8 @@ module dynamics
     public :: find_settling_amplitude
     public :: damping_from_fractional_overshoot
     public :: evaluate_step_response
+
+    ! DYNAMICS_HELPER
+    public :: cross_product
+    public :: to_skew_symmetric
 end module

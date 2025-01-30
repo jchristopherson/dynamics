@@ -8,7 +8,7 @@
     <meta name="author" content="Jason Christopherson" >
     <link rel="icon" href="../favicon.png">
 
-    <title>normalize_mode_shapes &ndash; DYNAMICS</title>
+    <title>dynamics_helper &ndash; DYNAMICS</title>
 
     <link href="../css/bootstrap.min.css" rel="stylesheet">
     <link href="../css/pygments.css" rel="stylesheet">
@@ -76,9 +76,9 @@
 
     <div class="container">
   <div class="row">
-    <h1>normalize_mode_shapes
-      <small>Subroutine</small>
-      
+    <h1>dynamics_helper 
+    <small>Module</small>
+    
     </h1>
       <div class="row" id="info-bar">
     <div class="col-lg-12">
@@ -88,18 +88,17 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 1.1% of total for procedures.">10 statements</a>
+               title=" 0.8% of total for modules and submodules.">21 statements</a>
           </li>
 
             <li id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dynamics_frequency_response.f90"> Source File</a>
+              <a href="../src/dynamics_helper.f90"> Source File</a>
             </li>
         </ul>
         <ol class="breadcrumb in-well text-right">
-              <li><a href='../sourcefile/dynamics_frequency_response.f90.html'>dynamics_frequency_response.f90</a></li>
-              <li><a href='../module/dynamics_frequency_response.html'>dynamics_frequency_response</a></li>
-          <li class="active">normalize_mode_shapes</li>
+              <li><a href='../sourcefile/dynamics_helper.f90.html'>dynamics_helper.f90</a></li>
+          <li class="active">dynamics_helper</li>
         </ol>
       </div>
     </div>
@@ -127,7 +126,20 @@
   
   
   
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#funcs-0">Functions</a>
+        </h3>
+      </div>
+      <div id="funcs-0" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_helper.html#proc-cross_product">cross_product</a>
+            <a class="list-group-item" href="../module/dynamics_helper.html#proc-to_skew_symmetric">to_skew_symmetric</a>
+        </div>
+      </div>
+    </div>
+
   
   
   
@@ -142,42 +154,21 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>public  subroutine normalize_mode_shapes(x)  
-</h2>
     
+<br>        <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">Uses</h3>
+      </div>
+      <ul class="list-group">
+          <li class="list-group-item">
+            <ul class="list-inline">
+                <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
+            </ul>
+          </li>
+      </ul>
+    </div>
 
-    <p>Normalizes mode shape vectors such that the largest magnitude
-value in the vector is one.</p>
-
-    <h3>Arguments</h3>
-        <table class="table table-striped varlist">
-    <thead>
-      <tr>
-        <th>Type</th>
-<th>Intent</th><th>Optional</th>        <th>Attributes</th>
-        <th></th>
-        <th>Name</th>
-        <th></th>
-    </thead>
-    <tbody>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-x~5"></span>
-              real(kind=real64),
-            </td>
-<td>intent(inout),</td>
-              <td></td>            <td>
-              dimension(:,:)
-            </td>
-            <td>::</td>
-            <td><strong>x</strong></td>
-            <td>
-                <p>The matrix of mode shape vectors with one vector per column.</p>
-            </td>
-        </tr>
-    </tbody>
-  </table>
-
+    
     <br>
 
     <section class="visible-xs visible-sm hidden-md">
@@ -193,7 +184,20 @@ value in the vector is one.</p>
   
   
   
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#funcs-1">Functions</a>
+        </h3>
+      </div>
+      <div id="funcs-1" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_helper.html#proc-cross_product">cross_product</a>
+            <a class="list-group-item" href="../module/dynamics_helper.html#proc-to_skew_symmetric">to_skew_symmetric</a>
+        </div>
+      </div>
+    </div>
+
   
   
   
@@ -212,10 +216,121 @@ value in the vector is one.</p>
 
     
     
+ 
+    <section>
+    <h2>Functions</h2>
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-cross_product"></span><h3>public pure function <a href='../proc/cross_product.html'>cross_product</a>(x, y) result(rst)  
+</h3></div>
+    <div class="panel-body">
+          
+  <p>Computes the cross-product of a vector.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>x</strong>(3)</td>
+            <td>
+<p>The left-hand-side argument.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>y</strong>(3)</td>
+            <td>
+<p>The right-hand-side argument</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), (3)</small>
+    </h4>
+    <p>The resulting vector.</p>
+
+    </div>
+  </div>
+
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-to_skew_symmetric"></span><h3>public pure function <a href='../proc/to_skew_symmetric.html'>to_skew_symmetric</a>(x) result(rst)  
+</h3></div>
+    <div class="panel-body">
+          
+  <p>Converts a 3-element vector to a 3-by-3 skew-symmetric matrix.  A 
+skew-symmetric matrix is defined as follows.</p><a href="../proc/to_skew_symmetric.html" class="pull-right"><emph>Read more&hellip;</emph></a>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>x</strong>(3)</td>
+            <td>
+<p>The vector.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), (3,3)</small>
+    </h4>
+    <p>The resulting skew-symmetric matrix.</p>
+
+    </div>
+  </div>
+
+    </section>
+    <br>
 
 
-    
-    
+
+
     </div>
   </div>
 

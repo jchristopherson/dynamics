@@ -8,7 +8,7 @@
     <meta name="author" content="Jason Christopherson" >
     <link rel="icon" href="../favicon.png">
 
-    <title>normalize_mode_shapes &ndash; DYNAMICS</title>
+    <title>dh_jacobian &ndash; DYNAMICS</title>
 
     <link href="../css/bootstrap.min.css" rel="stylesheet">
     <link href="../css/pygments.css" rel="stylesheet">
@@ -76,8 +76,8 @@
 
     <div class="container">
   <div class="row">
-    <h1>normalize_mode_shapes
-      <small>Subroutine</small>
+    <h1>dh_jacobian
+      <small>Interface</small>
       
     </h1>
       <div class="row" id="info-bar">
@@ -88,18 +88,18 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 1.1% of total for procedures.">10 statements</a>
+               title="<p> 0.3% of total for procedures.</p>Including implementation: 29 statements,  3.1% of total for procedures.">3 statements</a>
           </li>
 
             <li id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dynamics_frequency_response.f90"> Source File</a>
+              <a href="../src/dynamics_kinematics.f90"> Source File</a>
             </li>
         </ul>
         <ol class="breadcrumb in-well text-right">
-              <li><a href='../sourcefile/dynamics_frequency_response.f90.html'>dynamics_frequency_response.f90</a></li>
-              <li><a href='../module/dynamics_frequency_response.html'>dynamics_frequency_response</a></li>
-          <li class="active">normalize_mode_shapes</li>
+              <li><a href='../sourcefile/dynamics_kinematics.f90.html'>dynamics_kinematics.f90</a></li>
+              <li><a href='../module/dynamics_kinematics.html'>dynamics_kinematics</a></li>
+          <li class="active">dh_jacobian</li>
         </ol>
       </div>
     </div>
@@ -114,7 +114,7 @@
   
   <div class="row">
     <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
-      <div id="sidebar">
+        <div id="sidebar">
       <h3>Contents</h3>
   
   
@@ -134,7 +134,19 @@
   
   
   
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#modprocs-0">Module Procedures</a>
+        </h3>
+      </div>
+      <div id="modprocs-0" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../interface/dh_jacobian.html#moduleprocedure-dh_build_jacobian">dh_build_jacobian</a>
+        </div>
+      </div>
+    </div>
+
 
 
   </div>
@@ -142,15 +154,62 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>public  subroutine normalize_mode_shapes(x)  
-</h2>
-    
+      <h2>public interface dh_jacobian</h2>
+   
 
-    <p>Normalizes mode shape vectors such that the largest magnitude
-value in the vector is one.</p>
+     <section class="visible-xs visible-sm hidden-md">
+         <h3>Contents</h3>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#modprocs-1">Module Procedures</a>
+        </h3>
+      </div>
+      <div id="modprocs-1" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../interface/dh_jacobian.html#moduleprocedure-dh_build_jacobian">dh_build_jacobian</a>
+        </div>
+      </div>
+    </div>
 
-    <h3>Arguments</h3>
-        <table class="table table-striped varlist">
+
+
+     </section>
+     <br class="visible-xs visible-sm hidden-md">
+     
+
+
+   <h2>Module Procedures</h2>
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-dh_build_jacobian"></span><h3>private  function dh_build_jacobian(alpha, a, theta, d, jtypes) result(rst)  
+</h3></div>
+    <div class="panel-body">
+        <p>Builds the Jacobian matrix for a linkage given the Denavit-Hartenberg
+parameters.  The first entry in each array must be from the first link
+nearest ground.  The Jacobian matrix relates the joint velocities 
+<script type="math/tex">\dot{\vec{q}}</script> to the end-effector velocity <script type="math/tex">\dot{\vec{X}}</script> by
+<script type="math/tex">\dot{\vec{X}} = J \dot{\vec{q}}</script>.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
     <thead>
       <tr>
         <th>Type</th>
@@ -162,62 +221,101 @@ value in the vector is one.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-x~5"></span>
+              <span class="anchor" ></span>
               real(kind=real64),
             </td>
-<td>intent(inout),</td>
+<td>intent(in),</td>
               <td></td>            <td>
-              dimension(:,:)
+              dimension(:)
             </td>
             <td>::</td>
-            <td><strong>x</strong></td>
+            <td><strong>alpha</strong></td>
             <td>
-                <p>The matrix of mode shape vectors with one vector per column.</p>
+                <p>The link twist angles, in radians.  This angle is the required
+rotation of the z(i-1) axis about the link's x-axis to become
+parallel with the link's z-axis.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(size(alpha))
+            </td>
+            <td>::</td>
+            <td><strong>a</strong></td>
+            <td>
+                <p>The link lengths as measured along the link's x-axis.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(size(alpha))
+            </td>
+            <td>::</td>
+            <td><strong>theta</strong></td>
+            <td>
+                <p>The joint angles, in radians.  This angle is the required rotation
+of the z(i-1) axis about the z(i-1) axis to become parallel with
+the link's x-axis.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(size(alpha))
+            </td>
+            <td>::</td>
+            <td><strong>d</strong></td>
+            <td>
+                <p>The joint offsets distance measured as the distance between the
+x(i-1) axis and the link's x-axis along the z(i-1) axis.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(size(alpha))
+            </td>
+            <td>::</td>
+            <td><strong>jtypes</strong></td>
+            <td>
+                <p>The types of each joint.  Must be either REVOLUTE_JOINT or
+PRISMATIC_JOINT.  The code defaults to REVOLUTE_JOINT.</p>
             </td>
         </tr>
     </tbody>
   </table>
 
-    <br>
+    <h4>
+    Return Value
+    <small>real(kind=real64), allocatable, dimension(:,:)</small>
+    </h4>
+    <p>The resulting 6-by-N Jacobian matrix where N is the number of joint
+variables (i.e. the length of the input arrays).</p>
 
-    <section class="visible-xs visible-sm hidden-md">
-        <h3>Contents</h3>
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-
-
-    </section>
-    <br class="visible-xs visible-sm hidden-md">
-
-
-    
-    
-
-    
-    
-
-
-    
-    
     </div>
   </div>
+
+
+ </div>
+</div>
 
     <hr>    
     </div> <!-- /container -->

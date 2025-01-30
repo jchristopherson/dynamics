@@ -8,7 +8,7 @@
     <meta name="author" content="Jason Christopherson" >
     <link rel="icon" href="../favicon.png">
 
-    <title>normalize_mode_shapes &ndash; DYNAMICS</title>
+    <title>jacobian_generating_vector &ndash; DYNAMICS</title>
 
     <link href="../css/bootstrap.min.css" rel="stylesheet">
     <link href="../css/pygments.css" rel="stylesheet">
@@ -76,8 +76,8 @@
 
     <div class="container">
   <div class="row">
-    <h1>normalize_mode_shapes
-      <small>Subroutine</small>
+    <h1>jacobian_generating_vector
+      <small>Function</small>
       
     </h1>
       <div class="row" id="info-bar">
@@ -88,18 +88,18 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 1.1% of total for procedures.">10 statements</a>
+               title=" 1.9% of total for procedures.">18 statements</a>
           </li>
 
             <li id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dynamics_frequency_response.f90"> Source File</a>
+              <a href="../src/dynamics_kinematics.f90"> Source File</a>
             </li>
         </ul>
         <ol class="breadcrumb in-well text-right">
-              <li><a href='../sourcefile/dynamics_frequency_response.f90.html'>dynamics_frequency_response.f90</a></li>
-              <li><a href='../module/dynamics_frequency_response.html'>dynamics_frequency_response</a></li>
-          <li class="active">normalize_mode_shapes</li>
+              <li><a href='../sourcefile/dynamics_kinematics.f90.html'>dynamics_kinematics.f90</a></li>
+              <li><a href='../module/dynamics_kinematics.html'>dynamics_kinematics</a></li>
+          <li class="active">jacobian_generating_vector</li>
         </ol>
       </div>
     </div>
@@ -142,12 +142,30 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>public  subroutine normalize_mode_shapes(x)  
+    <h2>public pure function jacobian_generating_vector(d, k, R, jtype) result(rst)  
 </h2>
     
 
-    <p>Normalizes mode shape vectors such that the largest magnitude
-value in the vector is one.</p>
+    <p>Computes a single Jacobian generating vector given the position vector
+of the link origin, <script type="math/tex">\vec{d}</script>, and the joint axis unit vector, 
+<script type="math/tex">\vec{k}</script>.</p>
+<p>For a revolute joint:</p>
+<p>
+<script type="math/tex; mode=display"> \vec{c_{i}} = \left( \begin{matrix}
+R \left( \hat{k} \times \vec{d_{i-1}} \right) \\
+\vec{k_{i-1}} \end{matrix} \right) </script>
+</p>
+<p>For a prismatic joint:</p>
+<p>
+<script type="math/tex; mode=display"> \vec{c_{i}} = \left( \begin{matrix} \vec{k_{i-1}} \\ 0 \end{matrix} 
+\right) </script>
+</p>
+<p>The Jacobian matrix is then constructed from the Jacobian generating
+vectors as follows.</p>
+<p>
+<script type="math/tex; mode=display"> J = \left[ \begin{matrix} \vec{c_1} & \vec{c_2} & ... & \vec{c_n}
+\end{matrix} \right] </script>
+</p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -162,22 +180,82 @@ value in the vector is one.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-x~5"></span>
+              <span class="anchor" id="variable-d~4"></span>
               real(kind=real64),
             </td>
-<td>intent(inout),</td>
+<td>intent(in)</td>
               <td></td>            <td>
-              dimension(:,:)
+              
             </td>
             <td>::</td>
-            <td><strong>x</strong></td>
+            <td><strong>d</strong>(3)</td>
             <td>
-                <p>The matrix of mode shape vectors with one vector per column.</p>
+                <p>The position vector of the end-effector, <script type="math/tex">\vec{d}</script>, relative to the
+link coordinate frame given in the base coordinate frame.  An easy
+way to compute this vector is to extract the first 3 elements of the
+4th column of the transformation matrix: <script type="math/tex">T_{i} T_{i+1} ... T_{n}</script>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-k~2"></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>k</strong>(3)</td>
+            <td>
+                <p>The unit vector defining the joint axis, <script type="math/tex">\vec{k}</script>, given in the
+base coordinate frame.  This vector can be computed most easily by
+using the transformation matrix: <script type="math/tex">T = T_1 T_2 ... T_{i-1}</script> and
+then computing <script type="math/tex">\vec{k_{i-1}} = T \hat{k}</script>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-r"></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>R</strong>(3,3)</td>
+            <td>
+                <p>The rotation matrix defining the orientation of the link coordinate
+frame relative to the base coordinate frame.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-jtype"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>jtype</strong></td>
+            <td>
+                <p>The joint type.  Must be either REVOLUTE_JOINT or PRISMATIC_JOINT.
+If incorrectly specified, the code defaults to a REVOLUTE_JOINT type.</p>
             </td>
         </tr>
     </tbody>
   </table>
 
+      <h3>Return Value
+        <small>
+          <span class="anchor" id="variable-rst~98"></span>
+          real(kind=real64), (6)
+        </small>
+      </h3>
+      <p>The resulting 6-element Jacobian generating vector.</p>
     <br>
 
     <section class="visible-xs visible-sm hidden-md">

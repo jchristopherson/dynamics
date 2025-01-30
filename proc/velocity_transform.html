@@ -8,7 +8,7 @@
     <meta name="author" content="Jason Christopherson" >
     <link rel="icon" href="../favicon.png">
 
-    <title>normalize_mode_shapes &ndash; DYNAMICS</title>
+    <title>velocity_transform &ndash; DYNAMICS</title>
 
     <link href="../css/bootstrap.min.css" rel="stylesheet">
     <link href="../css/pygments.css" rel="stylesheet">
@@ -76,8 +76,8 @@
 
     <div class="container">
   <div class="row">
-    <h1>normalize_mode_shapes
-      <small>Subroutine</small>
+    <h1>velocity_transform
+      <small>Function</small>
       
     </h1>
       <div class="row" id="info-bar">
@@ -88,18 +88,18 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 1.1% of total for procedures.">10 statements</a>
+               title=" 1.0% of total for procedures.">9 statements</a>
           </li>
 
             <li id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dynamics_frequency_response.f90"> Source File</a>
+              <a href="../src/dynamics_rotation.f90"> Source File</a>
             </li>
         </ul>
         <ol class="breadcrumb in-well text-right">
-              <li><a href='../sourcefile/dynamics_frequency_response.f90.html'>dynamics_frequency_response.f90</a></li>
-              <li><a href='../module/dynamics_frequency_response.html'>dynamics_frequency_response</a></li>
-          <li class="active">normalize_mode_shapes</li>
+              <li><a href='../sourcefile/dynamics_rotation.f90.html'>dynamics_rotation.f90</a></li>
+              <li><a href='../module/dynamics_rotation.html'>dynamics_rotation</a></li>
+          <li class="active">velocity_transform</li>
         </ol>
       </div>
     </div>
@@ -142,12 +142,27 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>public  subroutine normalize_mode_shapes(x)  
+    <h2>public pure function velocity_transform(omega, v, x) result(rst)  
 </h2>
     
 
-    <p>Normalizes mode shape vectors such that the largest magnitude
-value in the vector is one.</p>
+    <p>Computes the acceleration transformation matrix relating the position
+of a point expressed in a rotating and translating body relative to
+its parent frame.</p>
+<p>The transformation matrix takes the following form.</p>
+<p>
+<script type="math/tex; mode=display"> V = \left[ \begin{matrix} \tilde{\omega} & \vec{v} - 
+\tilde{\omega} \vec{x} \\ 0 & 0 \end{matrix} \right] </script>
+</p>
+<p>where,</p>
+<p>
+<script type="math/tex; mode=display"> \tilde{\omega} = \left[ \begin{matrix} 0 & -\omega_z & \omega_y \\
+\omega_z & 0 & -\omega_x \\ -\omega_y & \omega_x & 0 \end{matrix}
+\right] </script>
+</p>
+<p>Given a vector describing the location on a moving body, 
+<script type="math/tex">\vec{r_p}</script>, the matrix is used to report its velocity 
+<script type="math/tex">\vec{v_p} = V \vec{r_p}</script>.</p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -162,22 +177,60 @@ value in the vector is one.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-x~5"></span>
+              <span class="anchor" id="variable-omega~2"></span>
               real(kind=real64),
             </td>
-<td>intent(inout),</td>
+<td>intent(in)</td>
               <td></td>            <td>
-              dimension(:,:)
+              
             </td>
             <td>::</td>
-            <td><strong>x</strong></td>
+            <td><strong>omega</strong>(3)</td>
             <td>
-                <p>The matrix of mode shape vectors with one vector per column.</p>
+                <p>The angular velocity vector.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-v"></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>v</strong>(3)</td>
+            <td>
+                <p>The translation velocity vector describing the velocity of the
+body in its parent coordinate frame.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-x~17"></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>x</strong>(3)</td>
+            <td>
+                <p>The position vector of the body in its parent coordinate frame.</p>
             </td>
         </tr>
     </tbody>
   </table>
 
+      <h3>Return Value
+        <small>
+          <span class="anchor" id="variable-rst~106"></span>
+          real(kind=real64), (4,4)
+        </small>
+      </h3>
+      <p>The 4-by-4 transformation matrix.</p>
     <br>
 
     <section class="visible-xs visible-sm hidden-md">

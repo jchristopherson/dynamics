@@ -8,7 +8,7 @@
     <meta name="author" content="Jason Christopherson" >
     <link rel="icon" href="../favicon.png">
 
-    <title>normalize_mode_shapes &ndash; DYNAMICS</title>
+    <title>to_skew_symmetric &ndash; DYNAMICS</title>
 
     <link href="../css/bootstrap.min.css" rel="stylesheet">
     <link href="../css/pygments.css" rel="stylesheet">
@@ -76,8 +76,8 @@
 
     <div class="container">
   <div class="row">
-    <h1>normalize_mode_shapes
-      <small>Subroutine</small>
+    <h1>to_skew_symmetric
+      <small>Function</small>
       
     </h1>
       <div class="row" id="info-bar">
@@ -88,18 +88,18 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 1.1% of total for procedures.">10 statements</a>
+               title=" 0.5% of total for procedures.">5 statements</a>
           </li>
 
             <li id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dynamics_frequency_response.f90"> Source File</a>
+              <a href="../src/dynamics_helper.f90"> Source File</a>
             </li>
         </ul>
         <ol class="breadcrumb in-well text-right">
-              <li><a href='../sourcefile/dynamics_frequency_response.f90.html'>dynamics_frequency_response.f90</a></li>
-              <li><a href='../module/dynamics_frequency_response.html'>dynamics_frequency_response</a></li>
-          <li class="active">normalize_mode_shapes</li>
+              <li><a href='../sourcefile/dynamics_helper.f90.html'>dynamics_helper.f90</a></li>
+              <li><a href='../module/dynamics_helper.html'>dynamics_helper</a></li>
+          <li class="active">to_skew_symmetric</li>
         </ol>
       </div>
     </div>
@@ -142,12 +142,16 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>public  subroutine normalize_mode_shapes(x)  
+    <h2>public pure function to_skew_symmetric(x) result(rst)  
 </h2>
     
 
-    <p>Normalizes mode shape vectors such that the largest magnitude
-value in the vector is one.</p>
+    <p>Converts a 3-element vector to a 3-by-3 skew-symmetric matrix.  A 
+skew-symmetric matrix is defined as follows.</p>
+<p>
+<script type="math/tex; mode=display"> \tilde{x} = \left[ \begin{matrix} 0 & -x_{3} & x_{2} \\
+x_{3} & 0 & -x_{1} \\ -x_{2} & x_{1} & 0 \end{matrix} \right] </script>
+</p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -162,22 +166,29 @@ value in the vector is one.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-x~5"></span>
+              <span class="anchor" id="variable-x~7"></span>
               real(kind=real64),
             </td>
-<td>intent(inout),</td>
+<td>intent(in)</td>
               <td></td>            <td>
-              dimension(:,:)
+              
             </td>
             <td>::</td>
-            <td><strong>x</strong></td>
+            <td><strong>x</strong>(3)</td>
             <td>
-                <p>The matrix of mode shape vectors with one vector per column.</p>
+                <p>The vector.</p>
             </td>
         </tr>
     </tbody>
   </table>
 
+      <h3>Return Value
+        <small>
+          <span class="anchor" id="variable-rst~21"></span>
+          real(kind=real64), (3,3)
+        </small>
+      </h3>
+      <p>The resulting skew-symmetric matrix.</p>
     <br>
 
     <section class="visible-xs visible-sm hidden-md">

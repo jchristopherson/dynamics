@@ -88,7 +88,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title="12.1% of total for modules and submodules.">316 statements</a>
+               title="13.6% of total for modules and submodules.">370 statements</a>
           </li>
 
             <li id="source-file">
@@ -116,7 +116,20 @@
       <div id="sidebar">
       <h3>Contents</h3>
   
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#vars-0">Variables</a>
+        </h3>
+      </div>
+      <div id="vars-0" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_kinematics.html#variable-prismatic_joint">PRISMATIC_JOINT</a>
+            <a class="list-group-item" href="../module/dynamics_kinematics.html#variable-revolute_joint">REVOLUTE_JOINT</a>
+        </div>
+      </div>
+    </div>
+
   
   
   
@@ -132,6 +145,7 @@
       <div id="inters-0" class="panel-collapse collapse">
         <div class="list-group">
             <a class="list-group-item" href="../module/dynamics_kinematics.html#interface-dh_forward_kinematics">dh_forward_kinematics</a>
+            <a class="list-group-item" href="../module/dynamics_kinematics.html#interface-dh_jacobian">dh_jacobian</a>
         </div>
       </div>
     </div>
@@ -152,6 +166,7 @@
             <a class="list-group-item" href="../module/dynamics_kinematics.html#proc-dh_translate_x">dh_translate_x</a>
             <a class="list-group-item" href="../module/dynamics_kinematics.html#proc-dh_translate_z">dh_translate_z</a>
             <a class="list-group-item" href="../module/dynamics_kinematics.html#proc-identity_4">identity_4</a>
+            <a class="list-group-item" href="../module/dynamics_kinematics.html#proc-jacobian_generating_vector">jacobian_generating_vector</a>
             <a class="list-group-item" href="../module/dynamics_kinematics.html#proc-solve_inverse_kinematics">solve_inverse_kinematics</a>
         </div>
       </div>
@@ -179,11 +194,12 @@
       <ul class="list-group">
           <li class="list-group-item">
             <ul class="list-inline">
-                <li>ferror</li>
                 <li>nonlin_core</li>
-                <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
                 <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
+                <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
                 <li>nonlin_least_squares</li>
+                <li>ferror</li>
+                <li><a href='../module/dynamics_helper.html'>dynamics_helper</a></li>
             </ul>
           </li>
       </ul>
@@ -195,7 +211,20 @@
     <section class="visible-xs visible-sm hidden-md">
         <h3>Contents</h3>
   
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#vars-1">Variables</a>
+        </h3>
+      </div>
+      <div id="vars-1" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_kinematics.html#variable-prismatic_joint">PRISMATIC_JOINT</a>
+            <a class="list-group-item" href="../module/dynamics_kinematics.html#variable-revolute_joint">REVOLUTE_JOINT</a>
+        </div>
+      </div>
+    </div>
+
   
   
   
@@ -211,6 +240,7 @@
       <div id="inters-1" class="panel-collapse collapse">
         <div class="list-group">
             <a class="list-group-item" href="../module/dynamics_kinematics.html#interface-dh_forward_kinematics">dh_forward_kinematics</a>
+            <a class="list-group-item" href="../module/dynamics_kinematics.html#interface-dh_jacobian">dh_jacobian</a>
         </div>
       </div>
     </div>
@@ -231,6 +261,7 @@
             <a class="list-group-item" href="../module/dynamics_kinematics.html#proc-dh_translate_x">dh_translate_x</a>
             <a class="list-group-item" href="../module/dynamics_kinematics.html#proc-dh_translate_z">dh_translate_z</a>
             <a class="list-group-item" href="../module/dynamics_kinematics.html#proc-identity_4">identity_4</a>
+            <a class="list-group-item" href="../module/dynamics_kinematics.html#proc-jacobian_generating_vector">jacobian_generating_vector</a>
             <a class="list-group-item" href="../module/dynamics_kinematics.html#proc-solve_inverse_kinematics">solve_inverse_kinematics</a>
         </div>
       </div>
@@ -249,6 +280,57 @@
     <br class="visible-xs visible-sm hidden-md">
 
 
+    <section>
+    <h2>Variables</h2>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Visibility</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+<th></th><th>Initial</th>        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-prismatic_joint"></span>
+              integer(kind=int32),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>PRISMATIC_JOINT</strong></td>
+<td> =</td>
+                <td>1</td>
+            <td>
+                <p>Defines a prismatic joint.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-revolute_joint"></span>
+              integer(kind=int32),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>REVOLUTE_JOINT</strong></td>
+<td> =</td>
+                <td>0</td>
+            <td>
+                <p>Defines a revolute joint.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    </section>
+    <br>
     
     
     <section>
@@ -1101,6 +1183,130 @@ x(i-1) axis and the link's x-axis along the z(i-1) axis.</p>
     </ul>
   </div>
 
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="interface-dh_jacobian"></span>
+      <h3>public        interface <a href='../interface/dh_jacobian.html'>dh_jacobian</a> 
+      </h3>
+    </div>
+    <ul class="list-group">
+          <li class="list-group-item">
+                <h3>
+    private  function dh_build_jacobian(alpha, a, theta, d, jtypes) result(rst)  
+
+    </h3>
+  <p>Builds the Jacobian matrix for a linkage given the Denavit-Hartenberg
+parameters.  The first entry in each array must be from the first link
+nearest ground.  The Jacobian matrix relates the joint velocities 
+<script type="math/tex">\dot{\vec{q}}</script> to the end-effector velocity <script type="math/tex">\dot{\vec{X}}</script> by
+<script type="math/tex">\dot{\vec{X}} = J \dot{\vec{q}}</script>.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>alpha</strong></td>
+            <td>
+                <p>The link twist angles, in radians.  This angle is the required
+rotation of the z(i-1) axis about the link's x-axis to become
+parallel with the link's z-axis.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(size(alpha))
+            </td>
+            <td>::</td>
+            <td><strong>a</strong></td>
+            <td>
+                <p>The link lengths as measured along the link's x-axis.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(size(alpha))
+            </td>
+            <td>::</td>
+            <td><strong>theta</strong></td>
+            <td>
+                <p>The joint angles, in radians.  This angle is the required rotation
+of the z(i-1) axis about the z(i-1) axis to become parallel with
+the link's x-axis.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(size(alpha))
+            </td>
+            <td>::</td>
+            <td><strong>d</strong></td>
+            <td>
+                <p>The joint offsets distance measured as the distance between the
+x(i-1) axis and the link's x-axis along the z(i-1) axis.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(size(alpha))
+            </td>
+            <td>::</td>
+            <td><strong>jtypes</strong></td>
+            <td>
+                <p>The types of each joint.  Must be either REVOLUTE_JOINT or
+PRISMATIC_JOINT.  The code defaults to REVOLUTE_JOINT.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), allocatable, dimension(:,:)</small>
+    </h4>
+    <p>The resulting 6-by-N Jacobian matrix where N is the number of joint
+variables (i.e. the length of the input arrays).</p>
+
+          </li>
+    </ul>
+  </div>
+
     </section>
   <br>
 
@@ -1406,6 +1612,106 @@ translation.</p>
   </div>
 
       <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-jacobian_generating_vector"></span><h3>public pure function <a href='../proc/jacobian_generating_vector.html'>jacobian_generating_vector</a>(d, k, R, jtype) result(rst)  
+</h3></div>
+    <div class="panel-body">
+          
+  <p>Computes a single Jacobian generating vector given the position vector
+of the link origin, <script type="math/tex">\vec{d}</script>, and the joint axis unit vector, 
+<script type="math/tex">\vec{k}</script>.</p><a href="../proc/jacobian_generating_vector.html" class="pull-right"><emph>Read more&hellip;</emph></a>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>d</strong>(3)</td>
+            <td>
+<p>The position vector of the end-effector, <script type="math/tex">\vec{d}</script>, relative to the
+link coordinate frame given in the base coordinate frame.  An easy
+way to compute this vector is to extract the first 3 elements of the
+4th column of the transformation matrix: <script type="math/tex">T_{i} T_{i+1} ... T_{n}</script>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>k</strong>(3)</td>
+            <td>
+<p>The unit vector defining the joint axis, <script type="math/tex">\vec{k}</script>, given in the
+base coordinate frame.  This vector can be computed most easily by
+using the transformation matrix: <script type="math/tex">T = T_1 T_2 ... T_{i-1}</script> and
+then computing <script type="math/tex">\vec{k_{i-1}} = T \hat{k}</script>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>R</strong>(3,3)</td>
+            <td>
+<p>The rotation matrix defining the orientation of the link coordinate
+frame relative to the base coordinate frame.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>jtype</strong></td>
+            <td>
+<p>The joint type.  Must be either REVOLUTE_JOINT or PRISMATIC_JOINT.
+If incorrectly specified, the code defaults to a REVOLUTE_JOINT type.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), (6)</small>
+    </h4>
+    <p>The resulting 6-element Jacobian generating vector.</p>
+
+    </div>
+  </div>
+
+      <div class="panel panel-default">
     <div class="panel-heading codesum"><span class="anchor" id="proc-solve_inverse_kinematics"></span><h3>public  function <a href='../proc/solve_inverse_kinematics.html'>solve_inverse_kinematics</a>(mdl, qo, constraints, df, slvr, ib, err) result(rst)  
 </h3></div>
     <div class="panel-body">
@@ -1570,7 +1876,7 @@ information relating to any errors encountered during execution.</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2025-01-24 22:05            </p>
+ on 2025-01-30 20:37            </p>
         </div>
       </div>
       <br>

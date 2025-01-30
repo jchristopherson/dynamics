@@ -88,7 +88,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 2.4% of total for modules and submodules.">63 statements</a>
+               title=" 3.5% of total for modules and submodules.">96 statements</a>
           </li>
 
             <li id="source-file">
@@ -146,9 +146,11 @@
       </div>
       <div id="funcs-0" class="panel-collapse collapse">
         <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_rotation.html#proc-acceleration_transform">acceleration_transform</a>
             <a class="list-group-item" href="../module/dynamics_rotation.html#proc-rotate_x">rotate_x</a>
             <a class="list-group-item" href="../module/dynamics_rotation.html#proc-rotate_y">rotate_y</a>
             <a class="list-group-item" href="../module/dynamics_rotation.html#proc-rotate_z">rotate_z</a>
+            <a class="list-group-item" href="../module/dynamics_rotation.html#proc-velocity_transform">velocity_transform</a>
         </div>
       </div>
     </div>
@@ -176,6 +178,7 @@
           <li class="list-group-item">
             <ul class="list-inline">
                 <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
+                <li><a href='../module/dynamics_helper.html'>dynamics_helper</a></li>
             </ul>
           </li>
       </ul>
@@ -217,9 +220,11 @@
       </div>
       <div id="funcs-1" class="panel-collapse collapse">
         <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_rotation.html#proc-acceleration_transform">acceleration_transform</a>
             <a class="list-group-item" href="../module/dynamics_rotation.html#proc-rotate_x">rotate_x</a>
             <a class="list-group-item" href="../module/dynamics_rotation.html#proc-rotate_y">rotate_y</a>
             <a class="list-group-item" href="../module/dynamics_rotation.html#proc-rotate_z">rotate_z</a>
+            <a class="list-group-item" href="../module/dynamics_rotation.html#proc-velocity_transform">velocity_transform</a>
         </div>
       </div>
     </div>
@@ -489,6 +494,99 @@ are properly orthogonal.</p>
     <section>
     <h2>Functions</h2>
       <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-acceleration_transform"></span><h3>public pure function <a href='../proc/acceleration_transform.html'>acceleration_transform</a>(alpha, omega, a, x) result(rst)  
+</h3></div>
+    <div class="panel-body">
+          
+  <p>Computes the acceleration transformation matrix relating the
+position of a point expressed in a rotating and translating body
+relative to its parent frame.</p><a href="../proc/acceleration_transform.html" class="pull-right"><emph>Read more&hellip;</emph></a>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>alpha</strong>(3)</td>
+            <td>
+<p>The angular acceleration vector.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>omega</strong>(3)</td>
+            <td>
+<p>The angular velocity vector.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>a</strong>(3)</td>
+            <td>
+<p>The translational acceleration vector describing the acceleration
+of the body in its parent coordinate frame.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>x</strong>(3)</td>
+            <td>
+<p>The position vector of the body in its parent coordinate frame.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), (4,4)</small>
+    </h4>
+    <p>The 4-by-4 transformation matrix.</p>
+
+    </div>
+  </div>
+
+      <div class="panel panel-default">
     <div class="panel-heading codesum"><span class="anchor" id="proc-rotate_x"></span><h3>public pure function <a href='../proc/rotate_x.html'>rotate_x</a>(angle) result(rst)  
 </h3></div>
     <div class="panel-body">
@@ -629,6 +727,84 @@ such that
     </div>
   </div>
 
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-velocity_transform"></span><h3>public pure function <a href='../proc/velocity_transform.html'>velocity_transform</a>(omega, v, x) result(rst)  
+</h3></div>
+    <div class="panel-body">
+          
+  <p>Computes the acceleration transformation matrix relating the position
+of a point expressed in a rotating and translating body relative to
+its parent frame.</p><a href="../proc/velocity_transform.html" class="pull-right"><emph>Read more&hellip;</emph></a>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>omega</strong>(3)</td>
+            <td>
+<p>The angular velocity vector.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>v</strong>(3)</td>
+            <td>
+<p>The translation velocity vector describing the velocity of the
+body in its parent coordinate frame.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>x</strong>(3)</td>
+            <td>
+<p>The position vector of the body in its parent coordinate frame.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), (4,4)</small>
+    </h4>
+    <p>The 4-by-4 transformation matrix.</p>
+
+    </div>
+  </div>
+
     </section>
     <br>
 
@@ -650,7 +826,7 @@ such that
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2025-01-24 22:05            </p>
+ on 2025-01-30 20:37            </p>
         </div>
       </div>
       <br>
