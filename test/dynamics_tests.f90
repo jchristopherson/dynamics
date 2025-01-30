@@ -98,6 +98,15 @@ program main
     check = test_jacobian()
     if (.not.check) flag = 28
 
+    check = test_velocity_matrix()
+    if (.not.check) flag = 29
+
+    check = test_acceleration_matrix()
+    if (.not.check) flag = 30
+
+    check = test_skew_symmetric()
+    if (.not.check) flag = 31
+
     ! End
     if (flag /= 0) stop flag
 end program

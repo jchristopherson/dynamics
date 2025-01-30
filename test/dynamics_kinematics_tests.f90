@@ -356,4 +356,88 @@ function test_jacobian() result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+function test_velocity_matrix() result(rst)
+    ! Arguments
+    logical :: rst
+
+    ! Variables
+    real(real64) :: omega(3), v(3), x(3), T(4, 4), ans(4, 4), w(3, 3)
+
+    ! Initialization
+    rst = .true.
+    call random_number(omega)
+    call random_number(v)
+    call random_number(x)
+    w = to_skew_symmetric(omega)
+
+    ! Compute the solution
+    ans(1:3,1:3) = w
+    ans(1:3,4) = v - matmul(w, x)
+    ans(4,:) = 0.0d0
+
+    ! Test
+    T = velocity_transform(omega, v, x)
+    if (.not.assert(ans, T)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_velocity_matrix -1"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_acceleration_matrix() result(rst)
+    ! Arguments
+    logical :: rst
+
+    ! Local Variables
+    real(real64) :: alpha(3), a(3), omega(3), x(3), T(4, 4), al(3,3), w(3,3), &
+        ans(4, 4)
+
+    ! Initialization
+    rst = .true.
+    call random_number(alpha)
+    call random_number(a)
+    call random_number(omega)
+    call random_number(x)
+    al = to_skew_symmetric(alpha)
+    w = to_skew_symmetric(omega)
+
+    ! Compute the answer
+    ans(1:3,1:3) = al - matmul(w, transpose(w))
+    ans(1:3,4) = a - matmul(ans(1:3,1:3), x)
+    ans(4,:) = 0.0d0
+
+    ! Test
+    T = acceleration_transform(alpha, omega, a, x)
+    if (.not.assert(T, ans)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_acceleration_matrix -1"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_skew_symmetric() result(rst)
+    ! Arguments
+    logical :: rst
+
+    ! Local Variables
+    real(real64) :: x(3), xt(3,3), ans(3,3)
+
+    ! Initialization
+    rst = .true.
+    call random_number(x)
+    ans = reshape([ &
+        0.0d0, x(3), -x(2), &
+        -x(3), 0.0d0, x(1), &
+        x(2), -x(1), 0.0d0 &
+    ], [3, 3])
+
+    ! Test
+    xt = to_skew_symmetric(x)
+    if (.not.assert(xt, ans)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_skew_symmetric -1"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
 end module
