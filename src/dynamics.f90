@@ -35,6 +35,8 @@ module dynamics
     public :: rotate_y
     public :: rotate_z
     public :: rotate
+    public :: acceleration_transform
+    public :: velocity_transform
 
     ! DYNAMICS_STRUCTURAL
     public :: DYN_ONE_POINT_INTEGRATION_RULE
@@ -85,4 +87,5 @@ module dynamics
 
     ! DYNAMICS_HELPER
     public :: cross_product
+    public :: to_skew_symmetric
 end module
