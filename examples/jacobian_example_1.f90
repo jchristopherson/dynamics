@@ -67,6 +67,7 @@ program example
     type(plot_data_2d) :: pd1, pd2
     class(terminal), pointer :: term
     class(legend), pointer :: lgnd
+    class(plot_axis), pointer :: xAxis, yAxis
 
     ! Define the linkage joint types
     jtypes = [ &
@@ -124,10 +125,21 @@ program example
     lgnd => pltX%get_legend()
     call lgnd%set_is_visible(.true.)
     call lgnd%set_layout(LEGEND_ARRANGE_HORIZONTALLY)
+    
+    xAxis => pltX%get_x_axis()
+    yAxis => pltX%get_y_axis()
+    call xAxis%set_title("t")
+    call yAxis%set_title("dx/dt")
 
-    call pltX%set_title("x(t)")
-    call pltY%set_title("y(t)")
-    call pltZ%set_title("z(t)")
+    xAxis => pltY%get_x_axis()
+    yAxis => pltY%get_y_axis()
+    call xAxis%set_title("t")
+    call yAxis%set_title("dy/dt")
+
+    xAxis => pltZ%get_x_axis()
+    yAxis => pltZ%get_y_axis()
+    call xAxis%set_title("t")
+    call yAxis%set_title("dz/dt")
 
     call pd1%define_data(t, V(:,1))
     call pd1%set_name("Analytical")
