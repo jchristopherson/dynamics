@@ -23,7 +23,11 @@ end function
 
 ! ------------------------------------------------------------------------------
 pure function to_skew_symmetric(x) result(rst)
-    !! Converts a 3-element vector to a 3-by-3 skew-symmetric matrix.
+    !! Converts a 3-element vector to a 3-by-3 skew-symmetric matrix.  A 
+    !! skew-symmetric matrix is defined as follows.
+    !!
+    !! $$ \tilde{x} = \left[ \begin{matrix} 0 & -x_{3} & x_{2} \\
+    !! x_{3} & 0 & -x_{1} \\ -x_{2} & x_{1} & 0 \end{matrix} \right] $$
     real(real64), intent(in) :: x(3)
         !! The vector.
     real(real64) :: rst(3, 3)
