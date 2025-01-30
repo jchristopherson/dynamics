@@ -181,18 +181,24 @@ pure function rotate_x(angle) result(rst)
         !! The transformation matrix takes the following form.
         !!
         !! $$ A = \left[ \begin{matrix} \tilde{\alpha} - \tilde{\omega} 
-        !! \tilde{omega}^{T} & \vec{a} - \left( \tilde{\alpha} - \tilde{\omega} 
-        !! \tilde{omega}^{T} \right) \vec{x} \end{matrix} \\ 0 & 0 \right] $$
+        !! \tilde{\omega}^{T} & \vec{a} - \left( \tilde{\alpha} - \tilde{\omega} 
+        !! \tilde{\omega}^{T} \right) \vec{x} \\ 0 & 0 \end{matrix} \right] $$
         !!
         !! where,
         !!
-        !! $$ \tilde{\alpha} = \left[ 0 & -\alpha_z & \alpha_y \\
-        !! \alpha_z & 0 & -\alpha_x \\ -\alpha_y & \alpha_x & 0 \right] $$
+        !! $$ \tilde{\alpha} = \left[ \begin{matrix} 0 & -\alpha_z & \alpha_y \\
+        !! \alpha_z & 0 & -\alpha_x \\ -\alpha_y & \alpha_x & 0 \end{matrix}
+        !! \right] $$
         !!
         !! and,
         !!
-        !! $$ \tilde{\omega} = \left[ 0 & -\omega_z & \omega_y \\
-        !! \omega_z & 0 & -\omega_x \\ -\omega_y & \omega_x & 0 \right] $$
+        !! $$ \tilde{\omega} = \left[ \begin{matrix} 0 & -\omega_z & \omega_y \\
+        !! \omega_z & 0 & -\omega_x \\ -\omega_y & \omega_x & 0 \end{matrix}
+        !! \right] $$
+        !!
+        !! Given a vector describing the location on a moving body, 
+        !! \(\vec{r_p}\), the matrix is used to report its acceleration 
+        !! \(\vec{a_p} = A \vec{r_p}\).
         real(real64), intent(in) :: alpha(3)
             !! The angular acceleration vector.
         real(real64), intent(in) :: omega(3)
@@ -235,12 +241,17 @@ pure function rotate_x(angle) result(rst)
         !! The transformation matrix takes the following form.
         !!
         !! $$ V = \left[ \begin{matrix} \tilde{\omega} & \vec{v} - 
-        !! \tilde{omega} \vec{x} \\ 0 & 0 \end{matrix} \right] $$
+        !! \tilde{\omega} \vec{x} \\ 0 & 0 \end{matrix} \right] $$
         !!
         !! where,
         !!
-        !! $$ \tilde{\omega} = \left[ 0 & -\omega_z & \omega_y \\
-        !! \omega_z & 0 & -\omega_x \\ -\omega_y & \omega_x & 0 \right] $$
+        !! $$ \tilde{\omega} = \left[ \begin{matrix} 0 & -\omega_z & \omega_y \\
+        !! \omega_z & 0 & -\omega_x \\ -\omega_y & \omega_x & 0 \end{matrix}
+        !! \right] $$
+        !!
+        !! Given a vector describing the location on a moving body, 
+        !! \(\vec{r_p}\), the matrix is used to report its velocity 
+        !! \(\vec{v_p} = V \vec{r_p}\).
         real(real64), intent(in) :: omega(3)
             !! The angular velocity vector.
         real(real64), intent(in) :: v(3)
