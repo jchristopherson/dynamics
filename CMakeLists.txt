@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.24)
 project(
     dynamics
     LANGUAGES Fortran
-    VERSION 1.0.7
+    VERSION 1.0.8
 )
 
 # Get helper macros and functions

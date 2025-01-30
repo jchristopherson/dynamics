@@ -90,6 +90,9 @@
 			 <table class="table table-striped">
 			 <thead><tr><th>Procedure</th><th>Location</th><th>Procedure Type</th><th>Description</th></tr></thead>
 			 <tbody>
+			   <tr><td><a href='../proc/acceleration_transform.html'>acceleration_transform</a></td><td><a href='../module/dynamics_rotation.html'>dynamics_rotation</a></td><td>Function</td><td><p>Computes the acceleration transformation matrix relating the
+position of a point expressed in a rotating and translating body
+relative to its parent frame.</p><a href="../proc/acceleration_transform.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
 			   <tr><td><a href='../interface/apply_boundary_conditions.html'>apply_boundary_conditions</a></td><td><a href='../module/dynamics_structural.html'>dynamics_structural</a></td><td>Interface</td><td></td></tr>
 			   <tr><td><a href='../proc/apply_displacement_constraint.html'>apply_displacement_constraint</a></td><td><a href='../module/dynamics_structural.html'>dynamics_structural</a></td><td>Subroutine</td><td><p>Applies a displacement constraint to the specified degree of freedom.</p></td></tr>
 			   <tr><td><a href='../proc/chirp.html'>chirp</a></td><td><a href='../module/dynamics_frequency_response.html'>dynamics_frequency_response</a></td><td>Function</td><td><p>Evaluates a linear chirp function.</p></td></tr>
@@ -99,6 +102,7 @@ proportional damping terms <script type="math/tex"> \alpha </script> and <script
 <script type="math/tex"> \lambda_{i} = \omega_{i}^2 </script>, and <script type="math/tex"> \lambda_i </script> is the
 <script type="math/tex"> i^{th} </script> eigenvalue of the system.</p></td></tr>
 			   <tr><td><a href='../proc/create_connectivity_matrix.html'>create_connectivity_matrix</a></td><td><a href='../module/dynamics_structural.html'>dynamics_structural</a></td><td>Function</td><td><p>Creates a connectivity matrix for the element.</p></td></tr>
+			   <tr><td><a href='../proc/cross_product.html'>cross_product</a></td><td><a href='../module/dynamics_helper.html'>dynamics_helper</a></td><td>Function</td><td><p>Computes the cross-product of a vector.</p></td></tr>
 			   <tr><td><a href='../proc/damping_from_fractional_overshoot.html'>damping_from_fractional_overshoot</a></td><td><a href='../module/dynamics_vibrations.html'>dynamics_vibrations</a></td><td>Function</td><td><p>Employs the method of fractional overshoot to estimate the damping ratio
 from the response of a system to a step input.  This method is useful
 for cases where the damping ratio is between approximately 0.5 to 0.8.
@@ -107,6 +111,7 @@ In such range, the logarithmic decrement approach becomes less precise.</p><a hr
 The damping ratio is related to the logarithmic decrement by the 
 following relationship.</p><a href="../proc/damping_from_log_decrement.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
 			   <tr><td><a href='../interface/dh_forward_kinematics.html'>dh_forward_kinematics</a></td><td><a href='../module/dynamics_kinematics.html'>dynamics_kinematics</a></td><td>Interface</td><td></td></tr>
+			   <tr><td><a href='../interface/dh_jacobian.html'>dh_jacobian</a></td><td><a href='../module/dynamics_kinematics.html'>dynamics_kinematics</a></td><td>Interface</td><td></td></tr>
 			   <tr><td><a href='../proc/dh_matrix.html'>dh_matrix</a></td><td><a href='../module/dynamics_kinematics.html'>dynamics_kinematics</a></td><td>Function</td><td><p>Computes the Denavit-Hartenberg transformation matrix for the 
 specified DH parameters.</p></td></tr>
 			   <tr><td><a href='../proc/dh_rotate_x.html'>dh_rotate_x</a></td><td><a href='../module/dynamics_kinematics.html'>dynamics_kinematics</a></td><td>Function</td><td><p>Computes the Denavit-Hartenberg matrix for a local x-axis rotation.</p></td></tr>
@@ -134,6 +139,9 @@ receptance model:</p><a href="../proc/fit_frf.html" class="pull-right"><emph>Rea
 			   <tr><td><a href='../interface/frequency_sweep.html'>frequency_sweep</a></td><td><a href='../module/dynamics_frequency_response.html'>dynamics_frequency_response</a></td><td>Interface</td><td></td></tr>
 			   <tr><td><a href='../interface/harmonic_ode.html'>harmonic_ode</a></td><td><a href='../module/dynamics_frequency_response.html'>dynamics_frequency_response</a></td><td>Interface</td><td></td></tr>
 			   <tr><td><a href='../proc/identity_4.html'>identity_4</a></td><td><a href='../module/dynamics_kinematics.html'>dynamics_kinematics</a></td><td>Function</td><td><p>Computes a 4-by-4 identity matrix.</p></td></tr>
+			   <tr><td><a href='../proc/jacobian_generating_vector.html'>jacobian_generating_vector</a></td><td><a href='../module/dynamics_kinematics.html'>dynamics_kinematics</a></td><td>Function</td><td><p>Computes a single Jacobian generating vector given the position vector
+of the link origin, <script type="math/tex">\vec{d}</script>, and the joint axis unit vector, 
+<script type="math/tex">\vec{k}</script>.</p><a href="../proc/jacobian_generating_vector.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
 			   <tr><td><a href='../proc/logarithmic_decrement.html'>logarithmic_decrement</a></td><td><a href='../module/dynamics_vibrations.html'>dynamics_vibrations</a></td><td>Function</td><td><p>Computes the logarithmic decrement given the value of two  successive
 peaks in the time history of the free vibratory response of the system.
 The logarithmic decrement is calculated as follows.</p><a href="../proc/logarithmic_decrement.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
@@ -182,6 +190,11 @@ coordinate specified.</p></td></tr>
 natural coordinate specified.</p></td></tr>
 			   <tr><td><a href='../proc/solve_inverse_kinematics.html'>solve_inverse_kinematics</a></td><td><a href='../module/dynamics_kinematics.html'>dynamics_kinematics</a></td><td>Function</td><td><p>Solves the inverse kinematics problem for a linkage.  An iterative
 solution procedure is utilized.</p></td></tr>
+			   <tr><td><a href='../proc/to_skew_symmetric.html'>to_skew_symmetric</a></td><td><a href='../module/dynamics_helper.html'>dynamics_helper</a></td><td>Function</td><td><p>Converts a 3-element vector to a 3-by-3 skew-symmetric matrix.  A 
+skew-symmetric matrix is defined as follows.</p><a href="../proc/to_skew_symmetric.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
+			   <tr><td><a href='../proc/velocity_transform.html'>velocity_transform</a></td><td><a href='../module/dynamics_rotation.html'>dynamics_rotation</a></td><td>Function</td><td><p>Computes the acceleration transformation matrix relating the position
+of a point expressed in a rotating and translating body relative to
+its parent frame.</p><a href="../proc/velocity_transform.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
 			 </tbody></table>
              
         </div>
@@ -198,7 +211,7 @@ solution procedure is utilized.</p></td></tr>
             <p class="text-right">
               Documentation generated by
               <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2025-01-24 12:48              </p>
+ on 2025-01-30 13:33              </p>
           </div>
         </div>
         <br>
