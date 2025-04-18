@@ -5,6 +5,7 @@ module dynamics
     use dynamics_kinematics
     use dynamics_vibrations
     use dynamics_helper
+    use dynamics_stability
     implicit none
     private
 
@@ -88,4 +89,13 @@ module dynamics
     ! DYNAMICS_HELPER
     public :: cross_product
     public :: to_skew_symmetric
+
+    ! DYNAMICS_STABILITY
+    public :: HYPERBOLIC_FIXED_POINT_SINK
+    public :: HYPERBOLIC_FIXED_POINT_SOURCE
+    public :: HYPERBOLIC_FIXED_POINT_SADDLE
+    public :: NONHYPERBOLIC_FIXED_POINT_UNSTABLE
+    public :: NONHYPERBOLIC_FIXED_POINT_NEUTRALLY_STABLE
+    public :: NONHYPERBOLIC_FIXED_POINT_CENTER
+    public :: determine_local_stability
 end module
