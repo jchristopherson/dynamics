@@ -36,15 +36,20 @@ module dynamics_stability
         !! eigenvalues all have zero-valued real parts.
     integer(int32), parameter :: NONHYPERBOLIC_FIXED_POINT_CENTER = 105
         !! Describes a nonhyperbolic fixed point where all of the eigenvalues
-        !! of the dynamics matrix are purely imaginary and nonzero.
+        !! of the dynamics matrix are purely imaginary and nonzero.  This point
+        !! is considered stable.
 
 contains
 ! ------------------------------------------------------------------------------
-function determine_local_stability(a, err) result(rst)
-    !! Determines the nature of stability/unstability near the supplied point.
+function determine_local_stability(a, ev, err) result(rst)
+    !! Determines the nature of stability/unstability near the point at which
+    !! the dynamics matrix was computed.
     real(real64), intent(in), dimension(:,:) :: a
         !! An N-by-N matrix containing the 'A' matrix, also known as the
         !! dynamics matrix.
+    complex(real64), intent(out), optional, dimension(:) :: ev
+        !! An optional N-element array that, if supplied, will be filled with 
+        !! the eigenvalues of the matrix A.
     class(errors), intent(inout), optional, target :: err
         !! An error handler object.
     integer(int32) :: rst
@@ -56,7 +61,6 @@ function determine_local_stability(a, err) result(rst)
     real(real64) :: tol, rv
     real(real64), allocatable, dimension(:,:) :: acpy
     complex(real64), allocatable, dimension(:) :: vals
-    complex(real64), allocatable, dimension(:,:) :: rightVecs
     class(errors), pointer :: errmgr
     type(errors), target :: deferr
     
@@ -80,11 +84,11 @@ function determine_local_stability(a, err) result(rst)
     allocate(acpy(n, n), source = a, stat = flag)
     if (flag /= 0) go to 10
 
-    allocate(vals(n), rightVecs(n, n), stat = flag)
+    allocate(vals(n), stat = flag)
     if (flag /= 0) go to 10
 
     ! Perform the eigen analysis on A
-    call eigen(acpy, vals, vecs = rightVecs, err = errmgr)
+    call eigen(acpy, vals, err = errmgr)
     if (errmgr%has_error_occurred()) return
 
     ! Cycle over each eigenvalue
@@ -122,6 +126,16 @@ function determine_local_stability(a, err) result(rst)
         else
             rst = NONHYPERBOLIC_FIXED_POINT_UNSTABLE
         end if
+    end if
+
+    ! Optional Outputs
+    if (present(ev)) then
+        if (size(ev) /= n) then
+            call report_array_size_error("determine_local_stability", "ev", &
+                n, size(ev), errmgr)
+            return
+        end if
+        ev = vals
     end if
 
     ! End
