@@ -25,8 +25,7 @@ module dynamics_stability
     integer(int32), parameter :: HYPERBOLIC_FIXED_POINT_SADDLE = 102
         !! Describes a hyperbolic fixed point where all of the eigenvalues of
         !! the dynamics matrix have a nonzero real part but one or more of the
-        !! eigenvalues has a positive-valued real part.  This point is 
-        !! considered unstable.
+        !! eigenvalues has a positive-valued real part.
     integer(int32), parameter :: NONHYPERBOLIC_FIXED_POINT_UNSTABLE = 103
         !! Describes a nonhyperbolic fixed point where one or more of the 
         !! eigenvalues of the dynamics matrix have a positive-valued real part.
