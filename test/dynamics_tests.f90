@@ -4,6 +4,7 @@ program main
     use dynamics_structures_tests
     use dynamics_kinematics_tests
     use dynamics_vibrations_tests
+    use dynamics_stability_tests
     implicit none
 
     ! Variables
@@ -106,6 +107,9 @@ program main
 
     check = test_skew_symmetric()
     if (.not.check) flag = 31
+
+    check = test_local_stability()
+    if (.not.check) flag = 32
 
     ! End
     if (flag /= 0) stop flag
