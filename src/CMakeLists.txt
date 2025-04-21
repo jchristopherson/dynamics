@@ -12,5 +12,6 @@ set(DYNAMICS_SOURCES
     ${dir}/dynamics_vibrations.f90
     ${dir}/dynamics_helper.f90
     ${dir}/dynamics_stability.f90
+    ${dir}/dynamics_state_space.f90
 )
 set(DYNAMICS_SOURCES ${DYNAMICS_SOURCES} PARENT_SCOPE)
