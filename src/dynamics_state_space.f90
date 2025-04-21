@@ -2,6 +2,8 @@ module dynamics_state_space
     use iso_fortran_env
     use diffeq
     implicit none
+    private
+    public :: state_space
 
     type state_space
         !! Defines a state-space representation of a dynamic system.  This

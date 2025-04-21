@@ -5,6 +5,7 @@ program main
     use dynamics_kinematics_tests
     use dynamics_vibrations_tests
     use dynamics_stability_tests
+    use dynamics_transfer_function_tests
     implicit none
 
     ! Variables
@@ -110,6 +111,15 @@ program main
 
     check = test_local_stability()
     if (.not.check) flag = 32
+
+    check = test_tf_evaluate()
+    if (.not.check) flag = 33
+
+    check = test_tf_multiply()
+    if (.not.check) flag = 34
+
+    check = test_tf_poles_zeros()
+    if (.not.check) flag = 35
 
     ! End
     if (flag /= 0) stop flag

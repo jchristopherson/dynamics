@@ -6,6 +6,7 @@ module dynamics
     use dynamics_vibrations
     use dynamics_helper
     use dynamics_stability
+    use dynamics_transfer_function
     implicit none
     private
 
@@ -98,4 +99,9 @@ module dynamics
     public :: NONHYPERBOLIC_FIXED_POINT_NEUTRALLY_STABLE
     public :: NONHYPERBOLIC_FIXED_POINT_CENTER
     public :: determine_local_stability
+
+    ! DYNAMICS_TRANSFER_FUNCTION
+    public :: polynomial
+    public :: transfer_function
+    public :: operator(*)
 end module
