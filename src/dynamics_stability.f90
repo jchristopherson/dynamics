@@ -1,6 +1,5 @@
 module dynamics_stability
     use iso_fortran_env
-    use diffeq, only : ode_container
     use ferror
     use dynamics_error_handling
     use linalg, only : eigen
