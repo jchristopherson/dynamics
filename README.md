@@ -231,7 +231,7 @@ module duffing_ode_container
     real(real64), parameter :: gamma = 1.0d0
 
 contains
-    pure subroutine duffing_ode(freq, x, y, dydx)
+    pure subroutine duffing_ode(freq, x, y, dydx, args)
         real(real64), intent(in) :: freq
             ! The excitation frequency
         real(real64), intent(in) :: x
@@ -240,6 +240,8 @@ contains
             ! An array of the N dependent variables.
         real(real64), intent(out), dimension(:) :: dydx
             ! An output array of length N where the derivatives are written.
+        class(*), intent(inout), optional :: args
+            ! An optional object for input/output of additional information.
 
         ! Variables
         real(real64) :: f
