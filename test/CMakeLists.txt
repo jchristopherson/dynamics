@@ -11,6 +11,9 @@ set(dynamics_test_sources
     dynamics_structures_tests.f90
     dynamics_kinematics_tests.f90
     dynamics_vibrations_tests.f90
+    dynamics_stability_tests.f90
+    dynamics_transfer_function_tests.f90
+    dynamics_state_space_tests.f90
 )
 
 # Build the tests

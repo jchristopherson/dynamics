@@ -27,6 +27,7 @@ module dynamics_frequency_response
     public :: iteration_controls
     public :: lm_solver_options
     public :: convergence_info
+    public :: ode_integrator
 
     interface
         function ode_excite(t) result(rst)
@@ -53,7 +54,7 @@ module dynamics_frequency_response
                 !! written.
         end subroutine
 
-        pure subroutine harmonic_ode(freq, t, x, dxdt)
+        pure subroutine harmonic_ode(freq, t, x, dxdt, args)
             !! Defines a system of ODE's exposed to harmonic excitation.
             use iso_fortran_env, only : real64
             real(real64), intent(in) :: freq
@@ -64,6 +65,9 @@ module dynamics_frequency_response
                 !! The value of the solution estimate at time t.
             real(real64), intent(out), dimension(:) :: dxdt
                 !! The derivatives as computed by this routine.
+            class(*), intent(inout), optional :: args
+                !! An optional argument allowing the passing of data in/out of
+                !! this routine.
         end subroutine
     end interface
 
@@ -123,8 +127,12 @@ module dynamics_frequency_response
         !! Defines a receptance frequency response model.
 
 ! ------------------------------------------------------------------------------
-    real(real64), private :: sweep_frequency
-    procedure(harmonic_ode), private, pointer :: sweep_ode
+    type frf_arg_container
+        procedure(harmonic_ode), pointer, nopass :: fcn
+        real(real64) :: frequency
+        logical :: uses_optional_args
+        class(*), allocatable :: optional_args
+    end type
 
 contains
 ! ------------------------------------------------------------------------------
@@ -564,7 +572,7 @@ contains
 ! HARMONIC_ODE_CONTAINER ROUTINES
 ! ------------------------------------------------------------------------------
     function frf_sweep_1(fcn, freq, iv, solver, ncycles, ntransient, &
-        points, err) result(rst)
+        points, args, err) result(rst)
         !! Computes the frequency response of each equation of a system of
         !! harmonically excited ODE's by sweeping through frequency.
         use spectrum, only : next_power_of_two
@@ -603,6 +611,9 @@ contains
             !! Fourier transform to determine the phase and amplitude, and in 
             !! order to satisfy Nyquist conditions, the value must be at least 
             !! 2.
+        class(*), intent(inout), optional :: args
+            !! An optional argument allowing for passing of data in/out of the
+            !! fcn subroutine.
         class(errors), intent(inout), optional, target :: err
             !! An optional errors-based object that if provided 
             !! can be used to retrieve information relating to any errors 
@@ -635,6 +646,7 @@ contains
         type(runge_kutta_45), target :: default_integrator
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
+        type(frf_arg_container) :: container
         
         ! Initialization
         if (present(err)) then
@@ -666,7 +678,13 @@ contains
         nfft = 2**next_power_of_two(ppc * nc)
         lsave = 4 * nfft + 15
         sys%fcn => sweep_eom
-        sweep_ode => fcn
+
+        ! Set up the optional argument container
+        container%fcn => fcn
+        container%uses_optional_args = present(args)
+        if (present(args)) then
+            allocate(container%optional_args, source = args)
+        end if
 
         ! Set up the integrator
         if (present(solver)) then
@@ -703,10 +721,10 @@ contains
             t = (/ (dt * j, j = 0, npts - 1) /)
 
             ! Set the frequency
-            sweep_frequency = freq(i)
+            container%frequency = freq(i)
 
             ! Compute the solution
-            call integrator%solve(sys, t, ic, err = errmgr)
+            call integrator%solve(sys, t, ic, args = container, err = errmgr)
             if (errmgr%has_error_occurred()) return
             sol = integrator%get_solution()
 
@@ -728,12 +746,12 @@ contains
 
         ! Memory Error
     10  continue
-        call report_memory_error("hoc_frf_sweep", flag, errmgr)
+        call report_memory_error("frf_sweep_1", flag, errmgr)
         return
 
         ! Number of Cycles Error
     20  continue
-        call report_generic_counting_error("hoc_frf_sweep", &
+        call report_generic_counting_error("frf_sweep_1", &
             "The number of cycles to analyze must be at least 1; " // &
             "however, a value of ", nc, " was found.", &
             DYN_INVALID_INPUT_ERROR, errmgr)
@@ -741,7 +759,7 @@ contains
 
         ! Number of Transient Cycles Error
     30  continue
-        call report_generic_counting_error("hoc_frf_sweep", &
+        call report_generic_counting_error("frf_sweep_1", &
             "The number of transient cycles must be at least 1; " // &
             "however, a value of ", nt, " was found.", &
             DYN_INVALID_INPUT_ERROR, errmgr)
@@ -749,7 +767,7 @@ contains
 
         ! Points Per Cycle Error
     40  continue
-        call report_generic_counting_error("hoc_frf_sweep", &
+        call report_generic_counting_error("frf_sweep_1", &
             "The number of points per cycle must be at least 2; " // &
             "however, a value of ", ppc, " was found.", &
             DYN_INVALID_INPUT_ERROR, errmgr)
@@ -757,16 +775,25 @@ contains
 
         ! Zero-Valued Frequency Error
     50  continue
-        call report_zero_valued_frequency_error("hoc_frf_sweep", i, errmgr)
+        call report_zero_valued_frequency_error("frf_sweep_1", i, errmgr)
         return
     end function
 
     ! ----------
-    pure subroutine sweep_eom(x, y, dydx)
+    pure subroutine sweep_eom(x, y, dydx, args)
         real(real64), intent(in) :: x
         real(real64), intent(in), dimension(:) :: y
         real(real64), intent(out), dimension(:) :: dydx
-        call sweep_ode(sweep_frequency, x, y, dydx)
+        class(*), intent(inout), optional :: args
+
+        select type (args)
+        class is (frf_arg_container)
+            if (args%uses_optional_args) then
+                call args%fcn(args%frequency, x, y, dydx, args%optional_args)
+            else
+                call args%fcn(args%frequency, x, y, dydx)
+            end if
+        end select
     end subroutine
 
     ! ----------
@@ -807,7 +834,7 @@ contains
 
 ! ------------------------------------------------------------------------------
     function frf_sweep_2(fcn, nfreq, freq1, freq2, iv, solver, ncycles, &
-        ntransient, points, err) result(rst)
+        ntransient, points, args, err) result(rst)
         !! Computes the frequency response of each equation of a system of
         !! harmonically excited ODE's by sweeping through frequency.
         use spectrum, only : next_power_of_two
@@ -846,6 +873,9 @@ contains
             !! Fourier transform to determine the phase and amplitude, and in 
             !! order to satisfy Nyquist conditions, the value must be at least 
             !! 2.
+        class(*), intent(inout), optional :: args
+            !! An optional argument allowing for passing of data in/out of the
+            !! fcn subroutine.
         class(errors), intent(inout), optional, target :: err
             !! An optional errors-based object that if provided 
             !! can be used to retrieve information relating to any errors 
@@ -901,7 +931,7 @@ contains
         end if
         freq = (/ (df * i + freq1, i = 0, nfreq - 1) /)
         rst = frf_sweep_1(fcn, freq, iv, solver, ncycles, ntransient, &
-            points, err)
+            points, args = args, err = err)
     end function
 
 ! ******************************************************************************

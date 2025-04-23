@@ -37,12 +37,13 @@ pure subroutine example_2nd_order(t, x, dxdt)
     dxdt(2) = f - (2.0d0 * z * wn * x(2) + wn**2 * x(1))
 end subroutine
 
-pure subroutine example_2nd_order_sweep(freq, x, y, dydx)
+pure subroutine example_2nd_order_sweep(freq, x, y, dydx, args)
     ! Arguments
     real(real64), intent(in) :: freq
     real(real64), intent(in) :: x
     real(real64), intent(in), dimension(:) :: y
     real(real64), intent(out), dimension(:) :: dydx
+    class(*), intent(inout), optional :: args
 
     ! Model Parameters
     real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
