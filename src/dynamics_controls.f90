@@ -25,13 +25,13 @@ module dynamics_controls
         !!
         !! Where:
         !! 
-        !! - /( t /) denotes time.
+        !! - \( t \) denotes time.
         !!
-        !! - /( x(t) /) is the state vector.
+        !! - \( x(t) \) is the state vector.
         !!
-        !! - /( u(t) /) is the input vector.
+        !! - \( u(t) \) is the input vector.
         !!
-        !! - /( y(t) /) is the output vector.
+        !! - \( y(t) \) is the output vector.
         real(real64), allocatable, dimension(:,:) :: A
             !! The N-by-N dynamics matrix, where N is the number of state
             !! variables.
