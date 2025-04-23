@@ -27,6 +27,7 @@ module dynamics_frequency_response
     public :: iteration_controls
     public :: lm_solver_options
     public :: convergence_info
+    public :: ode_integrator
 
     interface
         function ode_excite(t) result(rst)
