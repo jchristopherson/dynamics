@@ -20,10 +20,11 @@ module dynamic_system
     real(real64), parameter :: zeta = 5.0d-2
 
 contains
-    pure subroutine equations_of_motion(t, x, dxdt)
+    pure subroutine equations_of_motion(t, x, dxdt, args)
         real(real64), intent(in) :: t
         real(real64), intent(in), dimension(:) :: x
         real(real64), intent(out), dimension(:) :: dxdt
+        class(*), intent(inout), optional :: args
 
         ! Compute the forcing term
         real(real64) :: f
