@@ -105,4 +105,7 @@ module dynamics
     public :: state_space
     public :: transfer_function
     public :: operator(*)
+    public :: lti_solve
+    public :: ss_excitation
+    public :: ode_integrator
 end module

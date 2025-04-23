@@ -2,12 +2,18 @@ module dynamics_controls
     use iso_fortran_env
     use nonlin_polynomials
     use ferror
+    use ieee_arithmetic
+    use dynamics_error_handling
+    use diffeq
     implicit none
     private
     public :: polynomial
     public :: state_space
     public :: transfer_function
     public :: operator(*)
+    public :: lti_solve
+    public :: ss_excitation
+    public :: ode_integrator
 
 ! ------------------------------------------------------------------------------
     type state_space
@@ -70,6 +76,32 @@ module dynamics_controls
         module procedure :: poly_tf_mult
         module procedure :: tf_poly_mult
     end interface
+
+! ------------------------------------------------------------------------------
+    interface
+        subroutine ss_excitation(t, u, args)
+            !! A routine for computing the excitation vector for a state-space
+            !! model.
+            use iso_fortran_env, only : real64
+            real(real64), intent(in) :: t
+                !! The time value at which to compute the excitation.
+            real(real64), intent(out), dimension(:) :: u
+                !! The excitation vector.
+            class(*), intent(inout), optional :: args
+                !! An optional argument used to pass objects in and out of the
+                !! routine.
+        end subroutine
+    end interface
+
+! ------------------------------------------------------------------------------
+! PRIVATE TYPES
+! ------------------------------------------------------------------------------
+    type argument_container
+        procedure(ss_excitation), pointer, nopass :: excitation
+        class(*), allocatable :: user_args
+        logical :: has_user_args
+        type(state_space) :: model
+    end type
 
 contains
 ! ******************************************************************************
@@ -297,6 +329,133 @@ function tf_poly_mult(x, y) result(rst)
     rst%Y = x%Y * y
     rst%X = x%X
 end function
+
+! ******************************************************************************
+! LTI SOLVERS
+! ------------------------------------------------------------------------------
+function lti_solve(mdl, u, t, ic, solver, args, err) result(rst)
+    !! Solves the LTI system given by the specified state space model.
+    class(state_space), intent(in) :: mdl
+        !! The state_space model to solve.
+    procedure(ss_excitation), pointer, intent(in) :: u
+        !! The routine used to compute the excitation vector.
+    real(real64), intent(in), dimension(:) :: t
+        !! The time points at which to compute the solution.  The array must
+        !! have at least 2 values; however, more may be specified.  If only
+        !! 2 values are specified, the integrator will compute the solution at
+        !! those points, but it will also return any intermediate integration
+        !! steps that may be required.  However, if more than 2 points are
+        !! given, the integrator will return the solution values only at the
+        !! specified time points.
+    real(real64), intent(in), dimension(:) :: ic
+        !! The initial condition vector.  This array must be the same size as
+        !! the number of state variables.
+    class(ode_integrator), intent(in), optional, target :: solver
+        !! The ODE solver to utilize.  If not specified, the default solver
+        !! is a 4th/5th order Runge-Kutta integrator.
+    class(*), intent(inout), optional :: args
+        !! An optional container for arguments to pass to the excitation
+        !! routine.
+    class(errors), intent(inout), optional, target :: err
+        !! An error handling object.
+    real(real64), allocatable, dimension(:,:) :: rst
+        !! The solution.  The time points at which the solution was evaluated
+        !! are stored in the first column and the output(s) are stored in the
+        !! remaining column(s).
+
+    ! Local Variables
+    integer(int32) :: i, n, npts, flag, nInputs, nOutputs
+    real(real64), allocatable, dimension(:) :: uv
+    real(real64), allocatable, dimension(:,:) :: sol
+    type(argument_container) :: container
+    class(errors), pointer :: errmgr
+    type(errors), target :: deferr
+    class(ode_integrator), pointer :: integrator
+    type(runge_kutta_45), target :: defaultIntegrator
+    type(ode_container) :: odeMdl
+    
+    ! Initialization
+    if (present(err)) then
+        errmgr => err
+    else
+        errmgr => deferr
+    end if
+    container%excitation => u
+    container%model = mdl
+    container%has_user_args = present(args)
+    if (present(args)) container%user_args = args
+    n = size(mdl%A, 1)
+    nInputs = size(mdl%B, 2)
+    nOutputs = size(mdl%C, 1)
+
+    ! Input Checking
+    if (size(ic) /= n) then
+        call report_array_size_error("lti_solve_statespace", "ic", n, &
+            size(ic), errmgr)
+        return
+    end if
+    
+    ! Set up the integrator
+    if (present(solver)) then
+        integrator => solver
+    else
+        integrator => defaultIntegrator
+    end if
+    odeMdl%fcn => ode_solver_routine
+
+    ! Call the solver
+    call integrator%solve(odeMdl, t, ic, err = errmgr)
+    if (errmgr%has_error_occurred()) return
+
+    ! Get the output from the solver
+    sol = integrator%get_solution()
+    npts = size(sol, 1)
+    allocate(rst(npts, nOutputs + 1), uv(nInputs), stat = flag, source = 0.0d0)
+    if (flag /= 0) then
+        call report_memory_error("lti_solve_statespace", flag, errmgr)
+        return
+    end if
+
+    ! Compute: C * x + D * u
+    do i = 1, npts
+        call u(sol(i,1), uv, args)
+        rst(i,2:) = matmul(mdl%C, sol(i,2:)) + matmul(mdl%D, uv)
+    end do
+end function
+
+! ----------
+subroutine ode_solver_routine(t, x, dxdt, args)
+    ! The routine called by the LTI solver
+    real(real64), intent(in) :: t, x(:)
+    real(real64), intent(out) :: dxdt(:)
+    class(*), intent(inout), optional :: args
+
+    ! Local Variables
+    integer(int32) :: n, p
+    real(real64) :: nan
+    real(real64), allocatable, dimension(:) :: u
+
+    ! Initialization
+    nan = ieee_value(nan, IEEE_QUIET_NAN)
+    
+    ! Process
+    select type (args)
+    class is (argument_container)
+        ! Evaluate the excitation vector at t
+        n = size(args%model%B, 2)
+        allocate(u(n), source = 0.0d0)
+        if (args%has_user_args) then
+            call args%excitation(t, u, args = args%user_args)
+        else
+            call args%excitation(t, u)
+        end if
+
+        ! Evaluate the model
+        dxdt = matmul(args%model%A, x) + matmul(args%model%B, u)
+    class default
+        dxdt = nan
+    end select
+end subroutine
 
 ! ------------------------------------------------------------------------------
 end module
