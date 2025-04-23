@@ -6,6 +6,7 @@ program main
     use dynamics_vibrations_tests
     use dynamics_stability_tests
     use dynamics_transfer_function_tests
+    use dynamics_state_space_tests
     implicit none
 
     ! Variables
@@ -126,6 +127,9 @@ program main
 
     check = test_ocf_form_conversion()
     if (.not.check) flag = 37
+
+    check = test_lti_solve()
+    if (.not.check) flag = 38
 
     ! End
     if (flag /= 0) stop flag

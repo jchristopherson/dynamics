@@ -404,7 +404,7 @@ function lti_solve(mdl, u, t, ic, solver, args, err) result(rst)
     odeMdl%fcn => ode_solver_routine
 
     ! Call the solver
-    call integrator%solve(odeMdl, t, ic, err = errmgr)
+    call integrator%solve(odeMdl, t, ic, args = container, err = errmgr)
     if (errmgr%has_error_occurred()) return
 
     ! Get the output from the solver
@@ -419,6 +419,7 @@ function lti_solve(mdl, u, t, ic, solver, args, err) result(rst)
     ! Compute: C * x + D * u
     do i = 1, npts
         call u(sol(i,1), uv, args)
+        rst(i,1) = sol(i,1)
         rst(i,2:) = matmul(mdl%C, sol(i,2:)) + matmul(mdl%D, uv)
     end do
 end function
