@@ -88,7 +88,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title="27.9% of total for modules and submodules.">757 statements</a>
+               title="25.2% of total for modules and submodules.">778 statements</a>
           </li>
 
             <li id="source-file">
@@ -220,11 +220,11 @@
       <ul class="list-group">
           <li class="list-group-item">
             <ul class="list-inline">
-                <li>diffeq</li>
-                <li>spectrum</li>
-                <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
-                <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
                 <li>ferror</li>
+                <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
+                <li>spectrum</li>
+                <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
+                <li>diffeq</li>
                 <li>fstats</li>
             </ul>
           </li>
@@ -1384,7 +1384,7 @@ encountered are as follows.</p>
     <ul class="list-group">
           <li class="list-group-item">
                 <h3>
-    private  function frf_sweep_1(fcn, freq, iv, solver, ncycles, ntransient, points, err) result(rst)  
+    private  function frf_sweep_1(fcn, freq, iv, solver, ncycles, ntransient, points, args, err) result(rst)  
 
     </h3>
   <p>Computes the frequency response of each equation of a system of
@@ -1527,6 +1527,22 @@ order to satisfy Nyquist conditions, the value must be at least
         <tr>
             <td>
               <span class="anchor" ></span>
+              class(*),
+            </td>
+<td>intent(inout),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>args</strong></td>
+            <td>
+                <p>An optional argument allowing for passing of data in/out of the
+fcn subroutine.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
               class(errors),
             </td>
 <td>intent(inout),</td>
@@ -1564,7 +1580,7 @@ encountered are as follows.</p>
           </li>
           <li class="list-group-item">
                 <h3>
-    private  function frf_sweep_2(fcn, nfreq, freq1, freq2, iv, solver, ncycles, ntransient, points, err) result(rst)  
+    private  function frf_sweep_2(fcn, nfreq, freq1, freq2, iv, solver, ncycles, ntransient, points, args, err) result(rst)  
 
     </h3>
   <p>Computes the frequency response of each equation of a system of
@@ -1734,6 +1750,22 @@ order to satisfy Nyquist conditions, the value must be at least
         <tr>
             <td>
               <span class="anchor" ></span>
+              class(*),
+            </td>
+<td>intent(inout),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>args</strong></td>
+            <td>
+                <p>An optional argument allowing for passing of data in/out of the
+fcn subroutine.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
               class(errors),
             </td>
 <td>intent(inout),</td>
@@ -1781,7 +1813,7 @@ encountered are as follows.</p>
     <ul class="list-group">
         <li class="list-group-item">
               <h3>
-    public pure subroutine harmonic_ode(freq, t, x, dxdt)  
+    public pure subroutine harmonic_ode(freq, t, x, dxdt, args)  
 
     </h3>
   <p>Defines a system of ODE's exposed to harmonic excitation.</p>
@@ -1855,6 +1887,22 @@ encountered are as follows.</p>
             <td><strong>dxdt</strong></td>
             <td>
                 <p>The derivatives as computed by this routine.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(*),
+            </td>
+<td>intent(inout),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>args</strong></td>
+            <td>
+                <p>An optional argument allowing the passing of data in/out of
+this routine.</p>
             </td>
         </tr>
     </tbody>
@@ -2557,7 +2605,7 @@ can be used to retrieve information relating to any errors
 encountered during execution. If not provided, a default 
 implementation of the errors class is used internally to provide 
 error handling. Possible errors and warning messages that may be 
-encountered are as follows.</p><a href="../proc/fit_frf.html#variable-err~7" class="pull-right"><emph>Read more&hellip;</emph></a>
+encountered are as follows.</p><a href="../proc/fit_frf.html#variable-err~23" class="pull-right"><emph>Read more&hellip;</emph></a>
             </td>
         </tr>
     </tbody>
@@ -2745,7 +2793,7 @@ value in the vector is one.</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2025-01-30 20:55            </p>
+ on 2025-04-23 19:21            </p>
         </div>
       </div>
       <br>
