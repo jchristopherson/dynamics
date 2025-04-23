@@ -127,4 +127,122 @@ function test_tf_poles_zeros() result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+function test_ccf_form_conversion() result(rst)
+    logical :: rst
+
+    ! Parameters
+    real(real64), parameter :: tol = 1.0d-8
+
+    ! Variables
+    integer(int32), parameter :: n = 4
+    integer(int32) :: i
+    real(real64) :: A(n,n), B(n,1), C(1,n), D(1,1), x(n + 1), y(n)
+    type(transfer_function) :: tf
+    type(state_space) :: ss
+
+    ! Initialization
+    rst = .true.
+    call random_number(x)
+    call random_number(y)
+    A = 0.0d0
+    B = 0.0d0
+    C = 0.0d0
+    D = 0.0d0
+    call tf%initialize(y, x)
+
+    ! Define the solution
+    y = y / x(n + 1)
+    x = x / x(n + 1)
+    A(n,:) = -x(1:n)
+    B(n,1) = 1.0d0
+    do i = 1, n - 1
+        A(i,i+1) = 1.0d0
+    end do
+    C(1,:) = y
+
+    ! Compute the solution
+    ss = tf%to_ccf_state_space()
+
+    ! Tests
+    if (.not.assert(A, ss%A, tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_ccf_form_conversion -1"
+    end if
+
+    if (.not.assert(B, ss%B, tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_ccf_form_conversion -2"
+    end if
+
+    if (.not.assert(C, ss%C, tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_ccf_form_conversion -3"
+    end if
+
+    if (.not.assert(D, ss%D, tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_ccf_form_conversion -4"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_ocf_form_conversion() result(rst)
+    logical :: rst
+
+    ! Parameters
+    real(real64), parameter :: tol = 1.0d-8
+
+    ! Variables
+    integer(int32), parameter :: n = 4
+    integer(int32) :: i
+    real(real64) :: A(n,n), B(n,1), C(1,n), D(1,1), x(n + 1), y(n)
+    type(transfer_function) :: tf
+    type(state_space) :: ss
+
+    ! Initialization
+    rst = .true.
+    call random_number(x)
+    call random_number(y)
+    A = 0.0d0
+    B = 0.0d0
+    C = 0.0d0
+    D = 0.0d0
+    call tf%initialize(y, x)
+
+    ! Define the solution
+    y = y / x(n + 1)
+    x = x / x(n + 1)
+    A(:,n) = -x(1:n)
+    do i = 1, n - 1
+        A(i+1,i) = 1.0d0
+    end do
+    B(:,1) = y
+    C(1,n) = 1.0d0
+
+    ! Compute the solution
+    ss = tf%to_ocf_state_space()
+
+    ! Tests
+    if (.not.assert(A, ss%A, tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_ocf_form_conversion -1"
+    end if
+
+    if (.not.assert(B, ss%B, tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_ocf_form_conversion -2"
+    end if
+
+    if (.not.assert(C, ss%C, tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_ocf_form_conversion -3"
+    end if
+
+    if (.not.assert(D, ss%D, tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_ocf_form_conversion -4"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
 end module

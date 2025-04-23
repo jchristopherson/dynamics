@@ -121,6 +121,12 @@ program main
     check = test_tf_poles_zeros()
     if (.not.check) flag = 35
 
+    check = test_ccf_form_conversion()
+    if (.not.check) flag = 36
+
+    check = test_ocf_form_conversion()
+    if (.not.check) flag = 37
+
     ! End
     if (flag /= 0) stop flag
 end program
