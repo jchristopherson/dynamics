@@ -683,7 +683,7 @@ contains
         container%fcn => fcn
         container%uses_optional_args = present(args)
         if (present(args)) then
-            container%optional_args = args
+            allocate(container%optional_args, source = args)
         end if
 
         ! Set up the integrator

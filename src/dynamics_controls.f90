@@ -383,7 +383,7 @@ function lti_solve(mdl, u, t, ic, solver, args, err) result(rst)
     container%excitation => u
     container%model = mdl
     container%has_user_args = present(args)
-    if (present(args)) container%user_args = args
+    if (present(args)) allocate(container%user_args, source = args)
     n = size(mdl%A, 1)
     nInputs = size(mdl%B, 2)
     nOutputs = size(mdl%C, 1)
