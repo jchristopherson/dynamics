@@ -1136,7 +1136,7 @@ end function
 ! V1.0.6 ADDITIONS
 ! ------------------------------------------------------------------------------
 ! SEE: https://www.researchgate.net/publication/224619803_Reduction_of_structure-borne_noise_in_automobiles_by_multivariable_feedback
-subroutine frf_accel_fit_fcn(xdata, mdl, rst, stop)
+subroutine frf_accel_fit_fcn(xdata, mdl, rst, stop, args)
     !! The FRF fitting function for an accelerance FRF (acceleration-excited).
     real(real64), intent(in), dimension(:) :: xdata
         !! The independent variable data.
@@ -1146,6 +1146,8 @@ subroutine frf_accel_fit_fcn(xdata, mdl, rst, stop)
         !! The model results.
     logical, intent(out) :: stop
         !! Stop the simulation?
+    class(*), intent(inout), optional :: args
+        !! Optional arguments from the calling code.
 
     ! Local Variables
     integer(int32) :: i, n
@@ -1165,7 +1167,7 @@ subroutine frf_accel_fit_fcn(xdata, mdl, rst, stop)
 end subroutine
 
 ! ------------------------------------------------------------------------------
-subroutine frf_force_fit_fcn(xdata, mdl, rst, stop)
+subroutine frf_force_fit_fcn(xdata, mdl, rst, stop, args)
     !! The FRF fitting function for an force-excited FRF.
     real(real64), intent(in), dimension(:) :: xdata
         !! The independent variable data.
@@ -1175,6 +1177,8 @@ subroutine frf_force_fit_fcn(xdata, mdl, rst, stop)
         !! The model results.
     logical, intent(out) :: stop
         !! Stop the simulation?
+    class(*), intent(inout), optional :: args
+        !! Optional arguments from the calling code.
 
     ! Local Variables
     integer(int32) :: i, n
