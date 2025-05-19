@@ -73,3 +73,12 @@ add_executable(
 )
 link_library(jacobian_example_1 ${PROJECT_NAME} ${PROJECT_INCLUDE_DIR})
 link_library(jacobian_example_1 ${fplot_LIBRARY} ${fplot_INCLUDE_DIR})
+
+# SISO Fitting Example
+add_executable(
+    siso_lsq_fit_example
+    siso_lsq_fit_example.f90
+)
+link_library(siso_lsq_fit_example ${PROJECT_NAME} ${PROJECT_INCLUDE_DIR})
+link_library(siso_lsq_fit_example ${fplot_LIBRARY} ${fplot_INCLUDE_DIR})
+link_library(siso_lsq_fit_example ${fstats_LIBRARY} ${fstats_INCLUDE_DIR})
