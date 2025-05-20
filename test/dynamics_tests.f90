@@ -7,6 +7,7 @@ program main
     use dynamics_stability_tests
     use dynamics_transfer_function_tests
     use dynamics_state_space_tests
+    use dynamics_system_id_tests
     implicit none
 
     ! Variables
@@ -130,6 +131,9 @@ program main
 
     check = test_lti_solve()
     if (.not.check) flag = 38
+
+    check = test_siso_model_fit_least_squares()
+    if (.not.check) flag = 39
 
     ! End
     if (flag /= 0) stop flag
