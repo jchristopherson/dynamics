@@ -287,7 +287,10 @@ The computed frequency response functions, both ascending and descending, as com
 ![](images/frf_sweep_example_1.png?raw=true)
 
 ## Parameter Discovery (System Identification):
-The following example illustrates how to estimate parameters of an ODE given an observed output to a known input.  This example illustrates how to find $\omega_{n}$ and $\zeta$ in the model $ \ddot{x} + 2 \zeta \omega_{n} \dot{x} + \omega_{n}^{2} x = f(t) $.
+The following example illustrates how to estimate parameters of an ODE given an observed output to a known input.  This example illustrates how to find $\omega_{n}$ and $\zeta$ in the model of a single degree of freedom system.
+```math
+\ddot{x} + 2 \zeta \omega_{n} \dot{x} + \omega_{n}^{2} x = f(t)
+```
 
 ```fortran
 module equation_container
