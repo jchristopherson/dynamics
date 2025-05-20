@@ -33,27 +33,37 @@ program example
     use equation_container
     use dynamics
     use diffeq
-    use fstats, only : box_muller_sample
+    use fstats
+    use fplot_core
     implicit none
 
     ! Parameters
     real(real64), parameter :: fs = 1.0d3
     integer(int32), parameter :: npts = 1000
-    real(real64), parameter :: zeta = 2.0d-1
+    real(real64), parameter :: zeta = 5.0d-2
     real(real64), parameter :: wn = 3.0d2
     real(real64), parameter :: sigma_pct = 1.0d-1
-    real(real64), parameter :: step_amplitude = 1.0d0
+    real(real64), parameter :: amplitude = 1.0d4
 
     ! Local Variables
     integer(int32) :: i
-    real(real64) :: dt, wng(1), zg(1), p(2), ic(2)
+    real(real64) :: dt, tmax, p(2), ic(2)
     type(dynamic_system_measurement) :: measurements(1)
     procedure(ode), pointer :: fcn
+    type(ode_container) :: mdl
+    type(runge_kutta_45) :: integrator
+    type(model_information) :: info
+    type(linear_interpolator), target :: interp
+    real(real64), allocatable, dimension(:,:) :: sol
+    type(iteration_controls) :: controls
+
+    ! Plot Variables
+    type(plot_2d) :: plt
+    type(plot_data_2d) :: pd1, pd2
+    class(legend), pointer :: lgnd
     
-    ! Generate an initial guess randomly from a Gaussian distribution
-    wng = box_muller_sample(wn, sigma_pct * wn, 1)
-    zg = box_muller_sample(zeta, sigma_pct * zeta, 1)
-    p = [wng, zg]
+    ! Generate an initial guess
+    p = [2.5d2, 1.0d-1]
 
     ! Allocate memory for the measurement data we're trying to fit
     allocate( &
@@ -64,31 +74,60 @@ program example
 
     ! Generate a time vector at which to sample the system.
     dt = 1.0d0 / fs
+    tmax = dt * (npts - 1.0d0)
     measurements(1)%t = (/ (dt * i, i = 0, npts - 1) /)
 
     ! Define the forcing function at each time point
-    measurements(1)%input = step_amplitude
+    measurements(1)%input = amplitude
 
-    ! Assume the system is exposed to a step function.  The solution
-    ! is then given as follows.
-    measurements(1)%output = evaluate_step_response(wn, zeta, step_amplitude, &
-        measurements(1)%t)
+    ! Generate the solution for the system
+    ic = 0.0d0  ! zero-valued initial conditions
+    call interp%initialize(measurements(1)%t, measurements(1)%input)
+    info%model = [wn, zeta]
+    info%excitation => interp
+    mdl%fcn => eom
+    call integrator%solve(mdl, measurements(1)%t, ic, args = info)
+    sol = integrator%get_solution()
+    measurements(1)%output = sol(:,2) + &
+        box_muller_sample(0.0d0, 5.0d-3, npts) ! additional noise
+
+    ! This is optional, but is illustrated here to show how to adjust solver
+    ! tolerances
+    call controls%set_to_default()
+    controls%change_in_solution_tolerance = 1.0d-12
+    controls%residual_tolerance = 1.0d-8
 
     ! Set up the problem and solve
     fcn => eom
-    ic = 0.0d0  ! zero-valued initial conditions
-    call siso_model_fit_least_squares(fcn, measurements, ic, p)
+    call siso_model_fit_least_squares(fcn, measurements, ic, p, &
+        controls = controls)
 
     ! Compare the solution and the actual values
     print "(A)", "NATURAL FREQUENCY TERM:"
-    print "(AAF7.3A)", achar(9), "Actual: ", wn, " rad/s"
-    print "(AAF7.3A)", achar(9), "Initial Guess: ", wng, " rad/s"
-    print "(AAF7.3A)", achar(9), "Computed: ", p(1), " rad/s"
-    print "(AAF7.3A)", achar(9), "Difference: ", p(1) - wn, " rad/s"
+    print "(AAF8.3A)", achar(9), "Actual: ", wn, " rad/s"
+    print "(AAF8.3A)", achar(9), "Computed: ", p(1), " rad/s"
+    print "(AAF8.3A)", achar(9), "Difference: ", p(1) - wn, " rad/s"
     
     print "(A)", "DAMPING TERM:"
-    print "(AAF5.3)", achar(9), "Actual: ", zeta
-    print "(AAF5.3)", achar(9), "Initial Guess: ", zg
-    print "(AAF5.3)", achar(9), "Computed: ", p(2)
+    print "(AAF6.3)", achar(9), "Actual: ", zeta
+    print "(AAF6.3)", achar(9), "Computed: ", p(2)
     print "(AAF6.3)", achar(9), "Difference: ", p(2) - zeta
+
+    ! Re-evaluate the model with the computed parameters
+    info%model = p
+    call integrator%clear_buffer()
+    call integrator%solve(mdl, measurements(1)%t, ic, args = info)
+    sol = integrator%get_solution()
+    
+    ! Plot the results
+    call plt%initialize()
+    lgnd => plt%get_legend()
+    call lgnd%set_is_visible(.true.)
+    call pd1%define_data(measurements(1)%t, measurements(1)%output)
+    call pd1%set_name("Data")
+    call plt%push(pd1)
+    call pd2%define_data(measurements(1)%t, sol(:,2))
+    call pd2%set_name("Fit")
+    call plt%push(pd2)
+    call plt%draw()
 end program
