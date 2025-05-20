@@ -21,7 +21,7 @@ contains
             F = args%excitation%interpolate_value(t)
         end select
 
-        ! The ODE's:
+        ! The ODE:
         ! x" + 2 zeta wn x' + wn**2 x = F(t)
         dxdt(1) = x(2)
         dxdt(2) = F - wn * (2.0d0 * zeta * x(2) + wn * x(1))
@@ -56,6 +56,7 @@ program example
     type(linear_interpolator), target :: interp
     real(real64), allocatable, dimension(:,:) :: sol
     type(iteration_controls) :: controls
+    type(regression_statistics) :: stats(2)
 
     ! Plot Variables
     type(plot_2d) :: plt
@@ -100,18 +101,26 @@ program example
     ! Set up the problem and solve
     fcn => eom
     call siso_model_fit_least_squares(fcn, measurements, ic, p, &
-        controls = controls)
+        controls = controls, stats = stats)
 
     ! Compare the solution and the actual values
     print "(A)", "NATURAL FREQUENCY TERM:"
     print "(AAF8.3A)", achar(9), "Actual: ", wn, " rad/s"
     print "(AAF8.3A)", achar(9), "Computed: ", p(1), " rad/s"
     print "(AAF8.3A)", achar(9), "Difference: ", p(1) - wn, " rad/s"
+    print "(AAF8.3A)", achar(9), "Std. Error: ", stats(1)%standard_error, " rad/s"
+    print "(AAF8.3A)", achar(9), "Conf. Int.: +/-", stats(1)%confidence_interval, " rad/s"
+    print "(AAEN10.3)", achar(9), "P-Value: ", stats(1)%probability
+    print "(AAEN12.3)", achar(9), "T-Statistic: ", stats(1)%t_statistic
     
     print "(A)", "DAMPING TERM:"
     print "(AAF6.3)", achar(9), "Actual: ", zeta
     print "(AAF6.3)", achar(9), "Computed: ", p(2)
     print "(AAF6.3)", achar(9), "Difference: ", p(2) - zeta
+    print "(AAF6.3)", achar(9), "Std. Error: ", stats(2)%standard_error
+    print "(AAF6.3)", achar(9), "Conf. Int.: +/-", stats(2)%confidence_interval
+    print "(AAEN10.3)", achar(9), "P-Value: ", stats(2)%probability
+    print "(AAEN12.3)", achar(9), "T-Statistic: ", stats(2)%t_statistic
 
     ! Re-evaluate the model with the computed parameters
     info%model = p

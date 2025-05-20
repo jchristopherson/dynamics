@@ -66,7 +66,10 @@ contains
 subroutine siso_model_fit_least_squares(fcn, x, ic, p, integrator, ind, maxp, &
     minp, stats, alpha, controls, settings, info, status, cov, args, err)
     !! Attempts to fit a model of a single-intput, single-output (SISO) dynamic 
-    !! system by means of an iterative least-squares solver
+    !! system by means of an iterative least-squares solver.  The algorithm
+    !! computes the solution to the differential equations numerically, and
+    !! compares the output to the known solution via a Levenberg-Marquardt
+    !! least-squares solver.
     procedure(ode), pointer, intent(in) :: fcn
         !! The routine containing the ODE's being fit.  To communicate 
         !! model parameters and other relevant information, an instance of the
@@ -83,7 +86,7 @@ subroutine siso_model_fit_least_squares(fcn, x, ic, p, integrator, ind, maxp, &
     class(ode_integrator), intent(inout), optional, target :: integrator
         !! The integrator to use when solving the system equations.  If not
         !! supplied, the default integrator will be used.  The default 
-        !! integrator is a 4th order Rosenbrock integrator.
+        !! integrator is a Runge-Kutta integrator (Dormand-Prince).
     integer(int32), intent(in), optional :: ind
         !! The index of the ODE in [[fcn]] providing the output to fit.  If
         !! no value is supplied, a value of 1 will be utilized.
@@ -129,7 +132,7 @@ subroutine siso_model_fit_least_squares(fcn, x, ic, p, integrator, ind, maxp, &
     real(real64), allocatable, dimension(:) :: t, f, ymod, resid
     class(errors), pointer :: errmgr
     type(errors), target :: deferr
-    type(rosenbrock), target :: default_ode_solver
+    type(runge_kutta_45), target :: default_ode_solver
     type(regression_information) :: addinfo
     procedure(regression_function), pointer :: fcnptr
     
