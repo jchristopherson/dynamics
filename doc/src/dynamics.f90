@@ -7,6 +7,7 @@ module dynamics
     use dynamics_helper
     use dynamics_stability
     use dynamics_controls
+    use dynamics_system_id
     implicit none
     private
 
@@ -108,4 +109,9 @@ module dynamics
     public :: lti_solve
     public :: ss_excitation
     public :: ode_integrator
+
+    ! DYNAMICS_SYSTEM_ID
+    public :: dynamic_system_measurement
+    public :: model_information
+    public :: siso_model_fit_least_squares
 end module
