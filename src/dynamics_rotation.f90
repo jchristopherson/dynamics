@@ -234,7 +234,7 @@ pure function rotate_x(angle) result(rst)
 
 ! ------------------------------------------------------------------------------
     pure function velocity_transform(omega, v, x) result(rst)
-        !! Computes the acceleration transformation matrix relating the position
+        !! Computes the velocity transformation matrix relating the position
         !! of a point expressed in a rotating and translating body relative to
         !! its parent frame.
         !!

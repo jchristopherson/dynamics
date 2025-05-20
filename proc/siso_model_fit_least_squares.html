@@ -8,7 +8,7 @@
     <meta name="author" content="Jason Christopherson" >
     <link rel="icon" href="../favicon.png">
 
-    <title>find_free_response_properties &ndash; DYNAMICS</title>
+    <title>siso_model_fit_least_squares &ndash; DYNAMICS</title>
 
     <link href="../css/bootstrap.min.css" rel="stylesheet">
     <link href="../css/pygments.css" rel="stylesheet">
@@ -76,7 +76,7 @@
 
     <div class="container">
   <div class="row">
-    <h1>find_free_response_properties
+    <h1>siso_model_fit_least_squares
       <small>Subroutine</small>
       
     </h1>
@@ -88,18 +88,18 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 4.7% of total for procedures.">54 statements</a>
+               title=" 6.3% of total for procedures.">72 statements</a>
           </li>
 
             <li id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dynamics_vibrations.f90"> Source File</a>
+              <a href="../src/dynamics_system_id.f90"> Source File</a>
             </li>
         </ul>
         <ol class="breadcrumb in-well text-right">
-              <li><a href='../sourcefile/dynamics_vibrations.f90.html'>dynamics_vibrations.f90</a></li>
-              <li><a href='../module/dynamics_vibrations.html'>dynamics_vibrations</a></li>
-          <li class="active">find_free_response_properties</li>
+              <li><a href='../sourcefile/dynamics_system_id.f90.html'>dynamics_system_id.f90</a></li>
+              <li><a href='../module/dynamics_system_id.html'>dynamics_system_id</a></li>
+          <li class="active">siso_model_fit_least_squares</li>
         </ol>
       </div>
     </div>
@@ -142,14 +142,15 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>public  subroutine find_free_response_properties(t, x, delta, fn, x1, x2, t1, t2, s, n)  
+    <h2>public  subroutine siso_model_fit_least_squares(fcn, x, ic, p, integrator, ind, maxp, minp, stats, alpha, controls, settings, info, status, cov, args, err)  
 </h2>
     
 
-    <p>Given a free-response time history, this routine attempts to find the 
-logarithmic decrement and resonant frequency of a vibratory system. The
-logarithmic decrement is estimated by finding successive peaks by
-means of peak detection.</p>
+    <p>Attempts to fit a model of a single-intput, single-output (SISO) dynamic 
+system by means of an iterative least-squares solver.  The algorithm
+computes the solution to the differential equations numerically, and
+compares the output to the known solution via a Levenberg-Marquardt
+least-squares solver.</p>
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -164,23 +165,26 @@ means of peak detection.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-t~4"></span>
-              real(kind=real64),
+              <span class="anchor" id="variable-fcn~3"></span>
+              procedure(ode),
             </td>
 <td>intent(in),</td>
               <td></td>            <td>
-              dimension(:)
+              pointer
             </td>
             <td>::</td>
-            <td><strong>t</strong></td>
+            <td><strong>fcn</strong></td>
             <td>
-                <p>An N-element array containing the values in time</p>
+                <p>The routine containing the ODE's being fit.  To communicate 
+model parameters and other relevant information, an instance of the
+<a href="../type/model_information.html">model_information</a> type is passed to the optional argument of this
+routine.  Use the "select case" construct to access this information.</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-x~10"></span>
-              real(kind=real64),
+              <span class="anchor" id="variable-x~20"></span>
+              class(<a href='../type/dynamic_system_measurement.html'>dynamic_system_measurement</a>),
             </td>
 <td>intent(in),</td>
               <td></td>            <td>
@@ -189,133 +193,61 @@ means of peak detection.</p>
             <td>::</td>
             <td><strong>x</strong></td>
             <td>
-                <p>An N-element array containing the response sampled at the time points
-given in t.</p>
+                <p>An M-element array of arrays with each array containing the measured
+input and output of the system being identified.</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-delta~2"></span>
-              real(kind=real64),
-            </td>
-<td>intent(out)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>delta</strong></td>
-            <td>
-                <p>The logarithmic decrement estimate.  If sufficient peaks cannot be
-located, the routine returns NaN.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-fn~2"></span>
-              real(kind=real64),
-            </td>
-<td>intent(out)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>fn</strong></td>
-            <td>
-                <p>The damped resonant frequency in units of Hz, assuming that the
-time values are in seconds.  If the time units are not in seconds,
-the units will be cycle/unit time with unit time being the units
-in which t is supplied.  If sufficient peaks cannot be located, the 
-routine returns NaN.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-x1~2"></span>
-              real(kind=real64),
-            </td>
-<td>intent(out),</td>
-              <td>optional</td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>x1</strong></td>
-            <td>
-                <p>An optional parameter that, if provided, allows for the routine to
-return the amplitude of the first peak.  If sufficient peaks cannot 
-be located, the routine returns NaN.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-x2~2"></span>
-              real(kind=real64),
-            </td>
-<td>intent(out),</td>
-              <td>optional</td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>x2</strong></td>
-            <td>
-                <p>An optional parameter that, if provided, allows for the routine to
-return the amplitude of the second peak.  If sufficient peaks cannot 
-be located, the routine returns NaN.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-t1"></span>
-              real(kind=real64),
-            </td>
-<td>intent(out),</td>
-              <td>optional</td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>t1</strong></td>
-            <td>
-                <p>An optional parameter that, if provided, allows for the routine to
-return the time at which the first peak was located.  If sufficient
-peaks cannot be located, the routine returns NaN.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-t2"></span>
-              real(kind=real64),
-            </td>
-<td>intent(out),</td>
-              <td>optional</td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>t2</strong></td>
-            <td>
-                <p>An optional parameter that, if provided, allows for the routine to
-return the time at which the second peak was located.  If sufficient
-peaks cannot be located, the routine returns NaN.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-s~2"></span>
+              <span class="anchor" id="variable-ic~2"></span>
               real(kind=real64),
             </td>
 <td>intent(in),</td>
-              <td>optional</td>            <td>
-              
+              <td></td>            <td>
+              dimension(:)
             </td>
             <td>::</td>
-            <td><strong>s</strong></td>
+            <td><strong>ic</strong></td>
             <td>
-                <p>An optional input that, if provided, allows for control of the 
-sensitivity of the peak detection algorithm.  The default is 0.1%
-of the peak-peak amplitude of the signal.</p>
+                <p>The initial condition vector for the equations in <a>fcn</a>.</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-n~2"></span>
+              <span class="anchor" id="variable-p"></span>
+              real(kind=real64),
+            </td>
+<td>intent(inout),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>p</strong></td>
+            <td>
+                <p>An N-element array containing an initial guess at the parameters.<br>
+On output, the computed model parameters.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-integrator"></span>
+              class(ode_integrator),
+            </td>
+<td>intent(inout),</td>
+              <td>optional,</td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>integrator</strong></td>
+            <td>
+                <p>The integrator to use when solving the system equations.  If not
+supplied, the default integrator will be used.  The default 
+integrator is a Runge-Kutta integrator (Dormand-Prince).</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ind~3"></span>
               integer(kind=int32),
             </td>
 <td>intent(in),</td>
@@ -323,11 +255,189 @@ of the peak-peak amplitude of the signal.</p>
               
             </td>
             <td>::</td>
-            <td><strong>n</strong></td>
+            <td><strong>ind</strong></td>
             <td>
-                <p>An optional input that, if provided, determines the number of 
-periods to allow between peak selection for the logarithmic 
-decrement calculation.  The default is 1.</p>
+                <p>The index of the ODE in <a>fcn</a> providing the output to fit.  If
+no value is supplied, a value of 1 will be utilized.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-maxp"></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>maxp</strong></td>
+            <td>
+                <p>An optional N-element array that can be used as upper limits on the 
+parameter values. If no upper limit is requested for a particular 
+parameter, utilize a very large value. The internal default is to 
+utilize huge() as a value.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-minp"></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>minp</strong></td>
+            <td>
+                <p>An optional N-element array that can be used as lower limits on the 
+parameter values. If no lower limit is requested for a particalar 
+parameter, utilize a very large magnitude, but negative, value. The 
+internal default is to utilize -huge() as a value.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-stats"></span>
+              type(regression_statistics),
+            </td>
+<td>intent(out),</td>
+              <td>optional,</td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>stats</strong></td>
+            <td>
+                <p>An optional N-element array that, if supplied, will be used to 
+return statistics about the fit for each parameter.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-alpha~6"></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>alpha</strong></td>
+            <td>
+                <p>The significance level at which to evaluate the confidence 
+intervals. The default value is 0.05 such that a 95% confidence 
+interval is calculated.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-controls"></span>
+              type(iteration_controls),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>controls</strong></td>
+            <td>
+                <p>An optional input providing custom iteration controls.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-settings"></span>
+              type(lm_solver_options),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>settings</strong></td>
+            <td>
+                <p>An optional input providing custom settings for the solver.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-info"></span>
+              type(convergence_info),
+            </td>
+<td>intent(out),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>info</strong></td>
+            <td>
+                <p>An optional output that can be used to gain information about the 
+iterative solution and the nature of the convergence.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-status"></span>
+              procedure(iteration_update),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              pointer
+            </td>
+            <td>::</td>
+            <td><strong>status</strong></td>
+            <td>
+                <p>An optional pointer to a routine that can be used to extract 
+iteration information.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-cov"></span>
+              real(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td>optional,</td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>cov</strong></td>
+            <td>
+                <p>An optional N-by-N matrix that, if supplied, will be used to return 
+the covariance matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-args~3"></span>
+              class(*),
+            </td>
+<td>intent(inout),</td>
+              <td>optional,</td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>args</strong></td>
+            <td>
+                <p>User-defined information to pass along to <a>fcn</a>.  These arguments,
+if supplied, will be passed through to <a>fcn</a> by means of the
+<a href="../type/model_information.html">model_information</a> type.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-err~25"></span>
+              class(errors),
+            </td>
+<td>intent(inout),</td>
+              <td>optional,</td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>err</strong></td>
+            <td>
+                <p>An error handling object.</p>
             </td>
         </tr>
     </tbody>

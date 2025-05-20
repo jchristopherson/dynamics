@@ -8,7 +8,7 @@
     <meta name="author" content="Jason Christopherson" >
     <link rel="icon" href="../favicon.png">
 
-    <title>velocity_transform &ndash; DYNAMICS</title>
+    <title>dynamic_system_measurement &ndash; DYNAMICS </title>
 
     <link href="../css/bootstrap.min.css" rel="stylesheet">
     <link href="../css/pygments.css" rel="stylesheet">
@@ -76,8 +76,8 @@
 
     <div class="container">
   <div class="row">
-    <h1>velocity_transform
-      <small>Function</small>
+    <h1>dynamic_system_measurement
+      <small>Derived Type</small>
       
     </h1>
       <div class="row" id="info-bar">
@@ -88,18 +88,18 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 0.8% of total for procedures.">9 statements</a>
+               title="<p> 4.2% of total for derived types.</p>Including implementation: 5 statements,  0.6% of total for derived types.">5 statements</a>
           </li>
 
             <li id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dynamics_rotation.f90"> Source File</a>
+              <a href="../src/dynamics_system_id.f90"> Source File</a>
             </li>
         </ul>
         <ol class="breadcrumb in-well text-right">
-              <li><a href='../sourcefile/dynamics_rotation.f90.html'>dynamics_rotation.f90</a></li>
-              <li><a href='../module/dynamics_rotation.html'>dynamics_rotation</a></li>
-          <li class="active">velocity_transform</li>
+              <li><a href='../sourcefile/dynamics_system_id.f90.html'>dynamics_system_id.f90</a></li>
+              <li><a href='../module/dynamics_system_id.html'>dynamics_system_id</a></li>
+          <li class="active">dynamic_system_measurement</li>
         </ol>
       </div>
     </div>
@@ -117,7 +117,21 @@
       <div id="sidebar">
       <h3>Contents</h3>
   
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#vars-0">Variables</a>
+        </h3>
+      </div>
+      <div id="vars-0" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../type/dynamic_system_measurement.html#variable-input">input</a>
+            <a class="list-group-item" href="../type/dynamic_system_measurement.html#variable-output">output</a>
+            <a class="list-group-item" href="../type/dynamic_system_measurement.html#variable-t~6">t</a>
+        </div>
+      </div>
+    </div>
+
   
   
   
@@ -142,101 +156,28 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>public pure function velocity_transform(omega, v, x) result(rst)  
-</h2>
-    
-
-    <p>Computes the velocity transformation matrix relating the position
-of a point expressed in a rotating and translating body relative to
-its parent frame.</p>
-<p>The transformation matrix takes the following form.</p>
-<p>
-<script type="math/tex; mode=display"> V = \left[ \begin{matrix} \tilde{\omega} & \vec{v} - 
-\tilde{\omega} \vec{x} \\ 0 & 0 \end{matrix} \right] </script>
-</p>
-<p>where,</p>
-<p>
-<script type="math/tex; mode=display"> \tilde{\omega} = \left[ \begin{matrix} 0 & -\omega_z & \omega_y \\
-\omega_z & 0 & -\omega_x \\ -\omega_y & \omega_x & 0 \end{matrix}
-\right] </script>
-</p>
-<p>Given a vector describing the location on a moving body, 
-<script type="math/tex">\vec{r_p}</script>, the matrix is used to report its velocity 
-<script type="math/tex">\vec{v_p} = V \vec{r_p}</script>.</p>
-
-    <h3>Arguments</h3>
-        <table class="table table-striped varlist">
-    <thead>
-      <tr>
-        <th>Type</th>
-<th>Intent</th><th>Optional</th>        <th>Attributes</th>
-        <th></th>
-        <th>Name</th>
-        <th></th>
-    </thead>
-    <tbody>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-omega~3"></span>
-              real(kind=real64),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>omega</strong>(3)</td>
-            <td>
-                <p>The angular velocity vector.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-v"></span>
-              real(kind=real64),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>v</strong>(3)</td>
-            <td>
-                <p>The translation velocity vector describing the velocity of the
-body in its parent coordinate frame.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-x~17"></span>
-              real(kind=real64),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>x</strong>(3)</td>
-            <td>
-                <p>The position vector of the body in its parent coordinate frame.</p>
-            </td>
-        </tr>
-    </tbody>
-  </table>
-
-      <h3>Return Value
-        <small>
-          <span class="anchor" id="variable-rst~98"></span>
-          real(kind=real64), (4,4)
-        </small>
-      </h3>
-      <p>The 4-by-4 transformation matrix.</p>
+      <h2>type, public :: dynamic_system_measurement</h2>
+    <p>A container of a single measurement data set.</p>
     <br>
 
     <section class="visible-xs visible-sm hidden-md">
         <h3>Contents</h3>
   
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#vars-1">Variables</a>
+        </h3>
+      </div>
+      <div id="vars-1" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../type/dynamic_system_measurement.html#variable-input">input</a>
+            <a class="list-group-item" href="../type/dynamic_system_measurement.html#variable-output">output</a>
+            <a class="list-group-item" href="../type/dynamic_system_measurement.html#variable-t~6">t</a>
+        </div>
+      </div>
+    </div>
+
   
   
   
@@ -259,15 +200,78 @@ body in its parent coordinate frame.</p>
     </section>
     <br class="visible-xs visible-sm hidden-md">
 
+    <section>
+    <h2>Components</h2>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Visibility</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+<th></th><th>Initial</th>        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-input"></span>
+              real(kind=real64),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>input</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>The input data.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-output"></span>
+              real(kind=real64),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>output</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>The output data.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-t~6"></span>
+              real(kind=real64),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>t</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>The time points at which the measurements were taken.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
 
-    
-    
-
-    
+    </section>
+    <br>
     
 
 
-    
+
     
     </div>
   </div>

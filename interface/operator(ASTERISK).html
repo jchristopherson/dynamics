@@ -88,7 +88,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title="<p> 0.5% of total for procedures.</p>Including implementation: 26 statements,  2.4% of total for procedures.">5 statements</a>
+               title="<p> 0.6% of total for procedures.</p>Including implementation: 42 statements,  3.7% of total for procedures.">7 statements</a>
           </li>
 
             <li id="source-file">
@@ -145,6 +145,8 @@
             <a class="list-group-item" href="../interface/operator%28ASTERISK%29.html#moduleprocedure-tf_tf_mult">tf_tf_mult</a>
             <a class="list-group-item" href="../interface/operator%28ASTERISK%29.html#moduleprocedure-poly_tf_mult">poly_tf_mult</a>
             <a class="list-group-item" href="../interface/operator%28ASTERISK%29.html#moduleprocedure-tf_poly_mult">tf_poly_mult</a>
+            <a class="list-group-item" href="../interface/operator%28ASTERISK%29.html#moduleprocedure-tf_scalar_mult">tf_scalar_mult</a>
+            <a class="list-group-item" href="../interface/operator%28ASTERISK%29.html#moduleprocedure-scalar_tf_mult">scalar_tf_mult</a>
         </div>
       </div>
     </div>
@@ -190,6 +192,8 @@
             <a class="list-group-item" href="../interface/operator%28ASTERISK%29.html#moduleprocedure-tf_tf_mult">tf_tf_mult</a>
             <a class="list-group-item" href="../interface/operator%28ASTERISK%29.html#moduleprocedure-poly_tf_mult">poly_tf_mult</a>
             <a class="list-group-item" href="../interface/operator%28ASTERISK%29.html#moduleprocedure-tf_poly_mult">tf_poly_mult</a>
+            <a class="list-group-item" href="../interface/operator%28ASTERISK%29.html#moduleprocedure-tf_scalar_mult">tf_scalar_mult</a>
+            <a class="list-group-item" href="../interface/operator%28ASTERISK%29.html#moduleprocedure-scalar_tf_mult">scalar_tf_mult</a>
         </div>
       </div>
     </div>
@@ -381,6 +385,124 @@ transfer function.</p>
     </div>
   </div>
 
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-tf_scalar_mult"></span><h3>private  function tf_scalar_mult(x, y) result(rst)  
+</h3></div>
+    <div class="panel-body">
+        <p>Multiplies a transfer function by a scalar value.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/transfer_function.html'>transfer_function</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+                <p>The left-hand-side argument.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>y</strong></td>
+            <td>
+                <p>The right-hand-side argument.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/transfer_function.html'>transfer_function</a>)</small>
+    </h4>
+    <p>The resulting transfer function.</p>
+
+    </div>
+  </div>
+
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-scalar_tf_mult"></span><h3>private  function scalar_tf_mult(x, y) result(rst)  
+</h3></div>
+    <div class="panel-body">
+        <p>Multiplies a transfer function by a scalar value.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+                <p>The left-hand-side argument.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/transfer_function.html'>transfer_function</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>y</strong></td>
+            <td>
+                <p>The right-hand-side argument.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/transfer_function.html'>transfer_function</a>)</small>
+    </h4>
+    <p>The resulting transfer function.</p>
+
+    </div>
+  </div>
+
 
  </div>
 </div>
@@ -397,7 +519,7 @@ transfer function.</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2025-04-23 19:52            </p>
+ on 2025-05-20 18:27            </p>
         </div>
       </div>
       <br>
