@@ -75,6 +75,8 @@ module dynamics_controls
         module procedure :: tf_tf_mult
         module procedure :: poly_tf_mult
         module procedure :: tf_poly_mult
+        module procedure :: tf_scalar_mult
+        module procedure :: scalar_tf_mult
     end interface
 
 ! ------------------------------------------------------------------------------
@@ -328,6 +330,36 @@ function tf_poly_mult(x, y) result(rst)
     ! Process
     rst%Y = x%Y * y
     rst%X = x%X
+end function
+
+! ------------------------------------------------------------------------------
+function tf_scalar_mult(x, y) result(rst)
+    !! Multiplies a transfer function by a scalar value.
+    class(transfer_function), intent(in) :: x
+        !! The left-hand-side argument.
+    real(real64), intent(in) :: y
+        !! The right-hand-side argument.
+    type(transfer_function) :: rst
+        !! The resulting transfer function.
+
+    ! Process
+    rst%Y = y * x%Y
+    rst%X = x%X
+end function
+
+! ------------------------------------------------------------------------------
+function scalar_tf_mult(x, y) result(rst)
+    !! Multiplies a transfer function by a scalar value.
+    real(real64), intent(in) :: x
+        !! The left-hand-side argument.
+    class(transfer_function), intent(in) :: y
+        !! The right-hand-side argument.
+    type(transfer_function) :: rst
+        !! The resulting transfer function.
+
+    ! Process
+    rst%Y = x * y%Y
+    rst%X = y%X
 end function
 
 ! ******************************************************************************

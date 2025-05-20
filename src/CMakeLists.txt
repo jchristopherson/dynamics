@@ -13,5 +13,6 @@ set(DYNAMICS_SOURCES
     ${dir}/dynamics_helper.f90
     ${dir}/dynamics_stability.f90
     ${dir}/dynamics_controls.f90
+    ${dir}/dynamics_system_id.f90
 )
 set(DYNAMICS_SOURCES ${DYNAMICS_SOURCES} PARENT_SCOPE)
