@@ -15,7 +15,33 @@ module dynamics_system_id
     public :: lm_solver_options
     public :: convergence_info
     public :: iteration_update
+    public :: constraint_equations
 
+
+    interface
+        subroutine constraint_equations(xg, fg, xc, p, fc, args)
+            !! An interface to a set of routines for defining constraint 
+            !! equations to the fitting process.
+            use iso_fortran_env, only : real64
+            real(real64), intent(in), dimension(:) :: xg
+                !! An N-element array containing the N independent variable
+                !! values for the N differential equation solution points.
+            real(real64), intent(in), dimension(:) :: fg
+                !! An N-element array containing the N differential equation
+                !! solution points.
+            real(real64), intent(in), dimension(:) :: xc
+                !! An M-element array containing the M independent variable
+                !! values for the M constraint equations.
+            real(real64), intent(in), dimension(:) :: p
+                !! An array containing the model parameters.
+            real(real64), intent(out), dimension(:) :: fc
+                !! An M-element array where the values of the constraint 
+                !! equations should be written.
+            class(*), intent(inout), optional :: args
+                !! An optional argument that can be used to pass data in/out
+                !! of this routine.
+        end subroutine
+    end interface
 
     type dynamic_system_measurement
         !! A container of a single measurement data set.
@@ -57,6 +83,10 @@ module dynamics_system_id
         procedure(ode), pointer, nopass :: ode_routine
             !! The routine, defined by the calling code, containing the ODE's
             !! to solve.
+        logical :: uses_constraints
+            !! True if constraint equations are to be utilized; else, false.
+        procedure(constraint_equations), pointer, nopass :: constraints
+            !! A pointer to the constraint equations routine.
         class(*), pointer :: user_info
             !! Information the user has passed along.
     end type
@@ -64,7 +94,8 @@ module dynamics_system_id
 contains
 ! ------------------------------------------------------------------------------
 subroutine siso_model_fit_least_squares(fcn, x, ic, p, integrator, ind, maxp, &
-    minp, stats, alpha, controls, settings, info, status, cov, weights, args, &
+    minp, stats, alpha, controls, settings, info, status, cov, xc, yc, &
+    constraints, weights, args, &
     err)
     !! Attempts to fit a model of a single-intput, single-output (SISO) dynamic 
     !! system by means of an iterative least-squares solver.  The algorithm
@@ -121,6 +152,19 @@ subroutine siso_model_fit_least_squares(fcn, x, ic, p, integrator, ind, maxp, &
     real(real64), intent(out), optional, dimension(:,:) :: cov
         !! An optional N-by-N matrix that, if supplied, will be used to return 
         !! the covariance matrix.
+    real(real64), intent(in), optional, dimension(:) :: xc
+        !! An optional NC-element array containing the values of the independent 
+        !! variable at which the constraint equations are defined.
+    real(real64), intent(in), optional, dimension(:) :: yc
+        !! An optional NC-element array containing the constraint function 
+        !! values at xc.
+    procedure(constraint_equations), pointer, optional :: constraints
+        !! An optional input, that must be utilized with the xc and yc inputs,
+        !! but allows for the implementation of additional constraints on the
+        !! solution outside of the differential equations being fitted.  An
+        !! example usage would be an additional set of quasi-static tests that
+        !! could help identify a stiffness term, for instance.  Other uses of
+        !! course can be imagined.
     real(real64), intent(in), optional, dimension(:) :: weights
         !! An optional array containing weighting factors for every equation.
     class(*), intent(inout), optional, target :: args
@@ -131,7 +175,7 @@ subroutine siso_model_fit_least_squares(fcn, x, ic, p, integrator, ind, maxp, &
         !! An error handling object.
 
     ! Local Variables
-    integer(int32) :: i, i1, i2, n, ni, npts, flag
+    integer(int32) :: i, i1, i2, n, ni, npts, nc, flag
     real(real64), allocatable, dimension(:) :: t, f, ymod, resid
     class(errors), pointer :: errmgr
     type(errors), target :: deferr
@@ -144,6 +188,16 @@ subroutine siso_model_fit_least_squares(fcn, x, ic, p, integrator, ind, maxp, &
         errmgr => err
     else
         errmgr => deferr
+    end if
+    if (present(xc) .and. present(yc) .and. present(constraints)) then
+        nc = size(xc)
+        if (size(yc) /= nc) then
+            call report_array_size_error("siso_model_fit_least_squares", "yc", &
+                nc, size(yc), errmgr)
+            return
+        end if
+    else
+        nc = 0
     end if
     n = size(x)
     fcnptr => nlsq_fun
@@ -160,6 +214,7 @@ subroutine siso_model_fit_least_squares(fcn, x, ic, p, integrator, ind, maxp, &
         addinfo%start_stop(i, 2) = i2
         i1 = i2 + 1
     end do
+    npts = npts + nc
     allocate(t(npts), f(npts), addinfo%excitation_data(npts), ymod(npts), &
         resid(npts), stat = flag)
     if (flag /= 0) go to 100
@@ -171,6 +226,11 @@ subroutine siso_model_fit_least_squares(fcn, x, ic, p, integrator, ind, maxp, &
         addinfo%excitation_data(i1:i2) = x(i)%input
         f(i1:i2) = x(i)%output
     end do
+    if (nc > 0) then
+        i1 = i2 + 1
+        t(i2:npts) = xc
+        f(i2:npts) = yc
+    end if
 
     if (present(integrator)) then
         addinfo%integrator => integrator
@@ -187,6 +247,13 @@ subroutine siso_model_fit_least_squares(fcn, x, ic, p, integrator, ind, maxp, &
     end if
 
     addinfo%ode_routine => fcn
+
+    if (nc > 0) then
+        addinfo%uses_constraints = .true.
+        addinfo%constraints => constraints
+    else
+        addinfo%uses_constraints = .false.
+    end if
 
     if (present(args)) addinfo%user_info => args
 
@@ -235,6 +302,9 @@ subroutine nlsq_fun(t, p, f, check, args)
     type(linear_interpolator), target :: forcing_function
     type(ode_container) :: mdl
     type(errors) :: err
+    logical :: uses_constraints
+    procedure(constraint_equations), pointer :: constraints
+    class(*), pointer :: user_info
 
     ! Get the supplied information
     select type (args)
@@ -245,7 +315,12 @@ subroutine nlsq_fun(t, p, f, check, args)
         excitation = args%excitation_data
         ic = args%initial_conditions
         mdl%fcn => args%ode_routine
-        if (associated(args%user_info)) ode_info%user_info => args%user_info
+        if (associated(args%user_info)) then
+            ode_info%user_info => args%user_info
+            user_info => args%user_info
+        end if
+        uses_constraints = args%uses_constraints
+        if (uses_constraints) constraints => args%constraints
     end select
 
     ! Initialization
@@ -272,6 +347,16 @@ subroutine nlsq_fun(t, p, f, check, args)
         sol = integrator%get_solution()
         f(i1:i2) = sol(:,ind)
     end do
+
+    ! Constraints
+    if (uses_constraints) then
+        if (associated(user_info)) then
+            call constraints(t(1:i2), f(1:i2), t(i2+1:), p, f(i2+1:), &
+                args = user_info)
+        else
+            call constraints(t(1:i2), f(1:i2), t(i2+1:), p, f(i2+1:))
+        end if
+    end if
 
     ! End
     return
