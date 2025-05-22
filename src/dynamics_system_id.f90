@@ -64,7 +64,8 @@ module dynamics_system_id
 contains
 ! ------------------------------------------------------------------------------
 subroutine siso_model_fit_least_squares(fcn, x, ic, p, integrator, ind, maxp, &
-    minp, stats, alpha, controls, settings, info, status, cov, args, err)
+    minp, stats, alpha, controls, settings, info, status, cov, weights, args, &
+    err)
     !! Attempts to fit a model of a single-intput, single-output (SISO) dynamic 
     !! system by means of an iterative least-squares solver.  The algorithm
     !! computes the solution to the differential equations numerically, and
@@ -120,6 +121,8 @@ subroutine siso_model_fit_least_squares(fcn, x, ic, p, integrator, ind, maxp, &
     real(real64), intent(out), optional, dimension(:,:) :: cov
         !! An optional N-by-N matrix that, if supplied, will be used to return 
         !! the covariance matrix.
+    real(real64), intent(in), optional, dimension(:) :: weights
+        !! An optional array containing weighting factors for every equation.
     class(*), intent(inout), optional, target :: args
         !! User-defined information to pass along to [[fcn]].  These arguments,
         !! if supplied, will be passed through to [[fcn]] by means of the
@@ -191,7 +194,7 @@ subroutine siso_model_fit_least_squares(fcn, x, ic, p, integrator, ind, maxp, &
     call nonlinear_least_squares(fcnptr, t, f, p, ymod, resid, maxp = maxp, &
         minp = minp, stats = stats, alpha = alpha, controls = controls, &
         settings = settings, info = info, status = status, cov = cov, &
-        args = addinfo, err = errmgr)
+        weights = weights, args = addinfo, err = errmgr)
     if (errmgr%has_error_occurred()) return
 
     ! End
