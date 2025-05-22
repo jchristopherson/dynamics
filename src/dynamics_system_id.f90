@@ -74,7 +74,7 @@ subroutine siso_model_fit_least_squares(fcn, x, ic, p, integrator, ind, maxp, &
         !! The routine containing the ODE's being fit.  To communicate 
         !! model parameters and other relevant information, an instance of the
         !! [[model_information]] type is passed to the optional argument of this
-        !! routine.  Use the "select case" construct to access this information.
+        !! routine.  Use the "select type" construct to access this information.
     class(dynamic_system_measurement), intent(in), dimension(:) :: x
         !! An M-element array of arrays with each array containing the measured
         !! input and output of the system being identified.
