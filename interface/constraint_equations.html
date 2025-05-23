@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -8,7 +9,7 @@
     <meta name="author" content="Jason Christopherson" >
     <link rel="icon" href="../favicon.png">
 
-    <title>logarithmic_decrement &ndash; DYNAMICS</title>
+    <title>constraint_equations &ndash; DYNAMICS</title>
 
     <link href="../css/bootstrap.min.css" rel="stylesheet">
     <link href="../css/pygments.css" rel="stylesheet">
@@ -76,8 +77,8 @@
 
     <div class="container">
   <div class="row">
-    <h1>logarithmic_decrement
-      <small>Function</small>
+    <h1>constraint_equations
+      <small>Interface</small>
       
     </h1>
       <div class="row" id="info-bar">
@@ -88,18 +89,18 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 0.6% of total for procedures.">7 statements</a>
+               title=" 0.9% of total for procedures.">11 statements</a>
           </li>
 
             <li id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dynamics_vibrations.f90"> Source File</a>
+              <a href="../src/dynamics_system_id.f90"> Source File</a>
             </li>
         </ul>
         <ol class="breadcrumb in-well text-right">
-              <li><a href='../sourcefile/dynamics_vibrations.f90.html'>dynamics_vibrations.f90</a></li>
-              <li><a href='../module/dynamics_vibrations.html'>dynamics_vibrations</a></li>
-          <li class="active">logarithmic_decrement</li>
+              <li><a href='../sourcefile/dynamics_system_id.f90.html'>dynamics_system_id.f90</a></li>
+              <li><a href='../module/dynamics_system_id.html'>dynamics_system_id</a></li>
+          <li class="active">constraint_equations</li>
         </ol>
       </div>
     </div>
@@ -136,23 +137,18 @@
   
   
 
+    <em>None</em>
 
   </div>
 
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>public pure elemental function logarithmic_decrement(x1, x2, n) result(rst)  
-</h2>
-    
+      <h2>interface <br>
+      public  subroutine constraint_equations(xg, fg, xc, p, fc, args)  
+</h2>    
 
-    <p>Computes the logarithmic decrement given the value of two  successive
-peaks in the time history of the free vibratory response of the system.
-The logarithmic decrement is calculated as follows.</p>
-<p>
-<script type="math/tex; mode=display"> \delta = \frac{1}{N} \ln \left( \frac{x(t)}{x(t + N T)} \right) =  
-\frac{1}{N} \ln \left( \frac{x_1}{x_2} \right) </script>
-</p>
+    
 
     <h3>Arguments</h3>
         <table class="table table-striped varlist">
@@ -167,100 +163,109 @@ The logarithmic decrement is calculated as follows.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-x1"></span>
+              <span class="anchor" id="variable-xg"></span>
               real(kind=real64),
             </td>
-<td>intent(in)</td>
+<td>intent(in),</td>
               <td></td>            <td>
-              
+              dimension(:)
             </td>
             <td>::</td>
-            <td><strong>x1</strong></td>
+            <td><strong>xg</strong></td>
             <td>
-                <p>The amplitude of the first peak.</p>
+                <p>An N-element array containing the N independent variable
+values for the N differential equation solution points.</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-x2"></span>
+              <span class="anchor" id="variable-fg"></span>
               real(kind=real64),
             </td>
-<td>intent(in)</td>
+<td>intent(in),</td>
               <td></td>            <td>
-              
+              dimension(:)
             </td>
             <td>::</td>
-            <td><strong>x2</strong></td>
+            <td><strong>fg</strong></td>
             <td>
-                <p>The amplitude of the second peak that occurs N periods after the
-first.</p>
+                <p>An N-element array containing the N differential equation
+solution points.</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-n"></span>
-              integer(kind=int32),
+              <span class="anchor" id="variable-xc"></span>
+              real(kind=real64),
             </td>
-<td>intent(in)</td>
+<td>intent(in),</td>
               <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>xc</strong></td>
+            <td>
+                <p>An M-element array containing the M independent variable
+values for the M constraint equations.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-p"></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>p</strong></td>
+            <td>
+                <p>An array containing the model parameters.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fc"></span>
+              real(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>fc</strong></td>
+            <td>
+                <p>An M-element array where the values of the constraint 
+equations should be written.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-args~3"></span>
+              class(*),
+            </td>
+<td>intent(inout),</td>
+              <td>optional</td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>n</strong></td>
+            <td><strong>args</strong></td>
             <td>
-                <p>The number of periods of oscillation seperating the two peaks.</p>
+                <p>An optional argument that can be used to pass data in/out
+of this routine.</p>
             </td>
         </tr>
     </tbody>
   </table>
 
-      <h3>Return Value
-        <small>
-          <span class="anchor" id="variable-rst~15"></span>
-          real(kind=real64)
-        </small>
-      </h3>
-      <p>The logarithmic decrement <script type="math/tex">\delta</script>.</p>
+    <h3>Description</h3>
+    <p>An interface to a set of routines for defining constraint 
+equations to the fitting process.</p>
     <br>
 
-    <section class="visible-xs visible-sm hidden-md">
-        <h3>Contents</h3>
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-
-
-    </section>
-    <br class="visible-xs visible-sm hidden-md">
-
-
-    
-    
-
-    
-    
-
-
-    
-    
-    </div>
-  </div>
+ </div>
+</div>
 
     <hr>    
     </div> <!-- /container -->

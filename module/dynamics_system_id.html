@@ -88,7 +88,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 4.7% of total for modules and submodules.">155 statements</a>
+               title=" 6.3% of total for modules and submodules.">210 statements</a>
           </li>
 
             <li id="source-file">
@@ -123,7 +123,19 @@
   
   
   
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#inters-0">Interfaces</a>
+        </h3>
+      </div>
+      <div id="inters-0" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_system_id.html#interface-constraint_equations">constraint_equations</a>
+        </div>
+      </div>
+    </div>
+
   
       <div class="panel panel-primary">
       <div class="panel-heading text-left">
@@ -175,9 +187,9 @@
           <li class="list-group-item">
             <ul class="list-inline">
                 <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
-                <li>diffeq</li>
-                <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
                 <li>fstats</li>
+                <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
+                <li>diffeq</li>
                 <li>ferror</li>
             </ul>
           </li>
@@ -197,7 +209,19 @@
   
   
   
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#inters-1">Interfaces</a>
+        </h3>
+      </div>
+      <div id="inters-1" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_system_id.html#interface-constraint_equations">constraint_equations</a>
+        </div>
+      </div>
+    </div>
+
   
       <div class="panel panel-primary">
       <div class="panel-heading text-left">
@@ -241,6 +265,139 @@
 
     
     
+    <section>
+   <h2>Interfaces</h2>
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="interface-constraint_equations"></span>
+      <h3>        interface
+      </h3>
+    </div>
+    <ul class="list-group">
+        <li class="list-group-item">
+              <h3>
+    public  subroutine constraint_equations(xg, fg, xc, p, fc, args)  
+
+    </h3>
+  <p>An interface to a set of routines for defining constraint 
+equations to the fitting process.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>xg</strong></td>
+            <td>
+                <p>An N-element array containing the N independent variable
+values for the N differential equation solution points.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>fg</strong></td>
+            <td>
+                <p>An N-element array containing the N differential equation
+solution points.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>xc</strong></td>
+            <td>
+                <p>An M-element array containing the M independent variable
+values for the M constraint equations.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>p</strong></td>
+            <td>
+                <p>An array containing the model parameters.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>fc</strong></td>
+            <td>
+                <p>An M-element array where the values of the constraint 
+equations should be written.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(*),
+            </td>
+<td>intent(inout),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>args</strong></td>
+            <td>
+                <p>An optional argument that can be used to pass data in/out
+of this routine.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+        </li>
+    </ul>
+  </div>
+
+    </section>
+  <br>
 
     
     <section>
@@ -419,7 +576,7 @@ function.</p>
     <section>
     <h2>Subroutines</h2>
       <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="proc-siso_model_fit_least_squares"></span><h3>public  subroutine <a href='../proc/siso_model_fit_least_squares.html'>siso_model_fit_least_squares</a>(fcn, x, ic, p, integrator, ind, maxp, minp, stats, alpha, controls, settings, info, status, cov, args, err)  
+    <div class="panel-heading codesum"><span class="anchor" id="proc-siso_model_fit_least_squares"></span><h3>public  subroutine <a href='../proc/siso_model_fit_least_squares.html'>siso_model_fit_least_squares</a>(fcn, x, ic, p, integrator, ind, maxp, minp, stats, alpha, controls, settings, info, status, cov, xc, yc, constraints, weights, args, err)  
 </h3></div>
     <div class="panel-body">
           
@@ -455,7 +612,7 @@ least-squares solver.</p>
 <p>The routine containing the ODE's being fit.  To communicate 
 model parameters and other relevant information, an instance of the
 <a href="../type/model_information.html">model_information</a> type is passed to the optional argument of this
-routine.  Use the "select case" construct to access this information.</p>
+routine.  Use the "select type" construct to access this information.</p>
             </td>
         </tr>
         <tr>
@@ -688,6 +845,73 @@ the covariance matrix.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>xc</strong></td>
+            <td>
+<p>An optional NC-element array containing the values of the independent 
+variable at which the constraint equations are defined.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>yc</strong></td>
+            <td>
+<p>An optional NC-element array containing the constraint function 
+values at xc.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              procedure(<a href='../interface/constraint_equations.html'>constraint_equations</a>),
+            </td>
+<td></td>
+              <td>optional,</td>            <td>
+              pointer
+            </td>
+            <td>::</td>
+            <td><strong>constraints</strong></td>
+            <td>
+<p>An optional input, that must be utilized with the xc and yc inputs,
+but allows for the implementation of additional constraints on the
+solution outside of the differential equations being fitted.  An
+example usage would be an additional set of quasi-static tests that
+could help identify a stiffness term, for instance.  Other uses of
+course can be imagined.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>weights</strong></td>
+            <td>
+<p>An optional array containing weighting factors for every equation.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
               class(*),
             </td>
 <td>intent(inout),</td>
@@ -744,7 +968,7 @@ if supplied, will be passed through to <a>fcn</a> by means of the
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2025-05-20 19:07            </p>
+ on 2025-05-23 16:25            </p>
         </div>
       </div>
       <br>
