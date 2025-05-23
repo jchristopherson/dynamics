@@ -205,11 +205,12 @@ subroutine siso_model_fit_least_squares(fcn, x, ic, p, integrator, ind, maxp, &
     allocate(addinfo%start_stop(n, 2), stat = flag)
     if (flag /= 0) go to 100
     i1 = 1
+    i2 = 0
     npts = 0
     do i = 1, n
         ni = size(x(i)%t)
         npts = npts + ni
-        i2 = ni
+        i2 = i2 + ni
         addinfo%start_stop(i, 1) = i1
         addinfo%start_stop(i, 2) = i2
         i1 = i2 + 1
@@ -261,7 +262,7 @@ subroutine siso_model_fit_least_squares(fcn, x, ic, p, integrator, ind, maxp, &
     call nonlinear_least_squares(fcnptr, t, f, p, ymod, resid, maxp = maxp, &
         minp = minp, stats = stats, alpha = alpha, controls = controls, &
         settings = settings, info = info, status = status, cov = cov, &
-        weights = weights, args = addinfo, err = errmgr)
+        args = addinfo, err = errmgr, weights = weights)
     if (errmgr%has_error_occurred()) return
 
     ! End

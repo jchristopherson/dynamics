@@ -48,12 +48,12 @@ contains
         ! Local Variables
         integer(int32) :: i
         real(real64) :: dt, tmax, p(2), ic(2)
-        type(dynamic_system_measurement) :: measurements(1)
+        type(dynamic_system_measurement) :: measurements(2)
         procedure(ode), pointer :: fcn
         type(ode_container) :: mdl
         type(runge_kutta_45) :: integrator
         type(model_information) :: info
-        type(linear_interpolator), target :: interp
+        type(linear_interpolator), target :: interp, interp2
         real(real64), allocatable, dimension(:,:) :: sol
         type(iteration_controls) :: controls
 
@@ -63,6 +63,8 @@ contains
         ! Generate an initial guess
         p = [2.5d2, 1.0d-1]
 
+! ------------------------------------------------------------------------------
+! EXCITATION 1
         ! Allocate memory for the measurement data we're trying to fit
         allocate( &
             measurements(1)%t(npts), &
@@ -88,8 +90,30 @@ contains
         sol = integrator%get_solution()
         measurements(1)%output = sol(:,2)
 
-        ! This is optional, but is illustrated here to show how to adjust solver
-        ! tolerances
+    ! --------------------------------------------------------------------------
+    ! EXCITATION 2
+        allocate( &
+            measurements(2)%t(npts), &
+            measurements(2)%output(npts), &
+            measurements(2)%input(npts) &
+        )
+
+        ! Time Vector
+        measurements(2)%t = measurements(1)%t
+
+        ! Forcing Term
+        measurements(2)%input = amplitude
+
+        ! Generate the solution for the system
+        call interp2%initialize(measurements(2)%t, measurements(2)%input)
+        info%excitation => interp2
+        call integrator%clear_buffer()
+        call integrator%solve(mdl, measurements(2)%t, ic, args = info)
+        sol = integrator%get_solution()
+        measurements(2)%output = sol(:,2)
+
+    ! --------------------------------------------------------------------------
+        ! Set tolerances
         call controls%set_to_default()
         controls%change_in_solution_tolerance = 1.0d-12
         controls%residual_tolerance = 1.0d-8
