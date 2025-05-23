@@ -114,4 +114,5 @@ module dynamics
     public :: dynamic_system_measurement
     public :: model_information
     public :: siso_model_fit_least_squares
+    public :: constraint_equations
 end module

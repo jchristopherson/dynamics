@@ -229,8 +229,8 @@ subroutine siso_model_fit_least_squares(fcn, x, ic, p, integrator, ind, maxp, &
     end do
     if (nc > 0) then
         i1 = i2 + 1
-        t(i2:npts) = xc
-        f(i2:npts) = yc
+        t(i1:npts) = xc
+        f(i1:npts) = yc
     end if
 
     if (present(integrator)) then
