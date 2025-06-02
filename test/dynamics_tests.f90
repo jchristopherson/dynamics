@@ -138,6 +138,9 @@ program main
     check = test_siso_model_fit_least_squares_constrained()
     if (.not.check) flag = 40
 
+    check = test_siso_model_fit_least_squares_multi()
+    if (.not.check) flag = 41
+
     ! End
     if (flag /= 0) stop flag
 end program
