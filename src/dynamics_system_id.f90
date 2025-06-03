@@ -371,7 +371,7 @@ subroutine siso_model_fit_least_squares_2(fcn, x, ic, p, integrator, ind, &
     type(regression_information) :: addinfo
     procedure(regression_function), pointer :: fcnptr
     
-    ! Initialization
+    ! Initialization & Error Checking
     if (present(err)) then
         errmgr => err
     else
@@ -389,6 +389,12 @@ subroutine siso_model_fit_least_squares_2(fcn, x, ic, p, integrator, ind, &
     end if
     n = size(x)
     fcnptr => nlsq_fun
+
+    if (size(ic, 1) /= n) then
+        call report_matrix_size_error("siso_model_fit_least_squares_2", "ic", &
+            n, size(ic, 2), size(ic, 1), size(ic, 2), errmgr)
+        return
+    end if
 
     allocate(addinfo%start_stop(n, 2), stat = flag)
     if (flag /= 0) go to 100
