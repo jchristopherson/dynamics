@@ -77,7 +77,7 @@
     <div class="container">
   <div class="row">
     <h1>siso_model_fit_least_squares
-      <small>Subroutine</small>
+      <small>Interface</small>
       
     </h1>
       <div class="row" id="info-bar">
@@ -88,7 +88,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 8.3% of total for procedures.">98 statements</a>
+               title="<p> 0.4% of total for procedures.</p>Including implementation: 205 statements, 18.9% of total for procedures.">4 statements</a>
           </li>
 
             <li id="source-file">
@@ -114,7 +114,7 @@
   
   <div class="row">
     <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
-      <div id="sidebar">
+        <div id="sidebar">
       <h3>Contents</h3>
   
   
@@ -134,7 +134,20 @@
   
   
   
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#modprocs-0">Module Procedures</a>
+        </h3>
+      </div>
+      <div id="modprocs-0" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../interface/siso_model_fit_least_squares.html#moduleprocedure-siso_model_fit_least_squares_1">siso_model_fit_least_squares_1</a>
+            <a class="list-group-item" href="../interface/siso_model_fit_least_squares.html#moduleprocedure-siso_model_fit_least_squares_2">siso_model_fit_least_squares_2</a>
+        </div>
+      </div>
+    </div>
+
 
 
   </div>
@@ -142,18 +155,63 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>public  subroutine siso_model_fit_least_squares(fcn, x, ic, p, integrator, ind, maxp, minp, stats, alpha, controls, settings, info, status, cov, xc, yc, constraints, weights, args, err)  
-</h2>
-    
+      <h2>public interface siso_model_fit_least_squares</h2>
+   
 
-    <p>Attempts to fit a model of a single-intput, single-output (SISO) dynamic 
+     <section class="visible-xs visible-sm hidden-md">
+         <h3>Contents</h3>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#modprocs-1">Module Procedures</a>
+        </h3>
+      </div>
+      <div id="modprocs-1" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../interface/siso_model_fit_least_squares.html#moduleprocedure-siso_model_fit_least_squares_1">siso_model_fit_least_squares_1</a>
+            <a class="list-group-item" href="../interface/siso_model_fit_least_squares.html#moduleprocedure-siso_model_fit_least_squares_2">siso_model_fit_least_squares_2</a>
+        </div>
+      </div>
+    </div>
+
+
+
+     </section>
+     <br class="visible-xs visible-sm hidden-md">
+     
+
+
+   <h2>Module Procedures</h2>
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-siso_model_fit_least_squares_1"></span><h3>private  subroutine siso_model_fit_least_squares_1(fcn, x, ic, p, integrator, ind, maxp, minp, stats, alpha, controls, settings, info, status, cov, xc, yc, constraints, weights, args, err)  
+</h3></div>
+    <div class="panel-body">
+        <p>Attempts to fit a model of a single-intput, single-output (SISO) dynamic 
 system by means of an iterative least-squares solver.  The algorithm
 computes the solution to the differential equations numerically, and
 compares the output to the known solution via a Levenberg-Marquardt
 least-squares solver.</p>
 
-    <h3>Arguments</h3>
-        <table class="table table-striped varlist">
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
     <thead>
       <tr>
         <th>Type</th>
@@ -165,7 +223,7 @@ least-squares solver.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-fcn~3"></span>
+              <span class="anchor" ></span>
               procedure(ode),
             </td>
 <td>intent(in),</td>
@@ -177,13 +235,13 @@ least-squares solver.</p>
             <td>
                 <p>The routine containing the ODE's being fit.  To communicate 
 model parameters and other relevant information, an instance of the
-<a href="../type/model_information.html">model_information</a> type is passed to the optional argument of this
+[[model_information]] type is passed to the optional argument of this
 routine.  Use the "select type" construct to access this information.</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-x~20"></span>
+              <span class="anchor" ></span>
               class(<a href='../type/dynamic_system_measurement.html'>dynamic_system_measurement</a>),
             </td>
 <td>intent(in),</td>
@@ -199,7 +257,7 @@ input and output of the system being identified.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ic~2"></span>
+              <span class="anchor" ></span>
               real(kind=real64),
             </td>
 <td>intent(in),</td>
@@ -209,12 +267,12 @@ input and output of the system being identified.</p>
             <td>::</td>
             <td><strong>ic</strong></td>
             <td>
-                <p>The initial condition vector for the equations in <a>fcn</a>.</p>
+                <p>The initial condition vector for the equations in fcn.</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-p~2"></span>
+              <span class="anchor" ></span>
               real(kind=real64),
             </td>
 <td>intent(inout),</td>
@@ -230,7 +288,7 @@ On output, the computed model parameters.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-integrator"></span>
+              <span class="anchor" ></span>
               class(ode_integrator),
             </td>
 <td>intent(inout),</td>
@@ -247,7 +305,7 @@ integrator is a Runge-Kutta integrator (Dormand-Prince).</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ind~3"></span>
+              <span class="anchor" ></span>
               integer(kind=int32),
             </td>
 <td>intent(in),</td>
@@ -257,13 +315,13 @@ integrator is a Runge-Kutta integrator (Dormand-Prince).</p>
             <td>::</td>
             <td><strong>ind</strong></td>
             <td>
-                <p>The index of the ODE in <a>fcn</a> providing the output to fit.  If
+                <p>The index of the ODE in fcn providing the output to fit.  If
 no value is supplied, a value of 1 will be utilized.</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-maxp"></span>
+              <span class="anchor" ></span>
               real(kind=real64),
             </td>
 <td>intent(in),</td>
@@ -281,7 +339,7 @@ utilize huge() as a value.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-minp"></span>
+              <span class="anchor" ></span>
               real(kind=real64),
             </td>
 <td>intent(in),</td>
@@ -299,7 +357,7 @@ internal default is to utilize -huge() as a value.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-stats"></span>
+              <span class="anchor" ></span>
               type(regression_statistics),
             </td>
 <td>intent(out),</td>
@@ -315,7 +373,7 @@ return statistics about the fit for each parameter.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-alpha~6"></span>
+              <span class="anchor" ></span>
               real(kind=real64),
             </td>
 <td>intent(in),</td>
@@ -332,7 +390,7 @@ interval is calculated.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-controls"></span>
+              <span class="anchor" ></span>
               type(iteration_controls),
             </td>
 <td>intent(in),</td>
@@ -347,7 +405,7 @@ interval is calculated.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-settings"></span>
+              <span class="anchor" ></span>
               type(lm_solver_options),
             </td>
 <td>intent(in),</td>
@@ -362,7 +420,7 @@ interval is calculated.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-info"></span>
+              <span class="anchor" ></span>
               type(convergence_info),
             </td>
 <td>intent(out),</td>
@@ -378,7 +436,7 @@ iterative solution and the nature of the convergence.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-status"></span>
+              <span class="anchor" ></span>
               procedure(iteration_update),
             </td>
 <td>intent(in),</td>
@@ -394,7 +452,7 @@ iteration information.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-cov"></span>
+              <span class="anchor" ></span>
               real(kind=real64),
             </td>
 <td>intent(out),</td>
@@ -410,7 +468,7 @@ the covariance matrix.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-xc~2"></span>
+              <span class="anchor" ></span>
               real(kind=real64),
             </td>
 <td>intent(in),</td>
@@ -426,7 +484,7 @@ variable at which the constraint equations are defined.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-yc"></span>
+              <span class="anchor" ></span>
               real(kind=real64),
             </td>
 <td>intent(in),</td>
@@ -442,7 +500,7 @@ values at xc.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-constraints~2"></span>
+              <span class="anchor" ></span>
               procedure(<a href='../interface/constraint_equations.html'>constraint_equations</a>),
             </td>
 <td></td>
@@ -462,7 +520,7 @@ course can be imagined.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-weights"></span>
+              <span class="anchor" ></span>
               real(kind=real64),
             </td>
 <td>intent(in),</td>
@@ -477,7 +535,7 @@ course can be imagined.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-args~4"></span>
+              <span class="anchor" ></span>
               class(*),
             </td>
 <td>intent(inout),</td>
@@ -487,14 +545,14 @@ course can be imagined.</p>
             <td>::</td>
             <td><strong>args</strong></td>
             <td>
-                <p>User-defined information to pass along to <a>fcn</a>.  These arguments,
-if supplied, will be passed through to <a>fcn</a> by means of the
-<a href="../type/model_information.html">model_information</a> type.</p>
+                <p>User-defined information to pass along to fcn.  These arguments,
+if supplied, will be passed through to fcn by means of the
+[[model_information]] type.</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-err~25"></span>
+              <span class="anchor" ></span>
               class(errors),
             </td>
 <td>intent(inout),</td>
@@ -510,46 +568,386 @@ if supplied, will be passed through to <a>fcn</a> by means of the
     </tbody>
   </table>
 
-    <br>
 
-    <section class="visible-xs visible-sm hidden-md">
-        <h3>Contents</h3>
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-
-
-    </section>
-    <br class="visible-xs visible-sm hidden-md">
-
-
-    
-    
-
-    
-    
-
-
-    
-    
     </div>
   </div>
+
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-siso_model_fit_least_squares_2"></span><h3>private  subroutine siso_model_fit_least_squares_2(fcn, x, ic, p, integrator, ind, maxp, minp, stats, alpha, controls, settings, info, status, cov, xc, yc, constraints, weights, args, err)  
+</h3></div>
+    <div class="panel-body">
+        <p>Attempts to fit a model of a single-intput, single-output (SISO) dynamic 
+system by means of an iterative least-squares solver.  The algorithm
+computes the solution to the differential equations numerically, and
+compares the output to the known solution via a Levenberg-Marquardt
+least-squares solver.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              procedure(ode),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              pointer
+            </td>
+            <td>::</td>
+            <td><strong>fcn</strong></td>
+            <td>
+                <p>The routine containing the ODE's being fit.  To communicate 
+model parameters and other relevant information, an instance of the
+[[model_information]] type is passed to the optional argument of this
+routine.  Use the "select type" construct to access this information.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/dynamic_system_measurement.html'>dynamic_system_measurement</a>),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+                <p>An M-element array of arrays with each array containing the measured
+input and output of the system being identified.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>ic</strong></td>
+            <td>
+                <p>An M-by-NEQN matrix of initial condition vectors for the NEQN 
+equations in fcn, one set for each of the M sets of data in x.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(inout),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>p</strong></td>
+            <td>
+                <p>An N-element array containing an initial guess at the parameters.<br>
+On output, the computed model parameters.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(ode_integrator),
+            </td>
+<td>intent(inout),</td>
+              <td>optional,</td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>integrator</strong></td>
+            <td>
+                <p>The integrator to use when solving the system equations.  If not
+supplied, the default integrator will be used.  The default 
+integrator is a Runge-Kutta integrator (Dormand-Prince).</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ind</strong></td>
+            <td>
+                <p>The index of the ODE in fcn providing the output to fit.  If
+no value is supplied, a value of 1 will be utilized.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>maxp</strong></td>
+            <td>
+                <p>An optional N-element array that can be used as upper limits on the 
+parameter values. If no upper limit is requested for a particular 
+parameter, utilize a very large value. The internal default is to 
+utilize huge() as a value.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>minp</strong></td>
+            <td>
+                <p>An optional N-element array that can be used as lower limits on the 
+parameter values. If no lower limit is requested for a particalar 
+parameter, utilize a very large magnitude, but negative, value. The 
+internal default is to utilize -huge() as a value.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(regression_statistics),
+            </td>
+<td>intent(out),</td>
+              <td>optional,</td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>stats</strong></td>
+            <td>
+                <p>An optional N-element array that, if supplied, will be used to 
+return statistics about the fit for each parameter.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>alpha</strong></td>
+            <td>
+                <p>The significance level at which to evaluate the confidence 
+intervals. The default value is 0.05 such that a 95% confidence 
+interval is calculated.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(iteration_controls),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>controls</strong></td>
+            <td>
+                <p>An optional input providing custom iteration controls.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(lm_solver_options),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>settings</strong></td>
+            <td>
+                <p>An optional input providing custom settings for the solver.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(convergence_info),
+            </td>
+<td>intent(out),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>info</strong></td>
+            <td>
+                <p>An optional output that can be used to gain information about the 
+iterative solution and the nature of the convergence.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              procedure(iteration_update),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              pointer
+            </td>
+            <td>::</td>
+            <td><strong>status</strong></td>
+            <td>
+                <p>An optional pointer to a routine that can be used to extract 
+iteration information.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td>optional,</td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>cov</strong></td>
+            <td>
+                <p>An optional N-by-N matrix that, if supplied, will be used to return 
+the covariance matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>xc</strong></td>
+            <td>
+                <p>An optional NC-element array containing the values of the independent 
+variable at which the constraint equations are defined.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>yc</strong></td>
+            <td>
+                <p>An optional NC-element array containing the constraint function 
+values at xc.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              procedure(<a href='../interface/constraint_equations.html'>constraint_equations</a>),
+            </td>
+<td></td>
+              <td>optional,</td>            <td>
+              pointer
+            </td>
+            <td>::</td>
+            <td><strong>constraints</strong></td>
+            <td>
+                <p>An optional input, that must be utilized with the xc and yc inputs,
+but allows for the implementation of additional constraints on the
+solution outside of the differential equations being fitted.  An
+example usage would be an additional set of quasi-static tests that
+could help identify a stiffness term, for instance.  Other uses of
+course can be imagined.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>weights</strong></td>
+            <td>
+                <p>An optional array containing weighting factors for every equation.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(*),
+            </td>
+<td>intent(inout),</td>
+              <td>optional,</td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>args</strong></td>
+            <td>
+                <p>User-defined information to pass along to fcn.  These arguments,
+if supplied, will be passed through to fcn by means of the
+[[model_information]] type.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(errors),
+            </td>
+<td>intent(inout),</td>
+              <td>optional,</td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>err</strong></td>
+            <td>
+                <p>An error handling object.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+
+ </div>
+</div>
 
     <hr>    
     </div> <!-- /container -->
@@ -563,7 +961,7 @@ if supplied, will be passed through to <a>fcn</a> by means of the
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2025-05-23 16:40            </p>
+ on 2025-06-03 12:21            </p>
         </div>
       </div>
       <br>
