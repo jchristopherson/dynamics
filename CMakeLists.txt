@@ -15,8 +15,14 @@ add_subdirectory(configure)
 # Deal with the dependencies
 add_subdirectory(dependencies)
 
+# Interfaces
+add_subdirectory(interfaces)
+
 # Source
 add_subdirectory(src)
+if (${BUILD_DYNAMICS_C_INTERFACE})
+    list(APPEND DYNAMICS_SOURCES ${DYNAMICS_C_SOURCES})
+endif()
 add_fortran_library(
     ${PROJECT_NAME}
     ${PROJECT_INCLUDE_DIR}
