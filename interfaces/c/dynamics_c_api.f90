@@ -35,7 +35,7 @@ end function
 
 ! ------------------------------------------------------------------------------
 function c_damping_from_log_decrement(delta) result(rst) &
-    bind(C, name = "damping_from_log_decrement")
+    bind(C, name = "c_damping_from_log_decrement")
     real(c_double), intent(in), value :: delta
     real(c_double) :: rst
     rst = damping_from_log_decrement(delta);
@@ -60,9 +60,10 @@ subroutine c_find_free_response_properties(n, t, x, s, np, delta, fn, x1, x2, &
 end subroutine
 
 ! ------------------------------------------------------------------------------
-function c_rise_time(wn, zeta) result(rst) bind(C, name = "c_rise_time")
-    real(c_double), intent(in) :: wn
-    real(c_double), intent(in) :: zeta
+function c_rise_time(wn, zeta) result(rst) &
+    bind(C, name = "c_rise_time")
+    real(c_double), intent(in), value :: wn
+    real(c_double), intent(in), value :: zeta
     real(c_double) :: rst
     rst = rise_time(wn, zeta)
 end function

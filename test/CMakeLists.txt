@@ -26,3 +26,9 @@ add_test(
     WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
     COMMAND $<TARGET_FILE:dynamics_tests>
 )
+
+
+# Test the C API
+if (BUILD_DYNAMICS_C_INTERFACE)
+    add_subdirectory(c)
+endif()

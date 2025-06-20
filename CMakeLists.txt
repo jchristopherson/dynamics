@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.24)
 project(
     dynamics
-    LANGUAGES Fortran
+    LANGUAGES Fortran C CXX
     VERSION 1.0.13
 )
 
