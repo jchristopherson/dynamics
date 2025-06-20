@@ -16,12 +16,15 @@ module linkage
     real(real64) :: d(3) = [0.0d0, L1, 0.0d0]
 
 contains
-    subroutine kinematics_equations(jointvars, equations)
+    subroutine kinematics_equations(jointvars, equations, args)
         ! The kinematics equations.
         real(real64), intent(in), dimension(:) :: jointvars
             ! The joint variables.
         real(real64), intent(out), dimension(:) :: equations
             ! The resulting kinematic equations.
+        class(*), intent(inout), optional :: args
+            ! Optional argument that can be used for passing data, 
+            ! communication with the outside world, etc.
 
         ! Local Variables
         real(real64) :: T(4, 4)
