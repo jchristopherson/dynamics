@@ -1,7 +1,6 @@
 module dynamics_kinematics
     use iso_fortran_env
-    use nonlin_core
-    use nonlin_least_squares, only : least_squares_solver
+    use nonlin
     use ferror
     use dynamics_error_handling
     use dynamics_helper
@@ -45,8 +44,16 @@ module dynamics_kinematics
 
 ! ------------------------------------------------------------------------------
     ! PRIVATE VARIABLES - INVERSE KINEMATICS
-    procedure(vecfcn), pointer, private :: kinematics_equations
-    real(real64), pointer, private, dimension(:) :: kinematic_constraints
+    type inverse_kinematics_container
+        !! A container for passing kinematics information around the inverse
+        !! solver.
+        procedure(vecfcn), pointer, nopass :: kinematics_equations
+            !! A pointer to the kinematics equations.
+        real(real64), allocatable, dimension(:) :: kinematic_constraints
+            !! A constraints array.
+        class(*), pointer :: user_args => null()
+            !! User supplied arguments to the kinematics_equations model.
+    end type
 
 contains
 ! ------------------------------------------------------------------------------
@@ -487,7 +494,7 @@ contains
 
 ! ------------------------------------------------------------------------------
     function solve_inverse_kinematics(mdl, qo, constraints, df, &
-        slvr, ib, err) result(rst)
+        slvr, ib, args, err) result(rst)
         !! Solves the inverse kinematics problem for a linkage.  An iterative
         !! solution procedure is utilized.
         procedure(vecfcn), intent(in), pointer :: mdl
@@ -509,6 +516,8 @@ contains
         type(iteration_behavior), intent(out), optional :: ib
             !! An optional output that can be used to gather information on the
             !! solver.
+        class(*), intent(inout), optional, target :: args
+            !! An optional argument that can be used to communicate with mdl.
         class(errors), intent(inout), optional, target :: err
             !! An errors-based object that if provided can be used to retrieve 
             !! information relating to any errors encountered during execution.
@@ -525,6 +534,7 @@ contains
         procedure(vecfcn), pointer :: fcn
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
+        type(inverse_kinematics_container) :: obj
         
         ! Initialization
         if (present(err)) then
@@ -539,8 +549,9 @@ contains
         else
             solver => default_solver
         end if
-        kinematics_equations => mdl
-        kinematic_constraints => constraints
+        obj%kinematics_equations => mdl
+        obj%kinematic_constraints = constraints
+        if (present(args)) obj%user_args => args
 
         ! Input Check
         if (neqn < nvar) then
@@ -574,20 +585,29 @@ contains
         end if
 
         ! Solve the problem
-        call solver%solve(helper, rst, resid, ib = ib, err = errmgr)
+        call solver%solve(helper, rst, resid, ib = ib, args = obj, err = errmgr)
     end function
 
 ! ----------
-    subroutine inverse_kinematics_solver(x, f)
+    subroutine inverse_kinematics_solver(x, f, args)
         ! Routine called by the inverse kinematics solver
         real(real64), intent(in), dimension(:) :: x
         real(real64), intent(out), dimension(:) :: f
+        class(*), intent(inout), optional :: args
 
-        ! Compute the kinematics equations
-        call kinematics_equations(x, f)
+        ! Process
+        select type (args)
+        class is (inverse_kinematics_container)
+            ! Compute the kinematics equations
+            if (associated(args%user_args)) then
+                call args%kinematics_equations(x, f, args%user_args)
+            else
+                call args%kinematics_equations(x, f)
+            end if
 
-        ! Compare with the constraints
-        f = f - kinematic_constraints
+            ! Compare with the constraints
+            f = f - args%kinematic_constraints
+        end select
     end subroutine
 
 ! ******************************************************************************
