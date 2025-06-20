@@ -148,10 +148,11 @@ function test_inverse_kinematics() result(rst)
 end function
 
 ! -----
-subroutine inverse_test_kinematics_equation(q, f)
+subroutine inverse_test_kinematics_equation(q, f, args)
     ! Arguments
     real(real64), intent(in), dimension(:) :: q
     real(real64), intent(out), dimension(:) :: f
+    class(*), intent(inout), optional :: args
 
     ! Mechanism: 3R PUMA
 
