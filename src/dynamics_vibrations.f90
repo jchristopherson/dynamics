@@ -211,7 +211,7 @@ pure elemental function rise_time(wn, zeta) result(rst)
 
     ! Process
     arg = sqrt(1.0d0 - zeta**2)
-    rst = (1.0d0 / (wn * arg)) * (pi * atan(arg / zeta))
+    rst = (1.0d0 / (wn * arg)) * (pi - atan(arg / zeta))
 end function
 
 ! ------------------------------------------------------------------------------
