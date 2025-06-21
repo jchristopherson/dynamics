@@ -6,6 +6,7 @@ set(dynamics_c_sources
     dynamics_c_tests.c
     dynamics_c_test_helper.c
     dynamics_vibrations_tests.c
+    dynamics_rotation_tests.c
 )
 
 # Build the tests

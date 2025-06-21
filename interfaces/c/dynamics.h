@@ -18,6 +18,16 @@ double c_damping_from_fractional_overshoot(int n, const double *x);
 void c_evaluate_step_response(int n, double wn, double zeta, double xs,
     const double *t, double *x);
 
+void c_rotate_x(double angle, double *r, int ldr);
+void c_rotate_y(double angle, double *r, int ldr);
+void c_rotate_z(double angle, double *r, int ldr);
+void c_rotate(const double *i, const double *j, const double *k, double *r, 
+    int ldr);
+void c_acceleration_transform(const double *alpha, const double *omega,
+    const double *a, const double *x, double *r, int ldr);
+void c_velocity_transform(const double *omega, const double *v, 
+    const double *x, double *r, int ldr);
+
 #ifdef __cplusplus
 }
 #endif

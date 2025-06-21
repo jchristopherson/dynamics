@@ -1,4 +1,5 @@
 #include "dynamics_vibrations_tests.h"
+#include "dynamics_rotation_tests.h"
 #include <stdbool.h>
 
 int main()
@@ -20,5 +21,9 @@ int main()
     if (!c_test_settling_amplitude()) flag = 8;
     if (!c_test_damping_from_overshoot()) flag = 9;
 
-    return flag != 0 ? 0 : flag;
+    if (!c_test_rotation_x()) flag = 10;
+    if (!c_test_rotation_y()) flag = 11;
+    if (!c_test_rotation_z()) flag = 12;
+
+    return flag;
 }

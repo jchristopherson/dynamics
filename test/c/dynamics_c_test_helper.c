@@ -22,3 +22,23 @@ bool compare_arrays(int n, const double *x, const double *y, double tol)
     // End
     return rst;
 }
+
+bool compare_matrices(int m, int n, const double *x, int ldx, const double *y,
+    int ldy, double tol)
+{
+    // Local Variables
+    int i, j;
+
+    // Process
+    for (j = 0; j < n; ++j)
+    {
+        for (i = 0; i < m; ++i)
+        {
+            if (fabs(x[INDEX(i,j,ldx)] - y[INDEX(i,j,ldy)]) > tol)
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}

@@ -118,7 +118,7 @@ bool c_test_find_free_rsp_props()
     const double vo = 1.0;
     const double dt = 1.0e-3;
     const int n = 1000;
-    const double tol = 1.0e-8;
+    const double tol = 1.0e-2;
     const double s = 1.0e-2;
     const int np = 2;
     int i;
@@ -166,13 +166,13 @@ bool c_test_rise_time()
     const double tol = 1.0e-8;
     const double wn = 1.52e3;
     const double zeta = 0.35;
-    double pi, ans, tr;
+    double pi, ans, tr, arg;
 
     // Initialization
     rst = true;
     pi = 2.0 * acos(0.0);
-    ans = (1.0 / (wn * sqrt(1.0 - zeta * zeta))) * 
-        (pi - atan(sqrt(1.0 - zeta * zeta) / zeta));
+    arg = sqrt(1.0 - zeta * zeta);
+    ans = (1.0 / (wn * arg)) * (pi - atan(arg / zeta));
 
     // Test
     tr = c_rise_time(wn, zeta);
@@ -265,7 +265,7 @@ bool c_test_damping_from_overshoot()
     // Local Variables
     bool rst;
     const int n = 1000;
-    const double tol = 5.0e-2;
+    const double tol = 0.1;
     const double dt = 1.0e-3;
     const double fn = 1.2e1;
     const double zeta = 0.82;

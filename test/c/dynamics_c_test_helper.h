@@ -3,6 +3,10 @@
 
 #include <stdbool.h>
 
-bool compare_arrays(int n, const double *x, const double *y, double tol);
+#define INDEX(i,j,m)((j) * (m) + (i))
 
+bool compare_arrays(int n, const double *x, const double *y, double tol);
+bool compare_matrices(int m, int n, const double *x, int ldx, const double *y,
+    int ldy, double tol);
+    
 #endif
