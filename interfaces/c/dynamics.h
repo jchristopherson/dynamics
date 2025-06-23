@@ -14,7 +14,12 @@
 #define DYN_REVOLUTE_JOINT 0
 #define DYN_PRISMATIC_JOINT 1
 
+#define DYN_FRF_ACCELERANCE_MODEL 1
+#define DYN_FRF_RECEPTANCE_MODEL 2
+
 typedef void (*c_vecfcn)(int nvar, int neqn, const double *x, double *f);
+typedef void (*c_modal_excite)(int n, double freq, double *f);
+
 typedef struct {
     bool converge_on_chng;
     bool converge_on_fcn;

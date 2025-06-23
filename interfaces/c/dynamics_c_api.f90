@@ -13,10 +13,21 @@ module dynamics_c_api
             real(c_double), intent(in) :: x(nvar)
             real(c_double), intent(out) :: f(neqn)
         end subroutine
+
+        subroutine c_modal_excite(n, freq, f) bind(C, name = "c_modal_excite")
+            use iso_c_binding
+            integer(c_int), intent(in), value :: n
+            real(c_double), intent(in), value :: freq
+            real(c_double), intent(out) :: f(n)
+        end subroutine
     end interface
 
     type c_vecfcn_container
         procedure(c_vecfcn), pointer, nopass :: fcn
+    end type
+
+    type c_modal_excite_container
+        procedure(c_modal_excite), pointer, nopass :: fcn
     end type
 
     type, bind(C) :: c_iteration_behavior
@@ -520,6 +531,72 @@ subroutine sik_fcn(x, f, args)
         call args%fcn(size(x), size(f), x, f)
     end select
 end subroutine
+
+! ******************************************************************************
+! DYNAMICS_FREQUENCY_RESPONSE.F90
+! ------------------------------------------------------------------------------
+subroutine c_frequency_response(n, nfreq, mass, ldm, stiff, ldk, alpha, beta, &
+    freq, frc, modes, modeshapes, ldms, rsp, ldr) &
+    bind(C, name = "c_frequency_response")
+    integer(c_int), intent(in), value :: n
+    integer(c_int), intent(in), value :: nfreq
+    integer(c_int), intent(in), value :: ldm
+    integer(c_int), intent(in), value :: ldk
+    integer(c_int), intent(in), value :: ldms
+    integer(c_int), intent(in), value :: ldr
+    real(c_double), intent(in) :: mass(ldm,n)
+    real(c_double), intent(in) :: stiff(ldk,n)
+    real(c_double), intent(in), value :: alpha
+    real(c_double), intent(in), value :: beta
+    real(c_double), intent(in) :: freq(nfreq)
+    type(c_funptr), intent(in), value :: frc
+    real(real64), intent(out) :: modes(n)
+    real(real64), intent(out) :: modeshapes(ldms,n)
+    complex(real64), intent(out) :: rsp(ldf,n)
+
+    type(frf) :: frsp
+    type(c_modal_excite_container) :: arg
+    procedure(c_modal_excite), pointer :: fptr
+    ! procedure(modal_excite), pointer :: fcn
+    call c_f_procpointer(frc, fptr)
+    arg%fcn => fptr
+    fcn => cfr_fcn
+end subroutine
+
+! --------------------
+subroutine cfr_fcn(freq, frc, args)
+    real(real64), intent(in) :: freq
+    real(real64), intent(out), dimension(:) :: frc
+    class(*), intent(inout), optional :: args
+    select type (args)
+    class is (c_modal_excite_container)
+        call args%fcn(size(frc), freq, frc)
+    end select
+end subroutine
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
 
 ! ------------------------------------------------------------------------------
 end module
