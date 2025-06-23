@@ -4,11 +4,14 @@
 #include <complex.h>
 
 #define DYN_HYPERBOLIC_FIXED_POINT_SINK 100
-#define HYPERBOLIC_FIXED_POINT_SOURCE 101
+#define DYN_HYPERBOLIC_FIXED_POINT_SOURCE 101
 #define DYN_HYPERBOLIC_FIXED_POINT_SADDLE 102
 #define DYN_NONHYPERBOLIC_FIXED_POINT_UNSTABLE 103
 #define DYN_NONHYPERBOLIC_FIXED_POINT_NEUTRALLY_STABLE 104
 #define DYN_NONHYPERBOLIC_FIXED_POINT_CENTER 105
+
+#define DYN_REVOLUTE_JOINT 0
+#define DYN_PRISMATIC_JOINT 1
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,6 +42,38 @@ void c_velocity_transform(const double *omega, const double *v,
 
 void c_determine_local_stability(int n, const double *a, int lda,
     double complex *ev, int *flag);
+
+void c_dh_forward_kinematics_2(const double *T1, int ldt1, const double *T2,
+    int ldt2, double *T, int ldt);
+void c_dh_forward_kinematics_3(const double *T1, int ldt1, const double *T2,
+    int ldt2, const double *T3, int ldt3, double *T, int ldt);
+void c_dh_forward_kinematics_4(const double *T1, int ldt1, const double *T2,
+    int ldt2, const double *T3, int ldt3, const double *T4, double *T, int ldt);
+void c_dh_forward_kinematics_5(const double *T1, int ldt1, const double *T2,
+    int ldt2, const double *T3, int ldt3, const double *T4, int ldt4,
+    const double *T5, int ldt5, double *T, int ldt);
+void c_dh_forward_kinematics_6(const double *T1, int ldt1, const double *T2,
+    int ldt2, const double *T3, int ldt3, const double *T4, int ldt4,
+    const double *T5, int ldt5, const double *T6, int ldt6, double *T, int ldt);
+void c_dh_forward_kinematics_7(const double *T1, int ldt1, const double *T2,
+    int ldt2, const double *T3, int ldt3, const double *T4, int ldt4,
+    const double *T5, int ldt5, const double *T6, int ldt6, const double *T7,
+    int ldt7, double *T, int ldt);
+void c_dh_forward_kinematics_8(const double *T1, int ldt1, const double *T2,
+    int ldt2, const double *T3, int ldt3, const double *T4, int ldt4,
+    const double *T5, int ldt5, const double *T6, int ldt6, const double *T7,
+    int ldt7, const double *T8, int ldt8, double *T, int ldt);
+void c_dh_jacobian(int n, const double *alpha, const double *a, 
+    const double *theta, const double *d, const int *jtypes, double *jac,
+    int ldjac);
+void c_dh_matrix(double alpha, double a, double theta, double d, double *T,
+    int ldt);
+void c_dh_rotate_x(double alpha, double *T, int ldt);
+void c_dh_rotate_z(double theta, double *T, int ldt);
+void c_dh_translate_x(double a, double *T, int ldt);
+void c_dh_translate_z(double d, double *T, int ldt);
+void c_jacobian_generating_vector(const double *d, const double *k, 
+    const double *R, int ldr, int jtype, double *jvec);
 
 #ifdef __cplusplus
 }
