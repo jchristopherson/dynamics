@@ -5,6 +5,30 @@ module dynamics_c_api
     use ferror
     implicit none
 
+    interface
+        subroutine c_vecfcn(nvar, neqn, x, f)
+            use iso_c_binding
+            integer(c_int), intent(in), value :: nvar
+            integer(c_int), intent(in), value :: neqn
+            real(c_double), intent(in) :: x(nvar)
+            real(c_double), intent(out) :: f(neqn)
+        end subroutine
+    end interface
+
+    type c_vecfcn_container
+        procedure(c_vecfcn), pointer, nopass :: fcn
+    end type
+
+    type, bind(C) :: c_iteration_behavior
+        logical(c_bool) :: converge_on_chng
+        logical(c_bool) :: converge_on_fcn
+        logical(c_bool) :: converge_on_zero_diff
+        integer(c_int) :: fcn_count
+        integer(c_int) :: gradient_count
+        integer(c_int) :: iter_count
+        integer(c_int) :: jacobian_count
+    end type
+
 contains
 ! ******************************************************************************
 ! DYNAMICS_VIBRATIONS
@@ -439,6 +463,46 @@ subroutine c_jacobian_generating_vector(d, k, R, ldr, jtype, jvec) &
     real(c_double), intent(out) :: jvec(6)
     if (ldr < 3) return
     jvec = jacobian_generating_vector(d, k, R(1:3,1:3), jtype)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_solve_inverse_kinematics(njoints, neqn, mdl, qo, constraints, &
+    jvar, resid, ib) bind(C, name = "c_solve_inverse_kinematics")
+    integer(c_int), intent(in), value :: njoints
+    integer(c_int), intent(in), value :: neqn
+    type(c_funptr), intent(in), value :: mdl
+    real(c_double), intent(in) :: qo(njoints)
+    real(c_double), intent(in) :: constraints(neqn)
+    real(c_double), intent(out) :: jvar(njoints)
+    real(c_double), intent(out) :: resid(neqn)
+    type(c_iteration_behavior), intent(out) :: ib
+    type(errors) :: err
+    type(iteration_behavior) :: iter
+    procedure(vecfcn), pointer :: fcn
+    procedure(c_vecfcn), pointer :: fptr
+    call c_f_procpointer(mdl, fptr)
+    fcn => sik_fcn
+    call err%set_exit_on_error(.false.)
+    jvar = solve_inverse_kinematics(fcn, qo, constraints, df = resid, &
+        ib = iter, err = err)
+    ib%converge_on_chng = iter%converge_on_chng
+    ib%converge_on_fcn = iter%converge_on_fcn
+    ib%converge_on_zero_diff = iter%converge_on_zero_diff
+    ib%fcn_count = iter%fcn_count
+    ib%gradient_count = iter%gradient_count
+    ib%iter_count = iter%iter_count
+    ib%jacobian_count = iter%jacobian_count
+end subroutine
+
+! --------------------
+subroutine sik_fcn(x, f, args)
+    real(real64), intent(in), dimension(:) :: x
+    real(real64), intent(out), dimension(:) :: f
+    class(*), intent(inout), optional :: args
+    select type (args)
+    class is (c_vecfcn_container)
+        call args%fcn(size(x), size(f), x, f)
+    end select
 end subroutine
 
 ! ------------------------------------------------------------------------------

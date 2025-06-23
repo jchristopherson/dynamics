@@ -2,6 +2,7 @@
 #define DYNAMICS_H_
 
 #include <complex.h>
+#include <stdbool.h>
 
 #define DYN_HYPERBOLIC_FIXED_POINT_SINK 100
 #define DYN_HYPERBOLIC_FIXED_POINT_SOURCE 101
@@ -12,6 +13,17 @@
 
 #define DYN_REVOLUTE_JOINT 0
 #define DYN_PRISMATIC_JOINT 1
+
+typedef void (*c_vecfcn)(int nvar, int neqn, const double *x, double *f);
+typedef struct {
+    bool converge_on_chng;
+    bool converge_on_fcn;
+    bool converge_on_zero_diff;
+    int fcn_count;
+    int gradient_count;
+    int iter_count;
+    int jacobian_count;
+} c_iteration_behavior;
 
 #ifdef __cplusplus
 extern "C" {
@@ -74,6 +86,9 @@ void c_dh_translate_x(double a, double *T, int ldt);
 void c_dh_translate_z(double d, double *T, int ldt);
 void c_jacobian_generating_vector(const double *d, const double *k, 
     const double *R, int ldr, int jtype, double *jvec);
+void c_solve_inverse_kinematics(int njoints, int neqn, const c_vecfcn mdl,
+    const double *qo, const double *constraints, double *jvar, double *resid,
+    c_iteration_behavior *ib);
 
 #ifdef __cplusplus
 }
