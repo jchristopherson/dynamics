@@ -1,6 +1,15 @@
 #ifndef DYNAMICS_H_
 #define DYNAMICS_H_
 
+#include <complex.h>
+
+#define DYN_HYPERBOLIC_FIXED_POINT_SINK 100
+#define HYPERBOLIC_FIXED_POINT_SOURCE 101
+#define DYN_HYPERBOLIC_FIXED_POINT_SADDLE 102
+#define DYN_NONHYPERBOLIC_FIXED_POINT_UNSTABLE 103
+#define DYN_NONHYPERBOLIC_FIXED_POINT_NEUTRALLY_STABLE 104
+#define DYN_NONHYPERBOLIC_FIXED_POINT_CENTER 105
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -27,6 +36,9 @@ void c_acceleration_transform(const double *alpha, const double *omega,
     const double *a, const double *x, double *r, int ldr);
 void c_velocity_transform(const double *omega, const double *v, 
     const double *x, double *r, int ldr);
+
+void c_determine_local_stability(int n, const double *a, int lda,
+    double complex *ev, int *flag);
 
 #ifdef __cplusplus
 }

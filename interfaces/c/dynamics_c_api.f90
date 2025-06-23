@@ -2,6 +2,7 @@ module dynamics_c_api
     use iso_c_binding
     use iso_fortran_env
     use dynamics
+    use ferror
     implicit none
 
 contains
@@ -163,7 +164,21 @@ subroutine c_velocity_transform(omega, v, x, r, ldr) &
     r(1:4,1:4) = velocity_transform(omega, v, x)
 end subroutine
 
+! ******************************************************************************
+! DYNAMICS_STABILITY.F90
 ! ------------------------------------------------------------------------------
+subroutine c_determine_local_stability(n, a, lda, ev, flag) &
+    bind(C, name = "c_determine_local_stability")
+    integer(c_int), intent(in), value :: n
+    integer(c_int), intent(in), value :: lda
+    real(c_double), intent(in) :: a(lda,n)
+    complex(c_double), intent(out) :: ev(n)
+    integer(c_int), intent(out) :: flag
+    type(errors) :: err
+    if (lda < n) return;
+    call err%set_exit_on_error(.false.)
+    flag = determine_local_stability(a, ev = ev, err = err)
+end subroutine
 
 ! ------------------------------------------------------------------------------
 

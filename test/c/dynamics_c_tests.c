@@ -1,5 +1,6 @@
 #include "dynamics_vibrations_tests.h"
 #include "dynamics_rotation_tests.h"
+#include "dynamics_stability_tests.h"
 #include <stdbool.h>
 
 int main()
@@ -27,6 +28,8 @@ int main()
     if (!c_test_rotation()) flag = 13;
     if (!c_test_acceleration_transform()) flag = 14;
     if (!c_test_velocity_transform()) flag = 15;
+
+    if (!c_test_determine_local_stability()) flag = 16;
 
     return flag;
 }
