@@ -8,6 +8,7 @@ set(dynamics_c_sources
     dynamics_vibrations_tests.c
     dynamics_rotation_tests.c
     dynamics_stability_tests.c
+    dynamics_kinematics_tests.c
 )
 
 # Build the tests

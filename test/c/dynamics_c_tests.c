@@ -1,6 +1,7 @@
 #include "dynamics_vibrations_tests.h"
 #include "dynamics_rotation_tests.h"
 #include "dynamics_stability_tests.h"
+#include "dynamics_kinematics_tests.h"
 #include <stdbool.h>
 
 int main()
@@ -30,6 +31,9 @@ int main()
     if (!c_test_velocity_transform()) flag = 15;
 
     if (!c_test_determine_local_stability()) flag = 16;
+
+    if (!c_test_forward_kinematics()) flag = 17;
+    if (!c_test_inverse_kinematics()) flag = 18;
 
     return flag;
 }

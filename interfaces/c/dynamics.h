@@ -55,6 +55,8 @@ void c_velocity_transform(const double *omega, const double *v,
 void c_determine_local_stability(int n, const double *a, int lda,
     double complex *ev, int *flag);
 
+void c_dh_forward_kinematics(int n, const double *alpha, const double *a,
+    const double *theta, const double *d, double *T, int ldt);
 void c_dh_forward_kinematics_2(const double *T1, int ldt1, const double *T2,
     int ldt2, double *T, int ldt);
 void c_dh_forward_kinematics_3(const double *T1, int ldt1, const double *T2,

@@ -6,7 +6,7 @@ module dynamics_c_api
     implicit none
 
     interface
-        subroutine c_vecfcn(nvar, neqn, x, f)
+        subroutine c_vecfcn(nvar, neqn, x, f) bind(C, name = "c_vecfcn")
             use iso_c_binding
             integer(c_int), intent(in), value :: nvar
             integer(c_int), intent(in), value :: neqn
@@ -206,6 +206,20 @@ end subroutine
 
 ! ******************************************************************************
 ! DYNAMICS_KINEMATICS.F90
+! ------------------------------------------------------------------------------
+subroutine c_dh_forward_kinematics(n, alpha, a, theta, d, T, ldt) &
+    bind(C, name = "c_dh_forward_kinematics")
+    integer(c_int), intent(in), value :: n
+    real(c_double), intent(in) :: alpha(n)
+    real(c_double), intent(in) :: a(n)
+    real(c_double), intent(in) :: theta(n)
+    real(c_double), intent(in) :: d(n)
+    integer(c_int), intent(in), value :: ldt
+    real(c_double), intent(out) :: T(ldt,4)
+    if (ldt < 4) return
+    T(1:4,1:4) = dh_forward_kinematics(alpha, a, theta, d)
+end subroutine
+
 ! ------------------------------------------------------------------------------
 subroutine c_dh_forward_kinematics_2(T1, ldt1, T2, ldt2, T, ldt) &
     bind(C, name = "c_dh_forward_kinematics_2")
@@ -480,11 +494,13 @@ subroutine c_solve_inverse_kinematics(njoints, neqn, mdl, qo, constraints, &
     type(iteration_behavior) :: iter
     procedure(vecfcn), pointer :: fcn
     procedure(c_vecfcn), pointer :: fptr
+    type(c_vecfcn_container) :: arg
     call c_f_procpointer(mdl, fptr)
     fcn => sik_fcn
+    arg%fcn => fptr
     call err%set_exit_on_error(.false.)
     jvar = solve_inverse_kinematics(fcn, qo, constraints, df = resid, &
-        ib = iter, err = err)
+        ib = iter, args = arg, err = err)
     ib%converge_on_chng = iter%converge_on_chng
     ib%converge_on_fcn = iter%converge_on_fcn
     ib%converge_on_zero_diff = iter%converge_on_zero_diff
