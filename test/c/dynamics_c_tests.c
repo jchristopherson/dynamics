@@ -24,6 +24,9 @@ int main()
     if (!c_test_rotation_x()) flag = 10;
     if (!c_test_rotation_y()) flag = 11;
     if (!c_test_rotation_z()) flag = 12;
+    if (!c_test_rotation()) flag = 13;
+    if (!c_test_acceleration_transform()) flag = 14;
+    if (!c_test_velocity_transform()) flag = 15;
 
     return flag;
 }
