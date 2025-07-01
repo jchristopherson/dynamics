@@ -17,8 +17,17 @@
 #define DYN_FRF_ACCELERANCE_MODEL 1
 #define DYN_FRF_RECEPTANCE_MODEL 2
 
+#define DYN_RUNGE_KUTTA_23 10
+#define DYN_RUNGE_KUTTA_45 11
+#define DYN_RUNGE_KUTTA_853 12
+#define DYN_ROSENBROCK 13
+#define DYN_BDF 14
+#define DYN_ADAMS 15
+
 typedef void (*c_vecfcn)(int nvar, int neqn, const double *x, double *f);
-typedef void (*c_modal_excite)(int n, double freq, double *f);
+typedef void (*c_modal_excite)(int n, double freq, double complex *f);
+typedef void (*c_harmonic_ode)(int n, double freq, double t, const double *x,
+    double *dxdt);
 
 typedef struct {
     bool converge_on_chng;
@@ -29,6 +38,12 @@ typedef struct {
     int iter_count;
     int jacobian_count;
 } c_iteration_behavior;
+
+typedef struct {
+    int cycle_count;
+    int transient_cycles;
+    int points_per_cycle;
+} c_frequency_sweep_controls;
 
 #ifdef __cplusplus
 extern "C" {
@@ -96,6 +111,20 @@ void c_jacobian_generating_vector(const double *d, const double *k,
 void c_solve_inverse_kinematics(int njoints, int neqn, const c_vecfcn mdl,
     const double *qo, const double *constraints, double *jvar, double *resid,
     c_iteration_behavior *ib);
+
+void c_frequency_response(int n, int nfreq, const double *mass, int ldm,
+    const double *stiff, int ldk, double alpha, double beta, const double *freq,
+    const c_modal_excite frc, double *modes, double *modeshapes, int ldms,
+    double complex *rsp, int ldr);
+double c_compute_modal_damping(double lambda, double alpha, double beta);
+double c_chirp(double t, double amp, double span, double f1Hz, double f2Hz);
+void c_modal_response(int n, const double *mass, int ldm, const double *stiff,
+    int ldk, double *freqs, double *modeshapes, int ldms);
+void c_normalize_mode_shapes(int n, double *x, int ldx);
+void c_frf_sweep(int n, int nfreq, c_harmonic_ode fcn, const double *freq,
+    const double *iv, int solver, double complex *rsp, int ldr, 
+    const c_frequency_sweep_controls *opts);
+void c_set_frequency_sweep_defaults(c_frequency_sweep_controls *x);
 
 #ifdef __cplusplus
 }

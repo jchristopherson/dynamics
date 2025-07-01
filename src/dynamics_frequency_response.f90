@@ -40,7 +40,7 @@ module dynamics_frequency_response
                 !! The result.
         end function
 
-        subroutine modal_excite(freq, frc)
+        subroutine modal_excite(freq, frc, args)
             !! Defines the interface to a routine for defining the forcing
             !! function for a modal frequency analysis.
             use iso_fortran_env, only : real64
@@ -52,9 +52,12 @@ module dynamics_frequency_response
             complex(real64), intent(out), dimension(:) :: frc
                 !! An N-element array where the forcing function should be
                 !! written.
+            class(*), intent(inout), optional :: args
+                !! An optional argument that can be used to communicate with
+                !! the outside world.
         end subroutine
 
-        pure subroutine harmonic_ode(freq, t, x, dxdt, args)
+        subroutine harmonic_ode(freq, t, x, dxdt, args)
             !! Defines a system of ODE's exposed to harmonic excitation.
             use iso_fortran_env, only : real64
             real(real64), intent(in) :: freq
@@ -161,7 +164,7 @@ contains
 
 ! ------------------------------------------------------------------------------
     function frf_modal_prop_damp(mass, stiff, alpha, beta, freq, frc, &
-        modes, modeshapes, err) result(rst)
+        modes, modeshapes, args, err) result(rst)
         !! Computes the frequency response functions for a 
         !! multi-degree-of-freedom system that uses proportional damping such
         !! that the damping matrix \( C \) is related to the stiffness an mass
@@ -194,6 +197,9 @@ contains
             !! An optional N-by-N allocatable matrix that, if supplied, will be
             !! used to retrieve the N mode shapes with each vector occupying
             !! its own column.
+        class(*), intent(inout), optional :: args
+            !! An optional argument that can be used to communicate with
+            !! the outside world.
         class(errors), intent(inout), optional, target :: err
             !! An optional errors-based object that if provided 
             !! can be used to retrieve information relating to any errors 
@@ -268,7 +274,7 @@ contains
 
         ! Compute each transfer function
         do i = 1, m
-            call frc(freq(i), f)
+            call frc(freq(i), f, args)
             call mtx_mult(LA_TRANSPOSE, one, vecs, f, zero, u)
             s = j * freq(i)
             q = u / (s**2 + 2.0d0 * zeta * sqrt(lambda) * s + lambda)
@@ -328,7 +334,7 @@ contains
 
 ! ------------------------------------------------------------------------------
     function frf_modal_prop_damp_2(mass, stiff, alpha, beta, nfreq, freq1, &
-        freq2, frc, modes, modeshapes, err) result(rst)
+        freq2, frc, modes, modeshapes, args, err) result(rst)
         !! Computes the frequency response functions for a 
         !! multi-degree-of-freedom system that uses proportional damping such
         !! that the damping matrix \( C \) is related to the stiffness an mass
@@ -365,6 +371,9 @@ contains
             !! An optional N-by-N allocatable matrix that, if supplied, will be
             !! used to retrieve the N mode shapes with each vector occupying
             !! its own column.
+        class(*), intent(inout), optional :: args
+            !! An optional argument that can be used to communicate with
+            !! the outside world.
         class(errors), intent(inout), optional, target :: err
             !! An optional errors-based object that if provided 
             !! can be used to retrieve information relating to any errors 
@@ -420,7 +429,7 @@ contains
         end if
         freq = (/ (df * i + freq1, i = 0, nfreq - 1) /)
         rst = frequency_response(mass, stiff, alpha, beta, freq, frc, modes, &
-            modeshapes, err)
+            modeshapes, args = args, err = err)
     end function
 
 ! ------------------------------------------------------------------------------
@@ -780,7 +789,7 @@ contains
     end function
 
     ! ----------
-    pure subroutine sweep_eom(x, y, dydx, args)
+    subroutine sweep_eom(x, y, dydx, args)
         real(real64), intent(in) :: x
         real(real64), intent(in), dimension(:) :: y
         real(real64), intent(out), dimension(:) :: dydx

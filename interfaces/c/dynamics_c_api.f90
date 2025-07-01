@@ -3,6 +3,7 @@ module dynamics_c_api
     use iso_fortran_env
     use dynamics
     use ferror
+    use diffeq
     implicit none
 
     interface
@@ -18,7 +19,17 @@ module dynamics_c_api
             use iso_c_binding
             integer(c_int), intent(in), value :: n
             real(c_double), intent(in), value :: freq
-            real(c_double), intent(out) :: f(n)
+            complex(c_double), intent(out) :: f(n)
+        end subroutine
+
+        subroutine c_harmonic_ode(n, freq, t, x, dxdt) &
+            bind(C, name = "c_harmonic_ode")
+            use iso_c_binding
+            integer(c_int), intent(in), value :: n
+            real(c_double), intent(in), value :: freq
+            real(c_double), intent(in), value :: t
+            real(c_double), intent(in) :: x(n)
+            real(c_double), intent(out) :: dxdt(n)
         end subroutine
     end interface
 
@@ -30,6 +41,10 @@ module dynamics_c_api
         procedure(c_modal_excite), pointer, nopass :: fcn
     end type
 
+    type c_harmonic_ode_container
+        procedure(c_harmonic_ode), pointer, nopass :: fcn
+    end type
+
     type, bind(C) :: c_iteration_behavior
         logical(c_bool) :: converge_on_chng
         logical(c_bool) :: converge_on_fcn
@@ -39,6 +54,19 @@ module dynamics_c_api
         integer(c_int) :: iter_count
         integer(c_int) :: jacobian_count
     end type
+
+    type, bind(C) :: c_frequency_sweep_controls
+        integer(c_int) :: cycle_count
+        integer(c_int) :: transient_cycles
+        integer(c_int) :: points_per_cycle
+    end type
+
+    integer(c_int), parameter :: DYN_RUNGE_KUTTA_23 = 10
+    integer(c_int), parameter :: DYN_RUNGE_KUTTA_45 = 11
+    integer(c_int), parameter :: DYN_RUNGE_KUTTA_853 = 12
+    integer(c_int), parameter :: DYN_ROSENBROCK = 13
+    integer(c_int), parameter :: DYN_BDF = 14
+    integer(c_int), parameter :: DYN_ADAMS = 15
 
 contains
 ! ******************************************************************************
@@ -552,21 +580,36 @@ subroutine c_frequency_response(n, nfreq, mass, ldm, stiff, ldk, alpha, beta, &
     type(c_funptr), intent(in), value :: frc
     real(real64), intent(out) :: modes(n)
     real(real64), intent(out) :: modeshapes(ldms,n)
-    complex(real64), intent(out) :: rsp(ldf,n)
+    complex(real64), intent(out) :: rsp(ldr,n)
 
+    type(errors) :: err
     type(frf) :: frsp
     type(c_modal_excite_container) :: arg
     procedure(c_modal_excite), pointer :: fptr
-    ! procedure(modal_excite), pointer :: fcn
+    procedure(modal_excite), pointer :: fcn
+    real(real64), allocatable, dimension(:) :: mds
+    real(real64), allocatable, dimension(:,:) :: ms
+
+    if (ldm < n) return
+    if (ldk < n) return
+    if (ldms < n) return
+    if (ldr < nfreq) return
+
     call c_f_procpointer(frc, fptr)
     arg%fcn => fptr
     fcn => cfr_fcn
+    call err%set_exit_on_error(.false.)
+    frsp = frequency_response(mass(1:n,1:n), stiff(1:n,1:n), alpha, beta, &
+        freq, fcn, modes = mds, modeshapes = ms, args = arg, err = err)
+    rsp(1:nfreq,1:n) = frsp%responses
+    modes = mds
+    modeshapes(1:n,1:n) = ms
 end subroutine
 
 ! --------------------
 subroutine cfr_fcn(freq, frc, args)
     real(real64), intent(in) :: freq
-    real(real64), intent(out), dimension(:) :: frc
+    complex(real64), intent(out), dimension(:) :: frc
     class(*), intent(inout), optional :: args
     select type (args)
     class is (c_modal_excite_container)
@@ -575,14 +618,140 @@ subroutine cfr_fcn(freq, frc, args)
 end subroutine
 
 ! ------------------------------------------------------------------------------
+function c_compute_modal_damping(lambda, alpha, beta) result(rst) &
+    bind(C, name = "c_compute_modal_damping")
+    real(c_double), intent(in), value :: lambda
+    real(c_double), intent(in), value :: alpha
+    real(c_double), intent(in), value :: beta
+    real(c_double) :: rst
+    rst = compute_modal_damping(lambda, alpha, beta)
+end function
 
 ! ------------------------------------------------------------------------------
+function c_chirp(t, amp, span, f1Hz, f2Hz) result(rst) bind(C, name = "c_chirp")
+    real(c_double), intent(in), value :: t
+    real(c_double), intent(in), value :: amp
+    real(c_double), intent(in), value :: span
+    real(c_double), intent(in), value :: f1Hz
+    real(c_double), intent(in), value :: f2Hz
+    real(c_double) :: rst
+    rst = chirp(t, amp, span, f1Hz, f2Hz)
+end function
 
 ! ------------------------------------------------------------------------------
+subroutine c_modal_response(n, mass, ldm, stiff, ldk, freqs, modeshapes, ldms) &
+    bind(C, name = "c_modal_response")
+    integer(c_int), intent(in), value :: n
+    integer(c_int), intent(in), value :: ldm
+    integer(c_int), intent(in), value :: ldk
+    integer(c_int), intent(in), value :: ldms
+    real(c_double), intent(in) :: mass(ldm,n)
+    real(c_double), intent(in) :: stiff(ldk,n)
+    real(c_double), intent(out) :: freqs(n)
+    real(c_double), intent(out) :: modeshapes(ldms,n)
+
+    real(real64), allocatable, dimension(:) :: mds
+    real(real64), allocatable, dimension(:,:) :: ms
+    type(errors) :: err
+
+    if (ldm < n) return
+    if (ldk < n) return
+    if (ldms < n) return
+
+    call err%set_exit_on_error(.false.)
+    call modal_response(mass(1:n,1:n), stiff(1:n,1:n), mds, ms, err)
+    freqs = mds
+    modeshapes(1:n,1:n) = ms
+end subroutine
 
 ! ------------------------------------------------------------------------------
+subroutine c_normalize_mode_shapes(n, x, ldx) &
+    bind(C, name = "c_normalize_mode_shapes")
+    integer(c_int), intent(in), value :: n
+    integer(c_int), intent(in), value :: ldx
+    real(c_double), intent(inout) :: x(ldx,n)
+    if (ldx < n) return;
+    call normalize_mode_shapes(x(1:n,1:n))
+end subroutine
 
 ! ------------------------------------------------------------------------------
+subroutine c_frf_sweep(n, nfreq, fcn, freq, iv, solver, rsp, ldr, opts) &
+    bind(C, name = "c_frf_sweep")
+    integer(c_int), intent(in), value :: n
+    integer(c_int), intent(in), value :: nfreq
+    integer(c_int), intent(in), value :: ldr
+    type(c_funptr), intent(in), value :: fcn
+    real(c_double), intent(in) :: freq(nfreq)
+    real(c_double), intent(in) :: iv(n)
+    integer(c_int), intent(in), value :: solver
+    complex(c_double), intent(out) :: rsp(ldr,n)
+    type(c_frequency_sweep_controls), intent(in) :: opts
+
+    type(c_harmonic_ode_container) :: arg
+    procedure(c_harmonic_ode), pointer :: fptr
+    procedure(harmonic_ode), pointer :: odefcn
+    type(runge_kutta_23), target :: rk23
+    type(runge_kutta_45), target :: rk45
+    type(runge_kutta_853), target :: rk853
+    type(rosenbrock), target :: rbrk
+    type(bdf), target :: bdiff
+    type(adams), target :: pece
+    class(ode_integrator), pointer :: integrator
+
+    type(frf) :: frsp
+    type(errors) :: err
+
+    if (ldr < nfreq) return
+
+    call c_f_procpointer(fcn, fptr)
+    arg%fcn => fptr
+    odefcn => cfrf_sweep_fcn
+    call err%set_exit_on_error(.false.)
+
+    select case (solver)
+    case (DYN_ADAMS)
+        integrator => pece
+    case (DYN_BDF)
+        integrator => bdiff
+    case (DYN_ROSENBROCK)
+        integrator => rbrk
+    case (DYN_RUNGE_KUTTA_23)
+        integrator => rk23
+    case (DYN_RUNGE_KUTTA_45)
+        integrator => rk45
+    case (DYN_RUNGE_KUTTA_853)
+        integrator => rk853
+    case default
+        integrator => rk45
+    end select
+
+    frsp = frequency_sweep(odefcn, freq, iv, solver = integrator, args = arg, &
+        ncycles = opts%cycle_count, ntransient = opts%transient_cycles, &
+        points = opts%points_per_cycle, err = err)
+    rsp(1:nfreq,1:n) = frsp%responses
+end subroutine
+
+! --------------------
+subroutine cfrf_sweep_fcn(freq, t, x, dxdt, args)
+    real(real64), intent(in) :: freq, t
+    real(real64), intent(in), dimension(:) :: x
+    real(real64), intent(out), dimension(:) :: dxdt
+    class(*), intent(inout), optional :: args
+
+    select type (args)
+    class is (c_harmonic_ode_container)
+        call args%fcn(size(x), freq, t, x, dxdt)
+    end select
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_set_frequency_sweep_defaults(x) &
+    bind(C, name = "c_set_frequency_sweep_defaults")
+    type(c_frequency_sweep_controls), intent(inout) :: x
+    x%cycle_count = 20
+    x%transient_cycles = 200
+    x%points_per_cycle = 1000
+end subroutine
 
 ! ------------------------------------------------------------------------------
 
