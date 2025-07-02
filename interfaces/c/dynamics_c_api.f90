@@ -4,6 +4,7 @@ module dynamics_c_api
     use dynamics
     use ferror
     use diffeq
+    use spectrum, only : window
     implicit none
 
     interface
@@ -31,6 +32,14 @@ module dynamics_c_api
             real(c_double), intent(in) :: x(n)
             real(c_double), intent(out) :: dxdt(n)
         end subroutine
+
+        pure function c_window_function(n, bin) result(rst) &
+            bind(C, name = "c_window_function")
+            use iso_c_binding
+            integer(c_int), intent(in), value :: n
+            integer(c_int), intent(in), value :: bin
+            real(c_double) :: rst
+        end function
     end interface
 
     type c_vecfcn_container
@@ -76,6 +85,12 @@ module dynamics_c_api
         real(c_double) :: probability
         real(c_double) :: standard_error
         real(c_double) :: t_statistic
+    end type
+
+    type, extends(window) :: c_window
+        procedure(c_window_function), pointer, nopass :: fcn
+    contains
+        procedure, public :: evaluate => cw_eval
     end type
 
     integer(c_int), parameter :: DYN_RUNGE_KUTTA_23 = 10
@@ -849,6 +864,53 @@ subroutine c_fit_frf(n, norder, method, freq, rsp, maxp, minp, controls, mdl, &
 end subroutine
 
 ! ------------------------------------------------------------------------------
+pure function cw_eval(this, bin) result(rst)
+    class(c_window), intent(in) :: this
+    integer(int32), intent(in) :: bin
+    real(real64) :: rst
+    rst = this%fcn(this%size, bin)
+end function
+
+! ------------------------------------------------------------------------------
+function c_siso_frequency_response(n, nf, x, y, fs, winsize, winfun, method, &
+    freq, rsp) result(rst) bind(C, name = "c_siso_frequency_response")
+    integer(c_int), intent(in), value :: n
+    integer(c_int), intent(in), value :: nf
+    real(c_double), intent(in) :: x(n)
+    real(c_double), intent(in) :: y(n)
+    real(c_double), intent(in), value :: fs
+    integer(c_int), intent(in), value :: winsize
+    type(c_funptr), intent(in), value :: winfun
+    integer(c_int), intent(in), value :: method
+    real(c_double), intent(out) :: freq(nf)
+    complex(c_double), intent(out) :: rsp(nf)
+    integer(c_int) :: rst
+
+    type(c_window) :: win
+    type(frf) :: frsp
+    procedure(c_window_function), pointer :: fcn
+    type(errors) :: err
+    integer(c_int) :: m
+
+    rst = 0
+    if (mod(winsize, 2) == 0) then
+        m = winsize / 2
+    else
+        m = (winsize + 1) / 2
+    end if
+    if (nf /= m) then
+        rst = -2
+        return
+    end if
+
+    call c_f_procpointer(winfun, fcn)
+    win%size = winsize
+    win%fcn => fcn
+
+    frsp = frequency_response(x, y, fs, win = win, method = method, err = err)
+    freq = frsp%frequency
+    rsp = frsp%responses(:,1)
+end function
 
 ! ------------------------------------------------------------------------------
 

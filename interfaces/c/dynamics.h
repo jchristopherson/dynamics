@@ -27,10 +27,14 @@
 #define DYN_ACCELERANCE_MODEL 1
 #define DYN_RECEPTANCE_MODEL 2
 
+#define DYN_H1 1
+#define DYN_H2 2
+
 typedef void (*c_vecfcn)(int nvar, int neqn, const double *x, double *f);
 typedef void (*c_modal_excite)(int n, double freq, double complex *f);
 typedef void (*c_harmonic_ode)(int n, double freq, double t, const double *x,
     double *dxdt);
+typedef double (*c_window_function)(int n, int bin);
 
 typedef struct {
     bool converge_on_chng;
@@ -154,6 +158,9 @@ void c_fit_frf(int n, int norder, int method, const double *freq,
     const double complex *rsp, const double *maxp, const double *minp,
     const c_iteration_controls *controls, double *mdl, 
     c_regression_statistics *stats);
+int c_siso_frequency_response(int n, int nf, const double *x, const double *y,
+    double fs, int winsize, c_window_function winfun, int method, double *freq,
+    double complex *rsp);
 
 #ifdef __cplusplus
 }
