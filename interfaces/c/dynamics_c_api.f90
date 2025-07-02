@@ -1118,6 +1118,38 @@ subroutine c_siso_frequency_response(n, nf, x, y, fs, winsize, winfun, method, &
     rsp = frsp%responses(:,1)
 end subroutine
 
+! ******************************************************************************
+! DYNAMICS_HELPER.F90
+! ------------------------------------------------------------------------------
+subroutine c_cross_product(x, y, z) bind(C, name = "c_cross_product")
+    real(c_double), intent(in) :: x(3)
+    real(c_double), intent(in) :: y(3)
+    real(c_double), intent(out) :: z(3)
+    z = cross_product(x, y)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_to_skew_symmetric(x, y, ldy) bind(C, name = "c_to_skew_symmetric")
+    real(c_double), intent(in) :: x(3)
+    integer(c_int), intent(in), value :: ldy
+    real(c_double), intent(out) :: y(ldy,3)
+    if (ldy < 3) then
+        call c_report_invalid_input("c_to_skew_symmetric", "ldy")
+        return
+    end if
+    y(1:3,1:3) = to_skew_symmetric(x)
+end subroutine
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
 ! ------------------------------------------------------------------------------
 
 ! ------------------------------------------------------------------------------

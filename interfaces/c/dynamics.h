@@ -162,6 +162,9 @@ void c_siso_frequency_response(int n, int nf, const double *x, const double *y,
     double fs, int winsize, c_window_function winfun, int method, double *freq,
     double complex *rsp);
 
+void c_cross_product(const double *x, const double *y, double *z);
+void c_to_skew_symmetric(const double *x, double *y, int ldy);
+
 #ifdef __cplusplus
 }
 #endif
