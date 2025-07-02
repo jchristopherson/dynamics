@@ -81,7 +81,6 @@ program example
 
     ! Compute the frequency response function
     rsp = frequency_response(x, y(:,2), sample_rate, win = win)
-    print *, size(rsp%frequency)
 
     ! Convert from complex form into amplitude & phase
     amp = 2.0d1 * log10(abs(rsp%responses(:,1) / rsp%responses(1,1)))
