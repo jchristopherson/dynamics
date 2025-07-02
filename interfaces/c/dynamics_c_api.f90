@@ -1211,7 +1211,7 @@ subroutine c_siso_model_fit_least_squares(nsets, nparams, neqns, fcn, x, ic, &
     type(c_siso_fit_container) :: args
 
     ! Uses constraints?
-    if (nconstraints == 0 .or. constraints == C_NULL_FUNPTR) then
+    if (nconstraints == 0 .or. .not.c_associated(constraints)) then
         uses_constraints = .false.
     else
         uses_constraints = .true.
