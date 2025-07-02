@@ -158,7 +158,7 @@ void c_fit_frf(int n, int norder, int method, const double *freq,
     const double complex *rsp, const double *maxp, const double *minp,
     const c_iteration_controls *controls, double *mdl, 
     c_regression_statistics *stats);
-int c_siso_frequency_response(int n, int nf, const double *x, const double *y,
+void c_siso_frequency_response(int n, int nf, const double *x, const double *y,
     double fs, int winsize, c_window_function winfun, int method, double *freq,
     double complex *rsp);
 

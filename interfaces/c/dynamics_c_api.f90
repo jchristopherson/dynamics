@@ -101,6 +101,25 @@ module dynamics_c_api
     integer(c_int), parameter :: DYN_ADAMS = 15
 
 contains
+! ------------------------------------------------------------------------------
+subroutine c_report_invalid_input(fcn, name, err)
+    character(len = *), intent(in) :: fcn
+    character(len = *), intent(in) :: name
+    class(errors), intent(inout), optional, target :: err
+
+    class(errors), pointer :: errmgr
+    type(errors), target :: deferr
+    
+    ! Initialization
+    if (present(err)) then
+        errmgr => err
+    else
+        errmgr => deferr
+    end if
+
+    call errmgr%report_error(fcn, "Invalid Input: " // name, -1)
+end subroutine
+
 ! ******************************************************************************
 ! DYNAMICS_VIBRATIONS
 ! ------------------------------------------------------------------------------
@@ -201,7 +220,10 @@ subroutine c_rotate_x(angle, r, ldr) bind(C, name = "c_rotate_x")
     real(c_double), intent(in), value :: angle
     integer(c_int), intent(in), value :: ldr
     real(c_double), intent(out) :: r(ldr, 3)
-    if (ldr < 3) return
+    if (ldr < 3) then
+        call c_report_invalid_input("c_rotate_x", "ldr")
+        return
+    end if
     r(1:3,1:3) = rotate_x(angle)
 end subroutine
 
@@ -210,7 +232,10 @@ subroutine c_rotate_y(angle, r, ldr) bind(C, name = "c_rotate_y")
     real(c_double), intent(in), value :: angle
     integer(c_int), intent(in), value :: ldr
     real(c_double), intent(out) :: r(ldr, 3)
-    if (ldr < 3) return
+    if (ldr < 3) then
+        call c_report_invalid_input("c_rotate_y", "ldr")
+        return
+    end if
     r(1:3,1:3) = rotate_y(angle)
 end subroutine
 
@@ -219,7 +244,10 @@ subroutine c_rotate_z(angle, r, ldr) bind(C, name = "c_rotate_z")
     real(c_double), intent(in), value :: angle
     integer(c_int), intent(in), value :: ldr
     real(c_double), intent(out) :: r(ldr, 3)
-    if (ldr < 3) return
+    if (ldr < 3) then
+        call c_report_invalid_input("c_rotate_z", "ldr")
+        return
+    end if
     r(1:3,1:3) = rotate_z(angle)
 end subroutine
 
@@ -230,7 +258,10 @@ subroutine c_rotate(i, j, k, r, ldr) bind(C, name = "c_rotate")
     real(c_double), intent(in) :: k(3)
     integer(c_int), intent(in), value :: ldr
     real(c_double), intent(out) :: r(ldr,3)
-    if (ldr < 3) return
+    if (ldr < 3) then
+        call c_report_invalid_input("c_rotate", "ldr")
+        return
+    end if
     r(1:3,1:3) = rotate(i, j, k)
 end subroutine
 
@@ -243,7 +274,10 @@ subroutine c_acceleration_transform(alpha, omega, a, x, r, ldr) &
     real(c_double), intent(in) :: x(3)
     integer(c_int), intent(in), value :: ldr
     real(c_double), intent(out) :: r(ldr,4)
-    if (ldr < 4) return
+    if (ldr < 4) then
+        call c_report_invalid_input("c_acceleration_transform", "ldr")
+        return
+    end if
     r(1:4,1:4) = acceleration_transform(alpha, omega, a, x)
 end subroutine
 
@@ -255,7 +289,10 @@ subroutine c_velocity_transform(omega, v, x, r, ldr) &
     real(c_double), intent(in) :: x(3)
     integer(c_int), intent(in), value :: ldr
     real(c_double), intent(out) :: r(ldr,4)
-    if (ldr < 4) return
+    if (ldr < 4) then
+        call c_report_invalid_input("c_velocity_transform", "ldr")
+        return
+    end if
     r(1:4,1:4) = velocity_transform(omega, v, x)
 end subroutine
 
@@ -269,10 +306,12 @@ subroutine c_determine_local_stability(n, a, lda, ev, flag) &
     real(c_double), intent(in) :: a(lda,n)
     complex(c_double), intent(out) :: ev(n)
     integer(c_int), intent(out) :: flag
-    type(errors) :: err
-    if (lda < n) return;
-    call err%set_exit_on_error(.false.)
-    flag = determine_local_stability(a(1:n,1:n), ev = ev, err = err)
+    
+    if (lda < n) then
+        call c_report_invalid_input("c_determine_local_stability", "lda")
+        return
+    end if
+    flag = determine_local_stability(a(1:n,1:n), ev = ev)
 end subroutine
 
 ! ******************************************************************************
@@ -287,7 +326,10 @@ subroutine c_dh_forward_kinematics(n, alpha, a, theta, d, T, ldt) &
     real(c_double), intent(in) :: d(n)
     integer(c_int), intent(in), value :: ldt
     real(c_double), intent(out) :: T(ldt,4)
-    if (ldt < 4) return
+    if (ldt < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics", "ldt")
+        return
+    end if
     T(1:4,1:4) = dh_forward_kinematics(alpha, a, theta, d)
 end subroutine
 
@@ -300,9 +342,18 @@ subroutine c_dh_forward_kinematics_2(T1, ldt1, T2, ldt2, T, ldt) &
     real(c_double), intent(in) :: T1(ldt1,4)
     real(c_double), intent(in) :: T2(ldt2,4)
     real(c_double), intent(out) :: T(ldt,4)
-    if (ldt1 < 4) return;
-    if (ldt2 < 4) return;
-    if (ldt < 4) return;
+    if (ldt1 < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_2", "ldt1")
+        return
+    end if
+    if (ldt2 < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_2", "ldt2")
+        return
+    end if
+    if (ldt < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_2", "ldt")
+        return
+    end if
     T(1:4,1:4) = dh_forward_kinematics(T1(1:4,1:4), T2(1:4,1:4))
 end subroutine
 
@@ -317,10 +368,22 @@ subroutine c_dh_forward_kinematics_3(T1, ldt1, T2, ldt2, T3, ldt3, T, ldt) &
     real(c_double), intent(in) :: T2(ldt2,4)
     real(c_double), intent(in) :: T3(ldt3,4)
     real(c_double), intent(out) :: T(ldt,4)
-    if (ldt1 < 4) return;
-    if (ldt2 < 4) return;
-    if (ldt3 < 4) return;
-    if (ldt < 4) return;
+    if (ldt1 < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_3", "ldt1")
+        return
+    end if
+    if (ldt2 < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_3", "ldt2")
+        return
+    end if
+    if (ldt3 < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_3", "ldt3")
+        return
+    end if
+    if (ldt < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_3", "ldt")
+        return
+    end if
     T(1:4,1:4) = dh_forward_kinematics(T1(1:4,1:4), T2(1:4,1:4), T3(1:4,1:4))
 end subroutine
 
@@ -338,11 +401,26 @@ subroutine c_dh_forward_kinematics_4(T1, ldt1, T2, ldt2, T3, ldt3, T4, ldt4, &
     real(c_double), intent(in) :: T3(ldt3,4)
     real(c_double), intent(in) :: T4(ldt4,4)
     real(c_double), intent(out) :: T(ldt,4)
-    if (ldt1 < 4) return;
-    if (ldt2 < 4) return;
-    if (ldt3 < 4) return;
-    if (ldt4 < 4) return;
-    if (ldt < 4) return;
+    if (ldt1 < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_4", "ldt1")
+        return
+    end if
+    if (ldt2 < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_4", "ldt2")
+        return
+    end if
+    if (ldt3 < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_4", "ldt3")
+        return
+    end if
+    if (ldt4 < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_4", "ldt4")
+        return
+    end if
+    if (ldt < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_4", "ldt")
+        return
+    end if
     T(1:4,1:4) = dh_forward_kinematics(T1(1:4,1:4), T2(1:4,1:4), T3(1:4,1:4), &
         T4(1:4,1:4))
 end subroutine
@@ -363,12 +441,30 @@ subroutine c_dh_forward_kinematics_5(T1, ldt1, T2, ldt2, T3, ldt3, T4, ldt4, &
     real(c_double), intent(in) :: T4(ldt4,4)
     real(c_double), intent(in) :: T5(ldt5,4)
     real(c_double), intent(out) :: T(ldt,4)
-    if (ldt1 < 4) return;
-    if (ldt2 < 4) return;
-    if (ldt3 < 4) return;
-    if (ldt4 < 4) return;
-    if (ldt5 < 4) return;
-    if (ldt < 4) return;
+    if (ldt1 < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_5", "ldt1")
+        return
+    end if
+    if (ldt2 < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_5", "ldt2")
+        return
+    end if
+    if (ldt3 < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_5", "ldt3")
+        return
+    end if
+    if (ldt4 < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_5", "ldt4")
+        return
+    end if
+    if (ldt5 < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_5", "ldt5")
+        return
+    end if
+    if (ldt < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_5", "ldt")
+        return
+    end if
     T(1:4,1:4) = dh_forward_kinematics(T1(1:4,1:4), T2(1:4,1:4), T3(1:4,1:4), &
         T4(1:4,1:4), T5(1:4,1:4))
 end subroutine
@@ -391,13 +487,34 @@ subroutine c_dh_forward_kinematics_6(T1, ldt1, T2, ldt2, T3, ldt3, T4, ldt4, &
     real(c_double), intent(in) :: T5(ldt5,4)
     real(c_double), intent(in) :: T6(ldt6,4)
     real(c_double), intent(out) :: T(ldt,4)
-    if (ldt1 < 4) return;
-    if (ldt2 < 4) return;
-    if (ldt3 < 4) return;
-    if (ldt4 < 4) return;
-    if (ldt5 < 4) return;
-    if (ldt6 < 4) return;
-    if (ldt < 4) return;
+    if (ldt1 < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_6", "ldt1")
+        return
+    end if
+    if (ldt2 < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_6", "ldt2")
+        return
+    end if
+    if (ldt3 < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_6", "ldt3")
+        return
+    end if
+    if (ldt4 < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_6", "ldt4")
+        return
+    end if
+    if (ldt5 < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_6", "ldt5")
+        return
+    end if
+    if (ldt6 < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_6", "ldt6")
+        return
+    end if
+    if (ldt < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_6", "ldt")
+        return
+    end if
     T(1:4,1:4) = dh_forward_kinematics(T1(1:4,1:4), T2(1:4,1:4), T3(1:4,1:4), &
         T4(1:4,1:4), T5(1:4,1:4), T6(1:4,1:4))
 end subroutine
@@ -422,14 +539,38 @@ subroutine c_dh_forward_kinematics_7(T1, ldt1, T2, ldt2, T3, ldt3, T4, ldt4, &
     real(c_double), intent(in) :: T6(ldt6,4)
     real(c_double), intent(in) :: T7(ldt7,4)
     real(c_double), intent(out) :: T(ldt,4)
-    if (ldt1 < 4) return;
-    if (ldt2 < 4) return;
-    if (ldt3 < 4) return;
-    if (ldt4 < 4) return;
-    if (ldt5 < 4) return;
-    if (ldt6 < 4) return;
-    if (ldt7 < 4) return;
-    if (ldt < 4) return;
+    if (ldt1 < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_7", "ldt1")
+        return
+    end if
+    if (ldt2 < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_7", "ldt2")
+        return
+    end if
+    if (ldt3 < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_7", "ldt3")
+        return
+    end if
+    if (ldt4 < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_7", "ldt4")
+        return
+    end if
+    if (ldt5 < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_7", "ldt5")
+        return
+    end if
+    if (ldt6 < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_7", "ldt6")
+        return
+    end if
+    if (ldt7 < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_7", "ldt7")
+        return
+    end if
+    if (ldt < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_7", "ldt")
+        return
+    end if
     T(1:4,1:4) = dh_forward_kinematics(T1(1:4,1:4), T2(1:4,1:4), T3(1:4,1:4), &
         T4(1:4,1:4), T5(1:4,1:4), T6(1:4,1:4), T7(1:4,1:4))
 end subroutine
@@ -456,15 +597,42 @@ subroutine c_dh_forward_kinematics_8(T1, ldt1, T2, ldt2, T3, ldt3, T4, ldt4, &
     real(c_double), intent(in) :: T7(ldt7,4)
     real(c_double), intent(in) :: T8(ldt8,4)
     real(c_double), intent(out) :: T(ldt,4)
-    if (ldt1 < 4) return;
-    if (ldt2 < 4) return;
-    if (ldt3 < 4) return;
-    if (ldt4 < 4) return;
-    if (ldt5 < 4) return;
-    if (ldt6 < 4) return;
-    if (ldt7 < 4) return;
-    if (ldt8 < 4) return;
-    if (ldt < 4) return;
+    if (ldt1 < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_8", "ldt1")
+        return
+    end if
+    if (ldt2 < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_8", "ldt2")
+        return
+    end if
+    if (ldt3 < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_8", "ldt3")
+        return
+    end if
+    if (ldt4 < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_8", "ldt4")
+        return
+    end if
+    if (ldt5 < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_8", "ldt5")
+        return
+    end if
+    if (ldt6 < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_8", "ldt6")
+        return
+    end if
+    if (ldt7 < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_8", "ldt7")
+        return
+    end if
+    if (ldt8 < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_8", "ldt8")
+        return
+    end if
+    if (ldt < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_8", "ldt")
+        return
+    end if
     T(1:4,1:4) = dh_forward_kinematics(T1(1:4,1:4), T2(1:4,1:4), T3(1:4,1:4), &
         T4(1:4,1:4), T5(1:4,1:4), T6(1:4,1:4), T7(1:4,1:4), T8(1:4,1:4))
 end subroutine
@@ -480,7 +648,10 @@ subroutine c_dh_jacobian(n, alpha, a, theta, d, jtypes, jac, ldjac) &
     real(c_double), intent(in) :: d(n)
     integer(c_int), intent(in) :: jtypes(n)
     real(c_double), intent(out) :: jac(ldjac,n)
-    if (ldjac < 6) return
+    if (ldjac < 6) then
+        call c_report_invalid_input("c_dh_jacobian", "ldjac")
+        return
+    end if
     jac(1:6,1:n) = dh_jacobian(alpha, a, theta, d, jtypes)
 end subroutine
 
@@ -493,7 +664,10 @@ subroutine c_dh_matrix(alpha, a, theta, d, T, ldt) &
     real(c_double), intent(in), value :: d
     integer(c_int), intent(in), value :: ldt
     real(c_double), intent(out) :: T(ldt,4)
-    if (ldt < 4) return
+    if (ldt < 4) then
+        call c_report_invalid_input("c_dh_matrix", "ldt")
+        return
+    end if
     T(1:4,1:4) = dh_matrix(alpha, a, theta, d)
 end subroutine
 
@@ -503,7 +677,10 @@ subroutine c_dh_rotate_x(alpha, T, ldt) &
     real(c_double), intent(in), value :: alpha
     integer(c_int), intent(in), value :: ldt
     real(c_double), intent(out) :: T(ldt,4)
-    if (ldt < 4) return
+    if (ldt < 4) then
+        call c_report_invalid_input("c_dh_rotate_x", "ldt")
+        return
+    end if
     T(1:4,1:4) = dh_rotate_x(alpha)
 end subroutine
 
@@ -513,7 +690,10 @@ subroutine c_dh_rotate_z(theta, T, ldt) &
     real(c_double), intent(in), value :: theta
     integer(c_int), intent(in), value :: ldt
     real(c_double), intent(out) :: T(ldt,4)
-    if (ldt < 4) return
+    if (ldt < 4) then
+        call c_report_invalid_input("c_dh_rotate_z", "ldt")
+        return
+    end if
     T(1:4,1:4) = dh_rotate_z(theta)
 end subroutine
 
@@ -523,7 +703,10 @@ subroutine c_dh_translate_x(a, T, ldt) &
     real(c_double), intent(in), value :: a
     integer(c_int), intent(in), value :: ldt
     real(c_double), intent(out) :: T(ldt,4)
-    if (ldt < 4) return
+    if (ldt < 4) then
+        call c_report_invalid_input("c_dh_translate_x", "ldt")
+        return
+    end if
     T(1:4,1:4) = dh_translate_x(a)
 end subroutine
 
@@ -533,7 +716,10 @@ subroutine c_dh_translate_z(d, T, ldt) &
     real(c_double), intent(in), value :: d
     integer(c_int), intent(in), value :: ldt
     real(c_double), intent(out) :: T(ldt,4)
-    if (ldt < 4) return
+    if (ldt < 4) then
+        call c_report_invalid_input("c_dh_translate_z", "ldt")
+        return
+    end if
     T(1:4,1:4) = dh_translate_z(d)
 end subroutine
 
@@ -546,7 +732,10 @@ subroutine c_jacobian_generating_vector(d, k, R, ldr, jtype, jvec) &
     real(c_double), intent(in) :: R(ldr,3)
     integer(c_int), intent(in), value :: jtype
     real(c_double), intent(out) :: jvec(6)
-    if (ldr < 3) return
+    if (ldr < 3) then
+        call c_report_invalid_input("c_jacobian_generating_vector", "ldr")
+        return
+    end if
     jvec = jacobian_generating_vector(d, k, R(1:3,1:3), jtype)
 end subroutine
 
@@ -561,7 +750,6 @@ subroutine c_solve_inverse_kinematics(njoints, neqn, mdl, qo, constraints, &
     real(c_double), intent(out) :: jvar(njoints)
     real(c_double), intent(out) :: resid(neqn)
     type(c_iteration_behavior), intent(out) :: ib
-    type(errors) :: err
     type(iteration_behavior) :: iter
     procedure(vecfcn), pointer :: fcn
     procedure(c_vecfcn), pointer :: fptr
@@ -569,9 +757,9 @@ subroutine c_solve_inverse_kinematics(njoints, neqn, mdl, qo, constraints, &
     call c_f_procpointer(mdl, fptr)
     fcn => sik_fcn
     arg%fcn => fptr
-    call err%set_exit_on_error(.false.)
+    
     jvar = solve_inverse_kinematics(fcn, qo, constraints, df = resid, &
-        ib = iter, args = arg, err = err)
+        ib = iter, args = arg)
     ib%converge_on_chng = iter%converge_on_chng
     ib%converge_on_fcn = iter%converge_on_fcn
     ib%converge_on_zero_diff = iter%converge_on_zero_diff
@@ -614,7 +802,6 @@ subroutine c_frequency_response(n, nfreq, mass, ldm, stiff, ldk, alpha, beta, &
     real(real64), intent(out) :: modeshapes(ldms,n)
     complex(real64), intent(out) :: rsp(ldr,n)
 
-    type(errors) :: err
     type(frf) :: frsp
     type(c_modal_excite_container) :: arg
     procedure(c_modal_excite), pointer :: fptr
@@ -622,17 +809,29 @@ subroutine c_frequency_response(n, nfreq, mass, ldm, stiff, ldk, alpha, beta, &
     real(real64), allocatable, dimension(:) :: mds
     real(real64), allocatable, dimension(:,:) :: ms
 
-    if (ldm < n) return
-    if (ldk < n) return
-    if (ldms < n) return
-    if (ldr < nfreq) return
+    if (ldm < n) then
+        call c_report_invalid_input("c_frequency_response", "ldm")
+        return
+    end if
+    if (ldk < n) then
+        call c_report_invalid_input("c_frequency_response", "ldk")
+        return
+    end if
+    if (ldms < n) then
+        call c_report_invalid_input("c_frequency_response", "ldms")
+        return
+    end if
+    if (ldr < nfreq) then
+        call c_report_invalid_input("c_frequency_response", "ldr")
+        return
+    end if
 
     call c_f_procpointer(frc, fptr)
     arg%fcn => fptr
     fcn => cfr_fcn
-    call err%set_exit_on_error(.false.)
+    
     frsp = frequency_response(mass(1:n,1:n), stiff(1:n,1:n), alpha, beta, &
-        freq, fcn, modes = mds, modeshapes = ms, args = arg, err = err)
+        freq, fcn, modes = mds, modeshapes = ms, args = arg)
     rsp(1:nfreq,1:n) = frsp%responses
     modes = mds
     modeshapes(1:n,1:n) = ms
@@ -684,14 +883,22 @@ subroutine c_modal_response(n, mass, ldm, stiff, ldk, freqs, modeshapes, ldms) &
 
     real(real64), allocatable, dimension(:) :: mds
     real(real64), allocatable, dimension(:,:) :: ms
-    type(errors) :: err
 
-    if (ldm < n) return
-    if (ldk < n) return
-    if (ldms < n) return
+    if (ldm < n) then
+        call c_report_invalid_input("c_modal_response", "ldm")
+        return
+    end if
+    if (ldk < n) then
+        call c_report_invalid_input("c_modal_response", "ldk")
+        return
+    end if
+    if (ldms < n) then
+        call c_report_invalid_input("c_modal_response", "ldms")
+        return
+    end if
 
-    call err%set_exit_on_error(.false.)
-    call modal_response(mass(1:n,1:n), stiff(1:n,1:n), mds, ms, err)
+    
+    call modal_response(mass(1:n,1:n), stiff(1:n,1:n), mds, ms)
     freqs = mds
     modeshapes(1:n,1:n) = ms
 end subroutine
@@ -702,7 +909,10 @@ subroutine c_normalize_mode_shapes(n, x, ldx) &
     integer(c_int), intent(in), value :: n
     integer(c_int), intent(in), value :: ldx
     real(c_double), intent(inout) :: x(ldx,n)
-    if (ldx < n) return;
+    if (ldx < n) then
+        call c_report_invalid_input("c_normalize_mode_shapes", "ldx")
+        return
+    end if
     call normalize_mode_shapes(x(1:n,1:n))
 end subroutine
 
@@ -731,14 +941,16 @@ subroutine c_frf_sweep(n, nfreq, fcn, freq, iv, solver, rsp, ldr, opts) &
     class(ode_integrator), pointer :: integrator
 
     type(frf) :: frsp
-    type(errors) :: err
 
-    if (ldr < nfreq) return
+    if (ldr < nfreq) then
+        call c_report_invalid_input("c_frf_sweep", "ldr")
+        return
+    end if
 
     call c_f_procpointer(fcn, fptr)
     arg%fcn => fptr
     odefcn => cfrf_sweep_fcn
-    call err%set_exit_on_error(.false.)
+    
 
     select case (solver)
     case (DYN_ADAMS)
@@ -759,7 +971,7 @@ subroutine c_frf_sweep(n, nfreq, fcn, freq, iv, solver, rsp, ldr, opts) &
 
     frsp = frequency_sweep(odefcn, freq, iv, solver = integrator, args = arg, &
         ncycles = opts%cycle_count, ntransient = opts%transient_cycles, &
-        points = opts%points_per_cycle, err = err)
+        points = opts%points_per_cycle)
     rsp(1:nfreq,1:n) = frsp%responses
 end subroutine
 
@@ -841,9 +1053,8 @@ subroutine c_fit_frf(n, norder, method, freq, rsp, maxp, minp, controls, mdl, &
     integer(int32) :: i
     type(iteration_controls) :: cntrls
     type(regression_statistics) :: fs(3 * norder)
-    type(errors) :: err
 
-    call err%set_exit_on_error(.false.)
+    
 
     cntrls%change_in_solution_tolerance = controls%change_in_solution_tolerance
     cntrls%gradient_tolerance = controls%gradient_tolerance
@@ -854,7 +1065,7 @@ subroutine c_fit_frf(n, norder, method, freq, rsp, maxp, minp, controls, mdl, &
     cntrls%residual_tolerance = controls%residual_tolerance
 
     mdl = fit_frf(method, norder, freq, rsp, maxp = maxp, minp = minp, &
-        stats = fs, controls = cntrls, err = err)
+        stats = fs, controls = cntrls)
     do i = 1, size(fs)
         stats(i)%confidence_interval = fs(i)%confidence_interval
         stats(i)%probability = fs(i)%probability
@@ -872,8 +1083,8 @@ pure function cw_eval(this, bin) result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
-function c_siso_frequency_response(n, nf, x, y, fs, winsize, winfun, method, &
-    freq, rsp) result(rst) bind(C, name = "c_siso_frequency_response")
+subroutine c_siso_frequency_response(n, nf, x, y, fs, winsize, winfun, method, &
+    freq, rsp) bind(C, name = "c_siso_frequency_response")
     integer(c_int), intent(in), value :: n
     integer(c_int), intent(in), value :: nf
     real(c_double), intent(in) :: x(n)
@@ -884,33 +1095,28 @@ function c_siso_frequency_response(n, nf, x, y, fs, winsize, winfun, method, &
     integer(c_int), intent(in), value :: method
     real(c_double), intent(out) :: freq(nf)
     complex(c_double), intent(out) :: rsp(nf)
-    integer(c_int) :: rst
 
     type(c_window) :: win
     type(frf) :: frsp
     procedure(c_window_function), pointer :: fcn
-    type(errors) :: err
     integer(c_int) :: m
 
-    rst = 0
+    
     if (mod(winsize, 2) == 0) then
         m = winsize / 2 + 1
     else
         m = (winsize + 1) / 2
     end if
-    if (nf /= m) then
-        rst = -2
-        return
-    end if
+    if (nf /= m) return
 
     call c_f_procpointer(winfun, fcn)
     win%size = winsize
     win%fcn => fcn
 
-    frsp = frequency_response(x, y, fs, win = win, method = method, err = err)
+    frsp = frequency_response(x, y, fs, win = win, method = method)
     freq = frsp%frequency
     rsp = frsp%responses(:,1)
-end function
+end subroutine
 
 ! ------------------------------------------------------------------------------
 
