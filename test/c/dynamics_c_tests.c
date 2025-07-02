@@ -40,6 +40,7 @@ int main()
     if (!c_test_modal_response()) flag = 20;
     if (!c_test_frf_sweep()) flag = 21;
     if (!c_test_frf_fit()) flag = 22;
+    if (!c_test_siso_frf()) flag = 23;
 
     return flag;
 }

@@ -368,3 +368,83 @@ bool c_test_frf_fit()
     // End
     return rst;
 }
+
+
+double hamming_window(int n, int j)
+{
+    const double pi = 2.0 * acos(0.0);
+    return 0.54 - 0.46 * cos(2.0 * pi * j / n);
+}
+
+void single_dof_forcing_term(int n, double freq, double complex *f)
+{
+    const double complex one = 1.0 + 0.0 * I;
+    f[0] = one;
+}
+
+bool c_test_siso_frf()
+{
+    // Local Variables
+    bool rst;
+    const double pi = 2.0 * acos(0.0);
+    const double fn = 50.0;
+    const double wn = 2.0 * pi * fn;
+    const double alpha = 0.1;
+    const double beta = 5.0e-5;
+    const double Xs = 1.0;
+    const double dt = 1.0e-3;
+    const int npts = 100;
+    const int winsize = 256;
+    const int nfreq = winsize / 2 + 1;
+    const int index = 10;
+    const double tol = 0.1;
+    int i;
+    double nval, t[npts], x[npts], y[npts], freq[nfreq], mag[nfreq], ans[nfreq],
+        m[1], k[1], zeta, modes[1], modeshapes[1], omega[nfreq];
+    double complex tf[nfreq], tfans[nfreq];
+
+    // Initialization
+    rst = true;
+    zeta = c_compute_modal_damping(wn * wn, alpha, beta);
+    m[0] = 1.0;
+    k[0] = wn * wn;
+
+    // Create a step response
+    for (i = 0; i < npts; ++i)
+    {
+        t[i] = dt * i;
+        y[i] = i == 0 ? 0.0 : Xs;
+    }
+    c_evaluate_step_response(npts, wn, zeta, Xs, t, x);
+
+    // Compute the FRF & normalize the amplitude term
+    c_siso_frequency_response(npts, nfreq, y, x, 1.0 / dt, winsize, 
+        hamming_window, DYN_H1, freq, tf);
+    for (i = 0; i < nfreq; ++i)
+    {
+        mag[i] = cabs(tf[i]);
+        if (i == 0) nval = mag[0];
+        mag[i] /= nval;
+        omega[i] = 2.0 * pi * freq[i];
+    }
+
+    // Compute a solution FRF
+    c_frequency_response(1, nfreq, m, 1, k, 1, alpha, beta, omega, 
+        single_dof_forcing_term, modes, modeshapes, 1, tfans, nfreq);
+    for (i = 0; i < nfreq; ++i)
+    {
+        ans[i] = cabs(tfans[i]);
+        if (i == 0) nval = ans[0];
+        ans[i] /= nval;
+    }
+
+    // Test
+    if (1.0 - fabs(mag[index] / ans[index]) > tol)
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_siso_frf -1\n");
+    }
+
+    // End
+    return rst;
+}
