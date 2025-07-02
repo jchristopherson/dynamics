@@ -42,6 +42,7 @@ program example
     use diffeq
     use fplot_core
     use dynamic_system
+    use spectrum
     implicit none
 
     ! Parameters
@@ -62,6 +63,7 @@ program example
     type(plot_data_2d) :: pd1, pd2
     class(plot_axis), pointer :: x1, x2, y1, y2
     class(legend), pointer :: lgnd
+    type(hamming_window) :: win
 
     ! Define the input signal
     n = floor(max_time * sample_rate) + 1
@@ -69,13 +71,17 @@ program example
     t = (/ (i / sample_rate, i = 0, n - 1) /)
     x = chirp(t, input_amplitude, max_time, min_freq, max_freq)
 
+    ! Define the window function
+    win%size = 256
+
     ! Compute the response of the dynamic system to the specified input
     mdl%fcn => equations_of_motion
     call solver%solve(mdl, t, [0.0d0, 0.0d0])
     y = solver%get_solution()
 
     ! Compute the frequency response function
-    rsp = frequency_response(x, y(:,2), sample_rate)
+    rsp = frequency_response(x, y(:,2), sample_rate, win = win)
+    print *, size(rsp%frequency)
 
     ! Convert from complex form into amplitude & phase
     amp = 2.0d1 * log10(abs(rsp%responses(:,1) / rsp%responses(1,1)))
