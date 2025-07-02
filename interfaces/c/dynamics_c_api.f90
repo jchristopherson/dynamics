@@ -40,6 +40,28 @@ module dynamics_c_api
             integer(c_int), intent(in), value :: bin
             real(c_double) :: rst
         end function
+
+        subroutine c_constraint_equations(n, neqn, nparam, xg, fg, xc, p, &
+            fc) bind(C, name = "c_constraint_equations")
+            use iso_c_binding
+            integer(c_int), intent(in), value :: n
+            integer(c_int), intent(in), value :: neqn
+            integer(c_int), intent(in), value :: nparam
+            real(c_double), intent(in) :: xg(n)
+            real(c_double), intent(in) :: fg(n)
+            real(c_double), intent(in) :: xc(neqn)
+            real(c_double), intent(in) :: p(nparam)
+            real(c_double), intent(out) :: fc(neqn)
+        end subroutine
+
+        subroutine c_ode(n, t, x, dxdt) &
+            bind(C, name = "c_ode")
+            use iso_c_binding
+            integer(c_int), intent(in), value :: n
+            real(c_double), intent(in), value :: t
+            real(c_double), intent(in) :: x(n)
+            real(c_double), intent(out) :: dxdt(n)
+        end subroutine
     end interface
 
     type c_vecfcn_container
@@ -52,6 +74,11 @@ module dynamics_c_api
 
     type c_harmonic_ode_container
         procedure(c_harmonic_ode), pointer, nopass :: fcn
+    end type
+
+    type c_siso_fit_container
+        procedure(c_ode), pointer, nopass :: odefcn
+        procedure(c_constraint_equations), pointer, nopass :: constraints
     end type
 
     type, bind(C) :: c_iteration_behavior
@@ -91,6 +118,13 @@ module dynamics_c_api
         procedure(c_window_function), pointer, nopass :: fcn
     contains
         procedure, public :: evaluate => cw_eval
+    end type
+
+    type, bind(C) :: c_dynamic_system_measurement
+        integer(c_int) :: npts
+        type(c_ptr) :: input
+        type(c_ptr) :: output
+        type(c_ptr) :: t
     end type
 
     integer(c_int), parameter :: DYN_RUNGE_KUTTA_23 = 10
@@ -1140,7 +1174,103 @@ subroutine c_to_skew_symmetric(x, y, ldy) bind(C, name = "c_to_skew_symmetric")
     y(1:3,1:3) = to_skew_symmetric(x)
 end subroutine
 
+! ******************************************************************************
+! DYNAMICS_SYSTEM_ID.F90
 ! ------------------------------------------------------------------------------
+subroutine c_siso_model_fit_least_squares(nsets, nparams, neqns, fcn, x, ic, &
+    p, integrator, ind, maxp, minp, controls, nconstraints, xc, yc, &
+    constraints, nweights, weights, stats, info) &
+    bind(C, name = "c_siso_model_fit_least_squares")
+    integer(c_int), intent(in), value :: nsets
+    integer(c_int), intent(in), value :: nparams
+    integer(c_int), intent(in), value :: neqns
+    type(c_funptr), intent(in), value :: fcn
+    type(c_dynamic_system_measurement), intent(in) :: x(nsets)
+    real(c_double), intent(in) :: ic(neqns)
+    real(c_double), intent(inout) :: p(nparams)
+    integer(c_int), intent(in), value :: integrator
+    integer(c_int), intent(in), value :: ind
+    real(c_double), intent(in) :: maxp(nparams)
+    real(c_double), intent(in) :: minp(nparams)
+    type(c_iteration_controls), intent(in) :: controls
+    integer(c_int), intent(in), value :: nconstraints
+    real(c_double), intent(in) :: xc(nconstraints)
+    real(c_double), intent(in) :: yc(nconstraints)
+    type(c_funptr), intent(in), value :: constraints
+    integer(c_int), intent(in), value :: nweights
+    real(c_double), intent(in) :: weights(nweights)
+    type(c_regression_statistics), intent(out) :: stats(nparams)
+    type(c_iteration_behavior), intent(out) :: info
+
+    ! Variables
+    logical :: uses_constraints, uses_weights
+    integer(int32) :: i, nw
+    type(dynamic_system_measurement) :: fx
+    procedure(c_ode), pointer :: f_ode
+    procedure(c_constraint_equations), pointer :: f_constraints
+    type(c_siso_fit_container) :: args
+
+    ! Uses constraints?
+    if (nconstraints == 0 .or. constraints == C_NULL_FUNPTR) then
+        uses_constraints = .false.
+    else
+        uses_constraints = .true.
+    end if
+
+    ! Establish function pointers
+    call c_f_procpointer(fcn, f_ode)
+    args%odefcn => f_ode
+    if (uses_constraints) then
+        call c_f_procpointer(constraints, f_constraints)
+        args%constraints => f_constraints
+    end if
+
+    ! Uses weights?
+    if (nweights == 0) then
+        uses_weights = .false.
+    else
+        uses_weights = .true.
+        nw = 0
+        do i = 1, nsets
+            nw = nw + x(i)%npts
+        end do
+        if (nweights /= nw) then
+            call c_report_invalid_input("c_siso_model_fit_least_squares", &
+                "nweights")
+            return
+        end if
+    end if
+
+    ! Convert the inputs
+end subroutine
+
+! --------------------
+subroutine siso_fit_ode(t, x, dxdt, args)
+    real(real64), intent(in) :: t
+    real(real64), intent(in), dimension(:) :: x
+    real(real64), intent(out), dimension(:) :: dxdt
+    class(*), intent(inout), optional :: args
+
+    select type (args)
+    class is (c_siso_fit_container)
+        call args%odefcn(size(x), t, x, dxdt)
+    end select
+end subroutine
+
+! --------------------
+subroutine siso_constraint_equations(xg, fg, xc, p, fc, args)
+    real(real64), intent(in), dimension(:) :: xg
+    real(real64), intent(in), dimension(:) :: fg
+    real(real64), intent(in), dimension(:) :: xc
+    real(real64), intent(in), dimension(:) :: p
+    real(real64), intent(out), dimension(:) :: fc
+    class(*), intent(inout), optional :: args
+
+    select type (args)
+    class is (c_siso_fit_container)
+        call args%constraints(size(xg), size(xc), size(p), xg, fg, xc, p, fc)
+    end select
+end subroutine
 
 ! ------------------------------------------------------------------------------
 

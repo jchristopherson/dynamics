@@ -35,6 +35,10 @@ typedef void (*c_modal_excite)(int n, double freq, double complex *f);
 typedef void (*c_harmonic_ode)(int n, double freq, double t, const double *x,
     double *dxdt);
 typedef double (*c_window_function)(int n, int bin);
+typedef void (*c_constraint_equations)(int n, int neqn, int nparam, 
+    const double *xg, const double *fg, const double *xc, const double *p,
+    double *fc);
+typedef void (*c_ode)(int n, double t, const double *x, double *dxdt);
 
 typedef struct {
     bool converge_on_chng;
@@ -68,6 +72,13 @@ typedef struct {
     double standard_error;
     double t_statistic;
 } c_regression_statistics;
+
+typedef struct {
+    int npts;
+    double *input;
+    double *output;
+    double *t;
+} c_dynamic_system_measurement;
 
 #ifdef __cplusplus
 extern "C" {
