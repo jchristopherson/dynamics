@@ -972,7 +972,7 @@ subroutine c_frf_sweep(n, nfreq, fcn, freq, iv, solver, rsp, ldr, opts) &
     type(rosenbrock), target :: rbrk
     type(bdf), target :: bdiff
     type(adams), target :: pece
-    class(ode_integrator), pointer :: integrator
+    class(ode_integrator), pointer :: integrator_obj
 
     type(frf) :: frsp
 
@@ -988,24 +988,24 @@ subroutine c_frf_sweep(n, nfreq, fcn, freq, iv, solver, rsp, ldr, opts) &
 
     select case (solver)
     case (DYN_ADAMS)
-        integrator => pece
+        integrator_obj => pece
     case (DYN_BDF)
-        integrator => bdiff
+        integrator_obj => bdiff
     case (DYN_ROSENBROCK)
-        integrator => rbrk
+        integrator_obj => rbrk
     case (DYN_RUNGE_KUTTA_23)
-        integrator => rk23
+        integrator_obj => rk23
     case (DYN_RUNGE_KUTTA_45)
-        integrator => rk45
+        integrator_obj => rk45
     case (DYN_RUNGE_KUTTA_853)
-        integrator => rk853
+        integrator_obj => rk853
     case default
-        integrator => rk45
+        integrator_obj => rk45
     end select
 
-    frsp = frequency_sweep(odefcn, freq, iv, solver = integrator, args = arg, &
-        ncycles = opts%cycle_count, ntransient = opts%transient_cycles, &
-        points = opts%points_per_cycle)
+    frsp = frequency_sweep(odefcn, freq, iv, solver = integrator_obj, &
+        args = arg, ncycles = opts%cycle_count, &
+        ntransient = opts%transient_cycles, points = opts%points_per_cycle)
     rsp(1:nfreq,1:n) = frsp%responses
 end subroutine
 
@@ -1204,11 +1204,24 @@ subroutine c_siso_model_fit_least_squares(nsets, nparams, neqns, fcn, x, ic, &
 
     ! Variables
     logical :: uses_constraints, uses_weights
-    integer(int32) :: i, nw
-    type(dynamic_system_measurement) :: fx
+    integer(int32) :: i, nw, flag(1)
+    type(dynamic_system_measurement), allocatable, dimension(:) :: fx
     procedure(c_ode), pointer :: f_ode
     procedure(c_constraint_equations), pointer :: f_constraints
+    procedure(ode), pointer :: odeptr
+    procedure(constraint_equations), pointer :: constraints_pointer
     type(c_siso_fit_container) :: args
+    real(real64), pointer, dimension(:) :: temp
+    type(regression_statistics), allocatable, dimension(:) :: f_stats
+    type(convergence_info) :: f_info
+    type(iteration_controls) :: f_controls
+    type(runge_kutta_23), target :: rk23
+    type(runge_kutta_45), target :: rk45
+    type(runge_kutta_853), target :: rk853
+    type(rosenbrock), target :: rbrk
+    type(bdf), target :: bdiff
+    type(adams), target :: pece
+    class(ode_integrator), pointer :: integrator_obj
 
     ! Uses constraints?
     if (nconstraints == 0 .or. .not.c_associated(constraints)) then
@@ -1220,9 +1233,11 @@ subroutine c_siso_model_fit_least_squares(nsets, nparams, neqns, fcn, x, ic, &
     ! Establish function pointers
     call c_f_procpointer(fcn, f_ode)
     args%odefcn => f_ode
+    odeptr => siso_fit_ode
     if (uses_constraints) then
         call c_f_procpointer(constraints, f_constraints)
         args%constraints => f_constraints
+        constraints_pointer => siso_constraint_equations
     end if
 
     ! Uses weights?
@@ -1242,6 +1257,51 @@ subroutine c_siso_model_fit_least_squares(nsets, nparams, neqns, fcn, x, ic, &
     end if
 
     ! Convert the inputs
+    allocate(fx(nsets))
+    do i = 1, nsets
+        flag(1) = x(i)%npts
+        call c_f_pointer(x(i)%input, temp, flag)
+        allocate(fx(i)%input, source = temp)
+        
+        call c_f_pointer(x(i)%output, temp, flag)
+        allocate(fx(i)%output, source = temp)
+
+        call c_f_pointer(x(i)%t, temp, flag)
+        allocate(fx(i)%t, source = temp)
+    end do
+
+    ! Define the integrator
+    select case (integrator)
+    case (DYN_ADAMS)
+        integrator_obj => pece
+    case (DYN_BDF)
+        integrator_obj => bdiff
+    case (DYN_ROSENBROCK)
+        integrator_obj => rbrk
+    case (DYN_RUNGE_KUTTA_23)
+        integrator_obj => rk23
+    case (DYN_RUNGE_KUTTA_45)
+        integrator_obj => rk45
+    case (DYN_RUNGE_KUTTA_853)
+        integrator_obj => rk853
+    case default
+        integrator_obj => rk45
+    end select
+
+    ! Set up the iteration controls
+
+    ! Process
+    allocate(f_stats(nparams))
+    if (uses_constraints .and. uses_weights) then
+        call siso_model_fit_least_squares(odeptr, fx, ic, p, &
+            integrator = integrator_obj, ind = ind, maxp = maxp, minp = minp, &
+            stats = f_stats, controls = f_controls, info = f_info, xc = xc, &
+            yc = yc, constraints = constraints_pointer, weights = weights, &
+            args = args)
+    else if (uses_constraints .and. .not. uses_weights) then
+    else if (.not. uses_constraints .and. uses_weights) then
+    else
+    end if
 end subroutine
 
 ! --------------------
