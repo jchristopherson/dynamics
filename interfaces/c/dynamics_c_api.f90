@@ -61,6 +61,23 @@ module dynamics_c_api
         integer(c_int) :: points_per_cycle
     end type
 
+    type, bind(C) :: c_iteration_controls
+        real(c_double) :: change_in_solution_tolerance
+        real(c_double) :: gradient_tolerance
+        real(c_double) :: iteration_improvement_tolerance
+        real(c_double) :: residual_tolerance
+        integer(c_int) :: max_function_evaluations
+        integer(c_int) :: max_iteration_between_updates
+        integer(c_int) :: max_iteration_count
+    end type
+
+    type, bind(C) :: c_regression_statistics
+        real(c_double) :: confidence_interval
+        real(c_double) :: probability
+        real(c_double) :: standard_error
+        real(c_double) :: t_statistic
+    end type
+
     integer(c_int), parameter :: DYN_RUNGE_KUTTA_23 = 10
     integer(c_int), parameter :: DYN_RUNGE_KUTTA_45 = 11
     integer(c_int), parameter :: DYN_RUNGE_KUTTA_853 = 12
@@ -754,12 +771,82 @@ subroutine c_set_frequency_sweep_defaults(x) &
 end subroutine
 
 ! ------------------------------------------------------------------------------
+subroutine c_evaluate_accelerance_frf_model(n, norder, mdl, omega, h) &
+    bind(C, name = "c_evaluate_accelerance_frf_model")
+    integer(c_int), intent(in), value :: n
+    integer(c_int), intent(in), value :: norder
+    real(c_double), intent(in) :: mdl(3 * norder)
+    real(c_double), intent(in) :: omega(n)
+    complex(c_double), intent(out) :: h(n)
+
+    h = evaluate_accelerance_frf_model(mdl, omega)
+end subroutine
 
 ! ------------------------------------------------------------------------------
+subroutine c_evaluate_receptance_frf_model(n, norder, mdl, omega, h) &
+    bind(C, name = "c_evaluate_receptance_frf_model")
+    integer(c_int), intent(in), value :: n
+    integer(c_int), intent(in), value :: norder
+    real(c_double), intent(in) :: mdl(3 * norder)
+    real(c_double), intent(in) :: omega(n)
+    complex(c_double), intent(out) :: h(n)
+
+    h = evaluate_receptance_frf_model(mdl, omega)
+end subroutine
 
 ! ------------------------------------------------------------------------------
+subroutine c_set_iteration_controls_defaults(x) &
+    bind(C, name = "c_set_iteration_controls_defaults")
+    type(c_iteration_controls), intent(inout) :: x
+    type(iteration_controls) :: c
+    call c%set_to_default()
+    x%change_in_solution_tolerance = c%change_in_solution_tolerance
+    x%gradient_tolerance = c%gradient_tolerance
+    x%iteration_improvement_tolerance = c%iteration_improvement_tolerance
+    x%max_function_evaluations = c%max_function_evaluations
+    x%max_iteration_between_updates = c%max_iteration_between_updates
+    x%max_iteration_count = c%max_iteration_count
+    x%residual_tolerance = c%residual_tolerance
+end subroutine
 
 ! ------------------------------------------------------------------------------
+subroutine c_fit_frf(n, norder, method, freq, rsp, maxp, minp, controls, mdl, &
+    stats) bind(C, name = "c_fit_frf")
+    integer(c_int), intent(in), value :: n
+    integer(c_int), intent(in), value :: norder
+    integer(c_int), intent(in), value :: method
+    real(c_double), intent(in) :: freq(n)
+    complex(c_double), intent(in) :: rsp(n)
+    real(c_double), intent(in) :: maxp(3 * norder)
+    real(c_double), intent(in) :: minp(3 * norder)
+    type(c_iteration_controls), intent(in) :: controls
+    real(c_double), intent(out) :: mdl(3 * norder)
+    type(c_regression_statistics), intent(out) :: stats(3 * norder)
+
+    integer(int32) :: i
+    type(iteration_controls) :: cntrls
+    type(regression_statistics) :: fs(3 * norder)
+    type(errors) :: err
+
+    call err%set_exit_on_error(.false.)
+
+    cntrls%change_in_solution_tolerance = controls%change_in_solution_tolerance
+    cntrls%gradient_tolerance = controls%gradient_tolerance
+    cntrls%iteration_improvement_tolerance = controls%iteration_improvement_tolerance
+    cntrls%max_function_evaluations = controls%max_function_evaluations
+    cntrls%max_iteration_between_updates = controls%max_iteration_between_updates
+    cntrls%max_iteration_count = controls%max_iteration_count
+    cntrls%residual_tolerance = controls%residual_tolerance
+
+    mdl = fit_frf(method, norder, freq, rsp, maxp = maxp, minp = minp, &
+        stats = fs, controls = cntrls, err = err)
+    do i = 1, size(fs)
+        stats(i)%confidence_interval = fs(i)%confidence_interval
+        stats(i)%probability = fs(i)%probability
+        stats(i)%standard_error = fs(i)%standard_error
+        stats(i)%t_statistic = fs(i)%t_statistic
+    end do
+end subroutine
 
 ! ------------------------------------------------------------------------------
 

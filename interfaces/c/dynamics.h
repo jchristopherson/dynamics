@@ -24,6 +24,9 @@
 #define DYN_BDF 14
 #define DYN_ADAMS 15
 
+#define DYN_ACCELERANCE_MODEL 1
+#define DYN_RECEPTANCE_MODEL 2
+
 typedef void (*c_vecfcn)(int nvar, int neqn, const double *x, double *f);
 typedef void (*c_modal_excite)(int n, double freq, double complex *f);
 typedef void (*c_harmonic_ode)(int n, double freq, double t, const double *x,
@@ -44,6 +47,23 @@ typedef struct {
     int transient_cycles;
     int points_per_cycle;
 } c_frequency_sweep_controls;
+
+typedef struct {
+    double change_in_solution_tolerance;
+    double gradient_tolerance;
+    double iteration_improvement_tolerance;
+    double residual_tolerance;
+    int max_function_evaluations;
+    int max_iteration_between_updates;
+    int max_iteration_count;
+} c_iteration_controls;
+
+typedef struct {
+    double confidence_interval;
+    double probability;
+    double standard_error;
+    double t_statistic;
+} c_regression_statistics;
 
 #ifdef __cplusplus
 extern "C" {
@@ -125,6 +145,15 @@ void c_frf_sweep(int n, int nfreq, c_harmonic_ode fcn, const double *freq,
     const double *iv, int solver, double complex *rsp, int ldr, 
     const c_frequency_sweep_controls *opts);
 void c_set_frequency_sweep_defaults(c_frequency_sweep_controls *x);
+void c_evaluate_accelerance_frf_model(int n, int norder, const double *mdl,
+    const double *omega, double complex *h);
+void c_evaluate_receptance_frf_model(int n, int norder, const double *mdl,
+    const double *omega, double complex *h);
+void c_set_iteration_controls_defaults(c_iteration_controls *x);
+void c_fit_frf(int n, int norder, int method, const double *freq,
+    const double complex *rsp, const double *maxp, const double *minp,
+    const c_iteration_controls *controls, double *mdl, 
+    c_regression_statistics *stats);
 
 #ifdef __cplusplus
 }

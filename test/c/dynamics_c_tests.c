@@ -39,6 +39,7 @@ int main()
     if (!c_test_frequency_response()) flag = 19;
     if (!c_test_modal_response()) flag = 20;
     if (!c_test_frf_sweep()) flag = 21;
+    if (!c_test_frf_fit()) flag = 22;
 
     return flag;
 }

@@ -3,6 +3,7 @@
 #include "dynamics_c_test_helper.h"
 #include <math.h>
 #include <stdio.h>
+#include <float.h>
 
 void c_modal_forcing_term(int n, double freq, double complex *f)
 {
@@ -258,6 +259,110 @@ bool c_test_frf_sweep()
     {
         rst = false;
         printf("TEST FAILED: c_test_frf_sweep -2\n");
+    }
+
+    // End
+    return rst;
+}
+
+
+bool c_test_frf_fit()
+{
+    // Local Variables
+    bool rst;
+    const double pi = 2.0 * acos(0.0);
+    const double tol = 5.0e-2;
+    const int nfreq = 100;
+    const int order = 3;
+    const double fmin = 2.0 * pi * 10.0;
+    const double fmax = 2.0 * pi * 1.0e3;
+    const double alpha = 0.1;
+    const double beta = 2.0e-5;
+    const double m1 = 0.5;
+    const double m2 = 2.5;
+    const double m3 = 0.75;
+    const double k1 = 5.0e6;
+    const double k2 = 10.0e6;
+    const double k3 = 10.0e6;
+    const double k4 = 5.0e6;
+    int i;
+    double m[9], k[9], ans[nfreq], mdl[3 * order], fitamp[nfreq], modes[3],
+        modeshapes[9], df, freq[nfreq], maxp[3 * order], minp[3 * order],
+        maxval;
+    double complex fit[nfreq], nrmrsp[3 * nfreq], val;
+    c_modal_excite fcn;
+    c_iteration_controls controls;
+    c_regression_statistics stats[3 * order];
+
+    // Initialization
+    rst = true;
+    fcn = c_modal_forcing_term;
+    df = (fmax - fmin) / (nfreq - 1.0);
+    c_set_iteration_controls_defaults(&controls);
+    for (i = 0; i < nfreq; ++i)
+    {
+        freq[i] = fmin + df * i;
+    }
+    for (i = 0; i < 3 * order; ++i)
+    {
+        maxp[i] = DBL_MAX;
+        minp[i] = -DBL_MAX;
+    }
+
+    // Define the mass matrix
+    m[0] = m1;
+    m[1] = 0.0;
+    m[2] = 0.0;
+
+    m[3] = 0.0;
+    m[4] = m2;
+    m[5] = 0.0;
+
+    m[6] = 0.0;
+    m[7] = 0.0;
+    m[8] = m3;
+
+    // Define the stiffness matrix
+    k[0] = k1 + k2;
+    k[1] = -k2;
+    k[2] = 0.0;
+
+    k[3] = -k2;
+    k[4] = k2 + k3;
+    k[5] = -k3;
+
+    k[6] = 0.0;
+    k[7] = -k3;
+    k[8] = k3 + k4;
+
+    // Compute the frequency response functions
+    c_frequency_response(3, nfreq, m, 3, k, 3, alpha, beta, freq, fcn,
+        modes, modeshapes, 3, nrmrsp, nfreq);
+
+    // Normalize the response
+    val = nrmrsp[0];
+    for (i = 0; i < nfreq; ++i)
+    {
+        nrmrsp[i] /= val;
+    }
+
+    // Fit the response
+    c_fit_frf(nfreq, order, DYN_RECEPTANCE_MODEL, freq, nrmrsp, maxp, minp,
+        &controls, mdl, stats);
+    c_evaluate_receptance_frf_model(nfreq, order, mdl, freq, fit);
+
+    // Test
+    maxval = 0.0;
+    for (i = 0; i < nfreq; ++i)
+    {
+        fitamp[i] = cabs(fit[i]);
+        ans[i] = cabs(nrmrsp[i]);
+        maxval = maxval < ans[i] ? ans[i] : maxval;
+    }
+    if (!compare_arrays(nfreq, fitamp, ans, tol * maxval))
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_frf_fit -1\n");
     }
 
     // End
