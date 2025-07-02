@@ -894,7 +894,7 @@ function c_siso_frequency_response(n, nf, x, y, fs, winsize, winfun, method, &
 
     rst = 0
     if (mod(winsize, 2) == 0) then
-        m = winsize / 2
+        m = winsize / 2 + 1
     else
         m = (winsize + 1) / 2
     end if
