@@ -53,7 +53,7 @@ c_dynamic_system_measurement* alloc_dynamic_system_measurement_array(int n,
         flag = alloc_dynamic_system_measurement(ptsper[i], &obj[i]);
         if (flag != 0) 
         {
-            free_dynamic_system_measurement_array(i, obj);
+            free_dynamic_system_measurement_array(n, obj);
             return NULL;
         }
     }
