@@ -41,6 +41,7 @@ int main()
     if (!c_test_frf_sweep()) flag = 21;
     if (!c_test_frf_fit()) flag = 22;
     if (!c_test_siso_frf()) flag = 23;
+    if (!c_test_siso_lsq_fit()) flag = 24;
 
     return flag;
 }

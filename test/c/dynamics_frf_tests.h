@@ -8,5 +8,6 @@ bool c_test_modal_response();
 bool c_test_frf_sweep();
 bool c_test_frf_fit();
 bool c_test_siso_frf();
+bool c_test_siso_lsq_fit();
 
 #endif

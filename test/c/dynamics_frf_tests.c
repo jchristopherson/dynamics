@@ -448,3 +448,17 @@ bool c_test_siso_frf()
     // End
     return rst;
 }
+
+
+bool c_test_siso_lsq_fit()
+{
+    // Local Variables
+    bool rst;
+
+    // Initialization
+    rst = true;
+
+
+    // End
+    return rst;
+}
