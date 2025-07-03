@@ -176,6 +176,14 @@ void c_siso_frequency_response(int n, int nf, const double *x, const double *y,
 void c_cross_product(const double *x, const double *y, double *z);
 void c_to_skew_symmetric(const double *x, double *y, int ldy);
 
+void c_siso_model_fit_least_squares(int nsets, int nparams, int neqns, 
+    const c_ode fcn, const c_dynamic_system_measurement *x, const double *ic,
+    double *p, int integrator, int ind, const double *maxp, const double *minp,
+    const c_iteration_controls *controls, int nconstraints, const double *xc,
+    const double *yc, const c_constraint_equations constraints, int nweights,
+    const double *weights, c_regression_statistics *stats, 
+    c_iteration_behavior *info);
+
 #ifdef __cplusplus
 }
 #endif

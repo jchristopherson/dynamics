@@ -1289,6 +1289,16 @@ subroutine c_siso_model_fit_least_squares(nsets, nparams, neqns, fcn, x, ic, &
     end select
 
     ! Set up the iteration controls
+    f_controls%change_in_solution_tolerance = &
+        controls%change_in_solution_tolerance
+    f_controls%gradient_tolerance = controls%gradient_tolerance
+    f_controls%iteration_improvement_tolerance = &
+        controls%iteration_improvement_tolerance
+    f_controls%max_function_evaluations = controls%max_function_evaluations
+    f_controls%max_iteration_between_updates = &
+        controls%max_iteration_between_updates
+    f_controls%max_iteration_count = controls%max_iteration_count
+    f_controls%residual_tolerance = controls%residual_tolerance
 
     ! Process
     allocate(f_stats(nparams))
@@ -1299,9 +1309,36 @@ subroutine c_siso_model_fit_least_squares(nsets, nparams, neqns, fcn, x, ic, &
             yc = yc, constraints = constraints_pointer, weights = weights, &
             args = args)
     else if (uses_constraints .and. .not. uses_weights) then
+        call siso_model_fit_least_squares(odeptr, fx, ic, p, &
+            integrator = integrator_obj, ind = ind, maxp = maxp, minp = minp, &
+            stats = f_stats, controls = f_controls, info = f_info, xc = xc, &
+            yc = yc, constraints = constraints_pointer, args = args)
     else if (.not. uses_constraints .and. uses_weights) then
+        call siso_model_fit_least_squares(odeptr, fx, ic, p, &
+            integrator = integrator_obj, ind = ind, maxp = maxp, minp = minp, &
+            stats = f_stats, controls = f_controls, info = f_info, &
+            weights = weights, args = args)
     else
+        call siso_model_fit_least_squares(odeptr, fx, ic, p, &
+            integrator = integrator_obj, ind = ind, maxp = maxp, minp = minp, &
+            stats = f_stats, controls = f_controls, info = f_info, args = args)
     end if
+
+    ! Extract the output information
+    info%converge_on_chng = logical(f_info%converge_on_solution_change, c_bool)
+    info%converge_on_fcn = logical(f_info%converge_on_residual_parameter, c_bool)
+    info%converge_on_zero_diff = logical(f_info%converge_on_gradient, c_bool)
+    info%fcn_count = f_info%function_evaluation_count
+    info%gradient_count = 0
+    info%iter_count = f_info%iteration_count
+    info%jacobian_count = 0
+
+    do i = 1, nparams
+        stats(i)%confidence_interval = f_stats(i)%confidence_interval
+        stats(i)%probability = f_stats(i)%probability
+        stats(i)%standard_error = f_stats(i)%standard_error
+        stats(i)%t_statistic = f_stats(i)%t_statistic
+    end do
 end subroutine
 
 ! --------------------
