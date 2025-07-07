@@ -457,7 +457,6 @@ void siso_lsq_fit_ode(int neqn, int nparam, const double *mdl, double t,
     wn = mdl[0];
     zeta = mdl[1];
     Y = mdl[2];
-    printf("F = %7.3f\nY = %7.3f\n");
     dxdt[0] = x[1];
     dxdt[1] = Y * F - (2.0 * zeta * wn * x[1] + wn * wn * x[0]);
 }
@@ -479,8 +478,8 @@ bool c_test_siso_lsq_fit()
     const double wn = 2.0 * pi * fn;
     const double alpha = 0.1;
     const double beta = 5.0e-5;
-    const double Xs1 = 1.0;
-    const double Xs2 = 1.0;
+    const double Xs1 = 1.0e-4;
+    const double Xs2 = 2.0e-4;
     const double dt = 1.0e-3;
     const int nsets = 2;
     const int n = 1000;
@@ -517,7 +516,7 @@ bool c_test_siso_lsq_fit()
     ic[0] = 0.0;
     ic[1] = 0.0;
     p[0] = 350.0;
-    p[1] = 0.07;
+    p[1] = 0.01;
     p[2] = 1.0;
     xc[0] = wn;
     yc[0] = wn;
