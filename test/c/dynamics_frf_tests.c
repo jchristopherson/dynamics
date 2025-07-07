@@ -457,6 +457,7 @@ void siso_lsq_fit_ode(int neqn, int nparam, const double *mdl, double t,
     wn = mdl[0];
     zeta = mdl[1];
     Y = mdl[2];
+    printf("F = %7.3f\nY = %7.3f\n");
     dxdt[0] = x[1];
     dxdt[1] = Y * F - (2.0 * zeta * wn * x[1] + wn * wn * x[0]);
 }
@@ -486,13 +487,14 @@ bool c_test_siso_lsq_fit()
     const double tol = 0.05;
     bool rst;
     int i, j, ptsper[2];
-    double Xs, zeta, ic[2], maxp[2], minp[2], p[3], xc[1], yc[1];
+    double Xs, zeta, ic[2], maxp[3], minp[3], p[3], xc[1], yc[1];
     c_dynamic_system_measurement *x;
-    c_regression_statistics stats[2];
+    c_regression_statistics stats[3];
     c_iteration_behavior info;
     c_iteration_controls controls;
     c_ode fcn;
     c_constraint_equations cnst;
+    c_lm_solver_options opts;
 
     // Initialization
     rst = true;
@@ -501,19 +503,24 @@ bool c_test_siso_lsq_fit()
     ptsper[0] = n;
     ptsper[1] = n;
     c_set_iteration_controls_defaults(&controls);
-    controls.change_in_solution_tolerance = 1.0e-12;
-    controls.residual_tolerance = 1.0e-8;
+    c_set_lm_solver_options_defaults(&opts);
+    // controls.change_in_solution_tolerance = 1.0e-12;
+    // controls.residual_tolerance = 1.0e-8;
     x = alloc_dynamic_system_measurement_array(nsets, ptsper);
     zeta = c_compute_modal_damping(wn * wn, alpha, beta);
     maxp[0] = DBL_MAX;
     maxp[1] = DBL_MAX;
+    maxp[2] = DBL_MAX;
     minp[0] = 0.0;
     minp[1] = 0.0;
+    minp[2] = 0.0;
     ic[0] = 0.0;
     ic[1] = 0.0;
-    p[0] = 300.0;
-    p[1] = 0.1;
-    p[2] = 1000;
+    p[0] = 350.0;
+    p[1] = 0.07;
+    p[2] = 1.0;
+    xc[0] = wn;
+    yc[0] = wn;
 
     // Create a step response for each set
     for (i = 0; i < nsets; ++i)
@@ -529,7 +536,7 @@ bool c_test_siso_lsq_fit()
 
     // Fit the model
     c_siso_model_fit_least_squares(nsets, 3, 2, fcn, x, ic, p,
-        DYN_RUNGE_KUTTA_45, 1, maxp, minp, &controls, 1, xc, yc,
+        DYN_RUNGE_KUTTA_45, 1, maxp, minp, &controls, &opts, 1, xc, yc,
         cnst, 0, NULL, stats, &info);
 
     // Test

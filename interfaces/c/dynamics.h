@@ -30,6 +30,10 @@
 #define DYN_H1 1
 #define DYN_H2 2
 
+#define DYN_LEVENBERG_MARQUARDT_UPDATE 1
+#define DYN_QUADRATIC_UPDATE 2
+#define DYN_NIELSEN_UPDATE 3
+
 typedef void (*c_vecfcn)(int nvar, int neqn, const double *x, double *f);
 typedef void (*c_modal_excite)(int n, double freq, double complex *f);
 typedef void (*c_harmonic_ode)(int n, double freq, double t, const double *x,
@@ -80,6 +84,14 @@ typedef struct {
     double *output;
     double *t;
 } c_dynamic_system_measurement;
+
+typedef struct 
+{
+    double damping_decrease_factor;
+    double damping_increase_factor;
+    double finite_difference_step_size;
+    int method;
+} c_lm_solver_options;
 
 #ifdef __cplusplus
 extern "C" {
@@ -180,11 +192,12 @@ void c_to_skew_symmetric(const double *x, double *y, int ldy);
 void c_siso_model_fit_least_squares(int nsets, int nparams, int neqns, 
     const c_ode fcn, const c_dynamic_system_measurement *x, const double *ic,
     double *p, int integrator, int ind, const double *maxp, const double *minp,
-    const c_iteration_controls *controls, int nconstraints, const double *xc,
-    const double *yc, const c_constraint_equations constraints, int nweights,
+    const c_iteration_controls *controls, const c_lm_solver_options *opts,
+    int nconstraints, const double *xc, const double *yc, 
+    const c_constraint_equations constraints, int nweights,
     const double *weights, c_regression_statistics *stats, 
     c_iteration_behavior *info);
-
+void c_set_lm_solver_options_defaults(c_lm_solver_options *x);
 int alloc_dynamic_system_measurement(int n, c_dynamic_system_measurement *x);
 void free_dynamic_system_measurement(c_dynamic_system_measurement *x);
 c_dynamic_system_measurement* alloc_dynamic_system_measurement_array(int n, 

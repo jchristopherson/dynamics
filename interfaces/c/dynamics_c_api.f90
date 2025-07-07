@@ -116,6 +116,13 @@ module dynamics_c_api
         real(c_double) :: standard_error
         real(c_double) :: t_statistic
     end type
+    
+    type, bind(C) :: c_lm_solver_options
+        real(c_double) :: damping_decrease_factor
+        real(c_double) :: damping_increase_factor
+        real(c_double) :: finite_difference_step_size
+        integer(c_int) :: method
+    end type
 
     type, extends(window) :: c_window
         procedure(c_window_function), pointer, nopass :: fcn
@@ -1181,7 +1188,7 @@ end subroutine
 ! DYNAMICS_SYSTEM_ID.F90
 ! ------------------------------------------------------------------------------
 subroutine c_siso_model_fit_least_squares(nsets, nparams, neqns, fcn, x, ic, &
-    p, integrator, ind, maxp, minp, controls, nconstraints, xc, yc, &
+    p, integrator, ind, maxp, minp, controls, opts, nconstraints, xc, yc, &
     constraints, nweights, weights, stats, info) &
     bind(C, name = "c_siso_model_fit_least_squares")
     integer(c_int), intent(in), value :: nsets
@@ -1196,6 +1203,7 @@ subroutine c_siso_model_fit_least_squares(nsets, nparams, neqns, fcn, x, ic, &
     real(c_double), intent(in) :: maxp(nparams)
     real(c_double), intent(in) :: minp(nparams)
     type(c_iteration_controls), intent(in) :: controls
+    type(c_lm_solver_options), intent(in) :: opts
     integer(c_int), intent(in), value :: nconstraints
     real(c_double), intent(in) :: xc(nconstraints)
     real(c_double), intent(in) :: yc(nconstraints)
@@ -1225,6 +1233,7 @@ subroutine c_siso_model_fit_least_squares(nsets, nparams, neqns, fcn, x, ic, &
     type(bdf), target :: bdiff
     type(adams), target :: pece
     class(ode_integrator), pointer :: integrator_obj
+    type(lm_solver_options) :: f_opt
 
     ! Uses constraints?
     if (nconstraints == 0 .or. .not.c_associated(constraints)) then
@@ -1264,13 +1273,13 @@ subroutine c_siso_model_fit_least_squares(nsets, nparams, neqns, fcn, x, ic, &
     do i = 1, nsets
         flag(1) = x(i)%npts
         call c_f_pointer(x(i)%input, temp, flag)
-        allocate(fx(i)%input, source = temp)
+        allocate(fx(i)%input(x(i)%npts), source = temp)
         
         call c_f_pointer(x(i)%output, temp, flag)
-        allocate(fx(i)%output, source = temp)
+        allocate(fx(i)%output(x(i)%npts), source = temp)
 
         call c_f_pointer(x(i)%t, temp, flag)
-        allocate(fx(i)%t, source = temp)
+        allocate(fx(i)%t(x(i)%npts), source = temp)
     end do
 
     ! Define the integrator
@@ -1303,6 +1312,12 @@ subroutine c_siso_model_fit_least_squares(nsets, nparams, neqns, fcn, x, ic, &
     f_controls%max_iteration_count = controls%max_iteration_count
     f_controls%residual_tolerance = controls%residual_tolerance
 
+    ! Set up the solver options
+    f_opt%damping_decrease_factor = opts%damping_decrease_factor
+    f_opt%damping_increase_factor = opts%damping_increase_factor
+    f_opt%finite_difference_step_size = opts%finite_difference_step_size
+    f_opt%method = opts%method
+
     ! Process
     allocate(f_stats(nparams))
     if (uses_constraints .and. uses_weights) then
@@ -1310,21 +1325,23 @@ subroutine c_siso_model_fit_least_squares(nsets, nparams, neqns, fcn, x, ic, &
             integrator = integrator_obj, ind = ind, maxp = maxp, minp = minp, &
             stats = f_stats, controls = f_controls, info = f_info, xc = xc, &
             yc = yc, constraints = constraints_pointer, weights = weights, &
-            args = args)
+            args = args, settings = f_opt)
     else if (uses_constraints .and. .not. uses_weights) then
         call siso_model_fit_least_squares(odeptr, fx, ic, p, &
             integrator = integrator_obj, ind = ind, maxp = maxp, minp = minp, &
             stats = f_stats, controls = f_controls, info = f_info, xc = xc, &
-            yc = yc, constraints = constraints_pointer, args = args)
+            yc = yc, constraints = constraints_pointer, args = args, &
+            settings = f_opt)
     else if (.not. uses_constraints .and. uses_weights) then
         call siso_model_fit_least_squares(odeptr, fx, ic, p, &
             integrator = integrator_obj, ind = ind, maxp = maxp, minp = minp, &
             stats = f_stats, controls = f_controls, info = f_info, &
-            weights = weights, args = args)
+            weights = weights, args = args, settings = f_opt)
     else
         call siso_model_fit_least_squares(odeptr, fx, ic, p, &
             integrator = integrator_obj, ind = ind, maxp = maxp, minp = minp, &
-            stats = f_stats, controls = f_controls, info = f_info, args = args)
+            stats = f_stats, controls = f_controls, info = f_info, &
+            args = args, settings = f_opt)
     end if
 
     ! Extract the output information
@@ -1381,6 +1398,16 @@ subroutine siso_constraint_equations(xg, fg, xc, p, fc, args)
 end subroutine
 
 ! ------------------------------------------------------------------------------
+subroutine c_set_lm_solver_options_defaults(x) &
+    bind(C, name = "c_set_lm_solver_options_defaults")
+    type(c_lm_solver_options), intent(inout) :: x
+    type(lm_solver_options) :: opt
+    call opt%set_to_default()
+    x%damping_decrease_factor = opt%damping_decrease_factor
+    x%damping_increase_factor = opt%damping_increase_factor
+    x%finite_difference_step_size = opt%finite_difference_step_size
+    x%method = opt%method
+end subroutine
 
 ! ------------------------------------------------------------------------------
 
