@@ -54,13 +54,16 @@ module dynamics_c_api
             real(c_double), intent(out) :: fc(neqn)
         end subroutine
 
-        subroutine c_ode(n, t, x, dxdt) &
+        subroutine c_ode(neqn, nparam, mdl, t, x, F, dxdt) &
             bind(C, name = "c_ode")
             use iso_c_binding
-            integer(c_int), intent(in), value :: n
+            integer(c_int), intent(in), value :: neqn
+            integer(c_int), intent(in), value :: nparam
+            real(c_double), intent(in) :: mdl(nparam)
             real(c_double), intent(in), value :: t
-            real(c_double), intent(in) :: x(n)
-            real(c_double), intent(out) :: dxdt(n)
+            real(c_double), intent(in) :: x(neqn)
+            real(c_double), intent(in), value :: F
+            real(c_double), intent(out) :: dxdt(neqn)
         end subroutine
     end interface
 
@@ -1347,10 +1350,18 @@ subroutine siso_fit_ode(t, x, dxdt, args)
     real(real64), intent(in), dimension(:) :: x
     real(real64), intent(out), dimension(:) :: dxdt
     class(*), intent(inout), optional :: args
-
+    class(*), pointer :: ptr
+    real(real64) :: frc
+    real(real64), allocatable, dimension(:) :: mdl
     select type (args)
-    class is (c_siso_fit_container)
-        call args%odefcn(size(x), t, x, dxdt)
+    class is (model_information)
+        ptr => args%user_info
+        mdl = args%model
+        frc = args%excitation%interpolate_value(t)
+        select type (ptr)
+        class is (c_siso_fit_container)
+            call ptr%odefcn(size(x), size(mdl), mdl, t, x, frc, dxdt)
+        end select
     end select
 end subroutine
 

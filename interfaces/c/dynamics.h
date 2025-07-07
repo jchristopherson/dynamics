@@ -38,7 +38,8 @@ typedef double (*c_window_function)(int n, int bin);
 typedef void (*c_constraint_equations)(int n, int neqn, int nparam, 
     const double *xg, const double *fg, const double *xc, const double *p,
     double *fc);
-typedef void (*c_ode)(int n, double t, const double *x, double *dxdt);
+typedef void (*c_ode)(int n, int nparam, const double *mdl, double t, 
+    const double *x, double F, double *dxdt);
 
 typedef struct {
     bool converge_on_chng;
@@ -184,6 +185,8 @@ void c_siso_model_fit_least_squares(int nsets, int nparams, int neqns,
     const double *weights, c_regression_statistics *stats, 
     c_iteration_behavior *info);
 
+int alloc_dynamic_system_measurement(int n, c_dynamic_system_measurement *x);
+void free_dynamic_system_measurement(c_dynamic_system_measurement *x);
 c_dynamic_system_measurement* alloc_dynamic_system_measurement_array(int n, 
     const int *ptsper);
 void free_dynamic_system_measurement_array(int n, 

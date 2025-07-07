@@ -2,11 +2,6 @@
 #include <stdlib.h>
 
 
-int alloc_dynamic_system_measurement(int n, c_dynamic_system_measurement *x);
-void free_dynamic_system_measurement(c_dynamic_system_measurement *x);
-
-
-
 int alloc_dynamic_system_measurement(int n, c_dynamic_system_measurement *x)
 {
     size_t sz;

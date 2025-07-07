@@ -450,15 +450,96 @@ bool c_test_siso_frf()
 }
 
 
+void siso_lsq_fit_ode(int neqn, int nparam, const double *mdl, double t, 
+    const double *x, double F, double *dxdt)
+{
+    double wn, zeta, Y;
+    wn = mdl[0];
+    zeta = mdl[1];
+    Y = mdl[2];
+    dxdt[0] = x[1];
+    dxdt[1] = Y * F - (2.0 * zeta * wn * x[1] + wn * wn * x[0]);
+}
+
+void siso_lsq_constraints(int n, int neqn, int nparam, const double *xg,
+    const double *fg, const double *xc, const double *p, double *fc)
+{
+    const double pi = 2.0 * acos(0.0);
+    const double fn = 50.0;
+    const double wn = 2.0 * pi * fn;
+    fc[0] = wn - p[0];
+}
+
 bool c_test_siso_lsq_fit()
 {
     // Local Variables
+    const double pi = 2.0 * acos(0.0);
+    const double fn = 50.0;
+    const double wn = 2.0 * pi * fn;
+    const double alpha = 0.1;
+    const double beta = 5.0e-5;
+    const double Xs1 = 1.0;
+    const double Xs2 = 1.0;
+    const double dt = 1.0e-3;
+    const int nsets = 2;
+    const int n = 1000;
+    const double tol = 0.05;
     bool rst;
+    int i, j, ptsper[2];
+    double Xs, zeta, ic[2], maxp[2], minp[2], p[3], xc[1], yc[1];
+    c_dynamic_system_measurement *x;
+    c_regression_statistics stats[2];
+    c_iteration_behavior info;
+    c_iteration_controls controls;
+    c_ode fcn;
+    c_constraint_equations cnst;
 
     // Initialization
     rst = true;
+    fcn = siso_lsq_fit_ode;
+    cnst = siso_lsq_constraints;
+    ptsper[0] = n;
+    ptsper[1] = n;
+    c_set_iteration_controls_defaults(&controls);
+    controls.change_in_solution_tolerance = 1.0e-12;
+    controls.residual_tolerance = 1.0e-8;
+    x = alloc_dynamic_system_measurement_array(nsets, ptsper);
+    zeta = c_compute_modal_damping(wn * wn, alpha, beta);
+    maxp[0] = DBL_MAX;
+    maxp[1] = DBL_MAX;
+    minp[0] = 0.0;
+    minp[1] = 0.0;
+    ic[0] = 0.0;
+    ic[1] = 0.0;
+    p[0] = 300.0;
+    p[1] = 0.1;
+    p[2] = 1000;
 
+    // Create a step response for each set
+    for (i = 0; i < nsets; ++i)
+    {
+        Xs = i == 0 ? Xs1 : Xs2;
+        for (j = 0; j < n; ++j)
+        {
+            x[i].t[j] = dt * j;
+            x[i].input[j] = Xs;
+        }
+        c_evaluate_step_response(n, wn, zeta, Xs, x[i].t, x[i].output);
+    }
+
+    // Fit the model
+    c_siso_model_fit_least_squares(nsets, 3, 2, fcn, x, ic, p,
+        DYN_RUNGE_KUTTA_45, 1, maxp, minp, &controls, 1, xc, yc,
+        cnst, 0, NULL, stats, &info);
+
+    // Test
+    if (fabs(p[0] - wn) > tol * wn)
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_siso_lsq_fit -1\n");
+    }
 
     // End
+    free_dynamic_system_measurement_array(nsets, x);
     return rst;
 }
