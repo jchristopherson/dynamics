@@ -66,7 +66,6 @@ contains
         type(model_information) :: info
         type(linear_interpolator), target :: interp, interp2
         real(real64), allocatable, dimension(:,:) :: sol
-        type(iteration_controls) :: controls
 
         ! Initialization
         rst = .true.
@@ -124,15 +123,9 @@ contains
         measurements(2)%output = sol(:,2)
 
     ! --------------------------------------------------------------------------
-        ! Set tolerances
-        call controls%set_to_default()
-        controls%change_in_solution_tolerance = 1.0d-12
-        controls%residual_tolerance = 1.0d-8
-
         ! Set up the problem and solve
         fcn => eom
-        call siso_model_fit_least_squares(fcn, measurements, ic, p, &
-            controls = controls)
+        call siso_model_fit_least_squares(fcn, measurements, ic, p)
 
         ! Test the parameters
         if (.not.assert(wn, p(1), tol * wn)) then
@@ -170,7 +163,6 @@ contains
         type(model_information) :: info
         type(linear_interpolator), target :: interp, interp2
         real(real64), allocatable, dimension(:,:) :: sol
-        type(iteration_controls) :: controls
         procedure(constraint_equations), pointer :: cfcn
 
         ! Initialization
@@ -230,11 +222,6 @@ contains
         measurements(2)%output = sol(:,2)
 
     ! --------------------------------------------------------------------------
-        ! Set tolerances
-        call controls%set_to_default()
-        controls%change_in_solution_tolerance = 1.0d-12
-        controls%residual_tolerance = 1.0d-8
-
         ! Define the constraints
         tc = 0.0d0
         fc = [wn, zeta]
@@ -242,7 +229,7 @@ contains
         ! Set up the problem and solve
         fcn => eom
         call siso_model_fit_least_squares(fcn, measurements, ic, p, &
-            controls = controls, xc = tc, yc = fc, constraints = cfcn)
+            xc = tc, yc = fc, constraints = cfcn)
 
         ! Test the parameters
         if (.not.assert(wn, p(1), tol * wn)) then
@@ -280,7 +267,6 @@ contains
         type(model_information) :: info
         type(linear_interpolator), target :: interp, interp2
         real(real64), allocatable, dimension(:,:) :: sol
-        type(iteration_controls) :: controls
 
         ! Initialization
         rst = .true.
@@ -339,15 +325,9 @@ contains
         measurements(2)%output = sol(:,2)
 
     ! --------------------------------------------------------------------------
-        ! Set tolerances
-        call controls%set_to_default()
-        controls%change_in_solution_tolerance = 1.0d-12
-        controls%residual_tolerance = 1.0d-8
-
         ! Set up the problem and solve
         fcn => eom
-        call siso_model_fit_least_squares(fcn, measurements, ic, p, &
-            controls = controls)
+        call siso_model_fit_least_squares(fcn, measurements, ic, p)
 
         ! Test the parameters
         if (.not.assert(wn, p(1), tol * wn)) then
