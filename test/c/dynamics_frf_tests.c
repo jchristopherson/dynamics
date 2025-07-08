@@ -464,10 +464,7 @@ void siso_lsq_fit_ode(int neqn, int nparam, const double *mdl, double t,
 void siso_lsq_constraints(int n, int neqn, int nparam, const double *xg,
     const double *fg, const double *xc, const double *p, double *fc)
 {
-    const double pi = 2.0 * acos(0.0);
-    const double fn = 50.0;
-    const double wn = 2.0 * pi * fn;
-    fc[0] = wn - p[0];
+    fc[0] = xc[0] - p[0];
 }
 
 bool c_test_siso_lsq_fit()
@@ -478,8 +475,8 @@ bool c_test_siso_lsq_fit()
     const double wn = 2.0 * pi * fn;
     const double alpha = 0.1;
     const double beta = 5.0e-5;
-    const double Xs1 = 1.0e-4;
-    const double Xs2 = 2.0e-4;
+    const double Xs1 = 1.0e-2;
+    const double Xs2 = 2.0e-2;
     const double dt = 1.0e-3;
     const int nsets = 2;
     const int n = 1000;
@@ -503,12 +500,13 @@ bool c_test_siso_lsq_fit()
     ptsper[1] = n;
     c_set_iteration_controls_defaults(&controls);
     c_set_lm_solver_options_defaults(&opts);
-    // controls.change_in_solution_tolerance = 1.0e-12;
-    // controls.residual_tolerance = 1.0e-8;
+    controls.change_in_solution_tolerance = 1.0e-12;
+    controls.residual_tolerance = 1.0e-8;
+    opts.finite_difference_step_size = 1.0e-6;
     x = alloc_dynamic_system_measurement_array(nsets, ptsper);
     zeta = c_compute_modal_damping(wn * wn, alpha, beta);
     maxp[0] = DBL_MAX;
-    maxp[1] = DBL_MAX;
+    maxp[1] = 0.1;
     maxp[2] = DBL_MAX;
     minp[0] = 0.0;
     minp[1] = 0.0;
@@ -519,7 +517,7 @@ bool c_test_siso_lsq_fit()
     p[1] = 0.01;
     p[2] = 1.0;
     xc[0] = wn;
-    yc[0] = wn;
+    yc[0] = 0.0;
 
     // Create a step response for each set
     for (i = 0; i < nsets; ++i)
@@ -535,7 +533,7 @@ bool c_test_siso_lsq_fit()
 
     // Fit the model
     c_siso_model_fit_least_squares(nsets, 3, 2, fcn, x, ic, p,
-        DYN_RUNGE_KUTTA_45, 1, maxp, minp, &controls, &opts, 1, xc, yc,
+        DYN_ROSENBROCK, 1, maxp, minp, &controls, &opts, 1, xc, yc,
         cnst, 0, NULL, stats, &info);
 
     // Test
@@ -543,6 +541,11 @@ bool c_test_siso_lsq_fit()
     {
         rst = false;
         printf("TEST FAILED: c_test_siso_lsq_fit -1\n");
+    }
+    if (fabs(p[1] - zeta) > tol * zeta)
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_siso_lsq_fit -2\n");
     }
 
     // End
