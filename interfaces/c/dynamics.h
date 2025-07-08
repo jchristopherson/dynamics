@@ -97,16 +97,139 @@ typedef struct
 extern "C" {
 #endif
 
+/**
+ * @brief Estimates the Q-factor for a vibratory system.  
+ * 
+ * The Q-factor is computed as \f$ Q = \frac{1}{2 \zeta} \f$.
+ * 
+ * @param zeta The damping ratio.
+ * @return The Q-factor.
+ */
 double c_q_factor(double zeta);
+/**
+ * @brief Estimates the bandwidth of the resonant mode of a vibratory system. 
+ * The bandwidth is the width of the range of frequencies for which the energy 
+ * is at least half its peak value and is computed as \f$ \Delta f = 
+ * \frac{f_n}{Q} \f$.
+ * 
+ * @param fn The resonant frequency. The units are not important; however, the 
+ * units of the output will be the same as the units of this parameter.
+ * @param zeta The damping ratio.
+ * @return The bandwidth.
+ */
 double c_estimate_bandwidth(double fn, double zeta);
+/**
+ * @brief Computes the logarithmic decrement given the value of two peaks in 
+ * the time history of the free vibratory response of the system. The 
+ * logarithmic decrement is calculated as follows.
+ * 
+ * \f$ \delta = \frac{1}{N} \ln \left( \frac{x(t)}{x(t + N T)} \right) =  
+ * \frac{1}{N} \ln \left( \frac{x_1}{x_2} \right) \f$
+ * 
+ * @param x1 The amplitude of the first peak.
+ * @param x2 The amplitude of the second peak that occurs N periods after the 
+ * first.
+ * @param n The number of periods of oscillation seperating the two peaks.
+ * @return The logarithmic decrement.
+ */
 double c_logarithmic_decrement(double x1, double x2, int n);
+/**
+ * @brief Computes the damping ratio from the logarithmic decrement 
+ * \f$.  The damping ratio is related to the logarithmic decrement by the
+ * following relationship.
+ * 
+ * /f$ \zeta = \frac{\delta}{\sqrt{4 \pi^2 + \delta^2}} /f$
+ * 
+ * @param delta The logarithmic decrement.
+ * @return The damping ratio.
+ */
 double c_damping_from_log_decrement(double delta);
+/**
+ * @brief Given a free-response time history, this routine attempts to find the 
+ * logarithmic decrement and resonant frequency of a vibratory system. The 
+ * logarithmic decrement is estimated by finding successive peaks by means of 
+ * peak detection.
+ * 
+ * @param n The number of values in the response array.
+ * @param t An N-element array containing the values in time.
+ * @param x An N-element array containing the response sampled at the time 
+ * points given in @p t.
+ * @param s The sensitivity control of the peak detection algorithm.  A good
+ * starting point is 0.1% of the peak-peak of the signal.
+ * @param np The number of periods of oscillation seperating the two peaks
+ * used to compute the logarithmic decrement. 
+ * @param delta Returns the logarithmic decrement estimate. If sufficient peaks 
+ * cannot be located, the routine returns NaN.
+ * @param fn Returns the damped resonant frequency in units of Hz, assuming that
+ * the time values are in seconds. If the time units are not in seconds, the 
+ * units will be cycle/unit time with unit time being the units in which @p t 
+ * is supplied. If sufficient peaks cannot be located, the routine returns NaN.
+ * @param x1 Returns the amplitude of the first peak. If sufficient peaks cannot
+ * be located, the routine returns NaN.
+ * @param x2 Returns the amplitude of the second peak. If sufficient peaks 
+ * cannot be located, the routine returns NaN.
+ * @param t1 Returns the time at which the first peak was located. If sufficient
+ * peaks cannot be located, the routine returns NaN.
+ * @param t2 Returns the time at which the second peak was located. If 
+ * sufficient peaks cannot be located, the routine returns NaN.
+ */
 void c_find_free_response_properties(int n, const double *t, const double *x,
     double s, int np, double *delta, double *fn, double *x1, double *x2,
     double *t1, double *t2);
+/**
+ * @brief Computes the rise time for an underdamped, second-order system. The 
+ * rise time is the time it takes for the system response to go from 0% to 100% 
+ * of its final value and is given by the following relationship.
+ * 
+ * /f$ t_r = \frac{1}{\omega_d} \left( \pi - 
+ * \arctan \frac{\sqrt{1 - zeta^2}}{\zeta} \right) /f$
+ * 
+ * @param wn The resonant frequency of the system, in rad/s.
+ * @param zeta The damping ratio of the system.  This value must be less than 1
+ * as this relationship is only valid for an underdamped system.
+ * @return The rise time, in units of seconds.
+ */
 double c_rise_time(double wn, double zeta);
+/**
+ * @brief Estimates the settling amplitude for a step response.
+ * 
+ * @param n The number of values in @p x.
+ * @param x An N-element array containing the step response of the system.
+ * @return The settling amplitude of the step response.
+ */
 double c_find_settling_amplitude(int n, const double *x);
+/**
+ * @brief Employs the method of fractional overshoot to estimate the damping 
+ * ratio from the response of a system to a step input. This method is useful 
+ * for cases where the damping ratio is between approximately 0.5 to 0.8. In 
+ * such range, the logarithmic decrement approach becomes less precise.
+ * 
+ * The fractional overshoot method locates the amplitude of the first peak of 
+ * oscillation (\f$x_p\f$) and the settling amplitude (\f$x_f\f$), and the 
+ * estimates the damping ratio as follows.
+ * 
+ * \f$ s = \frac{x_p - x_f}{x_f} \f$
+ * \f$ \zeta = \frac{1}{\sqrt{1 + \left( \frac{pi}{\ln{s}} \right)^2}} \f$
+ * 
+ * @param n The number of values in @p x.
+ * @param x An N-element array containing the step response of the system.
+ * @return The estimated damping ratio.
+ */
 double c_damping_from_fractional_overshoot(int n, const double *x);
+/**
+ * @brief Evaluates the response of an underdamped single-degree-of-freedom, 
+ * linear system to a step function of amplitude \f$X_s\f$.  The step function 
+ * response of an underdamped linear SDOF system is given as follows.
+ * 
+ * \f$ \ddot{x} + 2 \zeta \omega_n \dot{x} + \omega_n^2 x = \frac{F(t)}{m} \f$
+ * \f$ \frac{x(t)}{X_s} = 1 - e^{-\zeta \omega_n t} \left( 
+ * \frac{\zeta \omega_n}{\omega_d} \sin{\omega_d t} + \cos{\omega_d t}
+ * \right) \f$
+ * where,
+ * \f$ \omega_d = \omega_n \sqrt{1 - \zeta^2} \f$
+ * and
+ * \f$ X_s = \frac{F}{k} \f$
+ */
 void c_evaluate_step_response(int n, double wn, double zeta, double xs,
     const double *t, double *x);
 
