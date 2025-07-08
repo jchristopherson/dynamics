@@ -97,12 +97,6 @@ typedef struct
 extern "C" {
 #endif
 
-/**
- * Esimates the Q-factor for a vibratory system.  The Q-factor is computed
- * as \(Q = \frac{1}{2 \zeta} \).
- * 
- * @param zeta The damping ratio.
- */
 double c_q_factor(double zeta);
 double c_estimate_bandwidth(double fn, double zeta);
 double c_logarithmic_decrement(double x1, double x2, int n);
