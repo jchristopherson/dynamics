@@ -54,8 +54,8 @@ module dynamics_c_api
             real(c_double), intent(out) :: fc(neqn)
         end subroutine
 
-        subroutine c_ode(neqn, nparam, mdl, t, x, F, dxdt) &
-            bind(C, name = "c_ode")
+        subroutine c_ode_fit(neqn, nparam, mdl, t, x, F, dxdt) &
+            bind(C, name = "c_ode_fit")
             use iso_c_binding
             integer(c_int), intent(in), value :: neqn
             integer(c_int), intent(in), value :: nparam
@@ -80,7 +80,7 @@ module dynamics_c_api
     end type
 
     type c_siso_fit_container
-        procedure(c_ode), pointer, nopass :: odefcn
+        procedure(c_ode_fit), pointer, nopass :: odefcn
         procedure(c_constraint_equations), pointer, nopass :: constraints
     end type
 
@@ -1217,7 +1217,7 @@ subroutine c_siso_model_fit_least_squares(nsets, nparams, neqns, fcn, x, ic, &
     logical :: uses_constraints, uses_weights
     integer(int32) :: i, nw, flag(1)
     type(dynamic_system_measurement), allocatable, dimension(:) :: fx
-    procedure(c_ode), pointer :: f_ode
+    procedure(c_ode_fit), pointer :: f_ode
     procedure(c_constraint_equations), pointer :: f_constraints
     procedure(ode), pointer :: odeptr
     procedure(constraint_equations), pointer :: constraints_pointer

@@ -488,7 +488,7 @@ bool c_test_siso_lsq_fit()
     c_regression_statistics stats[3];
     c_iteration_behavior info;
     c_iteration_controls controls;
-    c_ode fcn;
+    c_ode_fit fcn;
     c_constraint_equations cnst;
     c_lm_solver_options opts;
 

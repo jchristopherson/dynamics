@@ -42,7 +42,7 @@ typedef double (*c_window_function)(int n, int bin);
 typedef void (*c_constraint_equations)(int n, int neqn, int nparam, 
     const double *xg, const double *fg, const double *xc, const double *p,
     double *fc);
-typedef void (*c_ode)(int n, int nparam, const double *mdl, double t, 
+typedef void (*c_ode_fit)(int n, int nparam, const double *mdl, double t, 
     const double *x, double F, double *dxdt);
 
 typedef struct {
@@ -190,11 +190,11 @@ void c_cross_product(const double *x, const double *y, double *z);
 void c_to_skew_symmetric(const double *x, double *y, int ldy);
 
 void c_siso_model_fit_least_squares(int nsets, int nparams, int neqns, 
-    const c_ode fcn, const c_dynamic_system_measurement *x, const double *ic,
-    double *p, int integrator, int ind, const double *maxp, const double *minp,
-    const c_iteration_controls *controls, const c_lm_solver_options *opts,
-    int nconstraints, const double *xc, const double *yc, 
-    const c_constraint_equations constraints, int nweights,
+    const c_ode_fit fcn, const c_dynamic_system_measurement *x, 
+    const double *ic, double *p, int integrator, int ind, const double *maxp, 
+    const double *minp, const c_iteration_controls *controls, 
+    const c_lm_solver_options *opts, int nconstraints, const double *xc, 
+    const double *yc, const c_constraint_equations constraints, int nweights,
     const double *weights, c_regression_statistics *stats, 
     c_iteration_behavior *info);
 void c_set_lm_solver_options_defaults(c_lm_solver_options *x);
