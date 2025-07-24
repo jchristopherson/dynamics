@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.24)
 project(
     dynamics
-    LANGUAGES Fortran
+    LANGUAGES Fortran C CXX
     VERSION 1.0.13
 )
 
@@ -15,8 +15,14 @@ add_subdirectory(configure)
 # Deal with the dependencies
 add_subdirectory(dependencies)
 
+# Interfaces
+add_subdirectory(interfaces)
+
 # Source
 add_subdirectory(src)
+if (${BUILD_DYNAMICS_C_INTERFACE})
+    list(APPEND DYNAMICS_SOURCES ${DYNAMICS_C_SOURCES})
+endif()
 add_fortran_library(
     ${PROJECT_NAME}
     ${PROJECT_INCLUDE_DIR}
@@ -48,4 +54,9 @@ option(BUILD_DYNAMICS_EXAMPLES "Build DYNAMICS examples")
 message(STATUS "Build DYNAMICS examples: ${BUILD_DYNAMICS_EXAMPLES}")
 if (BUILD_DYNAMICS_EXAMPLES)
     add_subdirectory(examples)
+endif()
+
+# Additional Compiler Options
+if (${BUILD_DYNAMICS_C_INTERFACE} AND ${BUILD_SHARED_LIBS})
+    target_compile_options(${PROJECT_NAME} PRIVATE -fPIC)
 endif()

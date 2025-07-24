@@ -3,9 +3,10 @@ module excitation
     implicit none
 
 contains
-    subroutine modal_frf_forcing_term(freq, f)
+    subroutine modal_frf_forcing_term(freq, f, args)
         real(real64), intent(in) :: freq
         complex(real64), intent(out), dimension(:) :: f
+        class(*), intent(inout), optional :: args
 
         complex(real64), parameter :: zero = (0.0d0, 0.0d0)
         complex(real64), parameter :: one = (1.0d0, 0.0d0)

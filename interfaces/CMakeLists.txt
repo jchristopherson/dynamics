@@ -1,0 +1,6 @@
+option(BUILD_DYNAMICS_C_INTERFACE "Build DYNAMICS C interface")
+message(STATUS "Build DYNAMICS C interface: ${BUILD_DYNAMICS_C_INTERFACE}")
+if (BUILD_DYNAMICS_C_INTERFACE)
+    add_subdirectory(c)
+    set(DYNAMICS_C_SOURCES ${DYNAMICS_C_SOURCES} PARENT_SCOPE)
+endif()
