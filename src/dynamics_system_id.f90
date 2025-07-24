@@ -187,6 +187,7 @@ subroutine siso_model_fit_least_squares_1(fcn, x, ic, p, integrator, ind, &
     type(runge_kutta_45), target :: default_ode_solver
     type(regression_information) :: addinfo
     procedure(regression_function), pointer :: fcnptr
+    type(iteration_controls) :: def_tol;
     
     ! Initialization
     if (present(err)) then
@@ -206,6 +207,13 @@ subroutine siso_model_fit_least_squares_1(fcn, x, ic, p, integrator, ind, &
     end if
     n = size(x)
     fcnptr => nlsq_fun
+    if (present(controls)) then
+        def_tol = controls
+    else
+        call def_tol%set_to_default()
+        def_tol%change_in_solution_tolerance = 1.0d-12
+        def_tol%residual_tolerance = sqrt(epsilon(1.0d0))
+    end if
 
     allocate(addinfo%start_stop(n, 2), stat = flag)
     if (flag /= 0) go to 100
@@ -266,7 +274,7 @@ subroutine siso_model_fit_least_squares_1(fcn, x, ic, p, integrator, ind, &
 
     ! Solve the system
     call nonlinear_least_squares(fcnptr, t, f, p, ymod, resid, maxp = maxp, &
-        minp = minp, stats = stats, alpha = alpha, controls = controls, &
+        minp = minp, stats = stats, alpha = alpha, controls = def_tol, &
         settings = settings, info = info, status = status, cov = cov, &
         args = addinfo, err = errmgr, weights = weights)
     if (errmgr%has_error_occurred()) return
@@ -370,6 +378,7 @@ subroutine siso_model_fit_least_squares_2(fcn, x, ic, p, integrator, ind, &
     type(runge_kutta_45), target :: default_ode_solver
     type(regression_information) :: addinfo
     procedure(regression_function), pointer :: fcnptr
+    type(iteration_controls) :: def_tol
     
     ! Initialization & Error Checking
     if (present(err)) then
@@ -389,6 +398,14 @@ subroutine siso_model_fit_least_squares_2(fcn, x, ic, p, integrator, ind, &
     end if
     n = size(x)
     fcnptr => nlsq_fun
+
+    if (present(controls)) then
+        def_tol = controls
+    else
+        call def_tol%set_to_default()
+        def_tol%change_in_solution_tolerance = 1.0d-12
+        def_tol%residual_tolerance = sqrt(epsilon(1.0d0))
+    end if
 
     if (size(ic, 1) /= n) then
         call report_matrix_size_error("siso_model_fit_least_squares_2", "ic", &
@@ -454,7 +471,7 @@ subroutine siso_model_fit_least_squares_2(fcn, x, ic, p, integrator, ind, &
 
     ! Solve the system
     call nonlinear_least_squares(fcnptr, t, f, p, ymod, resid, maxp = maxp, &
-        minp = minp, stats = stats, alpha = alpha, controls = controls, &
+        minp = minp, stats = stats, alpha = alpha, controls = def_tol, &
         settings = settings, info = info, status = status, cov = cov, &
         args = addinfo, err = errmgr, weights = weights)
     if (errmgr%has_error_occurred()) return
