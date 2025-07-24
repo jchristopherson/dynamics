@@ -503,7 +503,7 @@ bool c_test_siso_lsq_fit()
     controls.change_in_solution_tolerance = 1.0e-12;
     controls.residual_tolerance = 1.0e-8;
     opts.finite_difference_step_size = 1.0e-6;
-    x = alloc_dynamic_system_measurement_array(nsets, ptsper);
+    x = c_alloc_dynamic_system_measurement_array(nsets, ptsper);
     zeta = c_compute_modal_damping(wn * wn, alpha, beta);
     maxp[0] = DBL_MAX;
     maxp[1] = 0.1;
@@ -549,6 +549,6 @@ bool c_test_siso_lsq_fit()
     }
 
     // End
-    free_dynamic_system_measurement_array(nsets, x);
+    c_free_dynamic_system_measurement_array(nsets, x);
     return rst;
 }

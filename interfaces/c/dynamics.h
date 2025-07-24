@@ -198,11 +198,11 @@ void c_siso_model_fit_least_squares(int nsets, int nparams, int neqns,
     const double *weights, c_regression_statistics *stats, 
     c_iteration_behavior *info);
 void c_set_lm_solver_options_defaults(c_lm_solver_options *x);
-int alloc_dynamic_system_measurement(int n, c_dynamic_system_measurement *x);
-void free_dynamic_system_measurement(c_dynamic_system_measurement *x);
-c_dynamic_system_measurement* alloc_dynamic_system_measurement_array(int n, 
+int c_alloc_dynamic_system_measurement(int n, c_dynamic_system_measurement *x);
+void c_free_dynamic_system_measurement(c_dynamic_system_measurement *x);
+c_dynamic_system_measurement* c_alloc_dynamic_system_measurement_array(int n, 
     const int *ptsper);
-void free_dynamic_system_measurement_array(int n, 
+void c_free_dynamic_system_measurement_array(int n, 
     c_dynamic_system_measurement *x);
 
 #ifdef __cplusplus

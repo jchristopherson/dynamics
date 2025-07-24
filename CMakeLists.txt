@@ -55,3 +55,8 @@ message(STATUS "Build DYNAMICS examples: ${BUILD_DYNAMICS_EXAMPLES}")
 if (BUILD_DYNAMICS_EXAMPLES)
     add_subdirectory(examples)
 endif()
+
+# Additional Compiler Options
+if (${BUILD_DYNAMICS_C_INTERFACE} AND ${BUILD_SHARED_LIBS})
+    target_compile_options(${PROJECT_NAME} PRIVATE -fPIC)
+endif()
