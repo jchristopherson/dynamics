@@ -5,45 +5,30 @@ project(
     LANGUAGES Fortran C CXX
     VERSION 1.0.13
 )
-
-# Get helper macros and functions
-include("${PROJECT_SOURCE_DIR}/cmake/helper.cmake")
+set(CMAKE_Fortran_STANDARD 2018)
+set(CMAKE_Fortran_STANDARD_REQUIRED TRUE)
 
 # Confgiure everything
 add_subdirectory(configure)
 
-# Deal with the dependencies
-add_subdirectory(dependencies)
-
-# Interfaces
-add_subdirectory(interfaces)
+# Build the C API
+option(BUILD_DYNAMICS_C_INTERFACE "Build DYNAMICS C interface")
+message(STATUS "Build DYNAMICS C interface: ${BUILD_DYNAMICS_C_INTERFACE}")
 
 # Source
 add_subdirectory(src)
-if (${BUILD_DYNAMICS_C_INTERFACE})
-    list(APPEND DYNAMICS_SOURCES ${DYNAMICS_C_SOURCES})
-endif()
-add_fortran_library(
-    ${PROJECT_NAME}
-    ${PROJECT_INCLUDE_DIR}
-    ${CMAKE_INSTALL_INCLUDEDIR}
-    ${PROJECT_VERSION}
-    ${PROJECT_VERSION_MAJOR}
-    ${DYNAMICS_SOURCES}
+
+# Installation Instructions
+install(
+  EXPORT ${PROJECT_NAME}-targets
+  NAMESPACE ${PROJECT_NAME}::
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
 )
-link_library(${PROJECT_NAME} ${ferror_LIBRARY} ${ferror_INCLUDE_DIR})
-link_library(${PROJECT_NAME} ${linalg_LIBRARY} ${linalg_INCLUDE_DIR})
-link_library(${PROJECT_NAME} ${spectrum_LIBRARY} ${spectrum_INCLUDE_DIR})
-link_library(${PROJECT_NAME} ${fftpack_LIBRARY} ${fftpack_INCLUDE_DIR})
-link_library(${PROJECT_NAME} ${diffeq_LIBRARY} ${diffeq_INCLUDE_DIR})
-link_library(${PROJECT_NAME} ${nonlin_LIBRARY} ${nonlin_INCLUDE_DIR})
-link_library(${PROJECT_NAME} ${fstats_LIBRARY} ${fstats_INCLUDE_DIR})
-link_library(${PROJECT_NAME} ${peaks_LIBRARY} ${peaks_INCLUDE_DIR})
 
 # Testing
 option(BUILD_TESTING "Build tests")
 include(CTest)
-message(STATUS "Build tests: ${BUILD_TESTING}")
+message(STATUS "Build DYNAMICS tests: ${BUILD_TESTING}")
 if (BUILD_TESTING)
     enable_testing()
     add_subdirectory(test)
