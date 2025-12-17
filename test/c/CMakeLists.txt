@@ -23,3 +23,14 @@ add_test(
     WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
     COMMAND $<TARGET_FILE:dynamics_c_tests>
 )
+
+if (${BUILD_SHARED_LIBS} AND WIN32)
+    add_custom_command(
+        TARGET dynamics_c_tests
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy 
+        $<TARGET_RUNTIME_DLLS:dynamics_c_tests> 
+        $<TARGET_FILE_DIR:dynamics_c_tests>
+        COMMAND_EXPAND_LISTS
+    )
+endif()
