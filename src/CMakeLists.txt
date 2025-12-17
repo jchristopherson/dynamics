@@ -157,12 +157,12 @@ target_link_libraries(
     ${PROJECT_NAME}
     PUBLIC
     ${FERROR_LIBRARIES}
+    ${NONLIN_LIBRARIES}
 )
 target_link_libraries(
     ${PROJECT_NAME}
     PRIVATE
     ${LINALG_LIBRARIES}
-    ${NONLIN_LIBRARIES}
     ${FSTATS_LIBRARIES}
     ${DIFFEQ_LIBRARIES}
     ${PEAKS_LIBRARIES}
