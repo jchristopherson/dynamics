@@ -1030,9 +1030,7 @@ function siso_freqres(x, y, fs, win, method, err) result(rst)
     end if
 
     ! Compute the transfer function
-    rst%responses(:,1) = siso_transfer_function(wptr, x, y, etype = meth, &
-        err = errmgr)
-    if (errmgr%has_error_occurred()) return
+    rst%responses(:,1) = siso_transfer_function(wptr, x, y, etype = meth)
 
     ! Compute the frequency vector
     df = frequency_bin_width(fs, wptr%size)
@@ -1131,8 +1129,7 @@ function mimo_freqres(x, y, fs, win, method, err) result(rst)
     do j = 1, p
         do i = 1, m
             rst%responses(:,i,j) = siso_transfer_function(wptr, &
-                x(:,j), y(:,i), etype = meth, err = errmgr)
-            if (errmgr%has_error_occurred()) return
+                x(:,j), y(:,i), etype = meth)
         end do
     end do
 
