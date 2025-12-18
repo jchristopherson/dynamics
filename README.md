@@ -10,7 +10,7 @@ The documentation can be found [here](https://jchristopherson.github.io/dynamics
 
 ## Capabilities
 Here is a high-level list of the capabilities of this library.
-- Compute linear frequency response functions for LTI systems.
+- Compute frequency response functions for LTI systems.
 - Perform modal analysis of an LTI system.
 - Compute the frequency response of nonlinear systems in such a manner as to expose nonlinear behaviors such as jump phenomenon.
 - Fit transfer functions to experimental data.
