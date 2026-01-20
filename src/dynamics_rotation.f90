@@ -9,10 +9,39 @@ module dynamics_rotation
     public :: rotate
     public :: acceleration_transform
     public :: velocity_transform
+    public :: quaternion
+    public :: abs
+    public :: conjg
 
     interface rotate
         module procedure :: rotate_general_1
         module procedure :: rotate_general_2
+    end interface
+
+    type quaternion
+        !! Defines a quaternion of the form: 
+        real(real64) :: w
+            !! The real component of the quaternion.
+        real(real64) :: x
+            !! The first element in the imaginary component of the quaternion. 
+        real(real64) :: y
+            !! The second element in the imaginary component of the quaternion.
+        real(real64) :: z
+            !! The third element in the imaginary component of the quaternion.
+    end type
+
+    interface quaternion
+        module procedure :: quat_init_array
+        module procedure :: quat_init_angle_axis
+        module procedure :: quat_init_mtx
+    end interface
+
+    interface abs
+        module procedure :: quat_abs
+    end interface
+
+    interface conjg
+        module procedure :: quat_conjg
     end interface
     
 contains
@@ -267,6 +296,141 @@ pure function rotate_x(angle) result(rst)
         rst(1:3,4) = v - matmul(rst(1:3,1:3), x)
         rst(4,:) = 0.0d0
     end function
+
+! ******************************************************************************
+! QUATERNIONS
+! ------------------------------------------------------------------------------
+    pure function quat_init_array(x) result(rst)
+        !! Constructs a quaternion from a 4-element array stored such that
+        !! [w, x, y, z].
+        real(real64), intent(in), dimension(4) :: x
+            !! The array from which to initialize the quaternion stored in the
+            !! order [w, x, y, z].
+        type(quaternion) :: rst
+            !! The resulting quaternion.
+
+        rst%w = x(1)
+        rst%x = x(2)
+        rst%y = x(3)
+        rst%z = x(4)
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function quat_init_angle_axis(angle, axis) result(rst)
+        !! Constructs a quaternion given an axis and the angle of rotation about
+        !! the axis.
+        real(real64), intent(in) :: angle
+            !! The rotation angle, in radians.
+        real(real64), intent(in), dimension(3) :: axis
+            !! A 3-element vector defining the axis about which the rotation
+            !! occurrs.
+        type(quaternion) :: rst
+            !! The resulting quaternion.
+
+        real(real64) :: s
+        
+        s = sin(0.5d0 * angle)
+
+        rst%w = cos(0.5d0 * angle)
+        rst%x = s * axis(1)
+        rst%y = s * axis(2)
+        rst%z = s * axis(3)
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function quat_init_mtx(r) result(rst)
+        !! Constructs a quaternion from a 3-by-3 rotation matrix using the 
+        !! Stanley method.
+        real(real64), intent(in), dimension(3, 3) :: r
+            !! The rotation matrix.
+        type(quaternion) :: rst
+            !! The resulting quaternion.
+
+        ! Local Variables
+        integer(int32) :: ind
+        real(real64) :: esq(4), trc, e0, e1, e2, e3
+
+        ! Process
+        trc = r(1,1) + r(2,2) + r(3,3)
+        esq(1) = 0.5d0 * (1.0d0 + trc)
+        esq(2) = 0.25d0 * (1.0d0 + 2.0d0 * r(1,1) - trc)
+        esq(3) = 0.25d0 * (1.0d0 + 2.0d0 * r(2,2) - trc)
+        esq(4) = 0.2530 * (1.0d0 + 2.0d0 * r(3,3) - trc)
+
+        ind = maxloc(esq, 1)
+        select case (ind)
+        case (1)
+            e0 = sqrt(esq(1))
+            e1 = 0.25d0 * (r(3,2) - r(2,3)) / e0
+            e2 = 0.25d0 * (r(1,3) - r(3,1)) / e0
+            e3 = 0.25d0 * (r(2,1) - r(1,2)) / e0
+        case (2)
+            e1 = sqrt(esq(2))
+            e0 = 0.25d0 * (r(3,2) - r(2,3)) / e1
+            e2 = 0.25d0 * (r(1,2) + r(2,1)) / e1
+            e3 = 0.25d0 * (r(1,3) + r(3,1)) / e1
+        case (3)
+            e2 = sqrt(esq(3))
+            e0 = 0.25d0 * (r(1,3) - r(3,1)) / e2
+            e1 = 0.25d0 * (r(1,2) + r(2,1)) / e2
+            e3 = 0.25d0 * (r(2,3) + r(3,2)) / e2
+        case default
+            e3 = sqrt(esq(4))
+            e0 = 0.25d0 * (r(2,1) - r(1,2)) / e3
+            e1 = 0.25d0 * (r(1,3) + r(3,1)) / e3
+            e2 = 0.25d0 * (r(2,3) + r(3,2)) / e3
+        end select
+        rst%w = e0
+        rst%x = e1
+        rst%y = e2
+        rst%z = e3
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function quat_abs(q) result(rst)
+        !! Computes the magnitude of a quaternion.
+        type(quaternion), intent(in) :: q
+            !! The quaternion.
+        real(real64) :: rst
+            !! The magnitude of the quaternion.
+
+        real(real64) :: x(4)
+
+        x = [q%w, q%x, q%y, q%z]
+        rst = norm2(x)
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function quat_conjg(q) result(rst)
+        !! Computes the conjugate of a quaternion.
+        type(quaternion), intent(in) :: q
+            !! The quaternion.
+        type(quaternion) :: rst
+            !! The conjugate of the quaternion.
+
+        rst%w = q%w
+        rst%x = -q%x
+        rst%y = -q%y
+        rst%z = -q%z
+    end function
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
 
 ! ------------------------------------------------------------------------------
 end module
