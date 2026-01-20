@@ -12,6 +12,8 @@ module dynamics_rotation
     public :: quaternion
     public :: abs
     public :: conjg
+    public :: real
+    public :: aimag
 
     interface rotate
         module procedure :: rotate_general_1
@@ -42,6 +44,14 @@ module dynamics_rotation
 
     interface conjg
         module procedure :: quat_conjg
+    end interface
+
+    interface real
+        module procedure :: quat_real
+    end interface
+
+    interface aimag
+        module procedure :: quat_aimag
     end interface
     
 contains
@@ -387,7 +397,7 @@ pure function rotate_x(angle) result(rst)
     end function
 
 ! ------------------------------------------------------------------------------
-    pure function quat_abs(q) result(rst)
+    pure elemental function quat_abs(q) result(rst)
         !! Computes the magnitude of a quaternion.
         type(quaternion), intent(in) :: q
             !! The quaternion.
@@ -401,7 +411,7 @@ pure function rotate_x(angle) result(rst)
     end function
 
 ! ------------------------------------------------------------------------------
-    pure function quat_conjg(q) result(rst)
+    pure elemental function quat_conjg(q) result(rst)
         !! Computes the conjugate of a quaternion.
         type(quaternion), intent(in) :: q
             !! The quaternion.
@@ -415,8 +425,26 @@ pure function rotate_x(angle) result(rst)
     end function
 
 ! ------------------------------------------------------------------------------
+    pure elemental function quat_real(q) result(rst)
+        !! Returns the real component of the quaternion.
+        type(quaternion), intent(in) :: q
+            !! The quaternion.
+        real(real64) :: rst
+            !! The real component.
+
+        rst = q%w
+    end function
 
 ! ------------------------------------------------------------------------------
+    pure function quat_aimag(q) result(rst)
+        !! Returns the imaginary component of the quaternion.
+        type(quaternion), intent(in) :: q
+            !! The quaternion.
+        real(real64), dimension(3) :: rst
+            !! The imaginary component as a vector.
+
+        rst = [q%x, q%y, q%z]
+    end function
 
 ! ------------------------------------------------------------------------------
 
