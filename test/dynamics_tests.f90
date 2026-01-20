@@ -8,6 +8,7 @@ program main
     use dynamics_transfer_function_tests
     use dynamics_state_space_tests
     use dynamics_system_id_tests
+    use dynamics_rotation_tests
     implicit none
 
     ! Variables
@@ -140,6 +141,12 @@ program main
 
     check = test_siso_model_fit_least_squares_multi()
     if (.not.check) flag = 41
+
+    check = test_quaternion_init_1()
+    if (.not.check) flag = 42
+
+    check = test_quaternion_init_2()
+    if (.not.check) flag = 43
 
     ! End
     if (flag /= 0) stop flag

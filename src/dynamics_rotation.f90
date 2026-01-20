@@ -10,6 +10,10 @@ module dynamics_rotation
     public :: acceleration_transform
     public :: velocity_transform
     public :: quaternion
+    public :: operator(+)
+    public :: operator(-)
+    public :: operator(*)
+    public :: operator(/)
     public :: abs
     public :: conjg
     public :: real
@@ -30,12 +34,33 @@ module dynamics_rotation
             !! The second element in the imaginary component of the quaternion.
         real(real64) :: z
             !! The third element in the imaginary component of the quaternion.
+    contains
+        procedure, public :: to_matrix => quat_to_matrix
+        procedure, public :: normalize => quat_normalize
     end type
 
     interface quaternion
         module procedure :: quat_init_array
         module procedure :: quat_init_angle_axis
         module procedure :: quat_init_mtx
+    end interface
+
+    interface operator(+)
+        module procedure :: quat_add
+    end interface
+
+    interface operator(-)
+        module procedure :: quat_subtract
+    end interface
+
+    interface operator(*)
+        module procedure :: quat_scalar_mult
+        module procedure :: quat_multiply
+    end interface
+
+    interface operator(/)
+        module procedure :: quat_scalar_div
+        module procedure :: quat_divide
     end interface
 
     interface abs
@@ -397,6 +422,113 @@ pure function rotate_x(angle) result(rst)
     end function
 
 ! ------------------------------------------------------------------------------
+    pure function quat_add(x, y) result(rst)
+        !! Adds two quaternions together.
+        type(quaternion), intent(in) :: x
+            !! The left-hand-side argument.
+        type(quaternion), intent(in) :: y
+            !! The right-hand-side argument.
+        type(quaternion) :: rst
+            !! The resulting quaternion.
+
+        rst%w = x%w + y%w
+        rst%x = x%x + y%x
+        rst%y = x%y + y%y
+        rst%z = x%z + y%z
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function quat_subtract(x, y) result(rst)
+        !! Subtracts two quaternions.
+        type(quaternion), intent(in) :: x
+            !! The left-hand-side argument.
+        type(quaternion), intent(in) :: y
+            !! The right-hand-side argument.
+        type(quaternion) :: rst
+            !! The resulting quaternion.
+
+        rst%w = x%w - y%w
+        rst%x = x%x - y%x
+        rst%y = x%y - y%y
+        rst%z = x%z - y%z
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function quat_scalar_mult(x, y) result(rst)
+        !! Multiplies a quaternion with a scalar.
+        type(quaternion), intent(in) :: x
+            !! The quaternion.
+        real(real64), intent(in) :: y
+            !! The scalar.
+        type(quaternion) :: rst
+            !! The resulting quaternion.
+
+        rst%w = y * x%w
+        rst%x = y * x%x
+        rst%y = y * x%y
+        rst%z = y * x%z
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function quat_multiply(x, y) result(rst)
+        !! Multiplies two quaternions.
+        type(quaternion), intent(in) :: x
+            !! The left-hand-side argument.
+        type(quaternion), intent(in) :: y
+            !! The right-hand-side argument.
+        type(quaternion) :: rst
+            !! The resulting quaternion.
+        
+        ! Local Variables
+        real(real64) :: x0, x1, x2, x3, y0, y1, y2, y3
+
+        ! Initialization
+        x0 = x%w
+        x1 = x%x
+        x2 = x%y
+        x3 = x%z
+        y0 = y%w
+        y1 = y%x
+        y2 = y%y
+        y3 = y%z
+
+        ! Process
+        rst%w = x0 * y0 - x1 * y1 - x2 * y2 - x3 * y3
+        rst%x = y0 * x1 + y1 * x0 - y2 * x3 + y3 * x2
+        rst%y = y0 * x2 + x0 * y2 + y1 * x3 - x1 * y3
+        rst%z = y0 * x3 - y1 * x2 + x0 * y3 + y2 * x1
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function quat_scalar_div(x, y) result(rst)
+        !! Divides a quaternion by a scalar.
+        type(quaternion), intent(in) :: x
+            !! The quaternion.
+        real(real64), intent(in) :: y
+            !! The scalar.
+        type(quaternion) :: rst
+            !! The resulting quaternion.
+
+        rst%w = x%w / y
+        rst%x = x%x / y
+        rst%y = x%y / y
+        rst%z = x%z / y
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function quat_divide(x, y) result(rst)
+        !! Divides a quaternion by another.
+        type(quaternion), intent(in) :: x
+            !! The left-hand-side argument.
+        type(quaternion), intent(in) :: y
+            !! The right-hand-side argument.
+        type(quaternion) :: rst
+            !! The resulting quaternion.
+
+        rst = x * (conjg(y) / (abs(y)**2))
+    end function
+
+! ------------------------------------------------------------------------------
     pure elemental function quat_abs(q) result(rst)
         !! Computes the magnitude of a quaternion.
         type(quaternion), intent(in) :: q
@@ -452,9 +584,57 @@ pure function rotate_x(angle) result(rst)
 
 ! ------------------------------------------------------------------------------
 
+! ******************************************************************************
+! MEMBER ROUTINES
 ! ------------------------------------------------------------------------------
+    pure function quat_to_matrix(q) result(rst)
+        !! Converts the quaternion to a 3-by-3 rotation matrix.
+        class(quaternion), intent(in) :: q
+            !! The quaternion.
+        real(real64), dimension(3,3) :: rst
+            !! The resulting rotation matrix.
+
+        ! Local Variables
+        type(quaternion) :: qnorm
+        real(real64) :: e0, e1, e2, e3
+
+        ! Process
+        qnorm = q / abs(q)
+        e0 = qnorm%w
+        e1 = qnorm%x
+        e2 = qnorm%y
+        e3 = qnorm%z
+
+        rst(1,1) = e0**2 + e1**2 + e2**2 + e3**2
+        rst(2,1) = 2.0d0 * (e0 * e3 + e1 * e2)
+        rst(3,1) = 2.0d0 * (e1 * e3 - e0 * e2)
+
+        rst(1,2) = 2.0d0 * (e1 * e2 - e0 * e3)
+        rst(2,2) = e0**2 - e1**2 + e2**2 - e3**2
+        rst(3,2) = 2.0d0 * (e0 * e1 + e2 * e3)
+
+        rst(1,3) = 2.0d0 * (e0 * e2 + e1 * e3)
+        rst(2,3) = 2.0d0 * (e2 * e3 - e0 * e1)
+        rst(3,3) = e0**2 - e1**2 - e2**2 + e3**2
+    end function
 
 ! ------------------------------------------------------------------------------
+    pure subroutine quat_normalize(q)
+        !! Normalizes the quaternion.
+        class(quaternion), intent(inout) :: q
+            !! On input, the quaternion to normalize.  On output, the normalized
+            !! quaternion.
+
+        ! Local Variables
+        real(real64) :: mag
+
+        ! Process
+        mag = abs(q)
+        q%w = q%w / mag
+        q%x = q%x / mag
+        q%y = q%y / mag
+        q%z = q%z / mag
+    end subroutine
 
 ! ------------------------------------------------------------------------------
 
