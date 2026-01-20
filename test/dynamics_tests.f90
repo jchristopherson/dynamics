@@ -148,6 +148,33 @@ program main
     check = test_quaternion_init_2()
     if (.not.check) flag = 43
 
+    check = test_quaternion_init_3()
+    if (.not.check) flag = 44
+
+    check = test_quaternion_abs()
+    if (.not.check) flag = 45
+
+    check = test_quaternion_conjg()
+    if (.not.check) flag = 46
+
+    check = test_quaternion_real()
+    if (.not.check) flag = 47
+
+    check = test_quaternion_aimag()
+    if (.not.check) flag = 48
+
+    check = test_quaternion_multiply()
+    if (.not.check) flag = 49
+
+    check = test_quaternion_add()
+    if (.not.check) flag = 50
+
+    check = test_quaternion_subtract()
+    if (.not.check) flag = 51
+
+    check = test_quaternion_division()
+    if (.not.check) flag = 52
+
     ! End
     if (flag /= 0) stop flag
 end program

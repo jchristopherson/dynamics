@@ -14,6 +14,7 @@ module dynamics_rotation
     public :: operator(-)
     public :: operator(*)
     public :: operator(/)
+    public :: assignment(=)
     public :: abs
     public :: conjg
     public :: real
@@ -55,12 +56,19 @@ module dynamics_rotation
 
     interface operator(*)
         module procedure :: quat_scalar_mult
+        module procedure :: scalar_quat_mult
         module procedure :: quat_multiply
+        module procedure :: quat_vec3_mult
     end interface
 
     interface operator(/)
         module procedure :: quat_scalar_div
         module procedure :: quat_divide
+    end interface
+
+    interface assignment(=)
+        module procedure :: quat_assign
+        module procedure :: quat_assign_vec4
     end interface
 
     interface abs
@@ -333,7 +341,7 @@ pure function rotate_x(angle) result(rst)
     end function
 
 ! ******************************************************************************
-! QUATERNIONS
+! QUATERNIONS (V1.2.0 ADDITIONS)
 ! ------------------------------------------------------------------------------
     pure function quat_init_array(x) result(rst)
         !! Constructs a quaternion from a 4-element array stored such that
@@ -383,14 +391,13 @@ pure function rotate_x(angle) result(rst)
 
         ! Local Variables
         integer(int32) :: ind
-        real(real64) :: esq(4), trc, e0, e1, e2, e3
+        real(real64) :: esq(4), e0, e1, e2, e3
 
         ! Process
-        trc = r(1,1) + r(2,2) + r(3,3)
-        esq(1) = 0.5d0 * (1.0d0 + trc)
-        esq(2) = 0.25d0 * (1.0d0 + 2.0d0 * r(1,1) - trc)
-        esq(3) = 0.25d0 * (1.0d0 + 2.0d0 * r(2,2) - trc)
-        esq(4) = 0.2530 * (1.0d0 + 2.0d0 * r(3,3) - trc)
+        esq(1) = 0.25d0 * (1.0d0 + r(1,1) + r(2,2) + r(3,3))
+        esq(2) = 0.25d0 * (1.0d0 + r(1,1) - r(2,2) - r(3,3))
+        esq(3) = 0.25d0 * (1.0d0 - r(1,1) + r(2,2) - r(3,3))
+        esq(4) = 0.25d0 * (1.0d0 - r(1,1) - r(2,2) + r(3,3))
 
         ind = maxloc(esq, 1)
         select case (ind)
@@ -422,7 +429,7 @@ pure function rotate_x(angle) result(rst)
     end function
 
 ! ------------------------------------------------------------------------------
-    pure function quat_add(x, y) result(rst)
+    pure elemental function quat_add(x, y) result(rst)
         !! Adds two quaternions together.
         type(quaternion), intent(in) :: x
             !! The left-hand-side argument.
@@ -438,7 +445,7 @@ pure function rotate_x(angle) result(rst)
     end function
 
 ! ------------------------------------------------------------------------------
-    pure function quat_subtract(x, y) result(rst)
+    pure elemental function quat_subtract(x, y) result(rst)
         !! Subtracts two quaternions.
         type(quaternion), intent(in) :: x
             !! The left-hand-side argument.
@@ -454,7 +461,7 @@ pure function rotate_x(angle) result(rst)
     end function
 
 ! ------------------------------------------------------------------------------
-    pure function quat_scalar_mult(x, y) result(rst)
+    pure elemental function quat_scalar_mult(x, y) result(rst)
         !! Multiplies a quaternion with a scalar.
         type(quaternion), intent(in) :: x
             !! The quaternion.
@@ -470,7 +477,23 @@ pure function rotate_x(angle) result(rst)
     end function
 
 ! ------------------------------------------------------------------------------
-    pure function quat_multiply(x, y) result(rst)
+    pure elemental function scalar_quat_mult(x, y) result(rst)
+        !! Multiplies a quaternion with a scalar.
+        real(real64), intent(in) :: x
+            !! The scalar.
+        type(quaternion), intent(in) :: y
+            !! The quaternion.
+        type(quaternion) :: rst
+            !! The resulting quaternion.
+
+        rst%w = x * y%w
+        rst%x = x * y%x
+        rst%y = x * y%y
+        rst%z = x * y%z
+    end function
+
+! ------------------------------------------------------------------------------
+    pure elemental function quat_multiply(x, y) result(rst)
         !! Multiplies two quaternions.
         type(quaternion), intent(in) :: x
             !! The left-hand-side argument.
@@ -500,7 +523,20 @@ pure function rotate_x(angle) result(rst)
     end function
 
 ! ------------------------------------------------------------------------------
-    pure function quat_scalar_div(x, y) result(rst)
+    pure function quat_vec3_mult(x, y) result(rst)
+        !! Multiplies a quaternion with a 3-element vector.
+        type(quaternion), intent(in) :: x
+            !! The quaternion.
+        real(real64), intent(in), dimension(3) :: y
+            !! The vector.
+        type(quaternion) :: rst
+            !! The resulting quaternion.
+
+        rst = x * quaternion([0.0d0, y(1), y(2), y(3)])
+    end function
+
+! ------------------------------------------------------------------------------
+    pure elemental function quat_scalar_div(x, y) result(rst)
         !! Divides a quaternion by a scalar.
         type(quaternion), intent(in) :: x
             !! The quaternion.
@@ -516,7 +552,7 @@ pure function rotate_x(angle) result(rst)
     end function
 
 ! ------------------------------------------------------------------------------
-    pure function quat_divide(x, y) result(rst)
+    pure elemental function quat_divide(x, y) result(rst)
         !! Divides a quaternion by another.
         type(quaternion), intent(in) :: x
             !! The left-hand-side argument.
@@ -527,6 +563,38 @@ pure function rotate_x(angle) result(rst)
 
         rst = x * (conjg(y) / (abs(y)**2))
     end function
+
+! ------------------------------------------------------------------------------
+    pure elemental subroutine quat_assign(x, y)
+        !! Assigns a quaternion to another.
+        type(quaternion), intent(out) :: x
+            !! The resulting quaternion.
+        type(quaternion), intent(in) :: y
+            !! The source quaternion.
+
+        x%w = y%w
+        x%x = y%x
+        x%y = y%y
+        x%z = y%z
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    pure subroutine quat_assign_vec4(x, y)
+        !! Assigns a 4-element vector to a quaternion.
+        type(quaternion), intent(out) :: x
+            !! The resulting quaternion.
+        real(real64), intent(in), dimension(4) :: y
+            !! The source vector.
+
+        x%w = y(1)
+        x%x = y(2)
+        x%y = y(3)
+        x%z = y(4)
+    end subroutine
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
 
 ! ------------------------------------------------------------------------------
     pure elemental function quat_abs(q) result(rst)
