@@ -406,6 +406,29 @@ function test_quaternion_subtract() result(rst)
         rst = .false.
         print "(A)", "TEST FAILED: test_quaternion_subtract -4"
     end if
+
+    ! Negation Test
+    x = -x
+    q = -q
+    if (.not.assert(x(1), q%w)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_quaternion_subtract -5"
+    end if
+
+    if (.not.assert(x(2), q%x)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_quaternion_subtract -6"
+    end if
+
+    if (.not.assert(x(3), q%y)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_quaternion_subtract -7"
+    end if
+
+    if (.not.assert(x(4), q%z)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_quaternion_subtract -8"
+    end if
 end function
 
 ! ------------------------------------------------------------------------------
@@ -469,10 +492,86 @@ function test_quaternion_division() result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+function test_quaternion_to_matrix() result(rst)
+    logical :: rst
+    type(quaternion) :: qx, qy, q
+    real(real64) :: ax, ay, axisX(3), axisY(3), Rx(3,3), Ry(3,3), R(3,3), &
+        Rq(3,3)
+    
+    ! Initialization
+    rst = .true.
+    call random_number(ax)
+    call random_number(ay)
+    axisX = [1.0d0, 0.0d0, 0.0d0]
+    axisY = [0.0d0, 1.0d0, 0.0d0]
+    Rx = rotate_x(ax)
+    Ry = rotate_y(ay)
+    R = matmul(Rx, Ry)
+    qx = quaternion(ax, axisX)
+    qy = quaternion(ay, axisY)
+    q = qx * qy
+    call q%normalize()
+    Rq = q%to_matrix()
+
+    ! Test
+    if (.not.assert(R, Rq)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_quaternion_to_matrix"
+    end if
+end function
 
 ! ------------------------------------------------------------------------------
+function test_quaternion_normalize() result(rst)
+    logical :: rst
+    type(quaternion) :: q, qn
+    real(real64) :: x(4), xn(4)
+
+    ! Initialization
+    rst = .true.
+    call random_number(x)
+    xn = x / norm2(x)
+    q = quaternion(x)
+    qn = q
+    call qn%normalize()
+
+    ! Test
+    if (.not.assert(xn(1), qn%w)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_quaternion_normalize -1"
+    end if
+
+    if (.not.assert(xn(2), qn%x)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_quaternion_normalize -2"
+    end if
+
+    if (.not.assert(xn(3), qn%y)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_quaternion_normalize -3"
+    end if
+
+    if (.not.assert(xn(4), qn%z)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_quaternion_normalize -4"
+    end if
+end function
 
 ! ------------------------------------------------------------------------------
+function test_quaternion_to_array() result(rst)
+    logical :: rst
+    type(quaternion) :: q
+    real(real64) :: x(4)
+
+    ! Initialization
+    rst = .true.
+    call random_number(x)
+    q = quaternion(x)
+    
+    if (.not.assert(x, q%to_array())) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_quaternion_to_array"
+    end if
+end function
 
 ! ------------------------------------------------------------------------------
 end module

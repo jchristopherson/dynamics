@@ -38,6 +38,7 @@ module dynamics_rotation
     contains
         procedure, public :: to_matrix => quat_to_matrix
         procedure, public :: normalize => quat_normalize
+        procedure, public :: to_array => quat_to_vec4
     end type
 
     interface quaternion
@@ -52,6 +53,7 @@ module dynamics_rotation
 
     interface operator(-)
         module procedure :: quat_subtract
+        module procedure :: quat_negate
     end interface
 
     interface operator(*)
@@ -593,8 +595,18 @@ pure function rotate_x(angle) result(rst)
     end subroutine
 
 ! ------------------------------------------------------------------------------
+    pure elemental function quat_negate(x) result(rst)
+        !! Negates a quaternion.
+        type(quaternion), intent(in) :: x
+            !! The quaternion.
+        type(quaternion) :: rst
+            !! The resulting quaternion.
 
-! ------------------------------------------------------------------------------
+        rst%w = -x%w
+        rst%x = -x%x
+        rst%y = -x%y
+        rst%z = -x%z
+    end function
 
 ! ------------------------------------------------------------------------------
     pure elemental function quat_abs(q) result(rst)
@@ -646,12 +658,6 @@ pure function rotate_x(angle) result(rst)
         rst = [q%x, q%y, q%z]
     end function
 
-! ------------------------------------------------------------------------------
-
-! ------------------------------------------------------------------------------
-
-! ------------------------------------------------------------------------------
-
 ! ******************************************************************************
 ! MEMBER ROUTINES
 ! ------------------------------------------------------------------------------
@@ -673,7 +679,7 @@ pure function rotate_x(angle) result(rst)
         e2 = qnorm%y
         e3 = qnorm%z
 
-        rst(1,1) = e0**2 + e1**2 + e2**2 + e3**2
+        rst(1,1) = e0**2 + e1**2 - e2**2 - e3**2
         rst(2,1) = 2.0d0 * (e0 * e3 + e1 * e2)
         rst(3,1) = 2.0d0 * (e1 * e3 - e0 * e2)
 
@@ -705,8 +711,15 @@ pure function rotate_x(angle) result(rst)
     end subroutine
 
 ! ------------------------------------------------------------------------------
+    pure function quat_to_vec4(q) result(rst)
+        !! Converts a quaternion to a 4-element array of the form [w, x, y, z].
+        class(quaternion), intent(in) :: q
+            !! The quaternion.
+        real(real64), dimension(4) :: rst
+            !! The array of the form [w, x, y, z].
 
-! ------------------------------------------------------------------------------
+        rst = [q%w, q%x, q%y, q%z]
+    end function
 
 ! ------------------------------------------------------------------------------
 end module

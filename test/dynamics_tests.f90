@@ -175,6 +175,15 @@ program main
     check = test_quaternion_division()
     if (.not.check) flag = 52
 
+    check = test_quaternion_to_matrix()
+    if (.not.check) flag = 53
+
+    check = test_quaternion_normalize()
+    if (.not.check) flag = 54
+
+    check = test_quaternion_to_array()
+    if (.not.check) flag = 55
+
     ! End
     if (flag /= 0) stop flag
 end program
