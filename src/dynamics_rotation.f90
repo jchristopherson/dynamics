@@ -19,6 +19,7 @@ module dynamics_rotation
     public :: conjg
     public :: real
     public :: aimag
+    public :: inverse
 
     interface rotate
         module procedure :: rotate_general_1
@@ -563,7 +564,7 @@ pure function rotate_x(angle) result(rst)
         type(quaternion) :: rst
             !! The resulting quaternion.
 
-        rst = x * (conjg(y) / (abs(y)**2))
+        rst = x * inverse(y)
     end function
 
 ! ------------------------------------------------------------------------------
@@ -656,6 +657,17 @@ pure function rotate_x(angle) result(rst)
             !! The imaginary component as a vector.
 
         rst = [q%x, q%y, q%z]
+    end function
+
+! ------------------------------------------------------------------------------
+    pure elemental function inverse(q) result(rst)
+        !! Computes the inverse of a quaternion.
+        type(quaternion), intent(in) :: q
+            !! The quaternion.
+        type(quaternion) :: rst
+            !! The inverse of the supplied quaternion.
+
+        rst = conjg(q) / (abs(q)**2)
     end function
 
 ! ******************************************************************************

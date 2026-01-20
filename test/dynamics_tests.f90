@@ -184,6 +184,9 @@ program main
     check = test_quaternion_to_array()
     if (.not.check) flag = 55
 
+    check = test_quaternion_inverse()
+    if (.not.check) flag = 56
+
     ! End
     if (flag /= 0) stop flag
 end program

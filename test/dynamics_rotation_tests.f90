@@ -574,4 +574,39 @@ function test_quaternion_to_array() result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+function test_quaternion_inverse() result(rst)
+    logical :: rst
+    type(quaternion) :: q, qi, qa
+    real(real64) :: x(4)
+
+    ! Initialization
+    rst = .true.
+    call random_number(x)
+    q = quaternion(x)
+    qi = inverse(q)
+    qa = conjg(q) / (abs(q)**2)
+
+    ! Test
+    if (.not.assert(qi%w, qa%w)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_quaternion_inverse -1"
+    end if
+
+    if (.not.assert(qi%x, qa%x)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_quaternion_inverse -2"
+    end if
+
+    if (.not.assert(qi%y, qa%y)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_quaternion_inverse -3"
+    end if
+
+    if (.not.assert(qi%z, qa%z)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_quaternion_inverse -4"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
 end module
