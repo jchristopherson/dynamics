@@ -312,3 +312,89 @@ bool c_test_quaternion_normalize()
     }
     return rst;
 }
+
+bool c_test_quaternion_add()
+{
+    // Local Variables
+    bool rst;
+    c_quaternion q1, q2, q;
+    double x1[4], x2[4], x[4];
+    int i;
+    const double tol = 1.0e-8;
+
+    // Initialization
+    create_random_vector(4, x1);
+    create_random_vector(4, x2);
+    for (i = 0; i < 4; ++i) x[i] = x1[i] + x2[i];
+    c_quaternion_from_array(x1, &q1);
+    c_quaternion_from_array(x2, &q2);
+    c_quaternion_add(&q1, &q2, &q);
+
+    // Test
+    rst = compare_quaternion_to_array(x, &q, tol);
+    if (!rst)
+    {
+        printf("TEST FAILED: c_test_quaternion_add -1\n");
+    }
+    return rst;
+}
+
+bool c_test_quaternion_subtract()
+{
+    // Local Variables
+    bool rst;
+    c_quaternion q1, q2, q;
+    double x1[4], x2[4], x[4];
+    int i;
+    const double tol = 1.0e-8;
+
+    // Initialization
+    create_random_vector(4, x1);
+    create_random_vector(4, x2);
+    for (i = 0; i < 4; ++i) x[i] = x1[i] - x2[i];
+    c_quaternion_from_array(x1, &q1);
+    c_quaternion_from_array(x2, &q2);
+    c_quaternion_subtract(&q1, &q2, &q);
+
+    // Test
+    rst = compare_quaternion_to_array(x, &q, tol);
+    if (!rst)
+    {
+        printf("TEST FAILED: c_test_quaternion_subtract -1\n");
+    }
+    return rst;
+}
+
+bool c_test_quaternion_multiply()
+{
+    // Local Variables
+    bool rst;
+    c_quaternion q, qc, qrb, qq;
+    double R[9], rb[3], rg[3], rgq[3], angle, axis[3], rbb[4];
+    const double tol = 1.0e-8;
+
+    // Initialization
+    angle = -0.75;
+    axis[0] = 1.0;  axis[1] = 0.0;  axis[2] = 0.0;
+    c_rotate_x(angle, R, 3);
+    create_random_vector(3, rb);
+    rbb[0] = 0.0; rbb[1] = rb[0]; rbb[2] = rb[1]; rbb[3] = rb[2];
+    c_quaternion_from_angle_axis(angle, axis, &q);
+    c_quaternion_from_array(rbb, &qrb);
+    mtx_mult(3, 1, 3, R, 3, rb, 3, rg, 3);  // rg = R * rb
+    c_quaternion_normalize(&q);
+    c_quaternion_conjugate(&q, &qc);
+
+    // Compute rg = q * rb * q*
+    c_quaternion_multiply(&q, &qrb, &qq);
+    c_quaternion_multiply(&qq, &qc, &qrb);  // overwrite qrb
+    rgq[0] = qrb.x; rgq[1] = qrb.y; rgq[2] = qrb.z;
+
+    // Test
+    rst = compare_arrays(3, rgq, rg, tol);
+    if (!rst)
+    {
+        printf("TEST FAILED: c_test_quaternion_multiply -1\n");
+    }
+    return rst;
+}

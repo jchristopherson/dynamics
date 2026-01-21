@@ -47,6 +47,9 @@ int main()
     if (!c_test_quaternion_from_angle_axis()) flag = 26;
     if (!c_test_quaternion_from_matrix()) flag = 27;
     if (!c_test_quaternion_normalize()) flag = 28;
+    if (!c_test_quaternion_add()) flag = 29;
+    if (!c_test_quaternion_subtract()) flag = 30;
+    if (!c_test_quaternion_multiply()) flag = 31;
 
     return flag;
 }

@@ -227,6 +227,11 @@ void c_quaternion_multiply(const c_quaternion *x, const c_quaternion *y,
 void c_quaternion_divide(const c_quaternion *x, const c_quaternion *y,
     c_quaternion *q);   
 void c_quaternion_scale(double x, const c_quaternion *y, c_quaternion *q);
+void c_quaternion_conjugate(const c_quaternion *q, c_quaternion *qc);
+void c_quaternion_rotate(const c_quaternion *q, const double r[3], double rp[3]);
+double c_quaternion_abs(const c_quaternion *q);
+void c_quaternion_inverse(const c_quaternion *q, c_quaternion *qinv);
+void c_quaternion_to_matrix(const c_quaternion *q, double *r, int ldr);
 
 #ifdef __cplusplus
 }

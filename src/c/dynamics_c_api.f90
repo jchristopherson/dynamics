@@ -1552,14 +1552,58 @@ subroutine c_quaternion_scale(x, y, q) bind(C, name = "c_quaternion_scale")
 end subroutine
 
 ! ------------------------------------------------------------------------------
+subroutine c_quaternion_conjugate(q, qc) bind(C, name = "c_quaternion_conjugate")
+    use dynamics_rotation
+    type(c_quaternion), intent(in) :: q
+    type(c_quaternion), intent(out) :: qc
+    type(quaternion) :: qf, qcf
+    call convert_from_c_quaternion(q, qf)
+    qcf = conjg(qf)
+    call convert_to_c_quaternion(qcf, qc)
+end subroutine
 
 ! ------------------------------------------------------------------------------
+subroutine c_quaternion_rotate(q, r, rp) bind(C, name = "c_quaternion_rotate")
+    use dynamics_rotation
+    type(c_quaternion), intent(in) :: q
+    real(c_double), intent(in) :: r(3)
+    real(c_double), intent(out) :: rp(3)
+    type(quaternion) :: qf
+    call convert_from_c_quaternion(q, qf)
+    rp = aimag(qf * r * conjg(qf))
+end subroutine
 
 ! ------------------------------------------------------------------------------
+function c_quaternion_abs(q) result(rst) bind(C, name = "c_quaternion_abs")
+    use dynamics_rotation
+    type(c_quaternion), intent(in) :: q
+    real(c_double) :: rst
+    type(quaternion) :: qf
+    call convert_from_c_quaternion(q, qf)
+    rst = abs(qf)
+end function
 
 ! ------------------------------------------------------------------------------
+subroutine c_quaternion_inverse(q, qinv) bind(C, name = "c_quaternion_inverse")
+    use dynamics_rotation
+    type(c_quaternion), intent(in) :: q
+    type(c_quaternion), intent(out) :: qinv
+    type(quaternion) :: qf, qinvf
+    call convert_from_c_quaternion(q, qf)
+    qinvf = inverse(qf)
+    call convert_to_c_quaternion(qinvf, qinv)
+end subroutine
 
 ! ------------------------------------------------------------------------------
+subroutine c_quaternion_to_matrix(q, r, ldr) bind(C, name = "c_quaternion_to_matrix")
+    use dynamics_rotation
+    type(c_quaternion), intent(in) :: q
+    integer(c_int), intent(in), value :: ldr
+    real(c_double), intent(out) :: r(ldr,3)
+    type(quaternion) :: qf
+    call convert_from_c_quaternion(q, qf)
+    r(1:3,1:3) = qf%to_matrix()
+end subroutine
 
 ! ------------------------------------------------------------------------------
 end module
