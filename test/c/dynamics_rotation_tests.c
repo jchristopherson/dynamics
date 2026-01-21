@@ -368,12 +368,13 @@ bool c_test_quaternion_subtract()
 bool c_test_quaternion_multiply()
 {
     // Local Variables
-    bool rst;
+    bool rst1, rst2, rst;
     c_quaternion q, qc, qrb, qq;
-    double R[9], rb[3], rg[3], rgq[3], angle, axis[3], rbb[4];
+    double R[9], rb[3], rg[3], rgq[3], angle, axis[3], rbb[4], rgg[3];
     const double tol = 1.0e-8;
 
     // Initialization
+    rst = true;
     angle = -0.75;
     axis[0] = 1.0;  axis[1] = 0.0;  axis[2] = 0.0;
     c_rotate_x(angle, R, 3);
@@ -391,10 +392,110 @@ bool c_test_quaternion_multiply()
     rgq[0] = qrb.x; rgq[1] = qrb.y; rgq[2] = qrb.z;
 
     // Test
-    rst = compare_arrays(3, rgq, rg, tol);
-    if (!rst)
+    rst1 = compare_arrays(3, rgq, rg, tol);
+    if (!rst1)
     {
         printf("TEST FAILED: c_test_quaternion_multiply -1\n");
+        rst = false;
+    }
+
+    // Test 2 - c_quaternion_rotate
+    c_quaternion_rotate(&q, rb, rgg);
+    rst2 = compare_arrays(3, rg, rgg, tol);
+    if (!rst2)
+    {
+        printf("TEST FAILED: c_test_quaternion_multiply -2\n");
+        rst = false;
+    }
+
+    return rst;
+}
+
+bool c_test_quaternion_divide()
+{
+    // Local Variables
+    bool rst1, rst2, rst;
+    c_quaternion q1, q2, q2c, q, qi, qa, q2inv;
+    double x1[4], x2[4], q2abs;
+    const double tol = 1.0e-8;
+
+    // Initialization
+    rst = true;
+    create_random_vector(4, x1);
+    create_random_vector(4, x2);
+    c_quaternion_from_array(x1, &q1);
+    c_quaternion_from_array(x2, &q2);
+    c_quaternion_conjugate(&q2, &q2c);
+    q2abs = c_quaternion_abs(&q2);
+    c_quaternion_scale(1.0 / (q2abs * q2abs), &q2c, &qi); // q2* / |q2|^2
+    c_quaternion_multiply(&q1, &qi, &qa);    // q1 * q2* / |q2|^2
+    c_quaternion_divide(&q1, &q2, &q);
+
+    // Test 1
+    rst1 = compare_quaternions(&q, &qa, tol);
+    if (!rst1)
+    {
+        printf("TEST FAILED: c_test_quaternion_divide -1\n");
+        rst = false;
+    }
+
+    // Test 2
+    c_quaternion_inverse(&q2, &q2inv);
+    rst2 = compare_quaternions(&qi, &q2inv, tol);
+    if (!rst2)
+    {
+        printf("TEST FAILED: c_test_quaternion_divide -2\n");
+        rst = false;
+    }
+
+    // End
+    return rst;
+}
+
+bool c_test_quaternion_abs()
+{
+    // Local Variables
+    bool rst;
+    c_quaternion q;
+    double x[4], xabs, qabs;
+    const double tol = 1.0e-8;
+
+    // Initialization
+    rst = true;
+    create_random_vector(4, x);
+    c_quaternion_from_array(x, &q);
+    xabs = sqrt(x[0] * x[0] + x[1] * x[1] + x[2] * x[2] + x[3] * x[3]);
+    qabs = c_quaternion_abs(&q);
+
+    // Test
+    if (fabs(xabs - qabs) > tol)
+    {
+        printf("TEST FAILED: c_test_quaternion_abs -1\n");
+        rst = false;
+    }
+    return rst;
+}
+
+bool c_test_quaternion_to_matrix()
+{
+    // Local Variables
+    bool rst;
+    c_quaternion q;
+    double R[9], angle, axis[3], Rq[9];
+    const double tol = 1.0e-8;
+
+    // Initialization
+    angle = -1.25;
+    axis[0] = 1.0;  axis[1] = 0.0;  axis[2] = 0.0;
+    c_quaternion_from_angle_axis(angle, axis, &q);
+    c_rotate_x(angle, R, 3);
+    c_quaternion_to_matrix(&q, Rq, 3);
+
+    // Test
+    rst = compare_matrices(3, 3, R, 3, Rq, 3, tol);
+    if (!rst)
+    {
+        printf("TEST FAILED: c_test_quaternion_to_matrix -1\n");
     }
     return rst;
 }

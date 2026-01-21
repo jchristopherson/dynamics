@@ -17,5 +17,8 @@ bool c_test_quaternion_normalize();
 bool c_test_quaternion_add();
 bool c_test_quaternion_subtract();
 bool c_test_quaternion_multiply();
+bool c_test_quaternion_divide();
+bool c_test_quaternion_abs();
+bool c_test_quaternion_to_matrix();
 
 #endif
