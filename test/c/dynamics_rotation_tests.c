@@ -210,3 +210,105 @@ bool c_test_velocity_transform()
     return rst;
 }
 
+bool c_test_quaternion_from_array()
+{
+    // Local Variables
+    bool rst;
+    double x[4];
+    c_quaternion q;
+    const double tol = 1.0e-8;
+
+    create_random_vector(4, x);
+    c_quaternion_from_array(x, &q);
+    rst = compare_quaternion_to_array(x, &q, tol);
+    if (!rst)
+    {
+        printf("TEST FAILED: c_test_quaternion_from_array -1\n");
+    }
+    return rst;
+}
+
+bool c_test_quaternion_from_angle_axis()
+{
+    // Local Variables
+    bool rst;
+    double angle, axis[3], ans[4];
+    c_quaternion q;
+    const double tol = 1.0e-8;
+
+    // Initialization
+    create_random_vector(3, axis);
+    angle = 0.75;
+    ans[0] = cos(0.5 * angle);
+    ans[1] = sin(0.5 * angle) * axis[0];
+    ans[2] = sin(0.5 * angle) * axis[1];
+    ans[3] = sin(0.5 * angle) * axis[2];
+    c_quaternion_from_angle_axis(angle, axis, &q);
+
+    // Test
+    rst = compare_quaternion_to_array(ans, &q, tol);
+    if (!rst)
+    {
+        printf("TEST FAILED: c_test_quaternion_from_angle_axis -1\n");
+    }
+    return rst;
+}
+
+bool c_test_quaternion_from_matrix()
+{
+    // Local Variables
+    bool rst;
+    double Rx[9], ax, axis[3];
+    c_quaternion q, p;
+    const double tol = 1.0e-8;
+    
+    // Initialization
+    ax = 0.25;
+    axis[0] = 1.0;
+    axis[1] = 0.0;
+    axis[2] = 0.0;
+    c_rotate_x(ax, Rx, 3);
+    c_quaternion_from_matrix(Rx, 3, &q);
+    c_quaternion_from_angle_axis(ax, axis, &p);
+
+    c_quaternion_normalize(&q);
+    c_quaternion_normalize(&p);
+
+    // Test
+    rst = compare_quaternions(&q, &p, tol);
+    if (!rst)
+    {
+        printf("TEST FAILED: c_test_quaternion_from_matrix -1\n");
+    }
+
+    // End
+    return rst;
+}
+
+bool c_test_quaternion_normalize()
+{
+    // Local Variables
+    bool rst;
+    c_quaternion q;
+    double x[4], xnorm;
+    const double tol = 1.0e-8;
+
+    // Initialization
+    rst = true;
+    create_random_vector(4, x);
+    c_quaternion_from_array(x, &q);
+    xnorm = sqrt(x[0] * x[0] + x[1] * x[1] + x[2] * x[2] + x[3] * x[3]);
+    x[0] /= xnorm;
+    x[1] /= xnorm;
+    x[2] /= xnorm;
+    x[3] /= xnorm;
+    c_quaternion_normalize(&q);
+
+    // Test
+    rst = compare_quaternion_to_array(x, &q, tol);
+    if (!rst)
+    {
+        printf("TEST FAILED: test_quaternion_normalize -1\n");
+    }
+    return rst;
+}

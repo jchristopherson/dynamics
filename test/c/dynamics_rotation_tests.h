@@ -10,5 +10,9 @@ bool c_test_rotation();
 bool c_test_rotation();
 bool c_test_acceleration_transform();
 bool c_test_velocity_transform();
+bool c_test_quaternion_from_array();
+bool c_test_quaternion_from_angle_axis();
+bool c_test_quaternion_from_matrix();
+bool c_test_quaternion_normalize();
 
 #endif

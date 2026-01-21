@@ -151,3 +151,21 @@ void vec_subtract(int n, const double *x, const double *y, double *z)
         z[i] = x[i] - y[i];
     }
 }
+
+bool compare_quaternion_to_array(const double x[4], const c_quaternion *q, double tol)
+{
+    if (fabs(x[0] - q->w) > tol) return false;
+    if (fabs(x[1] - q->x) > tol) return false;
+    if (fabs(x[2] - q->y) > tol) return false;
+    if (fabs(x[3] - q->z) > tol) return false;
+    return true;
+}
+
+bool compare_quaternions(const c_quaternion *x, const c_quaternion *y, double tol)
+{
+    if (fabs(x->w - y->w) > tol) return false;
+    if (fabs(x->x - y->x) > tol) return false;
+    if (fabs(x->y - y->y) > tol) return false;
+    if (fabs(x->z - y->z) > tol) return false;
+    return true;
+}

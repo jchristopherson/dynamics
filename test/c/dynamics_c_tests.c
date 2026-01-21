@@ -43,5 +43,10 @@ int main()
     if (!c_test_siso_frf()) flag = 23;
     if (!c_test_siso_lsq_fit()) flag = 24;
 
+    if (!c_test_quaternion_from_array()) flag = 25;
+    if (!c_test_quaternion_from_angle_axis()) flag = 26;
+    if (!c_test_quaternion_from_matrix()) flag = 27;
+    if (!c_test_quaternion_normalize()) flag = 28;
+
     return flag;
 }

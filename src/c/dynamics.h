@@ -93,6 +93,14 @@ typedef struct
     int method;
 } c_lm_solver_options;
 
+typedef struct
+{
+    double w;
+    double x;
+    double y;
+    double z;
+} c_quaternion;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -204,6 +212,21 @@ c_dynamic_system_measurement* c_alloc_dynamic_system_measurement_array(int n,
     const int *ptsper);
 void c_free_dynamic_system_measurement_array(int n, 
     c_dynamic_system_measurement *x);
+
+void c_quaternion_from_array(const double x[4], c_quaternion *q);
+void c_quaternion_from_matrix(const double *x, int ldx, c_quaternion *q);
+void c_quaternion_from_angle_axis(double angle, const double axis[3], 
+    c_quaternion *q);
+void c_quaternion_normalize(c_quaternion *q);
+void c_quaternion_add(const c_quaternion *x, const c_quaternion *y,
+    c_quaternion *q);
+void c_quaternion_subtract(const c_quaternion *x, const c_quaternion *y,
+    c_quaternion *q);
+void c_quaternion_multiply(const c_quaternion *x, const c_quaternion *y,
+    c_quaternion *q);   
+void c_quaternion_divide(const c_quaternion *x, const c_quaternion *y,
+    c_quaternion *q);   
+void c_quaternion_scale(double x, const c_quaternion *y, c_quaternion *q);
 
 #ifdef __cplusplus
 }

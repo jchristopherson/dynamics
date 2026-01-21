@@ -144,6 +144,13 @@ module dynamics_c_api
     integer(c_int), parameter :: DYN_BDF = 14
     integer(c_int), parameter :: DYN_ADAMS = 15
 
+    type, bind(C) :: c_quaternion
+        real(c_double) :: w
+        real(c_double) :: x
+        real(c_double) :: y
+        real(c_double) :: z
+    end type
+
 contains
 ! ------------------------------------------------------------------------------
 subroutine c_report_invalid_input(fcn, name, err)
@@ -1407,6 +1414,141 @@ subroutine c_set_lm_solver_options_defaults(x) &
     x%damping_increase_factor = opt%damping_increase_factor
     x%finite_difference_step_size = opt%finite_difference_step_size
     x%method = opt%method
+end subroutine
+
+! ******************************************************************************
+! DYNAMICS_ROTATION - QUATERNION
+! ------------------------------------------------------------------------------
+pure subroutine convert_to_c_quaternion(qf, qc)
+    use dynamics_rotation
+    type(quaternion), intent(in) :: qf
+    type(c_quaternion), intent(out) :: qc
+    qc%w = qf%w
+    qc%x = qf%x
+    qc%y = qf%y
+    qc%z = qf%z
+end subroutine
+
+! ------------------------------------------------------------------------------
+pure subroutine convert_from_c_quaternion(qc, qf)
+    use dynamics_rotation
+    type(c_quaternion), intent(in) :: qc
+    type(quaternion), intent(out) :: qf
+    qf%w = qc%w
+    qf%x = qc%x
+    qf%y = qc%y
+    qf%z = qc%z
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_quaternion_from_array(x, q) &
+    bind(C, name = "c_quaternion_from_array")
+    real(c_double), intent(in) :: x(4)
+    type(c_quaternion), intent(out) :: q
+    q%w = x(1)
+    q%x = x(2)
+    q%y = x(3)
+    q%z = x(4)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_quaternion_from_matrix(x, ldx, q) &
+    bind(C, name = "c_quaternion_from_matrix")
+    use dynamics_rotation
+    integer(c_int), intent(in), value :: ldx
+    real(c_double), intent(in) :: x(ldx,3)
+    type(c_quaternion), intent(out) :: q
+
+    type(quaternion) :: qf
+    qf = quaternion(x(1:3,1:3))
+    call convert_to_c_quaternion(qf, q)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_quaternion_from_angle_axis(angle, axis, q) &
+    bind(C, name = "c_quaternion_from_angle_axis")
+    use dynamics_rotation
+    real(c_double), intent(in), value :: angle
+    real(c_double), intent(in) :: axis(3)
+    type(c_quaternion), intent(out) :: q
+
+    type(quaternion) :: qf
+    qf = quaternion(angle, axis)
+    call convert_to_c_quaternion(qf, q)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_quaternion_normalize(q) bind(C, name = "c_quaternion_normalize")
+    use dynamics_rotation
+    type(c_quaternion), intent(inout) :: q
+    type(quaternion) :: qf
+    call convert_from_c_quaternion(q, qf)
+    call qf%normalize()
+    call convert_to_c_quaternion(qf, q)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_quaternion_add(x, y, q) bind(C, name = "c_quaternion_add")
+    use dynamics_rotation
+    type(c_quaternion), intent(in) :: x
+    type(c_quaternion), intent(in) :: y
+    type(c_quaternion), intent(out) :: q
+    type(quaternion) :: xf, yf, qf
+    call convert_from_c_quaternion(x, xf)
+    call convert_from_c_quaternion(y, yf)
+    qf = xf + yf
+    call convert_to_c_quaternion(qf, q)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_quaternion_subtract(x, y, q) bind(C, name = "c_quaternion_subtract")
+    use dynamics_rotation
+    type(c_quaternion), intent(in) :: x
+    type(c_quaternion), intent(in) :: y
+    type(c_quaternion), intent(out) :: q
+    type(quaternion) :: xf, yf, qf
+    call convert_from_c_quaternion(x, xf)
+    call convert_from_c_quaternion(y, yf)
+    qf = xf - yf
+    call convert_to_c_quaternion(qf, q)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_quaternion_multiply(x, y, q) bind(C, name = "c_quaternion_multiply")
+    use dynamics_rotation
+    type(c_quaternion), intent(in) :: x
+    type(c_quaternion), intent(in) :: y
+    type(c_quaternion), intent(out) :: q
+    type(quaternion) :: xf, yf, qf
+    call convert_from_c_quaternion(x, xf)
+    call convert_from_c_quaternion(y, yf)
+    qf = xf * yf
+    call convert_to_c_quaternion(qf, q)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_quaternion_divide(x, y, q) bind(C, name = "c_quaternion_divide")
+    use dynamics_rotation
+    type(c_quaternion), intent(in) :: x
+    type(c_quaternion), intent(in) :: y
+    type(c_quaternion), intent(out) :: q
+    type(quaternion) :: xf, yf, qf
+    call convert_from_c_quaternion(x, xf)
+    call convert_from_c_quaternion(y, yf)
+    qf = xf / yf
+    call convert_to_c_quaternion(qf, q)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_quaternion_scale(x, y, q) bind(C, name = "c_quaternion_scale")
+    use dynamics_rotation
+    real(c_double), intent(in), value :: x
+    type(c_quaternion), intent(in) :: y
+    type(c_quaternion), intent(out) :: q
+    type(quaternion) :: yf, qf
+    call convert_from_c_quaternion(y, yf)
+    qf = x * yf
+    call convert_to_c_quaternion(qf, q)
 end subroutine
 
 ! ------------------------------------------------------------------------------
