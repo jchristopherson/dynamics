@@ -53,6 +53,7 @@ int main()
     if (!c_test_quaternion_divide()) flag = 32;
     if (!c_test_quaternion_abs()) flag = 33;
     if (!c_test_quaternion_to_matrix()) flag = 34;
+    if (!c_test_to_angle_axis()) flag = 35;
 
     return flag;
 }

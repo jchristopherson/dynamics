@@ -1606,4 +1606,25 @@ subroutine c_quaternion_to_matrix(q, r, ldr) bind(C, name = "c_quaternion_to_mat
 end subroutine
 
 ! ------------------------------------------------------------------------------
+subroutine c_quaterion_to_angle_axis(q, angle, axis) &
+    bind(C, name = "c_quaterion_to_angle_axis")
+    use dynamics_rotation
+    type(c_quaternion), intent(in) :: q
+    real(c_double), intent(out) :: angle
+    real(c_double), intent(out) :: axis(3)
+    type(quaternion) :: qf
+    call convert_from_c_quaternion(q, qf)
+    call qf%to_angle_axis(angle, axis)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_to_angle_axis(r, ldr, angle, axis) bind(C, name = "c_to_angle_axis")
+    integer(c_int), intent(in), value :: ldr
+    real(c_double), intent(in) :: r(ldr,3)
+    real(c_double), intent(out) :: angle
+    real(c_double), intent(out) :: axis(3)
+    call to_angle_axis(r(1:3,1:3), angle, axis)
+end subroutine
+
+! ------------------------------------------------------------------------------
 end module

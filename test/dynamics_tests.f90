@@ -187,6 +187,9 @@ program main
     check = test_quaternion_inverse()
     if (.not.check) flag = 56
 
+    check = test_quaternion_to_angle_axis()
+    if (.not.check) flag = 57
+
     ! End
     if (flag /= 0) stop flag
 end program

@@ -499,3 +499,47 @@ bool c_test_quaternion_to_matrix()
     }
     return rst;
 }
+
+bool c_test_to_angle_axis()
+{
+    // Local Variables
+    bool rst1, rst2, rst;
+    c_quaternion qx, qy, q;
+    double Rx[9], Ry[9], R[9], ax, ay, axisX[3], axisY[3],
+        axisR[3], axisQ[3], aq, ar;
+    const double tol = 1.0e-8;
+
+    // Initialization
+    rst = true;
+    axisX[0] = 1.0;     axisX[1] = 0.0;     axisX[2] = 0.0;
+    axisY[0] = 0.0;     axisY[1] = 1.0;     axisY[2] = 0.0;
+    ax = -0.75;
+    ay = 0.75;
+    c_quaternion_from_angle_axis(ax, axisX, &qx);
+    c_quaternion_from_angle_axis(ay, axisY, &qy);
+    c_quaternion_multiply(&qx, &qy, &q); // q = qx * qy
+    c_quaternion_normalize(&q);
+    c_rotate_x(ax, Rx, 3);
+    c_rotate_y(ay, Ry, 3);
+    mtx_mult(3, 3, 3, Rx, 3, Ry, 3, R, 3);  // R = Rx * Ry
+
+    // Get the angle axis information
+    c_quaterion_to_angle_axis(&q, &aq, axisQ);
+    c_to_angle_axis(R, 3, &ar, axisR);
+
+    // Test
+    rst1 = compare_arrays(3, axisQ, axisR, tol);
+    if (!rst1)
+    {
+        printf("TEST FAILED: c_test_to_angle_axis -1\n");
+        rst = false;
+    }
+
+    rst2 = fabs(ar - aq) <= tol;
+    if (!rst2)
+    {
+        printf("TEST FAILED: c_test_to_angle_axis -2\n");
+        rst = false;
+    }
+    return rst;
+}

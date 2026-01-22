@@ -40,6 +40,7 @@ module dynamics
     public :: rotate
     public :: acceleration_transform
     public :: velocity_transform
+    public :: to_angle_axis
 
     ! DYNAMICS_STRUCTURAL
     public :: DYN_ONE_POINT_INTEGRATION_RULE

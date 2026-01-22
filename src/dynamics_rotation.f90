@@ -9,6 +9,7 @@ module dynamics_rotation
     public :: rotate
     public :: acceleration_transform
     public :: velocity_transform
+    public :: to_angle_axis
     public :: quaternion
     public :: operator(+)
     public :: operator(-)
@@ -40,6 +41,7 @@ module dynamics_rotation
         procedure, public :: to_matrix => quat_to_matrix
         procedure, public :: normalize => quat_normalize
         procedure, public :: to_array => quat_to_vec4
+        procedure, public :: to_angle_axis => quat_to_angle_axis
     end type
 
     interface quaternion
@@ -244,6 +246,25 @@ pure function rotate_x(angle) result(rst)
         rst = rotate_general_1(i, j, k, [1.0d0, 0.0d0, 0.0d0], &
             [0.0d0, 1.0d0, 0.0d0], [0.0d0, 0.0d0, 1.0d0])
     end function
+
+! ------------------------------------------------------------------------------
+    pure subroutine to_angle_axis(r, angle, axis)
+        !! Extracts the equivalent rotation angle and axis of rotation given a
+        !! 3-by-3 rotation matrix.
+        real(real64), intent(in) :: r(3,3)
+            !! The 3-by-3 rotation matrix.
+        real(real64), intent(out) :: angle
+            !! The rotation angle.
+        real(real64), intent(out) :: axis(3)
+            !! The axis of rotation.
+
+        ! Process
+        real(real64) :: u(3,3)
+        angle = acos(0.5d0 * (r(1,1) + r(2,2) + r(3,3) - 1.0d0))
+        u = (r - transpose(r)) / (2.0d0 * sin(angle)) ! this is skew symmetric
+        axis = [u(3,2), u(1,3), u(2,1)]
+        axis = axis / norm2(axis)   ! normalize to a unit vector
+    end subroutine
 
 ! ******************************************************************************
 ! REVISION 1.0.8 ADDITIONS
@@ -732,6 +753,24 @@ pure function rotate_x(angle) result(rst)
 
         rst = [q%w, q%x, q%y, q%z]
     end function
+
+! ------------------------------------------------------------------------------
+    pure subroutine quat_to_angle_axis(q, angle, axis)
+        !! Converts the quaternion to the equivalent angle-axis form.
+        class(quaternion), intent(in) :: q
+            !! The quaternion.
+        real(real64), intent(out) :: angle
+            !! The rotation angle, in radians.
+        real(real64), intent(out) :: axis(3)
+            !! The axis of rotation.
+
+        ! Process
+        real(real64) :: qnorm, enorm, e0
+        qnorm = abs(q)
+        enorm = norm2(aimag(q))
+        axis = aimag(q) / enorm
+        angle = 2.0d0 * atan2(enorm, q%w / qnorm)
+    end subroutine
 
 ! ------------------------------------------------------------------------------
 end module

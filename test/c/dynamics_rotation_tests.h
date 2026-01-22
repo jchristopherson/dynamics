@@ -20,5 +20,6 @@ bool c_test_quaternion_multiply();
 bool c_test_quaternion_divide();
 bool c_test_quaternion_abs();
 bool c_test_quaternion_to_matrix();
+bool c_test_to_angle_axis();
 
 #endif

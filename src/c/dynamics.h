@@ -232,6 +232,9 @@ void c_quaternion_rotate(const c_quaternion *q, const double r[3], double rp[3])
 double c_quaternion_abs(const c_quaternion *q);
 void c_quaternion_inverse(const c_quaternion *q, c_quaternion *qinv);
 void c_quaternion_to_matrix(const c_quaternion *q, double *r, int ldr);
+void c_quaterion_to_angle_axis(const c_quaternion *q, double *angle, double axis[3]);
+
+void c_to_angle_axis(const double *r, int ldr, double *angle, double axis[3]);
 
 #ifdef __cplusplus
 }

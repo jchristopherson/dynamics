@@ -609,4 +609,44 @@ function test_quaternion_inverse() result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+function test_quaternion_to_angle_axis() result(rst)
+    logical :: rst
+    real(real64) :: Rx(3,3), Ry(3,3), Rz(3,3), R(3,3), Ra(3,3), Rq(3,3), &
+        axisX(3), axisY(3), axisZ(3), ax, ay, az, ar, aq, axisR(3), axisQ(3)
+    type(quaternion) :: qx, qy, qz, q
+
+    ! Initialization
+    rst = .true.
+    axisX = [1.0d0, 0.0d0, 0.0d0]
+    axisY = [0.0d0, 1.0d0, 0.0d0]
+    axisZ = [0.0d0, 0.0d0, 1.0d0]
+    call random_number(ax)
+    call random_number(ay)
+    call random_number(az)
+    qx = quaternion(ax, axisX)
+    qy = quaternion(ay, axisY)
+    qz = quaternion(az, axisZ)
+    Rx = rotate_x(ax);
+    Ry = rotate_y(ay);
+    Rz = rotate_z(az);
+    q = qx * qy * qz
+    call q%normalize()
+    R = matmul(Rx, matmul(Ry, Rz))
+
+    ! Get the axis and angle information
+    call to_angle_axis(R, ar, axisR)
+    call q%to_angle_axis(aq, axisQ)
+
+    ! Test
+    if (.not.assert(ar, aq)) then
+        print "(A)", "TEST FAILED: test_quaternion_to_angle_axis -1"
+        rst = .false.
+    end if
+    if (.not.assert(axisR, axisQ)) then
+        print "(A)", "TEST FAILED: test_quaternion_to_angle_axis -2"
+        rst = .false.
+    end if
+end function
+
+! ------------------------------------------------------------------------------
 end module
