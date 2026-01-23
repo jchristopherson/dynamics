@@ -543,3 +543,144 @@ bool c_test_to_angle_axis()
     }
     return rst;
 }
+
+bool c_test_quaternion_exp()
+{
+    // Local Variables
+    bool rst;
+    c_quaternion q, qexp;
+    double x[4], vmag, ans[4];
+    const double tol = 1.0e-8;
+
+    // Initialization
+    create_random_vector(4, x);
+    c_quaternion_from_array(x, &q);
+    vmag = sqrt(x[1] * x[1] + x[2] * x[2] + x[3] * x[3]);
+    ans[0] = exp(x[0]) * cos(vmag);
+    ans[1] = exp(x[0]) * x[1] * sin(vmag) / vmag;
+    ans[2] = exp(x[0]) * x[2] * sin(vmag) / vmag;
+    ans[3] = exp(x[0]) * x[3] * sin(vmag) / vmag;
+    c_quaternion_exp(&q, &qexp);
+
+    // Test
+    rst = compare_quaternion_to_array(ans, &qexp, tol);
+    if (!rst)
+    {
+        printf("TEST FAILED: c_test_quaternion_exp -1\n");
+    }
+    return rst;
+}
+
+bool c_test_quaternion_log()
+{
+    // Local Variables
+    bool rst;
+    c_quaternion q, qlog;
+    double x[4], vmag, qmag, ans[4];
+    const double tol = 1.0e-8;
+
+    // Initialization
+    create_random_vector(4, x);
+    c_quaternion_from_array(x, &q);
+    qmag = c_quaternion_abs(&q);
+    vmag = sqrt(x[1] * x[1] + x[2] * x[2] + x[3] * x[3]);
+    ans[0] = log(qmag);
+    ans[1] = x[1] * acos(x[0] / qmag) / vmag;
+    ans[2] = x[2] * acos(x[0] / qmag) / vmag;
+    ans[3] = x[3] * acos(x[0] / qmag) / vmag;
+    c_quaternion_log(&q, &qlog);
+
+    // Test
+    rst = compare_quaternion_to_array(ans, &qlog, tol);
+    if (!rst)
+    {
+        printf("TEST FAILED: c_test_quaternion_log -1\n");
+    }
+    return rst;
+}
+
+bool c_test_quaternion_pow()
+{
+    // Local Variables
+    bool rst;
+    c_quaternion q, qp;
+    double x[4], vmag, qmag, phi, ans[4];
+    const double tol = 1.0e-8;
+    const double exponent = 2.5;
+
+    // Initialization
+    create_random_vector(4, x);
+    c_quaternion_from_array(x, &q);
+    qmag = c_quaternion_abs(&q);
+    vmag = sqrt(x[1] * x[1] + x[2] * x[2] + x[3] * x[3]);
+    phi = acos(x[0] / qmag);
+    ans[0] = pow(qmag, exponent) * cos(exponent * phi);
+    ans[1] = pow(qmag, exponent) * x[1] * sin(exponent * phi) / vmag;
+    ans[2] = pow(qmag, exponent) * x[2] * sin(exponent * phi) / vmag;
+    ans[3] = pow(qmag, exponent) * x[3] * sin(exponent * phi) / vmag;
+    c_quaternion_pow(&q, exponent, &qp);
+
+    // Test
+    rst = compare_quaternion_to_array(ans, &qp, tol);
+    if (!rst)
+    {
+        printf("TEST FAILED: c_test_quaternion_pow -1\n");
+    }
+    return rst;
+}
+
+bool c_test_quaternion_dot_product()
+{
+    // Local Variables
+    bool rst;
+    c_quaternion qx, qy;
+    double x[4], y[4], ans, dp;
+    int i;
+    const double tol = 1.0e-8;
+
+    // Initialization
+    create_random_vector(4, x);
+    create_random_vector(4, y);
+    c_quaternion_from_array(x, &qx);
+    c_quaternion_from_array(y, &qy);
+    ans = 0.0;
+    for (i = 0; i < 4; ++i) ans += x[i] * y[i];
+    dp = c_quaternion_dot_product(&qx, &qy);
+
+    // Test
+    rst = fabs(dp - ans) <= tol;
+    if (!rst)
+    {
+        printf("TEST FAILED: c_test_quaternion_dot_product -1\n");
+    }
+    return rst;
+}
+
+bool c_test_quaternion_roll_pitch_yaw()
+{
+    // Local Variables
+    bool rst1, rst2, rst3, rst;
+    c_quaternion q;
+    double Rx[9], Ry[9], Rz[9], Ryx[9], R[9], angles[3], vals[3];
+    const double tol = 1.0e-8;
+
+    // Initialization
+    create_random_vector(3, angles);
+    c_rotate_x(angles[0], Rx, 3);
+    c_rotate_y(angles[1], Ry, 3);
+    c_rotate_z(angles[2], Rz, 3);
+    mtx_mult(3, 3, 3, Ry, 3, Rx, 3, Ryx, 3);
+    mtx_mult(3, 3, 3, Rz, 3, Ryx, 3, R, 3);     // R = Rz * Ry * Rx
+    c_quaternion_from_matrix(R, 3, &q);
+    c_quaternion_to_roll_pitch_yaw(&q, &vals[0], &vals[1], &vals[2]);
+
+    // Test
+    rst = compare_arrays(3, angles, vals, tol);
+    if (!rst)
+    {
+        printf("TEST FAILED: c_test_quaternion_roll_pitch_yaw -1\n");
+    }
+
+    // End
+    return rst;
+}

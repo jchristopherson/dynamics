@@ -236,7 +236,7 @@ void c_quaternion_to_matrix(const c_quaternion *q, double *r, int ldr);
 void c_quaternion_to_angle_axis(const c_quaternion *q, double *angle, double axis[3]);
 void c_quaternion_exp(const c_quaternion *q, c_quaternion *rst);
 void c_quaternion_log(const c_quaternion *q, c_quaternion *rst);
-void c_quaternion_pow(const c_quaternion, double exponent, c_quaternion *rst);
+void c_quaternion_pow(const c_quaternion *q, double exponent, c_quaternion *rst);
 double c_quaternion_dot_product(const c_quaternion *x, const c_quaternion *y);
 void c_quaternion_to_roll_pitch_yaw(const c_quaternion *q, double *roll, 
     double *pitch, double *yaw);

@@ -54,6 +54,11 @@ int main()
     if (!c_test_quaternion_abs()) flag = 33;
     if (!c_test_quaternion_to_matrix()) flag = 34;
     if (!c_test_to_angle_axis()) flag = 35;
+    if (!c_test_quaternion_exp()) flag = 36;
+    if (!c_test_quaternion_log()) flag = 37;
+    if (!c_test_quaternion_pow()) flag = 38;
+    if (!c_test_quaternion_dot_product()) flag = 39;
+    if (!c_test_quaternion_roll_pitch_yaw()) flag = 40;
 
     return flag;
 }
