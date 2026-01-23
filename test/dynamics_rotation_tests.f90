@@ -1,7 +1,8 @@
 module dynamics_rotation_tests
     use iso_fortran_env
     use fortran_test_helper
-    use dynamics_rotation
+    use dynamics
+    use dynamics_quaternions
     implicit none
 
 contains
@@ -644,6 +645,204 @@ function test_quaternion_to_angle_axis() result(rst)
     end if
     if (.not.assert(axisR, axisQ)) then
         print "(A)", "TEST FAILED: test_quaternion_to_angle_axis -2"
+        rst = .false.
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_quaternion_exp() result(rst)
+    logical :: rst
+    type(quaternion) :: q, qexp
+    real(real64) :: x(4), vmag, ans(4)
+
+    ! Initialization
+    rst = .true.
+    call random_number(x)
+    vmag = norm2(x(2:))
+    ans(1) = exp(x(1)) * cos(vmag)
+    ans(2:) = exp(x(1)) * x(2:) * sin(vmag) / vmag
+    q = quaternion(x)
+    qexp = exp(q)
+
+    ! Test
+    if (.not.assert(qexp%w, ans(1))) then
+        print "(A)", "TEST FAILED: test_quaternion_exp -1"
+        rst = .false.
+    end if
+
+    if (.not.assert(qexp%x, ans(2))) then
+        print "(A)", "TEST FAILED: test_quaternion_exp -2"
+        rst = .false.
+    end if
+
+    if (.not.assert(qexp%y, ans(3))) then
+        print "(A)", "TEST FAILED: test_quaternion_exp -3"
+        rst = .false.
+    end if
+
+    if (.not.assert(qexp%z, ans(4))) then
+        print "(A)", "TEST FAILED: test_quaternion_exp -4"
+        rst = .false.
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_quaternion_log() result(rst)
+    logical :: rst
+    type(quaternion) :: q, qlog
+    real(real64) :: x(4), qmag, vmag, ans(4)
+
+    ! Initialization
+    rst = .true.
+    call random_number(x)
+    vmag = norm2(x(2:))
+    qmag = norm2(x)
+    ans(1) = log(qmag)
+    ans(2:) = x(2:) * acos(x(1) / qmag) / vmag
+    q = quaternion(x)
+    qlog = log(q)
+
+    ! Test
+    if (.not.assert(qlog%w, ans(1))) then
+        print "(A)", "TEST FAILED: test_quaternion_log -1"
+        rst = .false.
+    end if
+
+    if (.not.assert(qlog%x, ans(2))) then
+        print "(A)", "TEST FAILED: test_quaternion_log -2"
+        rst = .false.
+    end if
+
+    if (.not.assert(qlog%y, ans(3))) then
+        print "(A)", "TEST FAILED: test_quaternion_log -3"
+        rst = .false.
+    end if
+
+    if (.not.assert(qlog%z, ans(4))) then
+        print "(A)", "TEST FAILED: test_quaternion_log -4"
+        rst = .false.
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_quaternion_pwr() result(rst)
+    logical :: rst
+    type(quaternion) :: q, qpow, q2
+    real(real64) :: x(4), qmag, vmag, ans(4), phi
+    real(real64), parameter :: e1 = 2.5d0
+    integer(int32), parameter :: e2 = 2
+
+    ! Initialization
+    rst = .true.
+    call random_number(x)
+    vmag = norm2(x(2:))
+    qmag = norm2(x)
+    q = quaternion(x)
+    phi = acos(q%w / qmag)
+
+    ! Test 1
+    ans(1) = (qmag**e1) * cos(e1 * phi)
+    ans(2:) = (qmag**e1) * x(2:) * sin(e1 * phi) / vmag
+    qpow = q**e1
+    q2 = exp(log(q) * e1)
+    if (.not.assert(qpow%w, ans(1))) then
+        print "(A)", "TEST FAILED: test_quaternion_pwr -1"
+        rst = .false.
+    end if
+
+    if (.not.assert(qpow%x, ans(2))) then
+        print "(A)", "TEST FAILED: test_quaternion_pwr -2"
+        rst = .false.
+    end if
+
+    if (.not.assert(qpow%y, ans(3))) then
+        print "(A)", "TEST FAILED: test_quaternion_pwr -3"
+        rst = .false.
+    end if
+
+    if (.not.assert(qpow%z, ans(4))) then
+        print "(A)", "TEST FAILED: test_quaternion_pwr -4"
+        rst = .false.
+    end if
+
+    ! Test 2
+    ans(1) = (qmag**e2) * cos(e2 * phi)
+    ans(2:) = (qmag**e2) * x(2:) * sin(e2 * phi) / vmag
+    qpow = q**e2
+    if (.not.assert(qpow%w, ans(1))) then
+        print "(A)", "TEST FAILED: test_quaternion_pwr -5"
+        rst = .false.
+    end if
+
+    if (.not.assert(qpow%x, ans(2))) then
+        print "(A)", "TEST FAILED: test_quaternion_pwr -6"
+        rst = .false.
+    end if
+
+    if (.not.assert(qpow%y, ans(3))) then
+        print "(A)", "TEST FAILED: test_quaternion_pwr -7"
+        rst = .false.
+    end if
+
+    if (.not.assert(qpow%z, ans(4))) then
+        print "(A)", "TEST FAILED: test_quaternion_pwr -8"
+        rst = .false.
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_quaternion_dot_product() result(rst)
+    logical :: rst
+    type(quaternion) :: q1, q2
+    real(real64) :: x1(4), x2(4), ans, dp
+
+    ! Initialization
+    rst = .true.
+    call random_number(x1)
+    call random_number(x2)
+    ans = dot_product(x1, x2)
+    q1 = quaternion(x1)
+    q2 = quaternion(x2)
+    dp = dot_product(q1, q2)
+
+    ! Test
+    if (.not.assert(dp, ans)) then
+        print "(A)", "TEST FAILED: test_quaternion_dot_product"
+        rst = .false.
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_quaternion_roll_pitch_yaw() result(rst)
+    logical :: rst
+    real(real64) :: Rx(3,3), Ry(3,3), Rz(3,3), R(3,3), ax, ay, az, rl, p, y
+    type(quaternion) :: q
+
+    ! Initialization
+    rst = .true.
+    call random_number(ax)
+    call random_number(ay)
+    call random_number(az)
+    Rx = rotate_x(ax)
+    Ry = rotate_y(ay)
+    Rz = rotate_z(az)
+    R = matmul(Rz, matmul(Ry, Rx))
+    q = quaternion(R)
+    call q%to_roll_pitch_yaw(rl, p, y)
+
+    ! Test
+    if (.not.assert(ax, rl)) then
+        print "(A)", "TEST FAILED: test_quaternion_roll_pitch_yaw -1"
+        rst = .false.
+    end if
+
+    if (.not.assert(ay, p)) then
+        print "(A)", "TEST FAILED: test_quaternion_roll_pitch_yaw -2"
+        rst = .false.
+    end if
+
+    if (.not.assert(az, y)) then
+        print "(A)", "TEST FAILED: test_quaternion_roll_pitch_yaw -3"
         rst = .false.
     end if
 end function

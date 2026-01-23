@@ -524,7 +524,7 @@ bool c_test_to_angle_axis()
     mtx_mult(3, 3, 3, Rx, 3, Ry, 3, R, 3);  // R = Rx * Ry
 
     // Get the angle axis information
-    c_quaterion_to_angle_axis(&q, &aq, axisQ);
+    c_quaternion_to_angle_axis(&q, &aq, axisQ);
     c_to_angle_axis(R, 3, &ar, axisR);
 
     // Test

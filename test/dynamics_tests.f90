@@ -190,6 +190,21 @@ program main
     check = test_quaternion_to_angle_axis()
     if (.not.check) flag = 57
 
+    check = test_quaternion_exp()
+    if (.not.check) flag = 58
+
+    check = test_quaternion_log()
+    if (.not.check) flag = 59
+
+    check = test_quaternion_pwr()
+    if (.not.check) flag = 60
+
+    check = test_quaternion_dot_product()
+    if (.not.check) flag = 61
+
+    check = test_quaternion_roll_pitch_yaw()
+    if (.not.check) flag = 62
+
     ! End
     if (flag /= 0) stop flag
 end program

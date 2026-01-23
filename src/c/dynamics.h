@@ -167,6 +167,7 @@ void c_jacobian_generating_vector(const double *d, const double *k,
 void c_solve_inverse_kinematics(int njoints, int neqn, const c_vecfcn mdl,
     const double *qo, const double *constraints, double *jvar, double *resid,
     c_iteration_behavior *ib);
+void c_to_angle_axis(const double *r, int ldr, double *angle, double axis[3]);
 
 void c_frequency_response(int n, int nfreq, const double *mass, int ldm,
     const double *stiff, int ldk, double alpha, double beta, const double *freq,
@@ -232,9 +233,13 @@ void c_quaternion_rotate(const c_quaternion *q, const double r[3], double rp[3])
 double c_quaternion_abs(const c_quaternion *q);
 void c_quaternion_inverse(const c_quaternion *q, c_quaternion *qinv);
 void c_quaternion_to_matrix(const c_quaternion *q, double *r, int ldr);
-void c_quaterion_to_angle_axis(const c_quaternion *q, double *angle, double axis[3]);
-
-void c_to_angle_axis(const double *r, int ldr, double *angle, double axis[3]);
+void c_quaternion_to_angle_axis(const c_quaternion *q, double *angle, double axis[3]);
+void c_quaternion_exp(const c_quaternion *q, c_quaternion *rst);
+void c_quaternion_log(const c_quaternion *q, c_quaternion *rst);
+void c_quaternion_pow(const c_quaternion, double exponent, c_quaternion *rst);
+double c_quaternion_dot_product(const c_quaternion *x, const c_quaternion *y);
+void c_quaternion_to_roll_pitch_yaw(const c_quaternion *q, double *roll, 
+    double *pitch, double *yaw);
 
 #ifdef __cplusplus
 }
