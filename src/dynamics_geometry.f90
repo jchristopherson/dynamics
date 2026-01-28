@@ -8,6 +8,11 @@ module dynamics_geometry
     public :: plane_normal
     public :: line
     public :: assignment(=)
+    public :: is_parallel
+    public :: is_point_on_plane
+    public :: is_point_on_line
+    public :: nearest_point_on_line
+    public :: point_to_line_distance
 
     type :: plane
         !! Defines a plane as \( a x + b y + c z + d = 0 \).
@@ -45,6 +50,12 @@ module dynamics_geometry
     interface assignment(=)
         module procedure :: plane_assign
         module procedure :: line_assign
+    end interface
+
+    interface is_parallel
+        module procedure :: is_parallel_vectors
+        module procedure :: is_parallel_lines
+        module procedure :: is_parallel_planes
     end interface
 
 contains
@@ -157,7 +168,7 @@ contains
         n2 = plane_normal(p2)
 
         ! Test to see if the planes are parallel
-        if (abs(dot_product(n1, n2) - 1.0d0) > tol) then
+        if (is_parallel(n1, n2)) then
             rst%r0 = ieee_value(0.0d0, IEEE_QUIET_NAN)
             rst%v = ieee_value(0.0d0, IEEE_QUIET_NAN)
             return
@@ -249,6 +260,159 @@ contains
 
 ! ******************************************************************************
 ! GEOMETRY CALCULATIONS
+! ------------------------------------------------------------------------------
+    pure function is_parallel_vectors(x, y, tol) result(rst)
+        !! Tests to see if two vectors are parallel.
+        real(real64), intent(in), dimension(:) :: x
+            !! The first vector.
+        real(real64), intent(in), dimension(size(x)) :: y
+            !! The second vector.
+        real(real64), intent(in), optional :: tol
+            !! The tolerance to use when testing for parallelism.  The default
+            !! tolerance is 10x machine epsilon.
+        logical :: rst
+            !! Returns true if the vectors are parallel; else, false.
+
+        ! Local Variables
+        real(real64) :: t
+
+        ! Initialization
+        if (present(tol)) then
+            t = tol
+        else
+            t = 1.0d1 * epsilon(t)
+        end if
+
+        ! Process
+        rst = abs(dot_product(x, y) - 1.0d0) <= t
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function is_parallel_lines(x, y, tol) result(rst)
+        !! Tests to see if two lines are parallel.
+        class(line), intent(in) :: x
+            !! The first line.
+        class(line), intent(in) :: y
+            !! The second line.
+        real(real64), intent(in), optional :: tol
+            !! The tolerance to use when testing for parallelism.  The default
+            !! tolerance is 10x machine epsilon.
+        logical :: rst
+            !! Returns true if the lines are parallel; else, false.
+
+        ! Process
+        rst = is_parallel_vectors(x%v, y%v, tol = tol)
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function is_parallel_planes(x, y, tol) result(rst)
+        !! Tests to see if two planes are parallel.
+        class(plane), intent(in) :: x
+            !! The first plane.
+        class(plane), intent(in) :: y
+            !! The second plane.
+        real(real64), intent(in), optional :: tol
+            !! The tolerance to use when testing for parallelism.  The default
+            !! tolerance is 10x machine epsilon.
+        logical :: rst
+            !! Returns true if the planes are parallel; else, false.
+
+        ! Process
+        rst = is_parallel_vectors(plane_normal(x), plane_normal(y), tol = tol)
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function is_point_on_plane(pt, pln, tol) result(rst)
+        !! Tests to see if a point lies on a plane.
+        real(real64), intent(in) :: pt(3)
+            !! The point.
+        class(plane), intent(in) :: pln
+            !! The plane.
+        real(real64), intent(in), optional :: tol
+            !! The tolerance to use when testing.  The default
+            !! tolerance is 10x machine epsilon.
+        logical :: rst
+            !! Returns true if the point lies on the plane; else, false.
+
+        ! Local Variables
+        real(real64) :: t, s
+
+        ! Initialization
+        if (present(tol)) then
+            t = tol
+        else
+            t = 1.0d1 * epsilon(t)
+        end if
+
+        ! Process
+        s = pln%a * pt(1) + pln%b * pt(2) + pln%c * pt(3) + pln%d
+        rst = abs(s) <= t
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function is_point_on_line(pt, ln, tol) result(rst)
+        !! Tests to see if a point lies on a line.
+        real(real64), intent(in) :: pt(3)
+            !! The point.
+        class(line), intent(in) :: ln
+            !! The line.
+        real(real64), intent(in), optional :: tol
+            !! The tolerance to use when testing.  The default
+            !! tolerance is 10x machine epsilon.
+        logical :: rst
+            !! Returns true if the point lies on the line; else, false.
+
+        ! Local Variables
+        real(real64) :: t, d
+
+        ! Initialization
+        if (present(tol)) then
+            t = tol
+        else
+            t = 1.0d1 * epsilon(t)
+        end if
+
+        ! Process
+        d = point_to_line_distance(pt, ln)
+        rst = d <= tol  ! d is always positive
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function nearest_point_on_line(pt, ln) result(rst)
+        !! Gets the line parameter for the point on the line nearest the 
+        !! specified point.
+        real(real64), intent(in) :: pt(3)
+            !! The point.
+        class(line), intent(in) :: ln
+            !! The line.
+        real(real64) :: rst
+            !! The line parameteric variable \(t\) defining the location of
+            !! the point nearest along the line.
+
+        ! References: 
+        ! https://mathworld.wolfram.com/Point-LineDistance3-Dimensional.html
+        rst = -dot_product(ln%r0 - pt, ln%v) / (norm2(ln%v)**2)
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function point_to_line_distance(pt, ln) result(rst)
+        !! Computes the shortest distance between a point and a line.
+        real(real64), intent(in) :: pt(3)
+            !! The point.
+        class(line), intent(in) :: ln
+            !! The line.
+        real(real64) :: rst
+            !! The shortest distance between the point and line.
+
+        ! Local Variables
+        real(real64) :: t, d(3)
+
+        ! Process
+        t = nearest_point_on_line(pt, ln)
+        d = pt - ln%evaluate(t)
+        rst = norm2(d)
+    end function
+
 ! ------------------------------------------------------------------------------
 
 ! ------------------------------------------------------------------------------
