@@ -1,6 +1,7 @@
 module dynamics_geometry
     use iso_fortran_env
     use dynamics_helper
+    use ieee_arithmetic
     implicit none
     private
     public :: plane
@@ -38,10 +39,12 @@ module dynamics_geometry
 
     interface line
         module procedure :: line_from_2pts
+        module procedure :: line_from_2_planes
     end interface
 
     interface assignment(=)
         module procedure :: plane_assign
+        module procedure :: line_assign
     end interface
 
 contains
@@ -112,10 +115,6 @@ contains
         x%d = y%d
     end subroutine
 
-! ------------------------------------------------------------------------------
-
-! ------------------------------------------------------------------------------
-
 ! ******************************************************************************
 ! LINE ROUTINES
 ! ------------------------------------------------------------------------------
@@ -135,6 +134,91 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
+    pure function line_from_2_planes(p1, p2) result(rst)
+        !! Constructs a line from the intersection of two planes.
+        class(plane), intent(in) :: p1
+            !! The first plane.
+        class(plane), intent(in) :: p2
+            !! The second plane.
+        type(line) :: rst
+            !! The resulting line.  NaN's are returned in the event that the
+            !! two planes are parallel.
+
+        ! Local Variables
+        integer(int32) :: ind
+        real(real64) :: tol, n1(3), n2(3), a11, a12, a21, a22, b1, b2, &
+            denom, x1, x2
+
+        ! Initialization
+        tol = 1.0d1 * epsilon(1.0d0)
+
+        ! Compute the normal vectors of each plane
+        n1 = plane_normal(p1)
+        n2 = plane_normal(p2)
+
+        ! Test to see if the planes are parallel
+        if (abs(dot_product(n1, n2) - 1.0d0) > tol) then
+            rst%r0 = ieee_value(0.0d0, IEEE_QUIET_NAN)
+            rst%v = ieee_value(0.0d0, IEEE_QUIET_NAN)
+            return
+        end if
+
+        ! Obtain the direction of the line
+        rst%v = cross_product(n1, n2)
+
+        ! Find a point on the line.  The idea is to first locate the index of
+        ! the largest magnitue value in the direction vector.  This component
+        ! will cross zero at some point, and it is this point we seek to find.
+        ind = maxloc(rst%v, 1)
+        select case (ind)
+        case (1)
+            a11 = p1%b
+            a21 = p2%b
+            a12 = p1%c
+            a22 = p2%c
+        case (2)
+            a11 = p1%a
+            a21 = p2%a
+            a12 = p1%c
+            a22 = p2%c
+        case default
+            a11 = p1%a
+            a21 = p2%a
+            a12 = p1%b
+            a22 = p2%b
+        end select
+        b1 = -p1%d
+        b2 = -p2%d
+
+        ! Solve the linear system
+        denom = a11 * a22 - a12 * a21
+        x1 = (a22 * b1 - a12 * b2) / denom
+        x2 = (a11 * b2 - a21 * b1) / denom
+
+        ! Find a point along the line to call t = 0
+        select case (ind)
+        case (1)
+            rst%r0(1) = 0.0d0
+            rst%r0(2) = x1
+            rst%r0(3) = x2
+        case (2)
+            rst%r0(1) = x1
+            rst%r0(2) = 0.0d0
+            rst%r0(3) = x2
+        case default
+            rst%r0(1) = x1
+            rst%r0(2) = x2
+            rst%r0(3) = 0.0d0
+        end select
+    end function
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
 ! LINE MEMBER ROUTINES
 ! ------------------------------------------------------------------------------
     pure function line_eval(this, t) result(rst)
@@ -148,6 +232,20 @@ contains
 
         rst = this%r0 + t * this%v
     end function
+
+! ------------------------------------------------------------------------------
+! LINE OPERATORS
+! ------------------------------------------------------------------------------
+    pure elemental subroutine line_assign(x, y)
+        !! Assigns a line to another.
+        type(line), intent(out) :: x
+            !! The resulting line.
+        type(line), intent(in) :: y
+            !! The source line
+
+        x%r0 = y%r0
+        x%v = y%v
+    end subroutine
 
 ! ******************************************************************************
 ! GEOMETRY CALCULATIONS
