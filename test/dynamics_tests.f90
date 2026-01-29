@@ -227,6 +227,21 @@ program main
     check = test_is_parallel_vectors()
     if (.not.check) flag = 69
 
+    check = test_is_parallel_lines()
+    if (.not.check) flag = 70
+
+    check = test_is_parallel_planes()
+    if (.not.check) flag = 71
+
+    check = test_is_point_on_plane()
+    if (.not.check) flag = 72
+
+    check = test_point_to_line_distance()
+    if (.not.check) flag = 73
+
+    check = test_is_point_on_line()
+    if (.not.check) flag = 74
+
     ! End
     if (flag /= 0) stop flag
 end program

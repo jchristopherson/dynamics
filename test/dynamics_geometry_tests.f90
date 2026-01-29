@@ -184,7 +184,6 @@ function test_is_parallel_vectors() result(rst)
     call random_number(np2)
     np2(3) = np2(3) + 1.5d0     ! ensuring np1 and np2 are not parallel ever
 
-    print *, cross_product(p1, p2)
     if (.not.is_parallel(p1, p2)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_is_parallel_vectors -1"
@@ -197,14 +196,159 @@ function test_is_parallel_vectors() result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+function test_is_parallel_lines() result(rst)
+    logical :: rst
+    real(real64) :: p1(3), p2(3), np1(3), np2(3), pt(3)
+    type(line) :: ln1, ln2, ln3, ln4
+
+    ! Initialization
+    rst = .true.
+    call random_number(p1)
+    p2 = p1 * 3.0   ! parallel to p1
+    call random_number(np1)
+    call random_number(np2)
+    np2(3) = np2(3) + 1.5d0     ! ensuring np1 and np2 are not parallel ever
+    call random_number(pt)
+    ln1%r0 = pt
+    ln1%v = p1
+    ln2%r0 = pt
+    ln2%v = p2
+    ln3%r0 = pt
+    ln3%v = np1
+    ln4%r0 = pt
+    ln4%v = np2
+
+    ! Test
+    if (.not.is_parallel(ln1, ln2)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_is_parallel_lines -1"
+    end if
+    if (is_parallel(ln3, ln4)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_is_parallel_lines -2"
+    end if
+end function
 
 ! ------------------------------------------------------------------------------
+function test_is_parallel_planes() result(rst)
+    logical :: rst
+    real(real64) :: p1(3), p2(3), np1(3), np2(3), pt(3)
+    type(plane) :: pln1, pln2, pln3, pln4
+
+    ! Initialization
+    rst = .true.
+    call random_number(p1)
+    p2 = p1 * 3.0   ! parallel to p1
+    call random_number(np1)
+    call random_number(np2)
+    np2(3) = np2(3) + 1.5d0     ! ensuring np1 and np2 are not parallel ever
+    call random_number(pt)
+
+    pln1 = plane(pt, p1)
+    pln2 = plane(pt, p2)
+    pln3 = plane(pt, np1)
+    pln4 = plane(pt, np2)
+
+    ! Tests
+    if (.not.is_parallel(pln1, pln2)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_is_parallel_planes -1"
+    end if
+    if (is_parallel(pln3, pln4)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_is_parallel_planes -2"
+    end if
+end function
 
 ! ------------------------------------------------------------------------------
+function test_is_point_on_plane() result(rst)
+    logical :: rst
+    real(real64) :: pt0(3), pt1(3), pt2(3), nrm(3)
+    type(plane) :: pln
+
+    ! Initialization
+    call random_number(pt0)
+    call random_number(pt1)
+    call random_number(pt2)
+    call random_number(nrm)
+    pln = plane(pt0, nrm)
+    
+    ! Define a point on the plane
+    pt1(3) = -(pln%a * pt1(1) + pln%b * pt1(2) + pln%d) / pln%c
+    
+    ! Define a point off the plane
+    pt2 = pt1 + 0.5d0
+
+    ! Test - On Plane
+    if (.not.is_point_on_plane(pt1, pln)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_is_point_on_plane -1"
+    end if
+
+    ! Test - Off Plane
+    if (is_point_on_plane(pt2, pln)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_is_point_on_plane -2"
+    end if
+end function
 
 ! ------------------------------------------------------------------------------
+function test_point_to_line_distance() result(rst)
+    logical :: rst
+    real(real64) :: pt1(3), pt2(3), pt(3), t, dist, d
+    real(real64), parameter :: t_ans = 0.5d0
+    type(line) :: ln
+
+    ! Initialization
+    rst = .true.
+    call random_number(dist)
+    pt1 = [0.0d0, 0.0d0, 0.0d0]
+    pt2 = [1.0d0, 1.0d0, 0.0d0]
+    pt = t_ans * pt2
+    pt(3) = dist
+    ln = line(pt1, pt2)
+
+    ! Find the nearest point on the line
+    t = nearest_point_on_line(pt, ln)
+    if (.not.assert(t, t_ans)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_point_to_line_distance -1"
+    end if
+
+    ! Compute the distance
+    d = point_to_line_distance(pt, ln)
+    if (.not.assert(dist, d)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_point_to_line_distance -2"
+    end if
+end function
 
 ! ------------------------------------------------------------------------------
+function test_is_point_on_line() result(rst)
+    logical :: rst
+    real(real64) :: pt1(3), pt2(3), ptOn(3), ptOff(3), t
+    type(line) :: ln
+
+    ! Initialization
+    rst = .true.
+    call random_number(t)
+    call random_number(pt1)
+    call random_number(pt2)
+    ln = line(pt1, pt2)
+    ptOn = ln%evaluate(t)
+    ptOff = ptOn + 0.5d0
+
+    ! Test
+    if (.not.is_point_on_line(ptOn, ln)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_is_point_on_line -1"
+    end if
+
+    if (is_point_on_line(ptOff, ln)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_is_point_on_line -2"
+    end if
+end function
 
 ! ------------------------------------------------------------------------------
 
