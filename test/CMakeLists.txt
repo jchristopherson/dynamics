@@ -10,6 +10,7 @@ set(dynamics_test_sources
     dynamics_state_space_tests.f90
     dynamics_system_id_tests.f90
     dynamics_rotation_tests.f90
+    dynamics_geometry_tests.f90
 )
 
 # Dependencies

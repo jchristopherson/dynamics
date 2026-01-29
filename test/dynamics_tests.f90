@@ -9,6 +9,7 @@ program main
     use dynamics_state_space_tests
     use dynamics_system_id_tests
     use dynamics_rotation_tests
+    use dynamics_geometry_tests
     implicit none
 
     ! Variables
@@ -204,6 +205,27 @@ program main
 
     check = test_quaternion_roll_pitch_yaw()
     if (.not.check) flag = 62
+
+    check = test_line_from_2_points()
+    if (.not.check) flag = 63
+
+    check = test_line_from_2_planes()
+    if (.not.check) flag = 64
+
+    check = test_line_eval()
+    if (.not.check) flag = 65
+
+    check = test_plane_from_3_points()
+    if (.not.check) flag = 66
+
+    check = test_plane_from_point_and_normal()
+    if (.not.check) flag = 67
+
+    check = test_plane_normal()
+    if (.not.check) flag = 68
+
+    check = test_is_parallel_vectors()
+    if (.not.check) flag = 69
 
     ! End
     if (flag /= 0) stop flag

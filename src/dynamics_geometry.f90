@@ -104,10 +104,12 @@ contains
         type(plane) :: rst
             !! The resulting plane.
 
-        rst%a = nrm(1)
-        rst%b = nrm(2)
-        rst%c = nrm(3)
-        rst%d = -dot_product(pt, nrm)
+        real(real64) :: nmag
+        nmag = norm2(nrm)
+        rst%a = nrm(1) / nmag
+        rst%b = nrm(2) / nmag
+        rst%c = nrm(3) / nmag
+        rst%d = -rst%a * pt(1) - rst%b * pt(2) - rst%c * pt(3)
     end function
 
 ! ------------------------------------------------------------------------------
@@ -157,11 +159,8 @@ contains
 
         ! Local Variables
         integer(int32) :: ind
-        real(real64) :: tol, n1(3), n2(3), a11, a12, a21, a22, b1, b2, &
+        real(real64) :: n1(3), n2(3), a11, a12, a21, a22, b1, b2, &
             denom, x1, x2
-
-        ! Initialization
-        tol = 1.0d1 * epsilon(1.0d0)
 
         ! Compute the normal vectors of each plane
         n1 = plane_normal(p1)
@@ -274,7 +273,7 @@ contains
             !! Returns true if the vectors are parallel; else, false.
 
         ! Local Variables
-        real(real64) :: t
+        real(real64) :: t, cp(3)
 
         ! Initialization
         if (present(tol)) then
@@ -284,7 +283,8 @@ contains
         end if
 
         ! Process
-        rst = abs(dot_product(x, y) - 1.0d0) <= t
+        cp = cross_product(x, y)
+        rst = (abs(cp(1)) <= t .and. abs(cp(2)) <= t .and. abs(cp(3)) <= t)
     end function
 
 ! ------------------------------------------------------------------------------
