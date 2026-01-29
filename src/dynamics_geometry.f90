@@ -374,7 +374,7 @@ contains
 
         ! Process
         d = point_to_line_distance(pt, ln)
-        rst = d <= tol  ! d is always positive
+        rst = d <= t  ! d is always positive
     end function
 
 ! ------------------------------------------------------------------------------
