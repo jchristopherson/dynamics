@@ -72,6 +72,7 @@ function test_line_eval() result(rst)
     type(line) :: ln
 
     ! Initialization
+    rst = .true.
     call random_number(t)
     call random_number(v)
     call random_number(r0)
@@ -81,12 +82,10 @@ function test_line_eval() result(rst)
     s = ln%evaluate(t)
 
     ! Test
-    print *, "ANSWER = ", ans
-    print *, "COMPUTED = ", s
-    ! if (.not.assert(ans, s)) then
-    !     rst = .false.
-    !     print "(A)", "TEST FAILED: test_line_eval -1"
-    ! end if
+    if (.not.assert(ans, s)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_line_eval -1"
+    end if
 end function
 
 ! ------------------------------------------------------------------------------
