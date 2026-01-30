@@ -102,6 +102,12 @@ relative to its parent frame.</p><a href="../proc/acceleration_transform.html" c
                </tr>
 			   <tr>
                  <td><a href='..\interface\assignment(=).html'>assignment(=)</a></td>
+                 <td><a href='..\module\dynamics_geometry.html'>dynamics_geometry</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\interface\assignment(=)~2.html'>assignment(=)</a></td>
                  <td><a href='..\module\dynamics_quaternions.html'>dynamics_quaternions</a></td>
                  <td>Interface</td>
                  <td></td>
@@ -794,12 +800,36 @@ receptance model:</p><a href="../proc/fit_frf.html" class="pull-right"><emph>Rea
                  <td><p>Computes the inverse of a quaternion.</p></td>
                </tr>
 			   <tr>
+                 <td><a href='..\interface\is_parallel.html'>is_parallel</a></td>
+                 <td><a href='..\module\dynamics_geometry.html'>dynamics_geometry</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\proc\is_point_on_line.html'>is_point_on_line</a></td>
+                 <td><a href='..\module\dynamics_geometry.html'>dynamics_geometry</a></td>
+                 <td>Function</td>
+                 <td><p>Tests to see if a point lies on a line.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\proc\is_point_on_plane.html'>is_point_on_plane</a></td>
+                 <td><a href='..\module\dynamics_geometry.html'>dynamics_geometry</a></td>
+                 <td>Function</td>
+                 <td><p>Tests to see if a point lies on a plane.</p></td>
+               </tr>
+			   <tr>
                  <td><a href='..\proc\jacobian_generating_vector.html'>jacobian_generating_vector</a></td>
                  <td><a href='..\module\dynamics_kinematics.html'>dynamics_kinematics</a></td>
                  <td>Function</td>
                  <td><p>Computes a single Jacobian generating vector given the position vector
 of the link origin, <script type="math/tex">\vec{d}</script>, and the joint axis unit vector, 
 <script type="math/tex">\vec{k}</script>.</p><a href="../proc/jacobian_generating_vector.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\interface\line.html'>line</a></td>
+                 <td><a href='..\module\dynamics_geometry.html'>dynamics_geometry</a></td>
+                 <td>Interface</td>
+                 <td></td>
                </tr>
 			   <tr>
                  <td><a href='..\interface\log.html'>log</a></td>
@@ -833,6 +863,13 @@ The logarithmic decrement is calculated as follows.</p><a href="../proc/logarith
                  <td>Subroutine</td>
                  <td><p>Computes the modal frequencies and modes shapes for 
 multi-degree-of-freedom system.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\proc\nearest_point_on_line.html'>nearest_point_on_line</a></td>
+                 <td><a href='..\module\dynamics_geometry.html'>dynamics_geometry</a></td>
+                 <td>Function</td>
+                 <td><p>Gets the line parameter for the point on the line nearest the 
+specified point.</p></td>
                </tr>
 			   <tr>
                  <td><a href='..\proc\normalize_mode_shapes.html'>normalize_mode_shapes</a></td>
@@ -882,6 +919,37 @@ value in the vector is one.</p></td>
                  <td><a href='..\module\dynamics_quaternions.html'>dynamics_quaternions</a></td>
                  <td>Interface</td>
                  <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\interface\plane.html'>plane</a></td>
+                 <td><a href='..\module\dynamics_geometry.html'>dynamics_geometry</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\proc\plane_normal.html'>plane_normal</a></td>
+                 <td><a href='..\module\dynamics_geometry.html'>dynamics_geometry</a></td>
+                 <td>Function</td>
+                 <td><p>Returns the normal vector of a plane.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\proc\poincare_map.html'>poincare_map</a></td>
+                 <td><a href='..\module\dynamics_maps.html'>dynamics_maps</a></td>
+                 <td>Function</td>
+                 <td><p>Generates a Poincare map by determining the intersections of the
+supplied trajectory with the specified plane.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\proc\point_to_line_distance.html'>point_to_line_distance</a></td>
+                 <td><a href='..\module\dynamics_geometry.html'>dynamics_geometry</a></td>
+                 <td>Function</td>
+                 <td><p>Computes the shortest distance between a point and a line.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\proc\point_to_plane_distance.html'>point_to_plane_distance</a></td>
+                 <td><a href='..\module\dynamics_geometry.html'>dynamics_geometry</a></td>
+                 <td>Function</td>
+                 <td><p>Computes the shortest distance between a point and a plane.</p></td>
                </tr>
 			   <tr>
                  <td><a href='..\proc\q_factor.html'>q_factor</a></td>
@@ -1039,6 +1107,13 @@ such that
 <script type="math/tex"> \overrightarrow{r_2} = \textbf{R}_z \overrightarrow{r_1} </script>.</p><a href="../proc/rotate_z.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
 			   <tr>
+                 <td><a href='..\proc\scalar_projection.html'>scalar_projection</a></td>
+                 <td><a href='..\module\dynamics_helper.html'>dynamics_helper</a></td>
+                 <td>Function</td>
+                 <td><p>Computes the projection of vector x onto vector y.  The scalar projection
+is defined such that <script type="math/tex"> s = \frac{\vec{x} \cdot \vec{y}}{||\vec{y}||} </script>.</p></td>
+               </tr>
+			   <tr>
                  <td><a href='..\proc\shape_function_derivative.html'>shape_function_derivative</a></td>
                  <td><a href='..\module\dynamics_structural.html'>dynamics_structural</a></td>
                  <td>Function</td>
@@ -1104,6 +1179,27 @@ solution procedure is utilized.</p></td>
 skew-symmetric matrix is defined as follows.</p><a href="../proc/to_skew_symmetric.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
 			   <tr>
+                 <td><a href='..\proc\vector_angle.html'>vector_angle</a></td>
+                 <td><a href='..\module\dynamics_helper.html'>dynamics_helper</a></td>
+                 <td>Function</td>
+                 <td><p>Computes the angle between two vectors.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\proc\vector_plane_projection.html'>vector_plane_projection</a></td>
+                 <td><a href='..\module\dynamics_geometry.html'>dynamics_geometry</a></td>
+                 <td>Function</td>
+                 <td><p>Projects a vector onto a plane.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\proc\vector_projection.html'>vector_projection</a></td>
+                 <td><a href='..\module\dynamics_helper.html'>dynamics_helper</a></td>
+                 <td>Function</td>
+                 <td><p>Computes the vector pojection of vector x onto vector y.  The vector
+projection is defined such that <script type="math/tex"> proj_{y} \vec{x} =  
+\frac{\vec{x} \cdot \vec{y}}{||\vec{y}||^{2}} \vec{y}</script>
+</p></td>
+               </tr>
+			   <tr>
                  <td><a href='..\proc\velocity_transform.html'>velocity_transform</a></td>
                  <td><a href='..\module\dynamics_rotation.html'>dynamics_rotation</a></td>
                  <td>Function</td>
@@ -1127,7 +1223,7 @@ its parent frame.</p><a href="../proc/velocity_transform.html" class="pull-right
             <p class="text-end">
               Documentation generated by
               <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-01-23 13:18              </p>
+ on 2026-01-29 20:03              </p>
           </div>
         </div>
         <br>
