@@ -68,7 +68,7 @@ end function
 ! ------------------------------------------------------------------------------
 function test_line_eval() result(rst)
     logical :: rst
-    real(real64) :: t, v(3), r0(3), ans, s
+    real(real64) :: t, v(3), r0(3), ans(3), s(3)
     type(line) :: ln
 
     ! Initialization
