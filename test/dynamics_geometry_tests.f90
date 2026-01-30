@@ -437,4 +437,26 @@ function test_fit_plane_to_many_points() result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+function test_flip_plane_normal() result(rst)
+    logical :: rst
+    real(real64) :: pt(3), nrm(3), n(3)
+    type(plane) :: pln
+
+    ! Initialization
+    rst = .true.
+    call random_number(pt)
+    call random_number(nrm)
+    nrm = nrm / norm2(nrm)
+    pln = plane(pt, nrm)
+    call pln%flip_normal()
+
+    ! Test
+    n = plane_normal(pln)
+    if (.not.assert(-nrm, n)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_flip_plane_normal -1"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
 end module
