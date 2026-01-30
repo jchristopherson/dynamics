@@ -430,8 +430,6 @@ function test_fit_plane_to_many_points() result(rst)
 
     ! Test
     pn = plane_normal(pln)
-    print *, nrm
-    print *, pn
     if (.not.assert(nrm, pn) .and. .not.assert(nrm, -pn)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_fit_plane_to_many_points -1"
