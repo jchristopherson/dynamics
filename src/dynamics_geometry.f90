@@ -2,6 +2,8 @@ module dynamics_geometry
     use iso_fortran_env
     use dynamics_helper
     use ieee_arithmetic
+    use lapack, only : DGESVD
+    use fstats, only : mean
     implicit none
     private
     public :: plane
@@ -15,6 +17,7 @@ module dynamics_geometry
     public :: point_to_line_distance
     public :: point_to_plane_distance
     public :: vector_plane_projection
+    public :: point_plane_projection
 
     type :: plane
         !! Defines a plane as \( a x + b y + c z + d = 0 \).
@@ -47,6 +50,7 @@ module dynamics_geometry
     interface line
         module procedure :: line_from_2pts
         module procedure :: line_from_2_planes
+        module procedure :: line_from_many_points
     end interface
 
     interface assignment(=)
@@ -112,6 +116,17 @@ contains
         rst%b = nrm(2) / nmag
         rst%c = nrm(3) / nmag
         rst%d = -rst%a * pt(1) - rst%b * pt(2) - rst%c * pt(3)
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function plane_from_many_points(x) result(rst)
+        !! Constructs the plane that best fits a cloud of points in a 
+        !! least-squares sense.
+        real(real64), intent(in), dimension(:,:) :: x
+            !! The N-by-3 matrix containing the N points to fit.  N must be
+            !! at least 3, but is typically much larger.
+        type(plane) :: pln
+            !! The resulting plane.
     end function
 
 ! ------------------------------------------------------------------------------
@@ -225,10 +240,60 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
+    pure function line_from_many_points(pts) result(rst)
+        !! Constructs the line that best fits the supplied set of points in a
+        !! least-squares sense.
+        real(real64), intent(in), dimension(:,:) :: pts
+            !! An N-by-3 matrix where N is at least 2, but typically much
+            !! larger.
+        type(line) :: rst
+            !! The resulting line.
 
-! ------------------------------------------------------------------------------
+        ! Local Variables
+        character :: jobu, jobvt
+        integer(int32) :: i, m, n, mn, lwork, info
+        real(real64), allocatable, dimension(:,:) :: shifted, vt
+        real(real64), allocatable, dimension(:) :: s, work
+        real(real64) :: temp(1), dummy(1)
 
-! ------------------------------------------------------------------------------
+        ! Initialization
+        jobu = 'N'
+        jobvt = 'S'
+        m = size(pts, 1)
+        n = size(pts, 2)
+        mn = min(m, n)
+
+        ! Input Checking
+        if (m < 2 .or. n /= 3) then
+            rst%r0 = ieee_value(0.0d0, IEEE_QUIET_NAN)
+            rst%v = ieee_value(0.0d0, IEEE_QUIET_NAN)
+            return
+        end if
+
+        ! Workspace Sizing - only compute V**T
+        call DGESVD(jobu, jobvt, m, n, dummy, m, dummy, dummy, m, dummy, mn, &
+            temp, -1, info)
+        lwork = int(temp(1), int32)
+        allocate(work(lwork), vt(mn, n), shifted(m, n), s(mn))
+
+        ! Process
+        if (m == 2) then
+            rst = line_from_2pts(pts(1,:), pts(2,:))
+        else
+            rst%r0 = [mean(pts(:,1)), mean(pts(:,2)), mean(pts(:,3))]
+            do i = 1, m
+                shifted(i,:) = pts(i,:) - rst%r0
+            end do
+            call DGESVD(jobu, jobvt, m, n, shifted, m, s, dummy, m, vt, mn, &
+                work, lwork, info)
+            if (info /= 0) then
+                rst%r0 = ieee_value(0.0d0, IEEE_QUIET_NAN)
+                rst%v = ieee_value(0.0d0, IEEE_QUIET_NAN)
+                return
+            end if
+            rst%v = vt(1,:) / norm2(vt(1,:))
+        end if
+    end function
 
 ! ------------------------------------------------------------------------------
 ! LINE MEMBER ROUTINES
@@ -450,14 +515,24 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
+    pure function point_plane_projection(pt, pln) result(rst)
+        !! Projects a point onto a plane.
+        real(real64), intent(in) :: pt(3)
+            !! The point.
+        class(plane), intent(in) :: pln
+            !! The plane onto which to project the point.
+        real(real64) :: rst(3)
+            !! The projected point.
 
-! ------------------------------------------------------------------------------
+        ! Local Variables
+        real(real64) :: t, n(3)
 
-! ------------------------------------------------------------------------------
-
-! ------------------------------------------------------------------------------
-
-! ------------------------------------------------------------------------------
+        ! Process
+        n = [pln%a, pln%b, pln%c]
+        t = -(pln%c * pt(3) + pln%b * pt(2) + pln%a * pt(1) + pln%d) / &
+            (norm2(n)**2)
+        rst = pt + t * n
+    end function
 
 ! ------------------------------------------------------------------------------
 end module
