@@ -351,6 +351,43 @@ function test_is_point_on_line() result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+function test_point_to_plane_distance() result(rst)
+    logical :: rst
+    real(real64) :: pt(3), pt0(3), nrm(3), dist, d
+    type(plane) :: pln
+
+    ! Initialization
+    rst = .true.
+    call random_number(pt0)
+    call random_number(nrm)
+    nrm = nrm / norm2(nrm)
+    call random_number(dist)
+    pt = pt0 + dist * nrm
+    pln = plane(pt0, nrm)
+
+    ! Test
+    d = point_to_plane_distance(pt, pln)
+    if (.not.assert(d, dist)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_point_to_plane_distance -1"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_vector_plane_projection() result(rst)
+    logical :: rst
+    real(real64) :: v(3), pt(3), nrm(3), prj(3), nrmans(3)
+    type(plane) :: pln
+
+    ! Initialization
+    rst = .true.
+    pt = [0.0d0, 0.0d0, 0.0d0]
+    nrm = [1.0d0, 1.0d0, 1.0d0]
+    pln = plane(pt, nrm)
+    v = [1.0d0, 0.0d0, 0.0d0]
+
+    prj = vector_plane_projection(v, pln)
+end function
 
 ! ------------------------------------------------------------------------------
 end module

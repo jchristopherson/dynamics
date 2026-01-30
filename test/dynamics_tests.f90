@@ -242,6 +242,12 @@ program main
     check = test_is_point_on_line()
     if (.not.check) flag = 74
 
+    check = test_point_to_plane_distance()
+    if (.not.check) flag = 75
+
+    check = test_vector_plane_projection()
+    if (.not.check) flag = 76
+
     ! End
     if (flag /= 0) stop flag
 end program

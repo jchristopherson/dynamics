@@ -13,6 +13,8 @@ module dynamics_geometry
     public :: is_point_on_line
     public :: nearest_point_on_line
     public :: point_to_line_distance
+    public :: point_to_plane_distance
+    public :: vector_plane_projection
 
     type :: plane
         !! Defines a plane as \( a x + b y + c z + d = 0 \).
@@ -412,6 +414,46 @@ contains
         d = pt - ln%evaluate(t)
         rst = norm2(d)
     end function
+
+! ------------------------------------------------------------------------------
+    pure function point_to_plane_distance(pt, pln) result(rst)
+        !! Computes the shortest distance between a point and a plane.
+        real(real64), intent(in) :: pt(3)
+            !! The point.
+        class(plane), intent(in) :: pln
+            !! The plane.
+        real(real64) :: rst
+            !! The shortest distance between the point and plane.
+
+        ! Process
+        rst = abs(pln%a * pt(1) + pln%b * pt(2) + pln%c * pt(3) + pln%d) / &
+            norm2([pln%a, pln%b, pln%c])
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function vector_plane_projection(x, pln) result(rst)
+        !! Projects a vector onto a plane.
+        real(real64), intent(in) :: x(3)
+            !! The vector to project.
+        class(plane), intent(in) :: pln
+            !! The plane onto which to project the vector.
+        real(real64) :: rst(3)
+            !! The projected vector.
+
+        ! Local Variables
+        real(real64) :: nrm(3), y(3)
+
+        ! Process
+        nrm = plane_normal(pln)
+        y = vector_projection(x, nrm)
+        rst = x - y
+    end function
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
 
 ! ------------------------------------------------------------------------------
 
