@@ -212,8 +212,8 @@ program main
     check = test_line_from_2_planes()
     if (.not.check) flag = 64
 
-    ! check = test_line_eval()
-    ! if (.not.check) flag = 65
+    check = test_line_eval()
+    if (.not.check) flag = 65
 
     check = test_plane_from_3_points()
     if (.not.check) flag = 66
