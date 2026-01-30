@@ -417,6 +417,7 @@ function test_fit_plane_to_many_points() result(rst)
     logical :: rst
     real(real64) :: pts(4, 3), nrm(3), pn(3)
     type(plane) :: pln
+    real(real64), parameter :: tol = 1.0d-8
 
     ! Initialization
     rst = .true.
@@ -430,7 +431,7 @@ function test_fit_plane_to_many_points() result(rst)
 
     ! Test
     pn = plane_normal(pln)
-    if (.not.assert(nrm, pn)) then
+    if (.not.assert(nrm, pn, tol)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_fit_plane_to_many_points -1"
     end if
