@@ -248,6 +248,12 @@ program main
     check = test_vector_plane_projection()
     if (.not.check) flag = 76
 
+    check = test_fit_line_to_many_points()
+    if (.not.check) flag = 77
+
+    check = test_fit_plane_to_many_points()
+    if (.not.check) flag = 78
+
     ! End
     if (flag /= 0) stop flag
 end program

@@ -34,6 +34,7 @@ module dynamics_geometry
     interface plane
         module procedure :: plane_from_3pts
         module procedure :: plane_from_point_and_normal
+        module procedure :: plane_from_many_points
     end interface
 
     type :: line
@@ -119,14 +120,69 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
-    pure function plane_from_many_points(x) result(rst)
+    pure function plane_from_many_points(pts) result(rst)
         !! Constructs the plane that best fits a cloud of points in a 
         !! least-squares sense.
-        real(real64), intent(in), dimension(:,:) :: x
+        real(real64), intent(in), dimension(:,:) :: pts
             !! The N-by-3 matrix containing the N points to fit.  N must be
             !! at least 3, but is typically much larger.
-        type(plane) :: pln
+        type(plane) :: rst
             !! The resulting plane.
+
+        ! Local Variables
+        character :: jobu, jobvt
+        integer(int32) :: i, m, n, mn, lwork, info
+        real(real64), allocatable, dimension(:,:) :: shifted, vt
+        real(real64), allocatable, dimension(:) :: s, work
+        real(real64) :: temp(1), dummy(1), avg(3), nrm(3), nan
+
+        ! Initialization
+        jobu = 'N'
+        jobvt = 'S'
+        m = size(pts, 1)
+        n = size(pts, 2)
+        mn = min(m, n)
+        nan = ieee_value(nan, IEEE_QUIET_NAN)
+
+        ! Input Checking
+        if (m < 3 .or. n /= 3) then
+            rst%a = nan
+            rst%b = nan
+            rst%c = nan
+            rst%d = nan
+            return
+        end if
+
+        ! Workspaec Sizing - only compute V**T
+        call DGESVD(jobu, jobvt, m, n, dummy, m, dummy, dummy, m, dummy, mn, &
+            temp, -1, info)
+        lwork = int(temp(1), int32)
+        allocate(work(lwork), vt(mn, n), shifted(m, n), s(mn))
+
+        ! Process
+        if (m == 3) then
+            ! An exact fit from 3 points
+            rst = plane(pts(1,:), pts(2,:), pts(3,:))
+        else
+            avg(1) = mean(pts(:,1))
+            avg(2) = mean(pts(:,2))
+            avg(3) = mean(pts(:,3))
+            do i = 1, m
+                shifted(i,:) = pts(i,:) - avg
+            end do
+            call DGESVD(jobu, jobvt, m, n, shifted, m, s, dummy, m, vt, mn, &
+                work, lwork, info)
+            if (info /= 0) then
+                rst%a = nan
+                rst%b = nan
+                rst%c = nan
+                rst%d = nan
+                return
+            end if
+            nrm = vt(3,:)
+            nrm = nrm / norm2(nrm)
+            rst = plane(avg, nrm)
+        end if
     end function
 
 ! ------------------------------------------------------------------------------

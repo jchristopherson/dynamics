@@ -390,4 +390,51 @@ function test_vector_plane_projection() result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+function test_fit_line_to_many_points() result(rst)
+    logical :: rst
+    real(real64) :: pts(3,3), v(3)
+    type(line) :: ln
+
+    ! Initialization
+    rst = .true.
+    pts = reshape([&
+        0.0d0, 0.5d0, 1.0d0, &
+        0.0d0, 0.5d0, 1.0d0, &
+        0.0d0, 0.5d0, 1.0d0], [3, 3])
+    v = pts(3,:) - pts(1,:)
+    v = v / norm2(v)
+    ln = line(pts)
+
+    ! Test
+    if (.not.assert(v, ln%v / norm2(ln%v))) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_fit_line_to_many_points -1"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_fit_plane_to_many_points() result(rst)
+    logical :: rst
+    real(real64) :: pts(4, 3), nrm(3), pn(3)
+    type(plane) :: pln
+
+    ! Initialization
+    rst = .true.
+    pts = reshape([ &
+        0.0d0, 1.0d0, 1.0d0, 0.0d0, &
+        0.0d0, 1.0d0, 1.0d0, 0.0d0, &
+        0.0d0, 0.0d0, 1.0d0, 1.0d0], [4, 3])
+    nrm = [1.0d0, -1.0d0, 0.0d0]
+    nrm = nrm / norm2(nrm)
+    pln = plane(pts)
+
+    ! Test
+    pn = plane_normal(pln)
+    if (.not.assert(nrm, pn)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_fit_plane_to_many_points -1"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
 end module
