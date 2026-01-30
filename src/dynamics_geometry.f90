@@ -268,7 +268,7 @@ contains
         ! Find a point on the line.  The idea is to first locate the index of
         ! the largest magnitue value in the direction vector.  This component
         ! will cross zero at some point, and it is this point we seek to find.
-        ind = maxloc(rst%v, 1)
+        ind = maxloc(abs(rst%v), 1)
         select case (ind)
         case (1)
             a11 = p1%b
