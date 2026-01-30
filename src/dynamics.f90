@@ -92,6 +92,9 @@ module dynamics
     ! DYNAMICS_HELPER
     public :: cross_product
     public :: to_skew_symmetric
+    public :: vector_angle
+    public :: scalar_projection
+    public :: vector_projection
 
     ! DYNAMICS_STABILITY
     public :: HYPERBOLIC_FIXED_POINT_SINK
