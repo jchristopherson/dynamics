@@ -29,6 +29,8 @@ module dynamics_geometry
             !! The z-component of the plane normal vector.
         real(real64) :: d
             !! The offset from the origin.
+    contains
+        procedure, public :: flip_normal => plane_flip_normal
     end type
 
     interface plane
@@ -184,6 +186,20 @@ contains
             rst = plane(avg, nrm)
         end if
     end function
+
+! ------------------------------------------------------------------------------
+! LINE MEMBER ROUTINES
+! ------------------------------------------------------------------------------
+    subroutine plane_flip_normal(this)
+        !! Flips the normal vector of the plane.
+        class(plane), intent(inout) :: this
+            !! The plane.
+
+        ! Process
+        this%a = -this%a
+        this%b = -this%b
+        this%c = -this%c
+    end subroutine
 
 ! ------------------------------------------------------------------------------
 ! PLANE OPERATORS
