@@ -270,6 +270,7 @@ function test_is_point_on_plane() result(rst)
     type(plane) :: pln
 
     ! Initialization
+    rst = .true.
     call random_number(pt0)
     call random_number(pt1)
     call random_number(pt2)

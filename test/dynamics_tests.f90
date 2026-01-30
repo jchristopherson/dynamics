@@ -233,8 +233,8 @@ program main
     check = test_is_parallel_planes()
     if (.not.check) flag = 71
 
-    ! check = test_is_point_on_plane()
-    ! if (.not.check) flag = 72
+    check = test_is_point_on_plane()
+    if (.not.check) flag = 72
 
     check = test_point_to_line_distance()
     if (.not.check) flag = 73
