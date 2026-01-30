@@ -101,6 +101,21 @@ typedef struct
     double z;
 } c_quaternion;
 
+typedef struct
+{
+    double a;
+    double b;
+    double c;
+    double d;
+} c_plane;
+
+typedef struct
+{
+    double r0[3];
+    double v[3];
+} c_line;
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -121,12 +136,12 @@ void c_evaluate_step_response(int n, double wn, double zeta, double xs,
 void c_rotate_x(double angle, double *r, int ldr);
 void c_rotate_y(double angle, double *r, int ldr);
 void c_rotate_z(double angle, double *r, int ldr);
-void c_rotate(const double *i, const double *j, const double *k, double *r, 
+void c_rotate(const double i[3], const double j[3], const double k[3], double *r, 
     int ldr);
-void c_acceleration_transform(const double *alpha, const double *omega,
-    const double *a, const double *x, double *r, int ldr);
-void c_velocity_transform(const double *omega, const double *v, 
-    const double *x, double *r, int ldr);
+void c_acceleration_transform(const double alpha[3], const double omega[3],
+    const double a[3], const double x[3], double *r, int ldr);
+void c_velocity_transform(const double omega[3], const double v[3], 
+    const double x[3], double *r, int ldr);
 
 void c_determine_local_stability(int n, const double *a, int lda,
     double complex *ev, int *flag);
@@ -163,7 +178,7 @@ void c_dh_rotate_z(double theta, double *T, int ldt);
 void c_dh_translate_x(double a, double *T, int ldt);
 void c_dh_translate_z(double d, double *T, int ldt);
 void c_jacobian_generating_vector(const double *d, const double *k, 
-    const double *R, int ldr, int jtype, double *jvec);
+    const double *R, int ldr, int jtype, double jvec[6]);
 void c_solve_inverse_kinematics(int njoints, int neqn, const c_vecfcn mdl,
     const double *qo, const double *constraints, double *jvar, double *resid,
     c_iteration_behavior *ib);
@@ -195,8 +210,11 @@ void c_siso_frequency_response(int n, int nf, const double *x, const double *y,
     double fs, int winsize, c_window_function winfun, int method, double *freq,
     double complex *rsp);
 
-void c_cross_product(const double *x, const double *y, double *z);
-void c_to_skew_symmetric(const double *x, double *y, int ldy);
+void c_cross_product(const double x[3], const double y[3], double z[3]);
+void c_to_skew_symmetric(const double x[3], double *y, int ldy);
+double c_vector_angle(const double x[3], const double y[3]);
+double c_scalar_projection(const double x[3], const double y[3]);
+void c_vector_projection(const double x[3], const double y[3], double z[3]);
 
 void c_siso_model_fit_least_squares(int nsets, int nparams, int neqns, 
     const c_ode_fit fcn, const c_dynamic_system_measurement *x, 
@@ -240,6 +258,28 @@ void c_quaternion_pow(const c_quaternion *q, double exponent, c_quaternion *rst)
 double c_quaternion_dot_product(const c_quaternion *x, const c_quaternion *y);
 void c_quaternion_to_roll_pitch_yaw(const c_quaternion *q, double *roll, 
     double *pitch, double *yaw);
+
+void c_plane_normal(const c_plane* pln, double nrm[3]);
+void c_plane_from_3_points(const double pt1[3], const double pt2[3], 
+    const double pt3[3], c_plane *pln);
+void c_plane_from_point_and_normal(const double pt[3], const double nrm[3],
+    c_plane *pln);
+void c_plane_from_points(int n, const double *pts, int ldp, c_plane *pln);
+void c_flip_plane_normal(c_plane *pln);
+void c_line_from_2_points(const double pt1[3], const double pt2[3], c_line *ln);
+void c_line_from_2_planes(const c_plane *p1, const c_plane *p2, c_line *ln);
+void c_line_from_points(int n, const double *pts, int ldp, c_line *ln);
+void c_evaluate_line_position(const c_line *ln, double t, double x[3]);
+bool c_is_parallel_vectors(int n, const double *x, const double *y, double tol);
+bool c_is_parallel_lines(const c_line *x, const c_line *y, double tol);
+bool c_is_parallel_planes(const c_plane *x, const c_plane *y, double tol);
+bool c_is_point_on_plane(const double pt[3], const c_plane *pln, double tol);
+bool c_is_point_on_line(const double pt[3], const c_line *ln, double tol);
+double c_nearest_point_on_line(const double pt[3], const c_line *ln);
+double c_point_to_line_distance(const double pt[3], const c_line *ln);
+double c_point_to_plane_distance(const double pt[3], const c_plane *pln);
+void c_vector_plane_projection(const double x[3], const c_plane *pln, double px[3]);
+void c_point_plane_projection(const double pt[3], const c_plane *pln, double ppt[3]);
 
 #ifdef __cplusplus
 }

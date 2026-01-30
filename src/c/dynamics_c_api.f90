@@ -6,6 +6,7 @@ module dynamics_c_api
     use diffeq
     use spectrum, only : window
     use dynamics_quaternions
+    use dynamics_geometry
     implicit none
 
     interface
@@ -151,6 +152,27 @@ module dynamics_c_api
         real(c_double) :: y
         real(c_double) :: z
     end type
+
+    type, bind(C) :: c_plane
+        real(c_double) :: a
+        real(c_double) :: b
+        real(c_double) :: c
+        real(c_double) :: d
+    end type
+
+    type, bind(C) :: c_line
+        real(c_double) :: r0(3)
+        real(c_double) :: v(3)
+    end type
+
+    interface assignment(=)
+        module procedure :: convert_to_c_quaternion
+        module procedure :: convert_from_c_quaternion
+        module procedure :: convert_to_c_line
+        module procedure :: convert_from_c_line
+        module procedure :: convert_to_c_plane
+        module procedure :: convert_from_c_plane
+    end interface
 
 contains
 ! ------------------------------------------------------------------------------
@@ -1201,6 +1223,30 @@ subroutine c_to_skew_symmetric(x, y, ldy) bind(C, name = "c_to_skew_symmetric")
     y(1:3,1:3) = to_skew_symmetric(x)
 end subroutine
 
+! ------------------------------------------------------------------------------
+function c_vector_angle(x, y) result(rst) bind(C, name = "c_vector_angle")
+    real(c_double), intent(in) :: x(3)
+    real(c_double), intent(in) :: y(3)
+    real(c_double) :: rst
+    rst = vector_angle(x, y)
+end function
+
+! ------------------------------------------------------------------------------
+function c_scalar_projection(x, y) result(rst) bind(C, name = "c_scalar_projection")
+    real(c_double), intent(in) :: x(3)
+    real(c_double), intent(in) :: y(3)
+    real(c_double) :: rst
+    rst = scalar_projection(x, y)
+end function
+
+! ------------------------------------------------------------------------------
+subroutine c_vector_projection(x, y, z) bind(C, name = "c_vector_projection")
+    real(c_double), intent(in) :: x(3)
+    real(c_double), intent(in) :: y(3)
+    real(c_double), intent(out) :: z(3)
+    z = vector_projection(x, y)
+end subroutine
+
 ! ******************************************************************************
 ! DYNAMICS_SYSTEM_ID.F90
 ! ------------------------------------------------------------------------------
@@ -1429,9 +1475,9 @@ end subroutine
 ! ******************************************************************************
 ! DYNAMICS_QUATERNIONS
 ! ------------------------------------------------------------------------------
-pure subroutine convert_to_c_quaternion(qf, qc)
-    type(quaternion), intent(in) :: qf
+pure subroutine convert_to_c_quaternion(qc, qf)
     type(c_quaternion), intent(out) :: qc
+    type(quaternion), intent(in) :: qf
     qc%w = qf%w
     qc%x = qf%x
     qc%y = qf%y
@@ -1439,9 +1485,9 @@ pure subroutine convert_to_c_quaternion(qf, qc)
 end subroutine
 
 ! ------------------------------------------------------------------------------
-pure subroutine convert_from_c_quaternion(qc, qf)
-    type(c_quaternion), intent(in) :: qc
+pure subroutine convert_from_c_quaternion(qf, qc)
     type(quaternion), intent(out) :: qf
+    type(c_quaternion), intent(in) :: qc
     qf%w = qc%w
     qf%x = qc%x
     qf%y = qc%y
@@ -1466,9 +1512,7 @@ subroutine c_quaternion_from_matrix(x, ldx, q) &
     real(c_double), intent(in) :: x(ldx,3)
     type(c_quaternion), intent(out) :: q
 
-    type(quaternion) :: qf
-    qf = quaternion(x(1:3,1:3))
-    call convert_to_c_quaternion(qf, q)
+    q = quaternion(x(1:3,1:3))
 end subroutine
 
 ! ------------------------------------------------------------------------------
@@ -1478,18 +1522,16 @@ subroutine c_quaternion_from_angle_axis(angle, axis, q) &
     real(c_double), intent(in) :: axis(3)
     type(c_quaternion), intent(out) :: q
 
-    type(quaternion) :: qf
-    qf = quaternion(angle, axis)
-    call convert_to_c_quaternion(qf, q)
+    q = quaternion(angle, axis)
 end subroutine
 
 ! ------------------------------------------------------------------------------
 subroutine c_quaternion_normalize(q) bind(C, name = "c_quaternion_normalize")
     type(c_quaternion), intent(inout) :: q
     type(quaternion) :: qf
-    call convert_from_c_quaternion(q, qf)
+    qf = q
     call qf%normalize()
-    call convert_to_c_quaternion(qf, q)
+    q = qf
 end subroutine
 
 ! ------------------------------------------------------------------------------
@@ -1497,11 +1539,10 @@ subroutine c_quaternion_add(x, y, q) bind(C, name = "c_quaternion_add")
     type(c_quaternion), intent(in) :: x
     type(c_quaternion), intent(in) :: y
     type(c_quaternion), intent(out) :: q
-    type(quaternion) :: xf, yf, qf
-    call convert_from_c_quaternion(x, xf)
-    call convert_from_c_quaternion(y, yf)
-    qf = xf + yf
-    call convert_to_c_quaternion(qf, q)
+    type(quaternion) :: xf, yf
+    xf = x
+    yf = y
+    q = xf + yf
 end subroutine
 
 ! ------------------------------------------------------------------------------
@@ -1509,11 +1550,10 @@ subroutine c_quaternion_subtract(x, y, q) bind(C, name = "c_quaternion_subtract"
     type(c_quaternion), intent(in) :: x
     type(c_quaternion), intent(in) :: y
     type(c_quaternion), intent(out) :: q
-    type(quaternion) :: xf, yf, qf
-    call convert_from_c_quaternion(x, xf)
-    call convert_from_c_quaternion(y, yf)
-    qf = xf - yf
-    call convert_to_c_quaternion(qf, q)
+    type(quaternion) :: xf, yf
+    xf = x
+    yf = y
+    q = xf - yf
 end subroutine
 
 ! ------------------------------------------------------------------------------
@@ -1521,11 +1561,10 @@ subroutine c_quaternion_multiply(x, y, q) bind(C, name = "c_quaternion_multiply"
     type(c_quaternion), intent(in) :: x
     type(c_quaternion), intent(in) :: y
     type(c_quaternion), intent(out) :: q
-    type(quaternion) :: xf, yf, qf
-    call convert_from_c_quaternion(x, xf)
-    call convert_from_c_quaternion(y, yf)
-    qf = xf * yf
-    call convert_to_c_quaternion(qf, q)
+    type(quaternion) :: xf, yf
+    xf = x
+    yf = y
+    q = xf * yf
 end subroutine
 
 ! ------------------------------------------------------------------------------
@@ -1533,11 +1572,10 @@ subroutine c_quaternion_divide(x, y, q) bind(C, name = "c_quaternion_divide")
     type(c_quaternion), intent(in) :: x
     type(c_quaternion), intent(in) :: y
     type(c_quaternion), intent(out) :: q
-    type(quaternion) :: xf, yf, qf
-    call convert_from_c_quaternion(x, xf)
-    call convert_from_c_quaternion(y, yf)
-    qf = xf / yf
-    call convert_to_c_quaternion(qf, q)
+    type(quaternion) :: xf, yf
+    xf = x
+    yf = y
+    q = xf / yf
 end subroutine
 
 ! ------------------------------------------------------------------------------
@@ -1545,20 +1583,18 @@ subroutine c_quaternion_scale(x, y, q) bind(C, name = "c_quaternion_scale")
     real(c_double), intent(in), value :: x
     type(c_quaternion), intent(in) :: y
     type(c_quaternion), intent(out) :: q
-    type(quaternion) :: yf, qf
-    call convert_from_c_quaternion(y, yf)
-    qf = x * yf
-    call convert_to_c_quaternion(qf, q)
+    type(quaternion) :: yf
+    yf = y
+    q = x * yf
 end subroutine
 
 ! ------------------------------------------------------------------------------
 subroutine c_quaternion_conjugate(q, qc) bind(C, name = "c_quaternion_conjugate")
     type(c_quaternion), intent(in) :: q
     type(c_quaternion), intent(out) :: qc
-    type(quaternion) :: qf, qcf
-    call convert_from_c_quaternion(q, qf)
-    qcf = conjg(qf)
-    call convert_to_c_quaternion(qcf, qc)
+    type(quaternion) :: qf
+    qf = q
+    qc = conjg(qf)
 end subroutine
 
 ! ------------------------------------------------------------------------------
@@ -1567,7 +1603,7 @@ subroutine c_quaternion_rotate(q, r, rp) bind(C, name = "c_quaternion_rotate")
     real(c_double), intent(in) :: r(3)
     real(c_double), intent(out) :: rp(3)
     type(quaternion) :: qf
-    call convert_from_c_quaternion(q, qf)
+    qf = q
     rp = aimag(qf * r * conjg(qf))
 end subroutine
 
@@ -1576,7 +1612,7 @@ function c_quaternion_abs(q) result(rst) bind(C, name = "c_quaternion_abs")
     type(c_quaternion), intent(in) :: q
     real(c_double) :: rst
     type(quaternion) :: qf
-    call convert_from_c_quaternion(q, qf)
+    qf = q
     rst = abs(qf)
 end function
 
@@ -1584,10 +1620,9 @@ end function
 subroutine c_quaternion_inverse(q, qinv) bind(C, name = "c_quaternion_inverse")
     type(c_quaternion), intent(in) :: q
     type(c_quaternion), intent(out) :: qinv
-    type(quaternion) :: qf, qinvf
-    call convert_from_c_quaternion(q, qf)
-    qinvf = inverse(qf)
-    call convert_to_c_quaternion(qinvf, qinv)
+    type(quaternion) :: qf
+    qf = q
+    qinv = inverse(qf)
 end subroutine
 
 ! ------------------------------------------------------------------------------
@@ -1596,7 +1631,7 @@ subroutine c_quaternion_to_matrix(q, r, ldr) bind(C, name = "c_quaternion_to_mat
     integer(c_int), intent(in), value :: ldr
     real(c_double), intent(out) :: r(ldr,3)
     type(quaternion) :: qf
-    call convert_from_c_quaternion(q, qf)
+    qf = q
     r(1:3,1:3) = qf%to_matrix()
 end subroutine
 
@@ -1607,7 +1642,7 @@ subroutine c_quaternion_to_angle_axis(q, angle, axis) &
     real(c_double), intent(out) :: angle
     real(c_double), intent(out) :: axis(3)
     type(quaternion) :: qf
-    call convert_from_c_quaternion(q, qf)
+    qf = q
     call qf%to_angle_axis(angle, axis)
 end subroutine
 
@@ -1615,20 +1650,18 @@ end subroutine
 subroutine c_quaternion_exp(q, rst) bind(C, name = "c_quaternion_exp")
     type(c_quaternion), intent(in) :: q
     type(c_quaternion), intent(out) :: rst
-    type(quaternion) :: qf, qr
-    call convert_from_c_quaternion(q, qf)
-    qr = exp(qf)
-    call convert_to_c_quaternion(qr, rst)
+    type(quaternion) :: qf
+    qf = q
+    rst = exp(qf)
 end subroutine
 
 ! ------------------------------------------------------------------------------
 subroutine c_quaternion_log(q, rst)  bind(C, name = "c_quaternion_log")
     type(c_quaternion), intent(in) :: q
     type(c_quaternion), intent(out) :: rst
-    type(quaternion) :: qf, qr
-    call convert_from_c_quaternion(q, qf)
-    qr = log(qf)
-    call convert_to_c_quaternion(qr, rst)
+    type(quaternion) :: qf
+    qf = q
+    rst = log(qf)
 end subroutine
 
 ! ------------------------------------------------------------------------------
@@ -1636,10 +1669,9 @@ subroutine c_quaternion_pow(q, exponent, rst) bind(C, name = "c_quaternion_pow")
     type(c_quaternion), intent(in) :: q
     real(c_double), intent(in), value :: exponent
     type(c_quaternion), intent(out) :: rst
-    type(quaternion) :: qf, qr
-    call convert_from_c_quaternion(q, qf)
-    qr = qf**exponent
-    call convert_to_c_quaternion(qr, rst)
+    type(quaternion) :: qf
+    qf = q
+    rst = qf**exponent
 end subroutine
 
 ! ------------------------------------------------------------------------------
@@ -1649,8 +1681,8 @@ function c_quaternion_dot_product(x, y) result(rst) &
     type(c_quaternion), intent(in) :: y
     real(c_double) :: rst
     type(quaternion) :: xf, yf
-    call convert_from_c_quaternion(x, xf)
-    call convert_from_c_quaternion(y, yf)
+    xf = x
+    yf = y
     rst = dot_product(xf, yf)
 end function
 
@@ -1662,8 +1694,245 @@ subroutine c_quaternion_to_roll_pitch_yaw(q, roll, pitch, yaw) &
     real(c_double), intent(out) :: pitch
     real(c_double), intent(out) :: yaw
     type(quaternion) :: qf
-    call convert_from_c_quaternion(q, qf)
+    qf = q
     call qf%to_roll_pitch_yaw(roll, pitch, yaw)
+end subroutine
+
+! ******************************************************************************
+! DYNAMICS_GEOMETRY.F90
+! ------------------------------------------------------------------------------
+pure subroutine convert_to_c_line(lc, lf)
+    type(c_line), intent(out) :: lc
+    type(line), intent(in) :: lf
+    lc%r0 = lf%r0
+    lc%v = lf%v
+end subroutine
+
+! ------------------------------------------------------------------------------
+pure subroutine convert_from_c_line(lf, lc)
+    type(line), intent(out) :: lf
+    type(c_line), intent(in) :: lc
+    lf%r0 = lc%r0
+    lf%v = lc%v
+end subroutine
+
+! ------------------------------------------------------------------------------
+pure subroutine convert_to_c_plane(pc, pf)
+    type(c_plane), intent(out) :: pc
+    type(plane), intent(in) :: pf
+    pc%a = pf%a
+    pc%b = pf%b
+    pc%c = pf%c
+    pc%d = pf%d
+end subroutine
+
+! ------------------------------------------------------------------------------
+pure subroutine convert_from_c_plane(pf, pc)
+    type(plane), intent(out) :: pf
+    type(c_plane), intent(in) :: pc
+    pf%a = pc%a
+    pf%b = pc%b
+    pf%c = pc%c
+    pf%d = pc%d
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_plane_normal(pln, nrm) bind(C, name = "c_plane_normal")
+    type(c_plane), intent(in) :: pln
+    real(c_double), intent(out) :: nrm(3)
+    type(plane) :: p
+    p = pln
+    nrm = plane_normal(p)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_plane_from_3_points(pt1, pt2, pt3, pln) &
+    bind(C, name = "c_plane_from_3_points")
+    real(c_double), intent(in) :: pt1(3)
+    real(c_double), intent(in) :: pt2(3)
+    real(c_double), intent(in) :: pt3(3)
+    type(c_plane), intent(out) :: pln
+    pln = plane(pt1, pt2, pt3)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_plane_from_point_and_normal(pt, nrm, pln) &
+    bind(C, name = "c_plane_from_point_and_normal")
+    real(c_double), intent(in) :: pt(3)
+    real(c_double), intent(in) :: nrm(3)
+    type(c_plane), intent(out) :: pln
+    pln = plane(pt, nrm)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_plane_from_points(n, pts, ldp, pln) &
+    bind(C, name = "c_plane_from_points")
+    integer(c_int), intent(in), value :: n, ldp
+    real(c_double), intent(in) :: pts(ldp,3)
+    type(c_plane), intent(out) :: pln
+    pln = plane(pts(1:n,:))
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_flip_plane_normal(pln) bind(C, name = "c_flip_plane_normal")
+    type(c_plane), intent(inout) :: pln
+    type(plane) :: p
+    p = pln
+    call p%flip_normal()
+    pln = p
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_line_from_2_points(pt1, pt2, ln) bind(C, name = "c_line_from_2_points")
+    real(c_double), intent(in) :: pt1(3)
+    real(c_double), intent(in) :: pt2(3)
+    type(c_line), intent(out) :: ln
+    ln = line(pt1, pt2)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_line_from_2_planes(p1, p2, ln) bind(C, name = "c_line_from_2_planes")
+    type(c_plane), intent(in) :: p1
+    type(c_plane), intent(in) :: p2
+    type(c_line), intent(out) :: ln
+    type(plane) :: pln1, pln2
+    pln1 = p1
+    pln2 = p2
+    ln = line(pln1, pln2)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_line_from_points(n, pts, ldp, ln) bind(C, name = "c_line_from_points")
+    integer(c_int), intent(in), value :: n, ldp
+    real(c_double), intent(in) :: pts(ldp, 3)
+    type(c_line), intent(out) :: ln
+    ln = line(pts(1:n,:))
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_evaluate_line_position(ln, t, x) bind(C, name = "c_evaluate_line_position")
+    type(c_line), intent(in) :: ln
+    real(c_double), intent(in), value :: t
+    real(c_double), intent(out) :: x(3)
+    type(line) :: l
+    l = ln
+    x = l%evaluate(t)
+end subroutine
+
+! ------------------------------------------------------------------------------
+function c_is_parallel_vectors(n, x, y, tol) result(rst) &
+    bind(C, name = "c_is_parallel_vectors")
+    integer(c_int), intent(in), value :: n
+    real(c_double), intent(in) :: x(n)
+    real(c_double), intent(in) :: y(n)
+    real(c_double), intent(in), value :: tol
+    logical(c_bool) :: rst
+    rst = logical(is_parallel(x, y, tol), c_bool)
+end function
+
+! ------------------------------------------------------------------------------
+function c_is_parallel_lines(x, y, tol) result(rst) &
+    bind(C, name = "c_is_parallel_lines")
+    type(c_line), intent(in) :: x
+    type(c_line), intent(in) :: y
+    real(c_double), intent(in), value :: tol
+    logical(c_bool) :: rst
+    type(line) :: xf, yf
+    xf = x
+    yf = y
+    rst = logical(is_parallel(xf, yf, tol), c_bool)
+end function
+
+! ------------------------------------------------------------------------------
+function c_is_parallel_planes(x, y, tol) result(rst) &
+    bind(C, name = "c_is_parallel_planes")
+    type(c_plane), intent(in) :: x
+    type(c_plane), intent(in) :: y
+    real(c_double), intent(in), value :: tol
+    logical(c_bool) :: rst
+    type(plane) :: xf, yf
+    xf = x
+    yf = y
+    rst = logical(is_parallel(xf, yf, tol), c_bool)
+end function
+
+! ------------------------------------------------------------------------------
+function c_is_point_on_plane(pt, pln, tol) result(rst) &
+    bind(C, name = "c_is_point_on_plane")
+    real(c_double), intent(in) :: pt(3)
+    type(c_plane), intent(in) :: pln
+    real(c_double), intent(in), value :: tol
+    logical(c_bool) :: rst
+    type(plane) :: pf
+    pf = pln
+    rst = logical(is_point_on_plane(pt, pf, tol), c_bool)
+end function
+
+! ------------------------------------------------------------------------------
+function c_is_point_on_line(pt, ln, tol) result(rst) &
+    bind(C, name = "c_is_point_on_line")
+    real(c_double), intent(in) :: pt(3)
+    type(c_line), intent(in) :: ln
+    real(c_double), intent(in), value :: tol
+    logical(c_bool) :: rst
+    type(line) :: lf
+    lf = ln
+    rst = logical(is_point_on_line(pt, lf, tol), c_bool)
+end function
+
+! ------------------------------------------------------------------------------
+function c_nearest_point_on_line(pt, ln) result(rst) &
+    bind(C, name = "c_nearest_point_on_line")
+    real(c_double), intent(in) :: pt(3)
+    type(c_line), intent(in) :: ln
+    real(c_double) :: rst
+    type(line) :: lf
+    lf = ln
+    rst = nearest_point_on_line(pt, lf)
+end function
+
+! ------------------------------------------------------------------------------
+function c_point_to_line_distance(pt, ln) result(rst) &
+    bind(C, name = "c_point_to_line_distance")
+    real(c_double), intent(in) :: pt(3)
+    type(c_line), intent(in) :: ln
+    real(c_double) :: rst
+    type(line) :: lf
+    lf = ln
+    rst = point_to_line_distance(pt, lf)
+end function
+
+! ------------------------------------------------------------------------------
+function c_point_to_plane_distance(pt, pln) result(rst) &
+    bind(C, name = "c_point_to_plane_distance")
+    real(c_double), intent(in) :: pt(3)
+    type(c_plane), intent(in) :: pln
+    real(c_double) :: rst
+    type(plane) :: pf
+    pf = pln
+    rst = point_to_plane_distance(pt, pf)
+end function
+
+! ------------------------------------------------------------------------------
+subroutine c_vector_plane_projection(x, pln, px) &
+    bind(C, name = "c_vector_plane_projection")
+    real(c_double), intent(in) :: x(3)
+    type(c_plane), intent(in) :: pln
+    real(c_double), intent(out) :: px(3)
+    type(plane) :: pf
+    pf = pln
+    px = vector_plane_projection(x, pf)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_point_plane_projection(pt, pln, ppt) &
+    bind(C, name = "c_point_plane_projection")
+    real(c_double), intent(in) :: pt(3)
+    type(c_plane), intent(in) :: pln
+    real(c_double), intent(out) :: ppt(3)
+    type(plane) :: pf
+    pf = pln
+    ppt = point_plane_projection(pt, pf)
 end subroutine
 
 ! ------------------------------------------------------------------------------
