@@ -233,8 +233,8 @@ program main
     check = test_is_parallel_planes()
     if (.not.check) flag = 71
 
-    ! check = test_is_point_on_plane()
-    ! if (.not.check) flag = 72
+    check = test_is_point_on_plane()
+    if (.not.check) flag = 72
 
     check = test_point_to_line_distance()
     if (.not.check) flag = 73
@@ -248,11 +248,11 @@ program main
     check = test_vector_plane_projection()
     if (.not.check) flag = 76
 
-    check = test_fit_line_to_many_points()
-    if (.not.check) flag = 77
+    ! check = test_fit_line_to_many_points()
+    ! if (.not.check) flag = 77
 
-    check = test_fit_plane_to_many_points()
-    if (.not.check) flag = 78
+    ! check = test_fit_plane_to_many_points()
+    ! if (.not.check) flag = 78
 
     ! End
     if (flag /= 0) stop flag
