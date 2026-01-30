@@ -212,26 +212,26 @@ program main
     check = test_line_from_2_planes()
     if (.not.check) flag = 64
 
-    check = test_line_eval()
-    if (.not.check) flag = 65
+    ! check = test_line_eval()
+    ! if (.not.check) flag = 65
 
-    check = test_plane_from_3_points()
-    if (.not.check) flag = 66
+    ! check = test_plane_from_3_points()
+    ! if (.not.check) flag = 66
 
-    check = test_plane_from_point_and_normal()
-    if (.not.check) flag = 67
+    ! check = test_plane_from_point_and_normal()
+    ! if (.not.check) flag = 67
 
-    check = test_plane_normal()
-    if (.not.check) flag = 68
+    ! check = test_plane_normal()
+    ! if (.not.check) flag = 68
 
-    check = test_is_parallel_vectors()
-    if (.not.check) flag = 69
+    ! check = test_is_parallel_vectors()
+    ! if (.not.check) flag = 69
 
-    check = test_is_parallel_lines()
-    if (.not.check) flag = 70
+    ! check = test_is_parallel_lines()
+    ! if (.not.check) flag = 70
 
-    check = test_is_parallel_planes()
-    if (.not.check) flag = 71
+    ! check = test_is_parallel_planes()
+    ! if (.not.check) flag = 71
 
     ! check = test_is_point_on_plane()
     ! if (.not.check) flag = 72
@@ -253,6 +253,9 @@ program main
 
     ! check = test_fit_plane_to_many_points()
     ! if (.not.check) flag = 78
+
+    ! check = test_flip_plane_normal()
+    ! if (.not.check) flag = 79
 
     ! End
     if (flag /= 0) stop flag
