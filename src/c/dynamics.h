@@ -217,7 +217,7 @@ double c_scalar_projection(const double x[3], const double y[3]);
 void c_vector_projection(const double x[3], const double y[3], double z[3]);
 double c_vector_magnitude(int n, const double *x);
 void c_vector_normalize(int n, double *x);
-void c_dot_product(int n, const double *x, const double *y);
+double c_dot_product(int n, const double *x, const double *y);
 
 void c_siso_model_fit_least_squares(int nsets, int nparams, int neqns, 
     const c_ode_fit fcn, const c_dynamic_system_measurement *x, 
