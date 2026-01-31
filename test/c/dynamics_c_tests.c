@@ -3,6 +3,7 @@
 #include "dynamics_stability_tests.h"
 #include "dynamics_kinematics_tests.h"
 #include "dynamics_frf_tests.h"
+#include "dynamics_geometry_tests.h"
 #include <stdbool.h>
 
 int main()
@@ -59,6 +60,14 @@ int main()
     if (!c_test_quaternion_pow()) flag = 38;
     if (!c_test_quaternion_dot_product()) flag = 39;
     if (!c_test_quaternion_roll_pitch_yaw()) flag = 40;
+
+    if (!c_test_line_from_2_points()) flag = 41;
+    if (!c_test_line_from_2_planes()) flag = 42;
+    if (!c_test_line_eval()) flag = 43;
+    if (!c_test_plane_from_3_points()) flag = 44;
+    if (!c_test_plane_from_point_and_normal()) flag = 45;
+    if (!c_test_plane_normal()) flag = 46;
+    if (!c_test_is_parallel_vectors()) flag = 47;
 
     return flag;
 }

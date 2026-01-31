@@ -1247,6 +1247,21 @@ subroutine c_vector_projection(x, y, z) bind(C, name = "c_vector_projection")
     z = vector_projection(x, y)
 end subroutine
 
+! ------------------------------------------------------------------------------
+function c_vector_magnitude(n, x) result(rst) bind(C, name = "c_vector_magnitude")
+    integer(c_int), intent(in), value :: n
+    real(c_double), intent(in) :: x(n)
+    real(c_double) :: rst
+    rst = norm2(x)
+end function
+
+! ------------------------------------------------------------------------------
+subroutine c_vector_normalize(n, x) bind(C, name = "c_vector_normalize")
+    integer(c_int), intent(in), value :: n
+    real(c_double), intent(inout) :: x(n)
+    x = x / norm2(x)
+end subroutine
+
 ! ******************************************************************************
 ! DYNAMICS_SYSTEM_ID.F90
 ! ------------------------------------------------------------------------------
