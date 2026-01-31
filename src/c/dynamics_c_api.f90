@@ -1262,6 +1262,15 @@ subroutine c_vector_normalize(n, x) bind(C, name = "c_vector_normalize")
     x = x / norm2(x)
 end subroutine
 
+! ------------------------------------------------------------------------------
+subroutine c_dot_product(n, x, y) result(rst) bind(C, name = "c_dot_product")
+    integer(c_int), intent(in), value :: n
+    real(c_double), intent(in) :: x(n)
+    real(c_double), intent(in) :: y(n)
+    real(c_double) :: rst
+    rst = dot_product(x, y)
+end subroutine
+
 ! ******************************************************************************
 ! DYNAMICS_SYSTEM_ID.F90
 ! ------------------------------------------------------------------------------
