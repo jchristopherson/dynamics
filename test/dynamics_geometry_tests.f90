@@ -380,7 +380,7 @@ end function
 ! ------------------------------------------------------------------------------
 function test_vector_plane_projection() result(rst)
     logical :: rst
-    real(real64) :: v(3), pt(3), nrm(3), prj(3), nrmans(3)
+    real(real64) :: v(3), pt(3), nrm(3), prj(3), ans(3)
     type(plane) :: pln
 
     ! Initialization
@@ -391,6 +391,11 @@ function test_vector_plane_projection() result(rst)
     v = [1.0d0, 0.0d0, 0.0d0]
 
     prj = vector_plane_projection(v, pln)
+    ans = v - nrm * dot_product(v, nrm) / dot_product(nrm, nrm)
+    if (.not.assert(prj, ans)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_vector_plane_projection -1"
+    end if
 end function
 
 ! ------------------------------------------------------------------------------

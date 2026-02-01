@@ -68,6 +68,14 @@ int main()
     if (!c_test_plane_from_point_and_normal()) flag = 45;
     if (!c_test_plane_normal()) flag = 46;
     if (!c_test_is_parallel_vectors()) flag = 47;
+    if (!c_test_is_parallel_planes()) flag = 48;
+    if (!c_test_is_point_on_plane()) flag = 49;
+    if (!c_test_point_to_line_distance()) flag = 50;
+    if (!c_test_is_point_on_line()) flag = 51;
+    if (!c_test_point_to_plane_distance()) flag = 52;
+    if (!c_test_vector_plane_projection()) flag = 53;
+    if (!c_test_fit_line_to_many_points()) flag = 54;
+    if (!c_test_flip_plane_normal()) flag = 55;
 
     return flag;
 }
