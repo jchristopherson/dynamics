@@ -229,3 +229,15 @@ if (${BUILD_SHARED_LIBS} AND WIN32)
         COMMAND_EXPAND_LISTS
     )
 endif()
+
+# Poincare Example
+add_executable(
+    poincare_example
+    poincare_example.f90
+)
+target_link_libraries(
+    poincare_example
+    ${PROJECT_NAME}
+    ${FPLOT_LIBRARIES}
+    ${DIFFEQ_LIBRARIES}
+)

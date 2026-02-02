@@ -5,6 +5,7 @@ project_github: https://github.com/jchristopherson/dynamics
 author: Jason Christopherson
 author_email: jchristopherson@hotmail.com
 src_dir: ./src
+exclude_dir: ./src/c
 output_dir: ./doc
 display: public
 source: true

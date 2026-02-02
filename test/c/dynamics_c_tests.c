@@ -3,6 +3,7 @@
 #include "dynamics_stability_tests.h"
 #include "dynamics_kinematics_tests.h"
 #include "dynamics_frf_tests.h"
+#include "dynamics_geometry_tests.h"
 #include <stdbool.h>
 
 int main()
@@ -42,6 +43,39 @@ int main()
     if (!c_test_frf_fit()) flag = 22;
     if (!c_test_siso_frf()) flag = 23;
     if (!c_test_siso_lsq_fit()) flag = 24;
+
+    if (!c_test_quaternion_from_array()) flag = 25;
+    if (!c_test_quaternion_from_angle_axis()) flag = 26;
+    if (!c_test_quaternion_from_matrix()) flag = 27;
+    if (!c_test_quaternion_normalize()) flag = 28;
+    if (!c_test_quaternion_add()) flag = 29;
+    if (!c_test_quaternion_subtract()) flag = 30;
+    if (!c_test_quaternion_multiply()) flag = 31;
+    if (!c_test_quaternion_divide()) flag = 32;
+    if (!c_test_quaternion_abs()) flag = 33;
+    if (!c_test_quaternion_to_matrix()) flag = 34;
+    if (!c_test_to_angle_axis()) flag = 35;
+    if (!c_test_quaternion_exp()) flag = 36;
+    if (!c_test_quaternion_log()) flag = 37;
+    if (!c_test_quaternion_pow()) flag = 38;
+    if (!c_test_quaternion_dot_product()) flag = 39;
+    if (!c_test_quaternion_roll_pitch_yaw()) flag = 40;
+
+    if (!c_test_line_from_2_points()) flag = 41;
+    if (!c_test_line_from_2_planes()) flag = 42;
+    if (!c_test_line_eval()) flag = 43;
+    if (!c_test_plane_from_3_points()) flag = 44;
+    if (!c_test_plane_from_point_and_normal()) flag = 45;
+    if (!c_test_plane_normal()) flag = 46;
+    if (!c_test_is_parallel_vectors()) flag = 47;
+    if (!c_test_is_parallel_planes()) flag = 48;
+    if (!c_test_is_point_on_plane()) flag = 49;
+    if (!c_test_point_to_line_distance()) flag = 50;
+    if (!c_test_is_point_on_line()) flag = 51;
+    if (!c_test_point_to_plane_distance()) flag = 52;
+    if (!c_test_vector_plane_projection()) flag = 53;
+    if (!c_test_fit_line_to_many_points()) flag = 54;
+    if (!c_test_flip_plane_normal()) flag = 55;
 
     return flag;
 }

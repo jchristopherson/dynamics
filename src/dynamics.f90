@@ -40,6 +40,7 @@ module dynamics
     public :: rotate
     public :: acceleration_transform
     public :: velocity_transform
+    public :: to_angle_axis
 
     ! DYNAMICS_STRUCTURAL
     public :: DYN_ONE_POINT_INTEGRATION_RULE
@@ -91,6 +92,9 @@ module dynamics
     ! DYNAMICS_HELPER
     public :: cross_product
     public :: to_skew_symmetric
+    public :: vector_angle
+    public :: scalar_projection
+    public :: vector_projection
 
     ! DYNAMICS_STABILITY
     public :: HYPERBOLIC_FIXED_POINT_SINK

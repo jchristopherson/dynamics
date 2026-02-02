@@ -8,6 +8,8 @@ program main
     use dynamics_transfer_function_tests
     use dynamics_state_space_tests
     use dynamics_system_id_tests
+    use dynamics_rotation_tests
+    use dynamics_geometry_tests
     implicit none
 
     ! Variables
@@ -140,6 +142,120 @@ program main
 
     check = test_siso_model_fit_least_squares_multi()
     if (.not.check) flag = 41
+
+    check = test_quaternion_init_1()
+    if (.not.check) flag = 42
+
+    check = test_quaternion_init_2()
+    if (.not.check) flag = 43
+
+    check = test_quaternion_init_3()
+    if (.not.check) flag = 44
+
+    check = test_quaternion_abs()
+    if (.not.check) flag = 45
+
+    check = test_quaternion_conjg()
+    if (.not.check) flag = 46
+
+    check = test_quaternion_real()
+    if (.not.check) flag = 47
+
+    check = test_quaternion_aimag()
+    if (.not.check) flag = 48
+
+    check = test_quaternion_multiply()
+    if (.not.check) flag = 49
+
+    check = test_quaternion_add()
+    if (.not.check) flag = 50
+
+    check = test_quaternion_subtract()
+    if (.not.check) flag = 51
+
+    check = test_quaternion_division()
+    if (.not.check) flag = 52
+
+    check = test_quaternion_to_matrix()
+    if (.not.check) flag = 53
+
+    check = test_quaternion_normalize()
+    if (.not.check) flag = 54
+
+    check = test_quaternion_to_array()
+    if (.not.check) flag = 55
+
+    check = test_quaternion_inverse()
+    if (.not.check) flag = 56
+
+    check = test_quaternion_to_angle_axis()
+    if (.not.check) flag = 57
+
+    check = test_quaternion_exp()
+    if (.not.check) flag = 58
+
+    check = test_quaternion_log()
+    if (.not.check) flag = 59
+
+    check = test_quaternion_pwr()
+    if (.not.check) flag = 60
+
+    check = test_quaternion_dot_product()
+    if (.not.check) flag = 61
+
+    check = test_quaternion_roll_pitch_yaw()
+    if (.not.check) flag = 62
+
+    check = test_line_from_2_points()
+    if (.not.check) flag = 63
+
+    check = test_line_from_2_planes()
+    if (.not.check) flag = 64
+
+    check = test_line_eval()
+    if (.not.check) flag = 65
+
+    check = test_plane_from_3_points()
+    if (.not.check) flag = 66
+
+    check = test_plane_from_point_and_normal()
+    if (.not.check) flag = 67
+
+    check = test_plane_normal()
+    if (.not.check) flag = 68
+
+    check = test_is_parallel_vectors()
+    if (.not.check) flag = 69
+
+    check = test_is_parallel_lines()
+    if (.not.check) flag = 70
+
+    check = test_is_parallel_planes()
+    if (.not.check) flag = 71
+
+    check = test_is_point_on_plane()
+    if (.not.check) flag = 72
+
+    check = test_point_to_line_distance()
+    if (.not.check) flag = 73
+
+    check = test_is_point_on_line()
+    if (.not.check) flag = 74
+
+    check = test_point_to_plane_distance()
+    if (.not.check) flag = 75
+
+    check = test_vector_plane_projection()
+    if (.not.check) flag = 76
+
+    check = test_fit_line_to_many_points()
+    if (.not.check) flag = 77
+
+    check = test_fit_plane_to_many_points()
+    if (.not.check) flag = 78
+
+    check = test_flip_plane_normal()
+    if (.not.check) flag = 79
 
     ! End
     if (flag /= 0) stop flag

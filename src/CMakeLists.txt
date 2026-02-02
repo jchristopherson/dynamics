@@ -14,6 +14,9 @@ set(DYNAMICS_SOURCES
     ${dir}/dynamics_stability.f90
     ${dir}/dynamics_controls.f90
     ${dir}/dynamics_system_id.f90
+    ${dir}/dynamics_quaternions.f90
+    ${dir}/dynamics_maps.f90
+    ${dir}/dynamics_geometry.f90
 )
 
 # C API

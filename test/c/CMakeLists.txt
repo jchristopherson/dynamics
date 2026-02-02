@@ -7,6 +7,7 @@ set(dynamics_c_sources
     dynamics_stability_tests.c
     dynamics_kinematics_tests.c
     dynamics_frf_tests.c
+    dynamics_geometry_tests.c
 )
 
 # Build the tests
