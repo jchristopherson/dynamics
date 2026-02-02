@@ -88,7 +88,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 0.5% of total for modules and submodules.">21 statements</a>
+               title=" 1.1% of total for modules and submodules.">46 statements</a>
           </li>
 
             <li id="source-file">
@@ -135,7 +135,10 @@
       <div id="funcs-0" class="panel-collapse collapse">
         <div class="list-group">
             <a class="list-group-item" href="../module/dynamics_helper.html#proc-cross_product">cross_product</a>
+            <a class="list-group-item" href="../module/dynamics_helper.html#proc-scalar_projection">scalar_projection</a>
             <a class="list-group-item" href="../module/dynamics_helper.html#proc-to_skew_symmetric">to_skew_symmetric</a>
+            <a class="list-group-item" href="../module/dynamics_helper.html#proc-vector_angle">vector_angle</a>
+            <a class="list-group-item" href="../module/dynamics_helper.html#proc-vector_projection">vector_projection</a>
         </div>
       </div>
     </div>
@@ -193,7 +196,10 @@
       <div id="funcs-1" class="panel-collapse collapse">
         <div class="list-group">
             <a class="list-group-item" href="../module/dynamics_helper.html#proc-cross_product">cross_product</a>
+            <a class="list-group-item" href="../module/dynamics_helper.html#proc-scalar_projection">scalar_projection</a>
             <a class="list-group-item" href="../module/dynamics_helper.html#proc-to_skew_symmetric">to_skew_symmetric</a>
+            <a class="list-group-item" href="../module/dynamics_helper.html#proc-vector_angle">vector_angle</a>
+            <a class="list-group-item" href="../module/dynamics_helper.html#proc-vector_projection">vector_projection</a>
         </div>
       </div>
     </div>
@@ -280,6 +286,67 @@
   </div>
 
       <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-scalar_projection"></span><h3>public pure function <a href='../proc/scalar_projection.html'>scalar_projection</a>(x, y) result(rst)  
+</h3></div>
+    <div class="panel-body">
+          
+  <p>Computes the projection of vector x onto vector y.  The scalar projection
+is defined such that <script type="math/tex"> s = \frac{\vec{x} \cdot \vec{y}}{||\vec{y}||} </script>.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+<p>The vector to project.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(size(x))
+            </td>
+            <td>::</td>
+            <td><strong>y</strong></td>
+            <td>
+<p>The vector onto which x should be projected.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64)</small>
+    </h4>
+    <p>The scalar projection of x onto y.</p>
+
+    </div>
+  </div>
+
+      <div class="panel panel-default">
     <div class="panel-heading codesum"><span class="anchor" id="proc-to_skew_symmetric"></span><h3>public pure function <a href='../proc/to_skew_symmetric.html'>to_skew_symmetric</a>(x) result(rst)  
 </h3></div>
     <div class="panel-body">
@@ -325,6 +392,129 @@ skew-symmetric matrix is defined as follows.</p><a href="../proc/to_skew_symmetr
     </div>
   </div>
 
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-vector_angle"></span><h3>public pure function <a href='../proc/vector_angle.html'>vector_angle</a>(x, y) result(rst)  
+</h3></div>
+    <div class="panel-body">
+          
+  <p>Computes the angle between two vectors.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+<p>The first vector.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(size(x))
+            </td>
+            <td>::</td>
+            <td><strong>y</strong></td>
+            <td>
+<p>The second vector.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64)</small>
+    </h4>
+    <p>The angle, in radians.</p>
+
+    </div>
+  </div>
+
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-vector_projection"></span><h3>public pure function <a href='../proc/vector_projection.html'>vector_projection</a>(x, y) result(rst)  
+</h3></div>
+    <div class="panel-body">
+          
+  <p>Computes the vector pojection of vector x onto vector y.  The vector
+projection is defined such that <script type="math/tex"> proj_{y} \vec{x} =  
+\frac{\vec{x} \cdot \vec{y}}{||\vec{y}||^{2}} \vec{y}</script>
+</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+<p>The vector to project.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(size(x))
+            </td>
+            <td>::</td>
+            <td><strong>y</strong></td>
+            <td>
+<p>The vector onto which x should be projected.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), (3)</small>
+    </h4>
+    <p>The vector projection of x onto y.</p>
+
+    </div>
+  </div>
+
     </section>
     <br>
 
@@ -339,14 +529,14 @@ skew-symmetric matrix is defined as follows.</p><a href="../proc/to_skew_symmetr
     <footer>
       <div class="container">
       <div class="row">
-        <div class="col-xs-6 col-md-6"><p>DYNAMICS was developed by Jason Christopherson<br>&copy; 2025 
+        <div class="col-xs-6 col-md-6"><p>DYNAMICS was developed by Jason Christopherson<br>&copy; 2026 
 </p>
         </div>
         <div class="col-xs-6 col-md-6">
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2025-12-18 14:38            </p>
+ on 2026-02-02 11:16            </p>
         </div>
       </div>
       <br>
