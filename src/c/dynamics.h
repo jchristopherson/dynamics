@@ -34,6 +34,10 @@
 #define DYN_QUADRATIC_UPDATE 2
 #define DYN_NIELSEN_UPDATE 3
 
+#define DYN_POINCARE_TWO_SIDED 0
+#define DYN_POINCARE_ONE_SIDED_FROM_FRONT 1
+#define DYN_POINCARE_ONE_SIDED_FROM_BACK 2
+
 typedef void (*c_vecfcn)(int nvar, int neqn, const double *x, double *f);
 typedef void (*c_modal_excite)(int n, double freq, double complex *f);
 typedef void (*c_harmonic_ode)(int n, double freq, double t, const double *x,
@@ -283,6 +287,10 @@ double c_point_to_line_distance(const double pt[3], const c_line *ln);
 double c_point_to_plane_distance(const double pt[3], const c_plane *pln);
 void c_vector_plane_projection(const double x[3], const c_plane *pln, double px[3]);
 void c_point_plane_projection(const double pt[3], const c_plane *pln, double ppt[3]);
+
+void c_poincare_map(int n, const double *x, const double *y, const double *z,
+    const c_plane *pln, int side, int nbuffer, double *xbuffer, double *ybuffer,
+    double *zbuffer, int *nactual);
 
 #ifdef __cplusplus
 }
