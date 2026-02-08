@@ -52,7 +52,7 @@ program main
     sol = integrator%get_solution()
 
     ! Construct the section
-    map = poincare_map(sol(:,2), sol(:,3), sol(:,4), pln, POINCARE_ONE_SIDED_FROM_FRONT)
+    map = poincare_map(sol(:,2), sol(:,3), sol(:,4), pln)
 
     ! Plot
     call plt%initialize()
