@@ -88,7 +88,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 0.9% of total for modules and submodules.">40 statements</a>
+               title=" 2.1% of total for modules and submodules.">91 statements</a>
           </li>
 
             <li id="source-file">
@@ -116,7 +116,21 @@
       <div id="sidebar">
       <h3>Contents</h3>
   
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#vars-0">Variables</a>
+        </h3>
+      </div>
+      <div id="vars-0" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_maps.html#variable-poincare_one_sided_from_back">POINCARE_ONE_SIDED_FROM_BACK</a>
+            <a class="list-group-item" href="../module/dynamics_maps.html#variable-poincare_one_sided_from_front">POINCARE_ONE_SIDED_FROM_FRONT</a>
+            <a class="list-group-item" href="../module/dynamics_maps.html#variable-poincare_two_sided">POINCARE_TWO_SIDED</a>
+        </div>
+      </div>
+    </div>
+
   
   
   
@@ -161,8 +175,8 @@
       <ul class="list-group">
           <li class="list-group-item">
             <ul class="list-inline">
-                <li><a href='../module/dynamics_geometry.html'>dynamics_geometry</a></li>
                 <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
+                <li><a href='../module/dynamics_geometry.html'>dynamics_geometry</a></li>
             </ul>
           </li>
       </ul>
@@ -174,7 +188,21 @@
     <section class="visible-xs visible-sm hidden-md">
         <h3>Contents</h3>
   
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#vars-1">Variables</a>
+        </h3>
+      </div>
+      <div id="vars-1" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_maps.html#variable-poincare_one_sided_from_back">POINCARE_ONE_SIDED_FROM_BACK</a>
+            <a class="list-group-item" href="../module/dynamics_maps.html#variable-poincare_one_sided_from_front">POINCARE_ONE_SIDED_FROM_FRONT</a>
+            <a class="list-group-item" href="../module/dynamics_maps.html#variable-poincare_two_sided">POINCARE_TWO_SIDED</a>
+        </div>
+      </div>
+    </div>
+
   
   
   
@@ -210,6 +238,82 @@
     <br class="visible-xs visible-sm hidden-md">
 
 
+    <section>
+    <h2>Variables</h2>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Visibility</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+<th></th><th>Initial</th>        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-poincare_one_sided_from_back"></span>
+              integer(kind=int32),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>POINCARE_ONE_SIDED_FROM_BACK</strong></td>
+<td> =</td>
+                <td>2</td>
+            <td>
+                <p>A one-sided Poincare section will be computed where the algorithm
+only retains intersection points where the trajectory approaches
+the sectioning plane from the back (the side opposite the plane 
+normal).</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-poincare_one_sided_from_front"></span>
+              integer(kind=int32),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>POINCARE_ONE_SIDED_FROM_FRONT</strong></td>
+<td> =</td>
+                <td>1</td>
+            <td>
+                <p>A one-sided Poincare section will be computed where the algorithm
+only retains intersection points where the trajectory approaches
+the sectioning plane from the front (the side of the plane normal).</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-poincare_two_sided"></span>
+              integer(kind=int32),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>POINCARE_TWO_SIDED</strong></td>
+<td> =</td>
+                <td>0</td>
+            <td>
+                <p>A two-sided Poincare section will be computed.  In this section, the
+algorithm does not care whether the trajectory approaches the 
+sectioning plane from the front or the back of the plane (defined
+by the plane normal).  It simply returns any intersection point.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    </section>
+    <br>
     
     
 
@@ -219,7 +323,7 @@
     <section>
     <h2>Functions</h2>
       <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="proc-poincare_map"></span><h3>public pure function <a href='../proc/poincare_map.html'>poincare_map</a>(x, y, z, pln) result(rst)  
+    <div class="panel-heading codesum"><span class="anchor" id="proc-poincare_map"></span><h3>public pure function <a href='../proc/poincare_map.html'>poincare_map</a>(x, y, z, pln, side) result(rst)  
 </h3></div>
     <div class="panel-body">
           
@@ -298,6 +402,22 @@ supplied trajectory with the specified plane.</p>
 utilized where z = 0.</p>
             </td>
         </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>side</strong></td>
+            <td>
+<p>An integer flag denoting which approach to use when computing
+the section.  The acceptable values are as follows.</p><a href="../proc/poincare_map.html#variable-side" class="pull-right"><emph>Read more&hellip;</emph></a>
+            </td>
+        </tr>
     </tbody>
   </table>
 
@@ -333,7 +453,7 @@ columns respectively.</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-02-02 11:22            </p>
+ on 2026-02-08 18:56            </p>
         </div>
       </div>
       <br>
