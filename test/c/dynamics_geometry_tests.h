@@ -20,5 +20,9 @@ bool c_test_vector_plane_projection();
 bool c_test_fit_line_to_many_points();
 bool c_test_fit_plane_to_many_points();
 bool c_test_flip_plane_normal();
+bool c_test_plucker_line_from_2_points();
+bool c_test_plucker_line_from_line();
+bool c_test_plucker_line_from_2_planes();
+bool c_test_plucker_line_matmul();
 
 #endif

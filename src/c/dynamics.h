@@ -119,6 +119,12 @@ typedef struct
     double v[3];
 } c_line;
 
+typedef struct
+{
+    double u[3];
+    double m[3];
+} c_plucker_line;
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -287,6 +293,15 @@ double c_point_to_line_distance(const double pt[3], const c_line *ln);
 double c_point_to_plane_distance(const double pt[3], const c_plane *pln);
 void c_vector_plane_projection(const double x[3], const c_plane *pln, double px[3]);
 void c_point_plane_projection(const double pt[3], const c_plane *pln, double ppt[3]);
+void c_plucker_line_from_2_points(const double pt1[3], const double pt2[3], 
+    c_plucker_line *ln);
+void c_plucker_line_from_line(const c_line *src, c_plucker_line *ln);
+void c_plucker_line_from_2_planes(const c_plane *p1, const c_plane *p2, 
+    c_plucker_line *ln);
+void c_plucker_line_from_array(const double x[6], c_plucker_line *ln);
+void c_plucker_line_mtx_mult(int n, const double *x, int ldx, 
+    const c_plucker_line *ln, double *y);
+void c_plucker_line_to_array(const c_plucker_line *ln, double x[6]);
 
 void c_poincare_map(int n, const double *x, const double *y, const double *z,
     const c_plane *pln, int side, int nbuffer, double *xbuffer, double *ybuffer,

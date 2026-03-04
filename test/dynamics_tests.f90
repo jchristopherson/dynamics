@@ -257,6 +257,18 @@ program main
     check = test_flip_plane_normal()
     if (.not.check) flag = 79
 
+    check = test_plucker_line_from_2_points()
+    if (.not.check) flag = 80
+
+    check = test_plucker_line_from_line()
+    if (.not.check) flag = 81
+
+    check = test_plucker_line_from_2_planes()
+    if (.not.check) flag = 82
+
+    check = test_plucker_line_matmul()
+    if (.not.check) flag = 83
+
     ! End
     if (flag /= 0) stop flag
 end program

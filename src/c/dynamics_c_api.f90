@@ -165,6 +165,11 @@ module dynamics_c_api
         real(c_double) :: v(3)
     end type
 
+    type, bind(C) :: c_plucker_line
+        real(c_double) :: u(3);
+        real(c_double) :: m(3);
+    end type
+
     interface assignment(=)
         module procedure :: convert_to_c_quaternion
         module procedure :: convert_from_c_quaternion
@@ -172,6 +177,8 @@ module dynamics_c_api
         module procedure :: convert_from_c_line
         module procedure :: convert_to_c_plane
         module procedure :: convert_from_c_plane
+        module procedure :: convert_to_c_plucker_line
+        module procedure :: convert_from_c_plucker_line
     end interface
 
 contains
@@ -1957,6 +1964,82 @@ subroutine c_point_plane_projection(pt, pln, ppt) &
     type(plane) :: pf
     pf = pln
     ppt = point_plane_projection(pt, pf)
+end subroutine
+
+! ------------------------------------------------------------------------------
+pure subroutine convert_to_c_plucker_line(pc, pf)
+    type(c_plucker_line), intent(out) :: pc
+    type(plucker_line), intent(in) :: pf
+    pc%u = pf%v(1:3)
+    pc%m = pf%v(4:6)
+end subroutine
+
+! ------------------------------------------------------------------------------
+pure subroutine convert_from_c_plucker_line(pf, pc)
+    type(plucker_line), intent(out) :: pf
+    type(c_plucker_line), intent(in) :: pc
+    pf%v(1:3) = pc%u
+    pf%v(4:6) = pc%m
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_plucker_line_from_2_points(pt1, pt2, ln) &
+    bind(C, name = "c_plucker_line_from_2_points")
+    real(c_double), intent(in) :: pt1(3)
+    real(c_double), intent(in) :: pt2(3)
+    type(c_plucker_line), intent(out) :: ln
+    ln = plucker_line(pt1, pt2)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_plucker_line_from_line(src, ln) &
+    bind(C, name = "c_plucker_line_from_line")
+    type(c_line), intent(in) :: src
+    type(c_plucker_line), intent(out) :: ln
+    type(line) :: fsrc
+    fsrc = src
+    ln = plucker_line(fsrc)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_plucker_line_from_2_planes(p1, p2, ln) &
+    bind(C, name = "c_plucker_line_from_2_planes")
+    type(c_plane), intent(in) :: p1
+    type(c_plane), intent(in) :: p2
+    type(c_plucker_line), intent(out) :: ln
+    type(plane) :: pln1, pln2
+    pln1 = p1
+    pln2 = p2
+    ln = plucker_line(pln1, pln2)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_plucker_line_from_array(x, ln) &
+    bind(C, name = "c_plucker_line_from_array")
+    real(c_double), intent(in) :: x(6)
+    type(c_plucker_line), intent(out) :: ln
+    ln = plucker_line(x, nrm = .true.)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_plucker_line_mtx_mult(n, x, ldx, ln, y) &
+    bind(C, name = "c_plucker_line_mtx_mult")
+    integer(c_int), intent(in), value :: n, ldx
+    real(c_double), intent(in) :: x(ldx,6)
+    type(c_plucker_line), intent(in) :: ln
+    real(c_double), intent(out) :: y(n)
+    type(plucker_line) :: l
+    l = ln
+    y = matmul(x(1:n,:), l)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_plucker_line_to_array(ln, x) &
+    bind(C, name = "c_plucker_line_to_array")
+    type(c_plucker_line), intent(in) :: ln
+    real(c_double), intent(out) :: x(6)
+    x(1:3) = ln%u
+    x(4:6) = ln%m
 end subroutine
 
 ! ******************************************************************************

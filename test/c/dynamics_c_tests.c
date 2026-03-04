@@ -77,5 +77,10 @@ int main()
     if (!c_test_fit_line_to_many_points()) flag = 54;
     if (!c_test_flip_plane_normal()) flag = 55;
 
+    if (!c_test_plucker_line_from_2_points()) flag = 56;
+    if (!c_test_plucker_line_from_line()) flag = 57;
+    if (!c_test_plucker_line_from_2_planes()) flag = 58;
+    if (!c_test_plucker_line_matmul()) flag = 59;
+
     return flag;
 }

@@ -9,6 +9,7 @@ module dynamics_geometry
     public :: plane
     public :: plane_normal
     public :: line
+    public :: plucker_line
     public :: assignment(=)
     public :: is_parallel
     public :: is_point_on_plane
@@ -18,6 +19,7 @@ module dynamics_geometry
     public :: point_to_plane_distance
     public :: vector_plane_projection
     public :: point_plane_projection
+    public :: matmul
 
     type :: plane
         !! Defines a plane as \( a x + b y + c z + d = 0 \).
@@ -59,12 +61,37 @@ module dynamics_geometry
     interface assignment(=)
         module procedure :: plane_assign
         module procedure :: line_assign
+        module procedure :: pl_assign
+        module procedure :: pl_assign_line
     end interface
 
     interface is_parallel
         module procedure :: is_parallel_vectors
         module procedure :: is_parallel_lines
         module procedure :: is_parallel_planes
+    end interface
+
+    type :: plucker_line
+        !! Defines a line in 3D Euclidean space using Plücker coordinates.
+        real(real64), public :: v(6)
+            !! The 6-element array containing the Plücker coordinates.  The
+            !! first 3 elements contain the unit vector and the last 3 elements
+            !! contain the moment vector.
+    contains
+        procedure, public :: u => pl_u
+        procedure, public :: m => pl_m
+        procedure, public :: to_array => pl_to_array
+    end type
+
+    interface plucker_line
+        module procedure :: pl_from_2pts
+        module procedure :: pl_from_line
+        module procedure :: pl_from_2_planes
+        module procedure :: pl_from_array
+    end interface
+
+    interface matmul
+        module procedure :: pl_matmul
     end interface
 
 contains
@@ -604,6 +631,142 @@ contains
         t = -(pln%c * pt(3) + pln%b * pt(2) + pln%a * pt(1) + pln%d) / &
             (norm2(n)**2)
         rst = pt + t * n
+    end function
+
+! ******************************************************************************
+! PLUCKER_LINE
+! ------------------------------------------------------------------------------
+    pure function pl_from_2pts(pt1, pt2) result(rst)
+        !! Constructs a new plucker_line from two points.
+        real(real64), intent(in) :: pt1(3)
+            !! The first point.
+        real(real64), intent(in) :: pt2(3)
+            !! The second point.
+        type(plucker_line) :: rst
+            !! The resulting line.
+
+        rst%v(1:3) = pt2 - pt1
+        rst%v(1:3) = rst%v(1:3) / norm2(rst%v(1:3))
+        rst%v(4:6) = cross_product(pt1, rst%v(1:3))
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function pl_from_line(ln) result(rst)
+        !! Constructs a new plucker_line from a line object.
+        class(line), intent(in) :: ln
+            !! The line.
+        type(plucker_line) :: rst
+            !! The equivalent plucker_line.
+
+        rst = pl_from_2pts(ln%evaluate(0.0d0), ln%evaluate(1.0d0))
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function pl_from_2_planes(p1, p2) result(rst)
+        !! Constructs a new plucker_line from the intersection of two planes.
+        class(plane), intent(in) :: p1
+            !! The first plane.
+        class(plane), intent(in) :: p2
+            !! The second plane.
+        type(plucker_line) :: rst
+            !! The resulting line.  NaN's are returned in the event that the
+            !! two planes are parallel.
+
+        rst = pl_from_line(line(p1, p2))
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function pl_from_array(x, nrm) result(rst)
+        !! Constructs a new plucker_line from the supplied array.
+        real(real64), intent(in) :: x(6)
+            !! A 6-element array containing the Plücker coordinates.
+        logical, intent(in), optional :: nrm
+            !! An optional input that specifies if the first three coordinates
+            !! (the unit vector) should be normalized (true), or left as-is
+            !! (false).  The default is true such that the vector is normalized.
+        type(plucker_line) :: rst
+            !! The resulting line.
+
+        logical :: n
+        n = .true.
+        if (present(nrm)) n = nrm
+        if (n) then
+            rst%v(1:3) = x(1:3) / norm2(x(1:3))
+            rst%v(4:6) = x(4:6)
+        else
+            rst%v = x
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function pl_matmul(x, y) result(rst)
+        !! Overloads the matmul routine to allow for multiplication of the
+        !! Plücker line coordinate vector with a matrix.
+        real(real64), intent(in), dimension(:,:) :: x
+            !! The N-by-6 matrix.
+        type(plucker_line), intent(in) :: y
+            !! The plucker_line object.
+        real(real64), allocatable, dimension(:) :: rst
+            !! The resulting N-element array.
+
+        rst = matmul(x, y%v)
+    end function
+
+! ------------------------------------------------------------------------------
+! PLUCKER_LINE OPERATORS
+! ------------------------------------------------------------------------------
+    pure elemental subroutine pl_assign(x, y)
+        !! Assigns a plucker_line to another.
+        type(plucker_line), intent(out) :: x
+            !! The resulting plucker_line.
+        type(plucker_line), intent(in) :: y
+            !! The source plucker_line.
+
+        x%v = y%v
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    pure elemental subroutine pl_assign_line(x, y)
+        !! Assigns a line to a plucker_line.
+        type(plucker_line), intent(out) :: x
+            !! The resulting plucker_line.
+        type(line), intent(in) :: y
+            !! The source line.
+
+        x = plucker_line(y)
+    end subroutine
+
+! ------------------------------------------------------------------------------
+! PLUCKER_LINE MEMBERS
+! ------------------------------------------------------------------------------
+    pure function pl_u(this) result(rst)
+        !! The unit vector representing the orientation of the line.
+        class(plucker_line), intent(in) :: this
+            !! The plucker_line object.
+        real(real64) :: rst(3)
+            !! The unit vector.
+        rst = this%v(1:3) 
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function pl_m(this) result(rst)
+        !! The line moment vector.
+        class(plucker_line), intent(in) :: this
+            !! The plucker_line object.
+        real(real64) :: rst(3)
+            !! The moment vector.
+        rst = this%v(4:6)
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function pl_to_array(this) result(rst)
+        !! Returns the plucker_line as a 6-element array of the form [u, m].
+        class(plucker_line), intent(in) :: this
+            !! The plucker_line object.
+        real(real64) :: rst(6)
+            !! The resulting array.
+
+        rst = this%v
     end function
 
 ! ------------------------------------------------------------------------------
