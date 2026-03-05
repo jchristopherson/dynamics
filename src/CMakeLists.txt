@@ -18,6 +18,7 @@ set(DYNAMICS_SOURCES
     ${dir}/dynamics_maps.f90
     ${dir}/dynamics_geometry.f90
     ${dir}/dynamics_rigid_bodies.f90
+    ${dir}/dynamics_linkage.f90
 )
 
 # C API
