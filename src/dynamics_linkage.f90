@@ -51,8 +51,8 @@ pure function link_transformation_matrix(link, theta, d) result(rst)
     !! binary_link object.  Assuming the link is labeled link \(i\), the 
     !! proximal joint is labeld \(i - 1 \) and is connects this link to the
     !! previous link (the \(i - 1\) link).  The computed transformation matrix
-    !! is \(^{i-1}T_{i}) such that the following relationship holds.
-    !! $$ \left[\begin{matrix} x_{i-1} \\ y_{i-1} \\ z_{i-1} \\ 1 = 
+    !! is such that the following relationship holds.
+    !! $$ \left[\begin{matrix} x_{i-1} \\ y_{i-1} \\ z_{i-1} \\ 1 
     !! \end{matrix}\right] = ^{i-1}T_{i} \left[\begin{matrix} x_{i} \\ y_{i} 
     !! \\ z_{i} \\ 1 \end{matrix}\right] $$
     class(binary_link), intent(in) :: link
