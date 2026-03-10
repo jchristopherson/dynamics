@@ -10,6 +10,7 @@ program main
     use dynamics_system_id_tests
     use dynamics_rotation_tests
     use dynamics_geometry_tests
+    use dynamics_linkage_tests
     implicit none
 
     ! Variables
@@ -268,6 +269,30 @@ program main
 
     check = test_plucker_line_matmul()
     if (.not.check) flag = 83
+
+    check = test_line_from_point_and_vector()
+    if (.not.check) flag = 84
+
+    check = test_line_common_normal_1()
+    if (.not.check) flag = 85
+
+    check = test_line_common_normal_2()
+    if (.not.check) flag = 86
+
+    check = test_line_common_normal_3()
+    if (.not.check) flag = 87
+
+    check = test_define_link_csys_1()
+    if (.not.check) flag = 88
+
+    check = test_define_link_csys_2()
+    if (.not.check) flag = 89
+
+    check = test_define_link_csys_3()
+    if (.not.check) flag = 90
+
+    check = test_define_link_csys_4()
+    if (.not.check) flag = 91
 
     ! End
     if (flag /= 0) stop flag

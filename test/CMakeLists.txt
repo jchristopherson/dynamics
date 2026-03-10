@@ -11,6 +11,7 @@ set(dynamics_test_sources
     dynamics_system_id_tests.f90
     dynamics_rotation_tests.f90
     dynamics_geometry_tests.f90
+    dynamics_linkage_tests.f90
 )
 
 # Dependencies

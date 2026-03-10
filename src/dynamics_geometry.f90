@@ -2,7 +2,7 @@ module dynamics_geometry
     use iso_fortran_env
     use dynamics_helper
     use ieee_arithmetic
-    use lapack, only : DGESVD
+    use lapack, only : DGESVD, DGELS
     use fstats, only : mean
     implicit none
     private
@@ -20,6 +20,9 @@ module dynamics_geometry
     public :: vector_plane_projection
     public :: point_plane_projection
     public :: matmul
+    public :: line_from_point_and_vector
+    public :: line_common_normal
+    public :: do_lines_intersect
 
     type :: plane
         !! Defines a plane as \( a x + b y + c z + d = 0 \).
@@ -391,6 +394,37 @@ contains
                 return
             end if
             rst%v = vt(1,:) / norm2(vt(1,:))
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function line_from_point_and_vector(pt, x, nx) result(rst)
+        !! Constructs a new line from a point (defines the point where t = 0)
+        !! and a direction vector.
+        real(real64), intent(in) :: pt(3)
+            !! The point at which t = 0 on the line.
+        real(real64), intent(in) :: x(3)
+            !! The direction vector defining the orientation of the line.
+        logical, intent(in), optional :: nx
+            !! An optional parameter that defines if x should be normalized to
+            !! a unit vector (true), or left as-is (false).  The default is
+            !! true such that x is normalized to a unit vector.
+        type(line) :: rst
+            !! The resulting line.
+
+        ! Local Variables
+        logical :: nrm
+
+        ! Initialization
+        nrm = .true.
+        if (present(nx)) nrm = nx
+
+        ! Process
+        rst%r0 = pt
+        if (nrm) then
+            rst%v = x / norm2(x)
+        else
+            rst%v = x
         end if
     end function
 
@@ -768,6 +802,159 @@ contains
 
         rst = this%v
     end function
+
+! ******************************************************************************
+! ADDITIONAL GEOMETRIC CALCULATIONS (ADDED 3/5/2026, JAC)
+! ------------------------------------------------------------------------------
+    pure function line_common_normal(ln1, ln2) result(rst)
+        !! Returns the common normal line between two lines pointing from ln1 to
+        !! ln2.  In the event that the two lines are parallel within the 
+        !! specified tolerance, there exist an infinite number of common 
+        !! normals; therefore, a line will be chosen that runs from ln1 to ln2
+        !! with the point at t = 0 coincident with the point at t = 0 on ln1.
+        class(line), intent(in) :: ln1
+            !! The first line.
+        class(line), intent(in) :: ln2
+            !! The second line.
+        type(line) :: rst
+            !! The common normal line.  The distance along this line between
+            !! t = 0 and t = 1 defines the length of the common normal 
+            !! connecting ln1 to ln2.  In the event that ln1 and ln2 intersect,
+            !! the length of this line is zero.
+
+        ! Local Variables
+        logical :: coincident
+        integer(int32) :: lwork, info
+        real(real64) :: s, t, xi(3), p1(3), p2(3), A(3,2), x(3), temp(1)
+        real(real64), allocatable, dimension(:) :: work
+
+        ! Initialization
+        t = 1.0d1 * epsilon(t)
+
+        ! Compute the cross products of the direction vectors.
+        xi = cross_product(ln2%v, ln1%v)
+
+        ! Locate the point on ln2 that is an intersection between the common 
+        ! normal and ln2.  This can be accomplished by noting that:
+        !
+        ! ln1%r0 + t * xi = ln2%ro + s * ln2%v
+        !
+        ! We need to solve for s and t
+        p1 = ln1%evaluate(0.0d0)
+
+        ! Compute the coefficient matrix
+        A(:,1) = xi
+        A(:,2) = -ln2%v
+
+        ! Compute the right-hand-side
+        x = ln2%r0 - ln1%r0
+
+        ! Set up the least-squares solver.  We use DGELS as we have 3 equations
+        ! but only 2 unknowns.
+        call DGELS('N', 3, 2, 1, A, 3, x, 3, temp, -1, info)
+        lwork = int(temp(1), int32)
+        allocate(work(lwork))
+
+        ! Solve
+        call DGELS('N', 3, 2, 1, A, 3, x, 3, work, lwork, info)
+        if (info > 0) then
+            ! The system wasn't of full rank.  It seems the common normal
+            ! connecting the two axes is likely of zero length.
+            coincident = .true.
+        end if
+        s = x(2)    ! we can use either t or s.  s is associated with ln2
+        p2 = ln2%evaluate(s)
+        rst = line(p1, p2)
+
+        ! Ensure that rst is of finite length
+        if (norm2(rst%evaluate(1.0d0) - rst%evaluate(0.0d0)) <= t) then
+            coincident = .true.
+        else if (ieee_is_nan(rst%v(1)) .or. ieee_is_nan(rst%v(2)) .or. &
+            ieee_is_nan(rst%v(3))) &
+        then
+            coincident = .true.
+        else
+            coincident = .false.
+        end if
+
+        if (coincident) then
+            ! If the lines are coincident we offset them by the specified
+            ! zero tolerance along the computed common normal axis
+            rst%r0 = p1
+            rst%v = 0.0d0
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
+    pure subroutine do_lines_intersect(ln1, ln2, intersect, t1, t2, tol)
+        !! Tests to see if two lines intersect.
+        class(line), intent(in) :: ln1
+            !! The first line.
+        class(line), intent(in) :: ln2
+            !! The second line.
+        logical, intent(out) :: intersect
+            !! True if the two lines intersect within the specified tolerance;
+            !! else, false if they do not intersect.
+        real(real64), intent(out), optional :: t1
+            !! The parametric value associate with ln1 defining the intersection
+            !! point.
+        real(real64), intent(out), optional :: t2
+            !! The parametric value associate with ln2 defining the intersection
+            !! point.
+        real(real64), intent(in), optional :: tol
+            !! The intersection tolerance.  If not supplied, the default value
+            !! is 10x machine epsilon.
+
+        ! Local Variables
+        integer(int32) :: lwork, info
+        real(real64) :: tolerance, A(3, 2), x(3), s, t, temp(1), p1(3), p2(3), &
+            dp(3), nan
+        real(real64), allocatable, dimension(:) :: work
+
+        ! Initialization
+        if (present(tol)) then
+            tolerance = tol
+        else
+            tolerance = 1.0d1 * epsilon(tolerance)
+        end if
+        nan = ieee_value(nan, IEEE_QUIET_NAN)
+        A(:,1) = ln2%v
+        A(:,2) = -ln1%v
+        x = ln1%r0 - ln2%r0
+
+        ! Set up the least-squares solver
+        call DGELS('N', 3, 2, 1, A, 3, x, 3, temp, -1, info)
+        lwork = int(temp(1), int32)
+        allocate(work(lwork))
+
+        ! Solve A {s;t} = X
+        call DGELS('N', 3, 2, 1, A, 3, x, 3, work, lwork, info)
+        if (info /= 0) then
+            intersect = .false.
+            s = nan
+            t = nan
+        else
+            s = x(1)
+            t = x(2)
+            p1 = ln1%evaluate(t)
+            p2 = ln2%evaluate(s)
+            dp = abs(p2 - p1)
+            if (dp(1) > tolerance .or. dp(2) > tolerance .or. &
+                dp(3) > tolerance) &
+            then
+                ! No intersection
+                intersect = .false.
+                s = nan
+                t = nan
+            else
+                ! We've got an intersection point
+                intersect = .true.
+            end if
+        end if
+
+        if (present(t1)) t1 = t
+        if (present(t2)) t2 = s
+    end subroutine
 
 ! ------------------------------------------------------------------------------
 end module

@@ -576,4 +576,118 @@ function test_plucker_line_matmul() result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+function test_line_from_point_and_vector() result(rst)
+    logical :: rst
+    real(real64) :: pt1(3), v(3)
+    type(line) :: ln
+
+    ! Initialization
+    rst = .true.
+    call random_number(pt1)
+    call random_number(v)
+    ln = line_from_point_and_vector(pt1, v)
+    v = v / norm2(v)
+
+    ! Test
+    if (.not.assert(ln%r0, pt1)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_line_from_point_and_vector -1"
+    end if
+    if (.not.assert(ln%v, v)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_line_from_point_and_vector -2"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_line_common_normal_1() result(rst)
+    ! Skew and offset
+    logical :: rst
+    real(real64) :: pt1(3), v1(3), pt2(3), v2(3), apt(3), av(3)
+    type(line) :: ln1, ln2, cn
+
+    ! Initialization
+    rst = .true.
+    pt1 = [0.0d0, 0.0d0, 0.0d0]
+    v1 = [0.0d0, 0.0d0, 1.0d0]
+    pt2 = [1.0d0, 0.0d0, 0.0d0]
+    v2 = [0.0d0, 1.0d0, 0.0d0]
+    apt = pt1
+    av = [1.0d0, 0.0d0, 0.0d0]
+    ln1 = line_from_point_and_vector(pt1, v1)
+    ln2 = line_from_point_and_vector(pt2, v2)
+
+    ! Tests
+    cn = line_common_normal(ln1, ln2)
+    if (.not.assert(cn%r0, apt)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_line_common_normal_1 -1"
+    end if
+    if (.not.assert(cn%v, av)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_line_common_normal_1 -2"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_line_common_normal_2() result(rst)
+    ! Parallel but offset
+    logical :: rst
+    real(real64) :: pt1(3), v1(3), pt2(3), v2(3), apt(3), av(3)
+    type(line) :: ln1, ln2, cn
+
+    ! Initialization
+    rst = .true.
+    pt1 = [0.0d0, 0.0d0, 0.0d0]
+    v1 = [0.0d0, 0.0d0, 1.0d0]
+    pt2 = [1.0d0, 1.0d0, 1.0d0]
+    v2 = [0.0d0, 0.0d0, 1.0d0]
+    apt = pt1
+    av = [1.0d0, 1.0d0, 0.0d0]
+    ln1 = line_from_point_and_vector(pt1, v1)
+    ln2 = line_from_point_and_vector(pt2, v2)
+
+    ! Tests
+    cn = line_common_normal(ln1, ln2)
+    if (.not.assert(cn%r0, apt)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_line_common_normal_2 -1"
+    end if
+    if (.not.assert(cn%v, av)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_line_common_normal_2 -2"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_line_common_normal_3() result(rst)
+    ! Skew and intersecting
+    logical :: rst
+    real(real64) :: pt1(3), v1(3), pt2(3), v2(3), apt(3), av(3)
+    type(line) :: ln1, ln2, cn
+
+    ! Initialization
+    rst = .true.
+    pt1 = [0.0d0, 0.0d0, 0.0d0]
+    v1 = [0.0d0, 0.0d0, 1.0d0]
+    pt2 = [0.0d0, 0.0d0, 0.0d0]
+    v2 = [0.0d0, 1.0d0, 0.0d0]
+    apt = pt1
+    av = [0.0d0, 0.0d0, 0.0d0]
+    ln1 = line_from_point_and_vector(pt1, v1)
+    ln2 = line_from_point_and_vector(pt2, v2)
+
+    ! Tests
+    cn = line_common_normal(ln1, ln2)
+    if (.not.assert(cn%r0, apt)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_line_common_normal_3 -1"
+    end if
+    if (.not.assert(cn%v, av)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_line_common_normal_3 -2"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
 end module
