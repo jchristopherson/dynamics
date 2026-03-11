@@ -294,6 +294,12 @@ program main
     check = test_define_link_csys_4()
     if (.not.check) flag = 91
 
+    check = test_dh_table_1()
+    if (.not.check) flag = 92
+
+    check = test_dh_table_2()
+    if (.not.check) flag = 93
+
     ! End
     if (flag /= 0) stop flag
 end program

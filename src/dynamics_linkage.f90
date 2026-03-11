@@ -231,12 +231,14 @@ contains
 
         ! Process
         do i = 2, n
-            rst%parameters(i) = dh_parameter_set( &
-                compute_dh_link_length(c(i - 1), c(i)), &
-                compute_dh_link_twist(c(i - 1), c(i)), &
-                compute_dh_link_offset(c(i - 1), c(i)), &
-                compute_dh_joint_angle(c(i - 1), c(i)) &
-            )
+            rst%parameters(i - 1)%link_length = &
+                compute_dh_link_length(c(i - 1), c(i))
+            rst%parameters(i - 1)%link_twist = &
+                compute_dh_link_twist(c(i - 1), c(i))
+            rst%parameters(i - 1)%link_offset = &
+                compute_dh_link_offset(c(i - 1), c(i))
+            rst%parameters(i - 1)%joint_angle = &
+                compute_dh_joint_angle(c(i - 1), c(i))
         end do
     end function
 
@@ -393,7 +395,7 @@ contains
         ! rotation of one vector onto the other.  If the two vectors become
         ! parallel, we guessed the sign correctly.  If not, the sign is the
         ! opposite.
-        q = quaternion(rst, axis)   ! angle and axis construction
+        q = quaternion(-rst, axis)   ! angle and axis construction
         ry = aimag(q * y * conjg(q))
         if (.not.is_parallel(ry, x)) rst = -rst
     end function
