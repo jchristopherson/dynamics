@@ -596,8 +596,8 @@ contains
         !! Solves the inverse kinematics problem for a linkage.  An iterative
         !! solution procedure is utilized.
         procedure(vecfcn), intent(in), pointer :: mdl
-            !! A routine used to compute the error in the kinematics 
-            !! equations based upon the current solution estimate.
+            !! A routine used to compute the forward kinematics for the linkage
+            !! given the current joint variable estimates.
         real(real64), intent(in), dimension(:) :: qo
             !! An M-element array containing an initial estimate of the M joint
             !! variables.
