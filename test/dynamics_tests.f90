@@ -300,6 +300,9 @@ program main
     check = test_dh_table_2()
     if (.not.check) flag = 93
 
+    check = test_dh_table_3()
+    if (.not.check) flag = 94
+
     ! End
     if (flag /= 0) stop flag
 end program
