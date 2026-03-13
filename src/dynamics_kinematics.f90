@@ -843,7 +843,7 @@ function dh_build_jacobian(alpha, a, theta, d, jtypes) result(rst)
 end function
 
 ! ******************************************************************************
-! COORDINATE SYSTEM ROUTINES
+! COORDINATE SYSTEM ROUTINES - V1.2.2 ADDITIONS
 ! ------------------------------------------------------------------------------
     pure function define_link_csys(xim1, zim1, zi, rim1, ri) &
         result(rst)
