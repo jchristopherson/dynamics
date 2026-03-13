@@ -367,7 +367,7 @@ contains
             rst = 0.0d0
         else
             ! Compute the angle
-            rst = compute_vector_angle(cs1%k, cs1%i, px2)
+            rst = compute_vector_angle(-cs1%k, cs1%i, px2)
         end if
     end function
 
@@ -384,20 +384,37 @@ contains
         real(real64) :: rst
             !! The angle, with correct sign assuming a right-hand convention.
 
+        ! Parameters
+        real(real64), parameter :: half_pi = acos(0.0d0)
+
         ! Local Variables
         type(quaternion) :: q
-        real(real64) :: ry(3)
+        real(real64) :: ry(3), xy, xymag, tol
+        logical :: parallel
+
+        ! Initialization
+        tol = 1.0d1 * epsilon(tol)
 
         ! Determine the angle
         rst = vector_angle(x, y)
 
         ! To determine the sign, we can establish a quaternion and perform the
-        ! rotation of one vector onto the other.  If the two vectors become
-        ! parallel, we guessed the sign correctly.  If not, the sign is the
-        ! opposite.
-        q = quaternion(-rst, axis)   ! angle and axis construction
+        ! rotation of one vector onto the other. 
+        q = quaternion(rst, axis)   ! angle and axis construction
         ry = aimag(q * y * conjg(q))
-        if (.not.is_parallel(ry, x)) rst = -rst
+        xy = dot_product(x, ry)
+        xymag = norm2(x) * norm2(ry)
+        parallel = abs(abs(xy) - xymag) < tol
+        if (.not.parallel) then
+            rst = -rst
+        end if
+
+        ! If the angle is pi/2, it is possible for the vectors to point
+        ! in opposite directions but still pass the parallelism test
+        if (abs(abs(rst) - half_pi) < tol .and. xy < 0.0d0) then
+            ! The vectors point in opposite directions
+            rst = -rst
+        end if
     end function
 
 ! ******************************************************************************
