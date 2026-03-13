@@ -107,6 +107,7 @@ proportional damping terms <script type="math/tex"> \alpha </script> and <script
 <script type="math/tex"> i^{th} </script> eigenvalue of the system.</p></td></tr>
 			   <tr><td><a href='../interface/conjg.html'>conjg</a></td><td><a href='../module/dynamics_quaternions.html'>dynamics_quaternions</a></td><td>Interface</td><td></td></tr>
 			   <tr><td><a href='../interface/constraint_equations.html'>constraint_equations</a></td><td><a href='../module/dynamics_system_id.html'>dynamics_system_id</a></td><td>Interface</td><td></td></tr>
+			   <tr><td><a href='../interface/coordinate_system.html'>coordinate_system</a></td><td><a href='../module/dynamics_kinematics.html'>dynamics_kinematics</a></td><td>Interface</td><td></td></tr>
 			   <tr><td><a href='../proc/create_connectivity_matrix.html'>create_connectivity_matrix</a></td><td><a href='../module/dynamics_structural.html'>dynamics_structural</a></td><td>Function</td><td><p>Creates a connectivity matrix for the element.</p></td></tr>
 			   <tr><td><a href='../proc/cross_product.html'>cross_product</a></td><td><a href='../module/dynamics_helper.html'>dynamics_helper</a></td><td>Function</td><td><p>Computes the cross-product of a vector.</p></td></tr>
 			   <tr><td><a href='../proc/damping_from_fractional_overshoot.html'>damping_from_fractional_overshoot</a></td><td><a href='../module/dynamics_vibrations.html'>dynamics_vibrations</a></td><td>Function</td><td><p>Employs the method of fractional overshoot to estimate the damping ratio
@@ -122,12 +123,15 @@ the dynamics matrix was computed.</p></td></tr>
 			   <tr><td><a href='../interface/dh_jacobian.html'>dh_jacobian</a></td><td><a href='../module/dynamics_kinematics.html'>dynamics_kinematics</a></td><td>Interface</td><td></td></tr>
 			   <tr><td><a href='../proc/dh_matrix.html'>dh_matrix</a></td><td><a href='../module/dynamics_kinematics.html'>dynamics_kinematics</a></td><td>Function</td><td><p>Computes the Denavit-Hartenberg transformation matrix for the 
 specified DH parameters.</p></td></tr>
+			   <tr><td><a href='../interface/dh_parameter_set.html'>dh_parameter_set</a></td><td><a href='../module/dynamics_kinematics.html'>dynamics_kinematics</a></td><td>Interface</td><td></td></tr>
 			   <tr><td><a href='../proc/dh_rotate_x.html'>dh_rotate_x</a></td><td><a href='../module/dynamics_kinematics.html'>dynamics_kinematics</a></td><td>Function</td><td><p>Computes the Denavit-Hartenberg matrix for a local x-axis rotation.</p></td></tr>
 			   <tr><td><a href='../proc/dh_rotate_z.html'>dh_rotate_z</a></td><td><a href='../module/dynamics_kinematics.html'>dynamics_kinematics</a></td><td>Function</td><td><p>Computes the Denavit-Hartenberg matrix for a local z-axis rotation.</p></td></tr>
+			   <tr><td><a href='../interface/dh_table.html'>dh_table</a></td><td><a href='../module/dynamics_kinematics.html'>dynamics_kinematics</a></td><td>Interface</td><td></td></tr>
 			   <tr><td><a href='../proc/dh_translate_x.html'>dh_translate_x</a></td><td><a href='../module/dynamics_kinematics.html'>dynamics_kinematics</a></td><td>Function</td><td><p>Computes the Denavit-Hartenberg matrix for a local x-axis 
 translation.</p></td></tr>
 			   <tr><td><a href='../proc/dh_translate_z.html'>dh_translate_z</a></td><td><a href='../module/dynamics_kinematics.html'>dynamics_kinematics</a></td><td>Function</td><td><p>Computes the Denavit-Hartenberg matrix for a local z-axis 
 translation.</p></td></tr>
+			   <tr><td><a href='../proc/do_lines_intersect.html'>do_lines_intersect</a></td><td><a href='../module/dynamics_geometry.html'>dynamics_geometry</a></td><td>Subroutine</td><td><p>Tests to see if two lines intersect.</p></td></tr>
 			   <tr><td><a href='../interface/dot_product.html'>dot_product</a></td><td><a href='../module/dynamics_quaternions.html'>dynamics_quaternions</a></td><td>Interface</td><td></td></tr>
 			   <tr><td><a href='../proc/estimate_bandwidth.html'>estimate_bandwidth</a></td><td><a href='../module/dynamics_vibrations.html'>dynamics_vibrations</a></td><td>Function</td><td><p>Estimates the bandwidth of the resonant mode of a vibratory system.
 The bandwidth is the width of the range of frequencies for which the
@@ -157,15 +161,13 @@ receptance model:</p><a href="../proc/fit_frf.html" class="pull-right"><emph>Rea
 of the link origin, <script type="math/tex">\vec{d}</script>, and the joint axis unit vector, 
 <script type="math/tex">\vec{k}</script>.</p><a href="../proc/jacobian_generating_vector.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
 			   <tr><td><a href='../interface/line.html'>line</a></td><td><a href='../module/dynamics_geometry.html'>dynamics_geometry</a></td><td>Interface</td><td></td></tr>
-			   <tr><td><a href='../proc/link_transformation_matrix.html'>link_transformation_matrix</a></td><td><a href='../module/dynamics_linkage.html'>dynamics_linkage</a></td><td>Function</td><td><p>Computes the Denavit-Hartenberg transformation matrix for the specified
-binary_link object.  Assuming the link is labeled link <script type="math/tex">i</script>, the 
-proximal joint is labeld <script type="math/tex">i - 1 </script> and is connects this link to the
-previous link (the <script type="math/tex">i - 1</script> link).  The computed transformation matrix
-is such that the following relationship holds.
-<script type="math/tex; mode=display"> \left[\begin{matrix} x_{i-1} \\ y_{i-1} \\ z_{i-1} \\ 1 
-\end{matrix}\right] = ^{i-1}T_{i} \left[\begin{matrix} x_{i} \\ y_{i} 
-\\ z_{i} \\ 1 \end{matrix}\right] </script>
-</p></td></tr>
+			   <tr><td><a href='../proc/line_common_normal.html'>line_common_normal</a></td><td><a href='../module/dynamics_geometry.html'>dynamics_geometry</a></td><td>Function</td><td><p>Returns the common normal line between two lines pointing from ln1 to
+ln2.  In the event that the two lines are parallel within the 
+specified tolerance, there exist an infinite number of common 
+normals; therefore, a line will be chosen that runs from ln1 to ln2
+with the point at t = 0 coincident with the point at t = 0 on ln1.</p></td></tr>
+			   <tr><td><a href='../proc/line_from_point_and_vector.html'>line_from_point_and_vector</a></td><td><a href='../module/dynamics_geometry.html'>dynamics_geometry</a></td><td>Function</td><td><p>Constructs a new line from a point (defines the point where t = 0)
+and a direction vector.</p></td></tr>
 			   <tr><td><a href='../interface/log.html'>log</a></td><td><a href='../module/dynamics_quaternions.html'>dynamics_quaternions</a></td><td>Interface</td><td></td></tr>
 			   <tr><td><a href='../proc/logarithmic_decrement.html'>logarithmic_decrement</a></td><td><a href='../module/dynamics_vibrations.html'>dynamics_vibrations</a></td><td>Function</td><td><p>Computes the logarithmic decrement given the value of two  successive
 peaks in the time history of the free vibratory response of the system.
@@ -269,7 +271,7 @@ its parent frame.</p><a href="../proc/velocity_transform.html" class="pull-right
             <p class="text-right">
               Documentation generated by
               <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-03-05 14:37              </p>
+ on 2026-03-13 15:09              </p>
           </div>
         </div>
         <br>

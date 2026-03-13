@@ -77,6 +77,9 @@ module dynamics
     public :: dh_jacobian
     public :: REVOLUTE_JOINT
     public :: PRISMATIC_JOINT
+    public :: coordinate_system
+    public :: dh_parameter_set
+    public :: dh_table
 
     ! DYNAMICS_VIBRATIONS
     public :: q_factor
