@@ -241,3 +241,18 @@ target_link_libraries(
     ${FPLOT_LIBRARIES}
     ${DIFFEQ_LIBRARIES}
 )
+
+# C DH_Table Example
+add_executable(
+    c_dh_table_example_1
+    c_dh_table_example_1.c
+)
+target_link_libraries(
+    c_dh_table_example_1
+    ${PROJECT_NAME}
+)
+target_include_directories(
+    c_dh_table_example_1
+    PUBLIC
+    ${CMAKE_SOURCE_DIR}/src/c
+)

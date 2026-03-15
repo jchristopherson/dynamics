@@ -153,6 +153,9 @@ typedef struct
 extern "C" {
 #endif
 
+void c_matmul(int m, int n, int k, double alpha, const double *a, int lda,
+    const double *b, int ldb, double beta, double *c, int ldc);
+
 double c_q_factor(double zeta);
 double c_estimate_bandwidth(double fn, double zeta);
 double c_logarithmic_decrement(double x1, double x2, int n);
@@ -179,6 +182,7 @@ void c_velocity_transform(const double omega[3], const double v[3],
 void c_determine_local_stability(int n, const double *a, int lda,
     double complex *ev, int *flag);
 
+void c_dh_forward_kinematics_table(const c_dh_table *tbl, double *T, int ldt);
 void c_dh_forward_kinematics(int n, const double *alpha, const double *a,
     const double *theta, const double *d, double *T, int ldt);
 void c_dh_forward_kinematics_2(const double *T1, int ldt1, const double *T2,
@@ -329,6 +333,15 @@ void c_plucker_line_to_array(const c_plucker_line *ln, double x[6]);
 void c_poincare_map(int n, const double *x, const double *y, const double *z,
     const c_plane *pln, int side, int nbuffer, double *xbuffer, double *ybuffer,
     double *zbuffer, int *nactual);
+
+int c_alloc_dh_table(int n, c_dh_table *tbl);
+void c_free_dh_table(c_dh_table *tbl);
+void c_define_link_csys(const double xim1[3], const double zim1[3], 
+    const double zi[3], const double rim1[3], const double ri[3],
+    c_coordinate_system *csys);
+void c_define_csys(const double i[3], const double j[3], const double k[3], 
+    const double o[3], c_coordinate_system *csys);
+void c_build_dh_table(int n, const c_coordinate_system *csys, c_dh_table *tbl);
 
 #ifdef __cplusplus
 }

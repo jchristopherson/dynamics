@@ -205,6 +205,17 @@ module dynamics_c_api
         module procedure :: convert_from_c_dh_table
     end interface
 
+    interface
+        function c_alloc_dh_table(n, tbl) result(rst) &
+            bind(C, name = "c_alloc_dh_table")
+            use iso_c_binding, only : c_int
+            import c_dh_table
+            integer(c_int), intent(in), value :: n
+            type(c_dh_table), intent(out) :: tbl
+            integer(c_int) :: rst
+        end function
+    end interface
+
 contains
 ! ------------------------------------------------------------------------------
 subroutine c_report_invalid_input(fcn, name, err)
@@ -223,6 +234,18 @@ subroutine c_report_invalid_input(fcn, name, err)
     end if
 
     call errmgr%report_error(fcn, "Invalid Input: " // name, -1)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_matmul(m, n, k, alpha, a, lda, b, ldb, beta, c, ldc) &
+    bind(C, name = "c_matmul")
+    use blas, only : DGEMM
+    integer(c_int), intent(in), value :: m, n, k, lda, ldb, ldc
+    real(c_double), intent(in), value :: alpha, beta
+    real(c_double), intent(in) :: a(lda,k), b(ldb,n)
+    real(c_double), intent(inout) :: c(ldc,n)
+    call DGEMM('N', 'N', m, n, k, alpha, a(1:m,:), lda, b(1:k,:), ldb, beta, &
+        c(1:m,:), ldc)
 end subroutine
 
 ! ******************************************************************************
@@ -430,6 +453,21 @@ end subroutine
 
 ! ******************************************************************************
 ! DYNAMICS_KINEMATICS.F90
+! ------------------------------------------------------------------------------
+subroutine c_dh_forward_kinematics_table(tbl, T, ldt) &
+    bind(C, name = "c_dh_forward_kinematics_table")
+    type(c_dh_table), intent(in) :: tbl
+    integer(c_int), intent(in), value :: ldt
+    real(c_double), intent(out) :: T(ldt, 4)
+    type(dh_table) :: ftbl
+    if (ldt < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_table", "ldt")
+        return
+    end if
+    ftbl = tbl
+    T(1:4,1:4) = dh_forward_kinematics(ftbl)
+end subroutine
+
 ! ------------------------------------------------------------------------------
 subroutine c_dh_forward_kinematics(n, alpha, a, theta, d, T, ldt) &
     bind(C, name = "c_dh_forward_kinematics")
@@ -2159,14 +2197,64 @@ subroutine convert_from_c_dh_table(df, dc)
 end subroutine
 
 ! ------------------------------------------------------------------------------
-! NOTES:
-! To convert from a Fortran dh_table to c_dh_table will require memory allocation
-! for the c_ptr.  This will also require a deallocation routine.  I don't think
-! using the '=' operator is a good approach for such routines - requires a bit
-! more thought
-!
-! REF: c_alloc_dynamic_system_measurement & c_free_dynamic_system_measurement_array
-! for the c_dynamic_system_measurement type
+subroutine convert_to_c_dh_table(dc, df) ! cannot be used by assignment operator
+    type(c_dh_table), intent(inout) :: dc
+    type(dh_table), intent(in) :: df
+    integer(int32) :: i, n
+    type(c_dh_parameter_set), pointer, dimension(:) :: ptr
+    n = size(df%parameters)
+    dc%count = int(n, c_int)
+    call c_f_pointer(dc%parameters, ptr, [n])
+    do i = 1, n
+        ptr(i) = df%parameters(i)
+    end do
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_define_link_csys(xim1, zim1, zi, rim1, ri, csys) &
+    bind(C, name = "c_define_link_csys")
+    real(c_double), intent(in) :: xim1(3)
+    real(c_double), intent(in) :: zim1(3)
+    real(c_double), intent(in) :: zi(3)
+    real(c_double), intent(in) :: rim1(3)
+    real(c_double), intent(in) :: ri(3)
+    type(c_coordinate_system), intent(out) :: csys
+    csys = coordinate_system(xim1, zim1, zi, rim1, ri)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_define_csys(i, j, k, o, csys) bind(C, name = "c_define_csys")
+    real(c_double), intent(in) :: i(3)
+    real(c_double), intent(in) :: j(3)
+    real(c_double), intent(in) :: k(3)
+    real(c_double), intent(in) :: o(3)
+    type(c_coordinate_system), intent(out) :: csys
+    csys = coordinate_system(i, j, k, o)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_build_dh_table(n, csys, tbl) bind(C, name = "c_build_dh_table")
+    integer(c_int), intent(in), value :: n
+    type(c_coordinate_system), intent(in) :: csys(n)
+    type(c_dh_table), intent(out) :: tbl
+    type(dh_table) :: ftbl
+    integer(int32) :: i, flag
+    type(coordinate_system), allocatable, dimension(:) :: c
+    allocate(c(n))
+    do i = 1, n
+        c(i) = csys(i)
+    end do
+    ftbl = dh_table(c)
+    flag = c_alloc_dh_table(size(ftbl%parameters), tbl)
+    if (flag /= 0) return
+    call convert_to_c_dh_table(tbl, ftbl)
+end subroutine
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
 
 ! ------------------------------------------------------------------------------
 

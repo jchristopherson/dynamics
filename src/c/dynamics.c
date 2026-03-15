@@ -67,3 +67,20 @@ void c_free_dynamic_system_measurement_array(int n,
     free(x);
     x = NULL;
 }
+
+int c_alloc_dh_table(int n, c_dh_table *tbl)
+{
+    size_t sz;
+    sz = (size_t)(n * sizeof(c_dh_parameter_set));
+    tbl->count = n;
+    tbl->parameters = (c_dh_parameter_set*)malloc(sz);
+    return (!tbl->parameters) ? -1 : 0;
+}
+
+void c_free_dh_table(c_dh_table *tbl)
+{
+    tbl->count = 0;
+    if (tbl->parameters) free(tbl->parameters);
+    tbl->parameters = NULL;
+}
+
