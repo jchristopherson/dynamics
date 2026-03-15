@@ -7,6 +7,11 @@ module dynamics_linkage
     use dynamics_quaternions
     implicit none
     private
+
+    type, abstract, extends(rigid_body) :: link
+    end type
+
+
     type, extends(rigid_body) :: dh_binary_link
         !! Defines a link consisting of only two joints.  The coordinate system
         !! of this link is situated at the distal joint with it's z-axis 
