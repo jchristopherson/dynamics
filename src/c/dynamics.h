@@ -125,6 +125,29 @@ typedef struct
     double m[3];
 } c_plucker_line;
 
+typedef struct 
+{
+    double origin[3];
+    double i[3];
+    double j[3];
+    double k[3];
+} c_coordinate_system;
+
+typedef struct
+{
+    double link_length;
+    double link_twist;
+    double link_offset;
+    double joint_angle;
+} c_dh_parameter_set;
+
+typedef struct
+{
+    int count;
+    c_dh_parameter_set *parameters;
+} c_dh_table;
+
+
 
 #ifdef __cplusplus
 extern "C" {

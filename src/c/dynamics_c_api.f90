@@ -166,8 +166,27 @@ module dynamics_c_api
     end type
 
     type, bind(C) :: c_plucker_line
-        real(c_double) :: u(3);
-        real(c_double) :: m(3);
+        real(c_double) :: u(3)
+        real(c_double) :: m(3)
+    end type
+
+    type, bind(C) :: c_coordinate_system
+        real(c_double) :: origin(3)
+        real(c_double) :: i(3)
+        real(c_double) :: j(3)
+        real(c_double) :: k(3)
+    end type
+
+    type, bind(C) :: c_dh_parameter_set
+        real(c_double) :: link_length
+        real(c_double) :: link_twist
+        real(c_double) :: link_offset
+        real(c_double) :: joint_angle
+    end type
+
+    type, bind(C) :: c_dh_table
+        integer(c_int) :: count
+        type(c_ptr) :: parameters   !! pointer to an array of c_dh_parameter_set items
     end type
 
     interface assignment(=)
@@ -179,6 +198,11 @@ module dynamics_c_api
         module procedure :: convert_from_c_plane
         module procedure :: convert_to_c_plucker_line
         module procedure :: convert_from_c_plucker_line
+        module procedure :: convert_to_c_coordinate_system
+        module procedure :: convert_from_c_coordinate_system
+        module procedure :: convert_to_c_dh_parameter_set
+        module procedure :: convert_from_c_dh_parameter_set
+        module procedure :: convert_from_c_dh_table
     end interface
 
 contains
@@ -2075,6 +2099,76 @@ subroutine c_poincare_map(n, x, y, z, pln, side, nbuffer, xbuff, ybuff, zbuff, &
         zbuff(i) = rst(i,3)
     end do
 end subroutine
+
+! ******************************************************************************
+! ADDITIONAL KINEMATICS ROUTINES - ADDED V1.2.2
+! ------------------------------------------------------------------------------
+pure subroutine convert_to_c_coordinate_system(cc, cf)
+    type(c_coordinate_system), intent(out) :: cc
+    type(coordinate_system), intent(in) :: cf
+    cc%origin = cf%origin
+    cc%i = cf%i
+    cc%j = cf%j
+    cc%k = cf%k
+end subroutine
+
+! ------------------------------------------------------------------------------
+pure subroutine convert_from_c_coordinate_system(cf, cc)
+    type(coordinate_system), intent(out) :: cf
+    type(c_coordinate_system), intent(in) :: cc
+    cf%origin = cc%origin
+    cf%i = cc%i
+    cf%j = cc%j
+    cf%k = cc%k
+end subroutine
+
+! ------------------------------------------------------------------------------
+pure subroutine convert_to_c_dh_parameter_set(dc, df)
+    type(c_dh_parameter_set), intent(out) :: dc
+    type(dh_parameter_set), intent(in) :: df
+    dc%joint_angle = df%joint_angle
+    dc%link_length = df%link_length
+    dc%link_offset = df%link_offset
+    dc%link_twist = df%link_twist
+end subroutine
+
+! ------------------------------------------------------------------------------
+pure subroutine convert_from_c_dh_parameter_set(df, dc)
+    type(dh_parameter_set), intent(out) :: df
+    type(c_dh_parameter_set), intent(in) :: dc
+    df%joint_angle = dc%joint_angle
+    df%link_length = dc%link_length
+    df%link_offset = dc%link_offset
+    df%link_twist = dc%link_twist
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine convert_from_c_dh_table(df, dc)
+    type(dh_table), intent(out) :: df
+    type(c_dh_table), intent(in) :: dc
+    integer(int32) :: i, n
+    type(c_dh_parameter_set), pointer, dimension(:) :: ptr
+    n = int(dc%count, int32)
+    allocate(df%parameters(n))
+    call c_f_pointer(dc%parameters, ptr, [n])
+    do i = 1, n
+        df%parameters(i) = ptr(i)   ! = automatically makes the conversion
+    end do
+    ! Notes: No memory need be allocated for ptr as it is just a container for
+    ! the already allocated C pointer.
+end subroutine
+
+! ------------------------------------------------------------------------------
+! NOTES:
+! To convert from a Fortran dh_table to c_dh_table will require memory allocation
+! for the c_ptr.  This will also require a deallocation routine.  I don't think
+! using the '=' operator is a good approach for such routines - requires a bit
+! more thought
+!
+! REF: c_alloc_dynamic_system_measurement & c_free_dynamic_system_measurement_array
+! for the c_dynamic_system_measurement type
+
+! ------------------------------------------------------------------------------
 
 ! ------------------------------------------------------------------------------
 end module
