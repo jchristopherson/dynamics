@@ -82,5 +82,9 @@ int main()
     if (!c_test_plucker_line_from_2_planes()) flag = 58;
     if (!c_test_plucker_line_matmul()) flag = 59;
 
+    if (!c_test_define_link_csys()) flag = 60;
+    if (!c_test_define_link_csys()) flag = 61;
+    if (!c_test_build_dh_table()) flag = 62;
+
     return flag;
 }
