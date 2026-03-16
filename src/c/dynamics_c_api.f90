@@ -2104,6 +2104,46 @@ subroutine c_plucker_line_to_array(ln, x) &
     x(4:6) = ln%m
 end subroutine
 
+! ------------------------------------------------------------------------------
+subroutine c_line_common_normal(ln1, ln2, ln) &
+    bind(C, name = "c_line_common_normal")
+    type(c_line), intent(in) :: ln1
+    type(c_line), intent(in) :: ln2
+    type(c_line), intent(out) :: ln
+
+    type(line) :: f1, f2
+    f1 = ln1
+    f2 = ln2
+    ln = line_common_normal(f1, f2)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_do_lines_intersect(ln1, ln2, intersect, t1, t2, tol) &
+    bind(C, name = "c_do_lines_intersect")
+    type(c_line), intent(in) :: ln1
+    type(c_line), intent(in) :: ln2
+    logical(c_bool), intent(out) :: intersect
+    real(c_double), intent(out) :: t1
+    real(c_double), intent(out) :: t2
+    real(c_double), intent(in), value :: tol
+
+    logical :: check
+    type(line) :: f1, f2
+    f1 = ln1
+    f2 = ln2
+    call do_lines_intersect(f1, f2, check, t1, t2, tol)
+    intersect = logical(check, c_bool)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_line_from_point_and_vector(pt, v, ln) &
+    bind(C, name = "c_line_from_point_and_vector")
+    real(c_double), intent(in) :: pt(3)
+    real(c_double), intent(in) :: v(3)
+    type(c_line), intent(out) :: ln
+    ln = line_from_point_and_vector(pt, v)
+end subroutine
+
 ! ******************************************************************************
 ! DYNAMICS_MAPS.F90
 ! ------------------------------------------------------------------------------
@@ -2249,14 +2289,6 @@ subroutine c_build_dh_table(n, csys, tbl) bind(C, name = "c_build_dh_table")
     if (flag /= 0) return
     call convert_to_c_dh_table(tbl, ftbl)
 end subroutine
-
-! ------------------------------------------------------------------------------
-
-! ------------------------------------------------------------------------------
-
-! ------------------------------------------------------------------------------
-
-! ------------------------------------------------------------------------------
 
 ! ------------------------------------------------------------------------------
 end module

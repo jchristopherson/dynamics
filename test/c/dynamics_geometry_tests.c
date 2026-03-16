@@ -661,3 +661,79 @@ bool c_test_plucker_line_matmul()
     }
     return rst;
 }
+
+bool c_test_line_common_normal()
+{
+    bool rst;
+    double pt1[3], v1[3], pt2[3], v2[3], apt[3], av[3];
+    c_line ln1, ln2, cn;
+    const double tol = 1.0e-8;
+
+    // Initialization
+    rst = true;
+    pt1[0] = 0.0;   pt1[1] = 0.0;   pt1[2] = 0.0;
+    v1[0] = 0.0;    v1[1] = 0.0;    v1[2] = 1.0;
+    pt2[0] = 1.0;   pt2[1] = 0.0;   pt2[2] = 0.0;
+    v2[0] = 0.0;    v2[1] = 1.0;    v2[2] = 0.0;
+    apt[0] = 0.0;   apt[1] = 0.0;   apt[2] = 0.0;
+    av[0] = 1.0;    av[1] = 0.0;    av[2] = 0.0;
+    c_line_from_point_and_vector(pt1, v1, &ln1);
+    c_line_from_point_and_vector(pt2, v2, &ln2);
+
+    // Tests
+    c_line_common_normal(&ln1, &ln2, &cn);
+    if (!compare_arrays(3, apt, cn.r0, tol))
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_line_common_normal -1\n");
+    }
+    if (!compare_arrays(3, av, cn.v, tol))
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_line_common_normal -2\n");
+    }
+
+    // End
+    return rst;
+}
+
+bool c_test_do_lines_intersect()
+{
+    bool rst, intersect;
+    double pt1[3], pt2[3], pt3[3], pt4[3], ip[3], t1, t2, i1[3], i2[3];
+    c_line ln1, ln2;
+    const double tol = 1.0e-12;
+
+    // Initialization
+    rst = true;
+    pt1[0] = -1.0;  pt1[1] = 0.5;   pt1[2] = 0.5;
+    pt2[0] = 1.0;   pt2[1] = 0.5;   pt2[2] = 0.5;
+    pt3[0] = 0.0;   pt3[1] = -1.0;  pt3[2] = 0.5;
+    pt4[0] = 0.0;   pt4[1] = 1.0;   pt4[2] = 0.5;
+    ip[0] = 0.0;    ip[1] = 0.5;    ip[2] = 0.5;
+    c_line_from_2_points(pt1, pt2, &ln1);
+    c_line_from_2_points(pt3, pt4, &ln2);
+
+    // Tests
+    c_do_lines_intersect(&ln1, &ln2, &intersect, &t1, &t2, tol);
+    c_evaluate_line_position(&ln1, t1, i1);
+    c_evaluate_line_position(&ln2, t2, i2);
+    if (!intersect)
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_do_lines_intersect -1\n");
+    }
+    if (!compare_arrays(3, ip, i1, tol))
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_do_lines_intersect -2\n");
+    }
+    if (!compare_arrays(3, ip, i2, tol))
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_do_lines_intersect -3\n");
+    }
+
+    // End
+    return rst;
+}

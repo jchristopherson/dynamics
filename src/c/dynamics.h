@@ -329,6 +329,11 @@ void c_plucker_line_from_array(const double x[6], c_plucker_line *ln);
 void c_plucker_line_mtx_mult(int n, const double *x, int ldx, 
     const c_plucker_line *ln, double *y);
 void c_plucker_line_to_array(const c_plucker_line *ln, double x[6]);
+void c_line_common_normal(const c_line *ln1, const c_line *ln2, c_line *ln);
+void c_do_lines_intersect(const c_line *ln1, const c_line *ln2, bool *intersect,
+    double *t1, double *t2, double tol);
+void c_line_from_point_and_vector(const double pt[3], const double v[3],
+    c_line *ln);
 
 void c_poincare_map(int n, const double *x, const double *y, const double *z,
     const c_plane *pln, int side, int nbuffer, double *xbuffer, double *ybuffer,

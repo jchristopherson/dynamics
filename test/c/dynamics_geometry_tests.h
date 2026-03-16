@@ -24,5 +24,7 @@ bool c_test_plucker_line_from_2_points();
 bool c_test_plucker_line_from_line();
 bool c_test_plucker_line_from_2_planes();
 bool c_test_plucker_line_matmul();
+bool c_test_line_common_normal();
+bool c_test_do_lines_intersect();
 
 #endif
