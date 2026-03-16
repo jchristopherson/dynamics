@@ -36,7 +36,7 @@ int main()
     // Define the locations of each of the joints
     ob1[0] = L1;    ob1[1] = 0.0;   ob1[2] = 0.0;
     ob2[0] = L2;    ob2[1] = 0.0;   ob2[2] = 0.0;
-    ob3[0] = L1;    ob3[1] = 0.0;   ob3[2] = 0.0;
+    ob3[0] = L3;    ob3[1] = 0.0;   ob3[2] = 0.0;
 
     c_matmul(3, 1, 3, 1.0, R1, 3, ob1, 3, 0.0, o1, 3);   // o1 = R1 * ob1
     c_matmul(3, 1, 3, 1.0, R12, 3, ob2, 3, 0.0, o2, 3);  // o2 = R1 * R2 * ob2
