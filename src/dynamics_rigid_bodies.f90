@@ -3,6 +3,7 @@ module dynamics_rigid_bodies
     implicit none
     private
     public :: rigid_body
+    public :: initialize_rigid_body
 
     type rigid_body
         !! Defines a rigid body.
@@ -34,16 +35,33 @@ pure function rb_init(m, inertia, cg) result(rst)
     type(rigid_body) :: rst
         !! The rigid_body object.
 
+    call initialize_rigid_body(rst, m, inertia, cg)
+end function
+
+! ------------------------------------------------------------------------------
+pure subroutine initialize_rigid_body(bdy, m, inertia, cg)
+    !! Initializes a rigid_body object.
+    class(rigid_body), intent(inout) :: bdy
+        !! The rigid_body object.
+    real(real64), intent(in), optional :: m
+        !! The mass of the body.  If no mass is specified, a value of 1 is used.
+    real(real64), intent(in), optional :: inertia(3, 3)
+        !! The 3-by-3 inertia tensor.  If not supplied, an identity matrix
+        !! is used.
+    real(real64), intent(in), optional :: cg(3)
+        !! The x-y-z location of the CG relative to the body coordinate frame.
+        !! If not supplied, the CG is set to (0, 0, 0).
+
     if (present(m)) then
-        rst%mass = m
+        bdy%mass = m
     else
-        rst%mass = 1.0d0
+        bdy%mass = 1.0d0
     end if
 
     if (present(inertia)) then
-        rst%inertia = inertia
+        bdy%inertia = inertia
     else
-        rst%inertia = reshape( &
+        bdy%inertia = reshape( &
             [1.0d0, 0.0d0, 0.0d0, &
             0.0d0, 1.0d0, 0.0d0, &
             0.0d0, 0.0d0, 1.0d0], &
@@ -52,11 +70,11 @@ pure function rb_init(m, inertia, cg) result(rst)
     end if
 
     if (present(cg)) then
-        rst%cg = cg
+        bdy%cg = cg
     else
-        rst%cg = 0.0d0
+        bdy%cg = 0.0d0
     end if
-end function
+end subroutine
 
 ! ------------------------------------------------------------------------------
 end module
