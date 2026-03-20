@@ -1250,7 +1250,7 @@ subroutine c_siso_frequency_response(n, nf, x, y, fs, winsize, winfun, method, &
 
     type(c_window) :: win
     type(frf) :: frsp
-    procedure(c_window_function), pointer :: fcn
+    procedure(c_window_function), pointer :: cfcn
     integer(c_int) :: m
 
     
@@ -1261,9 +1261,9 @@ subroutine c_siso_frequency_response(n, nf, x, y, fs, winsize, winfun, method, &
     end if
     if (nf /= m) return
 
-    call c_f_procpointer(winfun, fcn)
+    call c_f_procpointer(winfun, cfcn)
     win%size = winsize
-    win%fcn => fcn
+    win%fcn => cfcn
 
     frsp = frequency_response(x, y, fs, win = win, method = method)
     freq = frsp%frequency
