@@ -34,9 +34,6 @@ contains
     function test_serial_linkage_forward_kinematics() result(rst)
         ! Arguments
         logical :: rst
-        
-        ! Parameters
-        real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
 
         ! Local Variables
         integer(int32) :: i
@@ -76,6 +73,75 @@ contains
         if (.not.assert(T, Tans)) then
             rst = .false.
             print "(A)", "TEST FAILED: test_serial_linkage_forward_kinematics -1"
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
+    function test_serial_linkage_jacobian() result(rst)
+        ! Arguments
+        logical :: rst
+
+        ! Local Variables
+        integer(int32) :: i
+        class(binary_link), pointer :: lnk
+        type(serial_linkage) :: linkage
+        real(real64) :: d3, theta1, theta2
+        real(real64), dimension(3) :: q, d, alpha, a, theta
+        real(real64), dimension(6,3) :: Jans, J
+
+        ! Initialization
+        rst = .true.
+        linkage = build_serial_linkage_1()  ! assuming a 3-element linkage
+        call random_number(q)
+        do i = 1, 3
+            lnk => linkage%get_link(i)
+            alpha(i) = lnk%link_twist
+            a(i) = lnk%link_length
+            if (lnk%joint_type == PRISMATIC_JOINT) then
+                theta(i) = lnk%joint_angle
+                d(i) = lnk%link_offset + q(i)
+            else
+                theta(i) = lnk%joint_angle + q(i)
+                d(i) = lnk%link_offset
+            end if
+        end do
+        d3 = d(3)
+        theta1 = theta(1)
+        theta2 = theta(2)
+
+        ! The solution
+        Jans(:,1) = [ &
+            -d3 * sin(theta1) * sin(theta2), &
+            d3 * cos(theta1) * sin(theta2), &
+            0.0d0, &
+            0.0d0, &
+            0.0d0, &
+            1.0d0 &
+        ]
+        Jans(:,2) = [ &
+            d3 * cos(theta1) * cos(theta2), &
+            d3 * cos(theta2) * sin(theta1), &
+            -d3 * sin(theta2), &
+            -sin(theta1), &
+            cos(theta1), &
+            0.0d0 &
+        ]
+        Jans(:,3) = [ &
+            cos(theta1) * sin(theta2), &
+            sin(theta1) * sin(theta2), &
+            cos(theta2), &
+            0.0d0, &
+            0.0d0, &
+            0.0d0 &
+        ]
+
+        ! Compute the Jacobian
+        J = linkage%jacobian(q)
+
+        ! Test
+        if (.not.assert(J, Jans)) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_serial_linkage_jacobian -1"
         end if
     end function
 
