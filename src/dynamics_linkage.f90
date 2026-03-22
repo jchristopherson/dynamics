@@ -49,11 +49,21 @@ module dynamics_linkage
         procedure, public :: get_link => sl_get_link
         procedure, public :: forward_kinematics => sl_forward_kinematics
         procedure, public :: jacobian => sl_jacobian
+        procedure, public :: inverse_kinematics => sl_inverse_kinematics_1
     end type
 
     interface serial_linkage
         module procedure :: sl_init
     end interface
+
+    type serial_linkage_solver_data
+        ! An internal type used as a container to pass data to the inverse
+        ! kinematics solver.
+        type(serial_linkage), pointer :: linkage
+            ! The serial_linkage object.
+        real(real64) :: target(4, 4)
+            ! The 4-by-4 target transformation matrix.
+    end type
 
 contains
 ! ******************************************************************************
@@ -305,6 +315,100 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
+    function sl_inverse_kinematics_1(this, qo, trg, ib, err) result(rst)
+        !! Solves the inverse kinematics problem for the linkage.
+        class(serial_linkage), intent(in), target :: this
+            !! The serial_linkage object.
+        real(real64), intent(in), dimension(:) :: qo
+            !! An M-element array containing an initial estimate of the M joint
+            !! variables.
+        real(real64), intent(in) :: trg(4, 4)
+            !! A transformation matrix relating the end-effector coordinate
+            !! frame and the world coordinate frame.  This transformation 
+            !! matrix defines the end-effector target for the solver.
+        type(iteration_behavior), intent(out), optional :: ib
+            !! An optional output that can be used to gather information on the
+            !! solver.
+        class(errors), intent(inout), optional, target :: err
+            !! An optional error handling object used to retrieve any errors
+            !! regarding the solver.
+        real(real64), allocatable, dimension(:) :: rst
+            !! An M-element array containing the computed joint variables that
+            !! satisfy the constraints.
+
+        ! Local Variables
+        procedure(vecfcn), pointer :: vfcn
+        procedure(jacobianfcn), pointer :: jfcn
+        type(serial_linkage_solver_data) :: obj
+        real(real64) :: constraints(6)
+
+        ! Initialization
+        vfcn => sl_vecfcn
+        jfcn => sl_jacobianfcn
+        obj%linkage => this
+        obj%target = trg
+        constraints(1:3) = trg(1:3,4)
+        constraints(4:6) = 0.0d0
+
+        ! Input Check
+        ! TO DO: If there are more than 6 joint variables we'll need to error
+        ! out for now until we develop a better solver
+
+        ! Process
+        rst = solve_inverse_kinematics(vfcn, qo, constraints, ib = ib, &
+            args = obj, jfcn = jfcn, err = err)
+    end function
+
+! ----------
+    subroutine sl_vecfcn(x, f, args)
+        !! The subroutine passed to the inverse kinematics solver.
+        real(real64), intent(in), dimension(:) :: x
+            !! The N joint variables
+        real(real64), intent(out), dimension(:) :: f
+            !! The 6 kinematic constraint equations.
+        class(*), intent(inout), optional :: args
+            !! A container for the serial_linkage_solver_data object.
+
+        ! Local Variables
+        real(real64) :: T(4, 4), Re(3, 3), R(3, 3)
+
+        ! Process
+        select type (args)
+        class is (serial_linkage_solver_data)
+            ! Compute the forward kinematics of the linkage given the joint
+            ! variables
+            T = args%linkage%forward_kinematics(x)
+
+            ! Evaluate the kinematics equations for position and orientation
+            f(1:3) = T(1:3,4)
+
+            ! The orientation components utilize an angle-axis approximation.
+            ! The idea is to drive these 3 values to 0.
+            Re = transpose(T(1:3,1:3))
+            R = matmul(Re, args%target(1:3,1:3))
+            f(4) = 0.5d0 * (R(3,2) - R(2,3))
+            f(5) = 0.5d0 * (R(1,3) - R(3,1))
+            f(6) = 0.5d0 * (R(2,1) - R(1,2))
+        end select
+    end subroutine
+
+! ----------
+    subroutine sl_jacobianfcn(x, jac, args)
+        !! The Jacobian evaluation subroutine to pass to the solver.
+        real(real64), intent(in), dimension(:) :: x
+            !! The N joint variables
+        real(real64), intent(out), dimension(:,:) :: jac
+            !! The 6-by-N Jacobian.
+        class(*), intent(inout), optional :: args
+            !! A container for the serial_linkage_solver_data object.
+
+        ! Process
+        select type (args)
+        class is (serial_linkage_solver_data)
+            ! Compute the Jacobian matrix for the linkage
+            jac = args%linkage%jacobian(x)
+        end select
+    end subroutine
 
 ! ------------------------------------------------------------------------------
 end module
