@@ -338,13 +338,11 @@ contains
 
         ! Local Variables
         procedure(vecfcn), pointer :: vfcn
-        procedure(jacobianfcn), pointer :: jfcn
         type(serial_linkage_solver_data) :: obj
         real(real64) :: constraints(6)
 
         ! Initialization
         vfcn => sl_vecfcn
-        jfcn => sl_jacobianfcn
         obj%linkage => this
         obj%target = trg
         constraints(1:3) = trg(1:3,4)
@@ -356,7 +354,7 @@ contains
 
         ! Process
         rst = solve_inverse_kinematics(vfcn, qo, constraints, ib = ib, &
-            args = obj, jfcn = jfcn, err = err)
+            args = obj, err = err)
     end function
 
 ! ----------
@@ -389,24 +387,6 @@ contains
             f(4) = 0.5d0 * (R(3,2) - R(2,3))
             f(5) = 0.5d0 * (R(1,3) - R(3,1))
             f(6) = 0.5d0 * (R(2,1) - R(1,2))
-        end select
-    end subroutine
-
-! ----------
-    subroutine sl_jacobianfcn(x, jac, args)
-        !! The Jacobian evaluation subroutine to pass to the solver.
-        real(real64), intent(in), dimension(:) :: x
-            !! The N joint variables
-        real(real64), intent(out), dimension(:,:) :: jac
-            !! The 6-by-N Jacobian.
-        class(*), intent(inout), optional :: args
-            !! A container for the serial_linkage_solver_data object.
-
-        ! Process
-        select type (args)
-        class is (serial_linkage_solver_data)
-            ! Compute the Jacobian matrix for the linkage
-            jac = args%linkage%jacobian(x)
         end select
     end subroutine
 
