@@ -309,6 +309,9 @@ program main
     check = test_serial_linkage_jacobian()
     if (.not.check) flag = 96
 
+    check = test_serial_linkage_inverse_kinematics()
+    if (.not.check) flag = 97
+
     ! End
     if (flag /= 0) stop flag
 end program

@@ -146,4 +146,33 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
+    function test_serial_linkage_inverse_kinematics() result(rst)
+        ! Arguments
+        logical :: rst
+
+        ! Local Variables
+        class(binary_link), pointer :: lnk
+        type(serial_linkage) :: linkage
+        real(real64) :: q(3), qo(3), s(3), T(4, 4)
+
+        ! Initialization
+        rst = .true.
+        linkage = build_serial_linkage_1()  ! assuming a 3-element linkage
+        call random_number(q)
+
+        ! Compute the target end effector position and orientation
+        T = linkage%forward_kinematics(q)
+
+        ! Compute the inverse model
+        qo = 0.0d0
+        s = linkage%inverse_kinematics(qo, T)
+
+        ! Test
+        if (.not.assert(s, q)) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_serial_linkage_inverse_kinematics -1"
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
 end module
