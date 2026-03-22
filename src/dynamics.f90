@@ -8,6 +8,7 @@ module dynamics
     use dynamics_stability
     use dynamics_controls
     use dynamics_system_id
+    use dynamics_linkage
     implicit none
     private
 
@@ -122,4 +123,8 @@ module dynamics
     public :: model_information
     public :: siso_model_fit_least_squares
     public :: constraint_equations
+
+    ! DYNAMICS_LINKAGE
+    public :: binary_link
+    public :: serial_linkage
 end module

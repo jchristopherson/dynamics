@@ -303,6 +303,9 @@ program main
     check = test_dh_table_3()
     if (.not.check) flag = 94
 
+    check = test_serial_linkage_forward_kinematics()
+    if (.not.check) flag = 95
+
     ! End
     if (flag /= 0) stop flag
 end program
