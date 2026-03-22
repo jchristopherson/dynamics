@@ -72,6 +72,7 @@ module dynamics
     public :: dh_forward_kinematics
     public :: solve_inverse_kinematics
     public :: vecfcn
+    public :: jacobianfcn
     public :: least_squares_solver
     public :: iteration_behavior
     public :: jacobian_generating_vector

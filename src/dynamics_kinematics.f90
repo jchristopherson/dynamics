@@ -17,6 +17,7 @@ module dynamics_kinematics
     public :: dh_forward_kinematics
     public :: solve_inverse_kinematics
     public :: vecfcn
+    public :: jacobianfcn
     public :: least_squares_solver
     public :: iteration_behavior
     public :: jacobian_generating_vector
@@ -592,7 +593,7 @@ contains
 
 ! ------------------------------------------------------------------------------
     function solve_inverse_kinematics(mdl, qo, constraints, df, &
-        slvr, ib, args, err) result(rst)
+        slvr, ib, args, jfcn, err) result(rst)
         !! Solves the inverse kinematics problem for a linkage.  An iterative
         !! solution procedure is utilized.
         procedure(vecfcn), intent(in), pointer :: mdl
@@ -619,6 +620,9 @@ contains
         class(errors), intent(inout), optional, target :: err
             !! An errors-based object that if provided can be used to retrieve 
             !! information relating to any errors encountered during execution.
+        procedure(jacobianfcn), intent(in), pointer, optional :: jfcn
+            !! A routine that can be used to provide the Jacobian matrix for
+            !! the linkage.
         real(real64), allocatable, dimension(:) :: rst
             !! An M-element array containing the computed joint variables.
 
@@ -668,6 +672,9 @@ contains
         ! Set up the solver
         fcn => inverse_kinematics_solver
         call helper%set_fcn(fcn, neqn, nvar)
+        if (present(jfcn)) then
+            call helper%set_jacobian(jfcn)
+        end if
 
         ! Local Memory Allocations
         allocate(rst(nvar), source = qo, stat = flag)
