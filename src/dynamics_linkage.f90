@@ -316,6 +316,7 @@ contains
 
 ! ------------------------------------------------------------------------------
     function sl_inverse_kinematics_1(this, qo, trg, ib, err) result(rst)
+        use dynamics_error_handling, only : report_array_size_error
         !! Solves the inverse kinematics problem for the linkage.
         class(serial_linkage), intent(in), target :: this
             !! The serial_linkage object.
@@ -340,8 +341,15 @@ contains
         procedure(vecfcn), pointer :: vfcn
         type(serial_linkage_solver_data) :: obj
         real(real64) :: constraints(6)
-
+        class(errors), pointer :: errmgr
+        type(errors), target :: deferr
+        
         ! Initialization
+        if (present(err)) then
+            errmgr => err
+        else
+            errmgr => deferr
+        end if
         vfcn => sl_vecfcn
         obj%linkage => this
         obj%target = trg
@@ -349,8 +357,12 @@ contains
         constraints(4:6) = 0.0d0
 
         ! Input Check
-        ! TO DO: If there are more than 6 joint variables we'll need to error
-        ! out for now until we develop a better solver
+        ! Can update this limit after solver and constraint technology improve
+        if (size(qo) > 6) then
+            call report_array_size_error("sl_inverse_kinematics_1", "qo", 6, &
+                size(qo), errmgr)
+            return
+        end if
 
         ! Process
         rst = solve_inverse_kinematics(vfcn, qo, constraints, ib = ib, &
