@@ -147,6 +147,18 @@ typedef struct
     c_dh_parameter_set *parameters;
 } c_dh_table;
 
+typedef struct
+{
+    double link_length;
+    double link_twist;
+    double link_offset;
+    double joint_angle;
+    int joint_type;     // DYN_REVOLUTE_JOINT or DYN_PRISMATIC_JOINT
+    double mass;
+    double cg[3];
+    double inertia[9];  // 3-by-3 matrix in column-major format
+} c_binary_link;
+
 
 
 #ifdef __cplusplus

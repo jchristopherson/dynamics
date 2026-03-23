@@ -189,6 +189,17 @@ module dynamics_c_api
         type(c_ptr) :: parameters   !! pointer to an array of c_dh_parameter_set items
     end type
 
+    type, bind(C) :: c_binary_link
+        real(c_double) :: link_length
+        real(c_double) :: link_twist
+        real(c_double) :: link_offset
+        real(c_double) :: joint_angle
+        integer(c_int) :: joint_type
+        real(c_double) :: mass
+        real(c_double) :: cg(3)
+        real(c_double) :: inertia(9)
+    end type
+
     interface assignment(=)
         module procedure :: convert_to_c_quaternion
         module procedure :: convert_from_c_quaternion
@@ -203,6 +214,8 @@ module dynamics_c_api
         module procedure :: convert_to_c_dh_parameter_set
         module procedure :: convert_from_c_dh_parameter_set
         module procedure :: convert_from_c_dh_table
+        module procedure :: convert_to_c_binary_link
+        module procedure :: convert_from_c_binary_link
     end interface
 
     interface
@@ -2289,6 +2302,46 @@ subroutine c_build_dh_table(n, csys, tbl) bind(C, name = "c_build_dh_table")
     if (flag /= 0) return
     call convert_to_c_dh_table(tbl, ftbl)
 end subroutine
+
+! ******************************************************************************
+! DYNAMICS_LINKAGE.F90
+! ------------------------------------------------------------------------------
+pure subroutine convert_to_c_binary_link(bc, bf)
+    type(c_binary_link), intent(out) :: bc
+    type(binary_link), intent(in) :: bf
+    bc%joint_angle = bf%joint_angle
+    bc%joint_type = bf%joint_type
+    bc%link_length = bf%link_length
+    bc%link_offset = bf%link_offset
+    bc%link_twist = bf%link_twist
+    bc%mass = bf%mass
+    bc%cg = bf%cg
+    bc%inertia = reshape(bf%inertia, [9])
+end subroutine
+
+! ------------------------------------------------------------------------------
+pure subroutine convert_from_c_binary_link(bf, bc)
+    type(binary_link), intent(out) :: bf
+    type(c_binary_link), intent(in) :: bc
+    bf%joint_angle = bc%joint_angle
+    bf%joint_type = bc%joint_type
+    bf%link_length = bc%link_length
+    bf%link_offset = bc%link_offset
+    bf%link_twist = bc%link_twist
+    bf%mass = bc%mass
+    bf%cg = bc%cg
+    bf%inertia = reshape(bc%inertia, [3, 3])
+end subroutine
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
 
 ! ------------------------------------------------------------------------------
 end module
