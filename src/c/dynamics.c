@@ -84,3 +84,18 @@ void c_free_dh_table(c_dh_table *tbl)
     tbl->parameters = NULL;
 }
 
+int c_alloc_serial_linkage(int n, c_serial_linkage *lnk)
+{
+    size_t sz;
+    sz = (size_t)(n * sizeof(c_binary_link));
+    lnk->link_count = n;
+    lnk->links = (c_binary_link*)malloc(sz);
+    return (!lnk->links) ? -1 : 0;
+}
+
+void c_free_serial_linkage(c_serial_linkage *lnk)
+{
+    lnk->link_count = 0;
+    if (lnk->links) free(lnk->links);
+    lnk->links = NULL;
+}

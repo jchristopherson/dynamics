@@ -159,6 +159,11 @@ typedef struct
     double inertia[9];  // 3-by-3 matrix in column-major format
 } c_binary_link;
 
+typedef struct
+{
+    int link_count;
+    c_binary_link *links;
+} c_serial_linkage;
 
 
 #ifdef __cplusplus
@@ -359,6 +364,18 @@ void c_define_link_csys(const double xim1[3], const double zim1[3],
 void c_define_csys(const double i[3], const double j[3], const double k[3], 
     const double o[3], c_coordinate_system *csys);
 void c_build_dh_table(int n, const c_coordinate_system *csys, c_dh_table *tbl);
+
+int c_alloc_serial_linkage(int n, c_serial_linkage *lnk);
+void c_free_serial_linkage(c_serial_linkage *lnk);
+void c_build_serial_linkage(int n, const c_binary_link *links, 
+    c_serial_linkage *linkage);
+void c_serial_linkage_forward_kinematics(int n, const c_serial_linkage *lnk,
+    const double *q, double *T, int ldt);
+void c_serial_linkage_jacobian(int n, const c_serial_linkage *lnk, 
+    const double *q, double *jac, int ldj);
+void c_serial_linkage_inverse_kinematics(int n, const c_serial_linkage *lnk,
+    const double *qo, const double *trg, int ldt, double *q, 
+    c_iteration_behavior *ib);
 
 #ifdef __cplusplus
 }

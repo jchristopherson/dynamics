@@ -186,7 +186,7 @@ module dynamics_c_api
 
     type, bind(C) :: c_dh_table
         integer(c_int) :: count
-        type(c_ptr) :: parameters   !! pointer to an array of c_dh_parameter_set items
+        type(c_ptr) :: parameters   ! pointer to an array of c_dh_parameter_set items
     end type
 
     type, bind(C) :: c_binary_link
@@ -200,7 +200,14 @@ module dynamics_c_api
         real(c_double) :: inertia(9)
     end type
 
+    type, bind(C) :: c_serial_linkage
+        integer(c_int) :: link_count
+        type(c_ptr) :: links    ! pointer to an array of c_binary_link items
+    end type
+
     interface assignment(=)
+        module procedure :: convert_to_c_iteration_behavior
+        module procedure :: convert_from_c_iteration_behavior
         module procedure :: convert_to_c_quaternion
         module procedure :: convert_from_c_quaternion
         module procedure :: convert_to_c_line
@@ -216,6 +223,7 @@ module dynamics_c_api
         module procedure :: convert_from_c_dh_table
         module procedure :: convert_to_c_binary_link
         module procedure :: convert_from_c_binary_link
+        module procedure :: convert_from_c_serial_linkage
     end interface
 
     interface
@@ -227,9 +235,44 @@ module dynamics_c_api
             type(c_dh_table), intent(out) :: tbl
             integer(c_int) :: rst
         end function
+
+        function c_alloc_serial_linkage(n, lnk) result(rst) &
+            bind(C, name = "c_alloc_serial_linkage")
+            use iso_c_binding, only : c_int
+            import c_serial_linkage
+            integer(c_int), intent(in), value :: n
+            type(c_serial_linkage), intent(out) :: lnk
+            integer(c_int) :: rst
+        end function
     end interface
 
 contains
+! ------------------------------------------------------------------------------
+pure subroutine convert_to_c_iteration_behavior(c, f)
+    type(c_iteration_behavior), intent(out) :: c
+    type(iteration_behavior), intent(in) :: f
+    c%converge_on_chng = logical(f%converge_on_chng, c_bool)
+    c%converge_on_fcn = logical(f%converge_on_fcn, c_bool)
+    c%converge_on_zero_diff = logical(f%converge_on_zero_diff, c_bool)
+    c%fcn_count = f%fcn_count
+    c%gradient_count = f%gradient_count
+    c%iter_count = f%iter_count
+    c%jacobian_count = f%jacobian_count
+end subroutine
+
+! ------------------------------------------------------------------------------
+pure subroutine convert_from_c_iteration_behavior(f, c)
+    type(iteration_behavior), intent(out) :: f
+    type(c_iteration_behavior), intent(in) :: c
+    f%converge_on_chng = c%converge_on_chng
+    f%converge_on_fcn = c%converge_on_fcn
+    f%converge_on_zero_diff = c%converge_on_zero_diff
+    f%fcn_count = c%fcn_count
+    f%gradient_count = c%gradient_count
+    f%iter_count = c%iter_count
+    f%jacobian_count = c%jacobian_count
+end subroutine
+
 ! ------------------------------------------------------------------------------
 subroutine c_report_invalid_input(fcn, name, err)
     character(len = *), intent(in) :: fcn
@@ -925,13 +968,14 @@ subroutine c_solve_inverse_kinematics(njoints, neqn, mdl, qo, constraints, &
     
     jvar = solve_inverse_kinematics(fcn, qo, constraints, df = resid, &
         ib = iter, args = arg)
-    ib%converge_on_chng = iter%converge_on_chng
-    ib%converge_on_fcn = iter%converge_on_fcn
-    ib%converge_on_zero_diff = iter%converge_on_zero_diff
-    ib%fcn_count = iter%fcn_count
-    ib%gradient_count = iter%gradient_count
-    ib%iter_count = iter%iter_count
-    ib%jacobian_count = iter%jacobian_count
+    ! ib%converge_on_chng = iter%converge_on_chng
+    ! ib%converge_on_fcn = iter%converge_on_fcn
+    ! ib%converge_on_zero_diff = iter%converge_on_zero_diff
+    ! ib%fcn_count = iter%fcn_count
+    ! ib%gradient_count = iter%gradient_count
+    ! ib%iter_count = iter%iter_count
+    ! ib%jacobian_count = iter%jacobian_count
+    ib = iter
 end subroutine
 
 ! --------------------
@@ -2334,14 +2378,119 @@ pure subroutine convert_from_c_binary_link(bf, bc)
 end subroutine
 
 ! ------------------------------------------------------------------------------
+subroutine convert_from_c_serial_linkage(sf, sc)
+    type(serial_linkage), intent(out) :: sf
+    type(c_serial_linkage), intent(in) :: sc
+    integer(int32) :: i, n
+    type(binary_link), allocatable, dimension(:) :: links
+    type(c_binary_link), pointer, dimension(:) :: ptr
+    n = int(sc%link_count, int32)
+    allocate(links(n))
+    call c_f_pointer(sc%links, ptr, [n])
+    do i = 1, n
+        links(i) = ptr(i)
+    end do
+    sf = serial_linkage(links)
+end subroutine
 
 ! ------------------------------------------------------------------------------
+subroutine convert_to_c_serial_linkage(sc, sf)
+    type(c_serial_linkage), intent(out) :: sc
+    type(serial_linkage), intent(in) :: sf
+    integer(int32) :: i, n
+    type(c_binary_link), pointer, dimension(:) :: ptr
+    n = sf%get_link_count()
+    sc%link_count = int(n, c_int)
+    call c_f_pointer(sc%links, ptr, [n])
+    do i = 1, n
+        ptr(i) = sf%get_link(i)
+    end do
+end subroutine
 
 ! ------------------------------------------------------------------------------
+subroutine c_build_serial_linkage(n, links, linkage) &
+    bind(C, name = "c_build_serial_linkage")
+    ! Arguments
+    integer(c_int), intent(in), value :: n
+    type(c_binary_link), intent(in) :: links(n)
+    type(c_serial_linkage), intent(out) :: linkage
+
+    ! Local Variables
+    type(binary_link), allocatable, dimension(:) :: f_links
+    type(serial_linkage) :: sf
+    integer(int32) :: i, flag
+
+    ! Process
+    allocate(f_links(n))
+    do i = 1, n
+        f_links(i) = links(i)
+    end do
+    sf = serial_linkage(f_links)
+    flag = c_alloc_serial_linkage(n, linkage)
+    if (flag /= 0) return
+    call convert_to_c_serial_linkage(linkage, sf)
+end subroutine
 
 ! ------------------------------------------------------------------------------
+subroutine c_serial_linkage_forward_kinematics(n, lnk, q, T, ldt) &
+    bind(C, name = "c_serial_linkage_forward_kinematics")
+    integer(c_int), intent(in), value :: n, ldt
+    type(c_serial_linkage), intent(in) :: lnk
+    real(c_double), intent(in) :: q(n)
+    real(c_double), intent(out) :: T(ldt, 4)
+
+    type(serial_linkage) :: f_lnk
+
+    if (ldt < 4) then
+        call c_report_invalid_input("c_serial_linkage_forward_kinematics", "ldt")
+        return
+    end if
+
+    f_lnk = lnk
+    T(1:4,1:4) = f_lnk%forward_kinematics(q)
+end subroutine
 
 ! ------------------------------------------------------------------------------
+subroutine c_serial_linkage_jacobian(n, lnk, q, J, ldj) &
+    bind(C, name = "c_serial_linkage_jacobian")
+    integer(c_int), intent(in), value :: n, ldj
+    type(c_serial_linkage), intent(in) :: lnk
+    real(c_double), intent(in) :: q(n)
+    real(c_double), intent(out) :: J(ldj, n)
+    
+    type(serial_linkage) :: f_lnk
+
+    if (ldj < 6) then
+        call c_report_invalid_input("c_serial_linkage_jacobian", "ldj")
+        return
+    end if
+
+    f_lnk = lnk
+    J(1:6,1:n) = f_lnk%jacobian(q)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_serial_linkage_inverse_kinematics(n, lnk, qo, trg, ldt, q, ib) &
+    bind(C, name = "c_serial_linkage_inverse_kinematics")
+    integer(c_int), intent(in), value :: n, ldt
+    type(c_serial_linkage), intent(in) :: lnk
+    real(c_double), intent(in) :: qo(n)
+    real(c_double), intent(in) :: trg(ldt, 4)
+    real(c_double), intent(out) :: q(n)
+    type(c_iteration_behavior), intent(out) :: ib
+
+    type(serial_linkage) :: f_lnk
+    type(iteration_behavior) :: fib
+
+    if (ldt < 4) then
+        call c_report_invalid_input("c_serial_linkage_inverse_kinematics", "ldt")
+        return
+    end if
+
+    f_lnk = lnk
+    q = f_lnk%inverse_kinematics(qo, trg(1:4,1:4), fib)
+    ib = fib
+end subroutine
 
 ! ------------------------------------------------------------------------------
 end module

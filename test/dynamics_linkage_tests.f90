@@ -19,7 +19,6 @@ contains
 
         ! Local Variables
         type(binary_link) :: links(3)
-        real(real64) :: J(6,3)
 
         ! Initialization
         links(1) = binary_link(twist = -0.5d0 * pi, offset = l0)

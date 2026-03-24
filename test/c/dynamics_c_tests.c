@@ -4,6 +4,7 @@
 #include "dynamics_kinematics_tests.h"
 #include "dynamics_frf_tests.h"
 #include "dynamics_geometry_tests.h"
+#include "dynamics_linkage_tests.h"
 #include <stdbool.h>
 
 int main()
@@ -88,6 +89,10 @@ int main()
     
     if (!c_test_line_common_normal()) flag = 63;
     if (!c_test_do_lines_intersect()) flag = 64;
+
+    if (!c_test_serial_linkage_forward_kinematics()) flag = 65;
+    if (!c_test_serial_linkage_jacobian()) flag = 66;
+    if (!c_test_serial_linkage_inverse_kinematics()) flag = 67;
 
     return flag;
 }
