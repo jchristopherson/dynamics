@@ -137,6 +137,13 @@ add_executable(
 )
 target_link_libraries(kinematics_example_1 ${PROJECT_NAME})
 
+# Linkage Example 1
+add_executable(
+    linkage_example_1
+    linkage_example_1.f90
+)
+target_link_libraries(linkage_example_1 ${PROJECT_NAME} ${COLLECTIONS_LIBRARIES})
+
 # SISO FRF Example 1
 add_executable(
     siso_frf_example_1
