@@ -949,12 +949,16 @@ end subroutine
 
 ! ------------------------------------------------------------------------------
 subroutine c_solve_inverse_kinematics(njoints, neqn, mdl, qo, constraints, &
-    jvar, resid, ib) bind(C, name = "c_solve_inverse_kinematics")
+    qmax, qmin, stype, jvar, resid, ib) &
+    bind(C, name = "c_solve_inverse_kinematics")
     integer(c_int), intent(in), value :: njoints
     integer(c_int), intent(in), value :: neqn
     type(c_funptr), intent(in), value :: mdl
     real(c_double), intent(in) :: qo(njoints)
     real(c_double), intent(in) :: constraints(neqn)
+    real(c_double), intent(in) :: qmax(njoints)
+    real(c_double), intent(in) :: qmin(njoints)
+    integer(c_int), intent(in), value :: stype
     real(c_double), intent(out) :: jvar(njoints)
     real(c_double), intent(out) :: resid(neqn)
     type(c_iteration_behavior), intent(out) :: ib
@@ -967,14 +971,7 @@ subroutine c_solve_inverse_kinematics(njoints, neqn, mdl, qo, constraints, &
     arg%fcn => fptr
     
     jvar = solve_inverse_kinematics(fcn, qo, constraints, df = resid, &
-        ib = iter, args = arg)
-    ! ib%converge_on_chng = iter%converge_on_chng
-    ! ib%converge_on_fcn = iter%converge_on_fcn
-    ! ib%converge_on_zero_diff = iter%converge_on_zero_diff
-    ! ib%fcn_count = iter%fcn_count
-    ! ib%gradient_count = iter%gradient_count
-    ! ib%iter_count = iter%iter_count
-    ! ib%jacobian_count = iter%jacobian_count
+        qmax = qmax, qmin = qmin, stype = stype, ib = iter, args = arg)
     ib = iter
 end subroutine
 

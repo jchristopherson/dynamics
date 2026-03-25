@@ -65,7 +65,7 @@ bool c_test_inverse_kinematics()
     const double L2 = 5.5;
     const double L3 = 2.0;
     double pi, a[3], alpha[3], theta[3], d[3], T[16], ans[3], q[3], qo[3], 
-        Tc[16], constraints[6], resid[6];
+        Tc[16], constraints[6], resid[6], qmax[3], qmin[3];
     const double tol = 1.0e-4;
     c_iteration_behavior ib;
     c_vecfcn fptr;
@@ -89,6 +89,10 @@ bool c_test_inverse_kinematics()
     ans[1] = theta[1];
     ans[2] = theta[2];
 
+    // Define the joint limits
+    qmax[0] = 1.0e6;    qmax[1] = 1.0e6;    qmax[2] = 1.0e6;
+    qmin[0] = -1.0e6;   qmin[1] = -1.0e6;   qmin[2] = -1.0e6;
+
     // Solve the forward kinematics problem to define the constraints
     c_dh_forward_kinematics(3, alpha, a, theta, d, T, 4);
     constraints[0] = T[INDEX(0,3,4)];
@@ -105,13 +109,23 @@ bool c_test_inverse_kinematics()
 
     // Solver the inverse problem
     fptr = inverse_fcn;
-    c_solve_inverse_kinematics(3, 6, fptr, qo, constraints, q, resid, &ib);
+    c_solve_inverse_kinematics(3, 6, fptr, qo, constraints, qmax, qmin,
+        DYN_DAMPED_LEAST_SQUARES_SOLVER, q, resid, &ib);
 
     // Test
     if (!compare_arrays(3, ans, q, tol))
     {
         rst = false;
         printf("TEST FAILED: c_test_inverse_kinematics -1\n");
+    }
+
+    // Try the conjugate gradient solver
+    c_solve_inverse_kinematics(3, 6, fptr, qo, constraints, qmax, qmin,
+        DYN_CONJUGATE_GRADIENT_SOLVER, q, resid, &ib);
+    if (!compare_arrays(3, ans, q, tol))
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_inverse_kinematics -2\n");
     }
 
     // End
