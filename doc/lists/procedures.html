@@ -99,6 +99,7 @@ relative to its parent frame.</p><a href="../proc/acceleration_transform.html" c
 			   <tr><td><a href='../proc/apply_displacement_constraint.html'>apply_displacement_constraint</a></td><td><a href='../module/dynamics_structural.html'>dynamics_structural</a></td><td>Subroutine</td><td><p>Applies a displacement constraint to the specified degree of freedom.</p></td></tr>
 			   <tr><td><a href='../interface/assignment%28%3D%29.html'>assignment(=)</a></td><td><a href='../module/dynamics_geometry.html'>dynamics_geometry</a></td><td>Interface</td><td></td></tr>
 			   <tr><td><a href='../interface/assignment%28%3D%29~2.html'>assignment(=)</a></td><td><a href='../module/dynamics_quaternions.html'>dynamics_quaternions</a></td><td>Interface</td><td></td></tr>
+			   <tr><td><a href='../interface/binary_link.html'>binary_link</a></td><td><a href='../module/dynamics_linkage.html'>dynamics_linkage</a></td><td>Interface</td><td></td></tr>
 			   <tr><td><a href='../proc/chirp.html'>chirp</a></td><td><a href='../module/dynamics_frequency_response.html'>dynamics_frequency_response</a></td><td>Function</td><td><p>Evaluates a linear chirp function.</p></td></tr>
 			   <tr><td><a href='../proc/compute_modal_damping.html'>compute_modal_damping</a></td><td><a href='../module/dynamics_frequency_response.html'>dynamics_frequency_response</a></td><td>Function</td><td><p>Computes the modal damping factors <script type="math/tex"> \zeta_i </script> given the
 proportional damping terms <script type="math/tex"> \alpha </script> and <script type="math/tex"> \beta </script> where
@@ -153,7 +154,9 @@ receptance model:</p><a href="../proc/fit_frf.html" class="pull-right"><emph>Rea
 			   <tr><td><a href='../interface/frequency_sweep.html'>frequency_sweep</a></td><td><a href='../module/dynamics_frequency_response.html'>dynamics_frequency_response</a></td><td>Interface</td><td></td></tr>
 			   <tr><td><a href='../interface/harmonic_ode.html'>harmonic_ode</a></td><td><a href='../module/dynamics_frequency_response.html'>dynamics_frequency_response</a></td><td>Interface</td><td></td></tr>
 			   <tr><td><a href='../proc/identity_4.html'>identity_4</a></td><td><a href='../module/dynamics_kinematics.html'>dynamics_kinematics</a></td><td>Function</td><td><p>Computes a 4-by-4 identity matrix.</p></td></tr>
+			   <tr><td><a href='../proc/initialize_rigid_body.html'>initialize_rigid_body</a></td><td><a href='../module/dynamics_rigid_bodies.html'>dynamics_rigid_bodies</a></td><td>Subroutine</td><td><p>Initializes a rigid_body object.</p></td></tr>
 			   <tr><td><a href='../proc/inverse.html'>inverse</a></td><td><a href='../module/dynamics_quaternions.html'>dynamics_quaternions</a></td><td>Function</td><td><p>Computes the inverse of a quaternion.</p></td></tr>
+			   <tr><td><a href='../interface/inverse_kinematics_solver.html'>inverse_kinematics_solver</a></td><td><a href='../module/dynamics_kinematics.html'>dynamics_kinematics</a></td><td>Interface</td><td></td></tr>
 			   <tr><td><a href='../interface/is_parallel.html'>is_parallel</a></td><td><a href='../module/dynamics_geometry.html'>dynamics_geometry</a></td><td>Interface</td><td></td></tr>
 			   <tr><td><a href='../proc/is_point_on_line.html'>is_point_on_line</a></td><td><a href='../module/dynamics_geometry.html'>dynamics_geometry</a></td><td>Function</td><td><p>Tests to see if a point lies on a line.</p></td></tr>
 			   <tr><td><a href='../proc/is_point_on_plane.html'>is_point_on_plane</a></td><td><a href='../module/dynamics_geometry.html'>dynamics_geometry</a></td><td>Function</td><td><p>Tests to see if a point lies on a plane.</p></td></tr>
@@ -203,6 +206,7 @@ supplied trajectory with the specified plane.</p></td></tr>
 			   <tr><td><a href='../proc/report_array_index_out_of_bounds_error.html'>report_array_index_out_of_bounds_error</a></td><td><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></td><td>Subroutine</td><td><p>Reports an array index-out-of-bounds error.</p></td></tr>
 			   <tr><td><a href='../proc/report_array_size_error.html'>report_array_size_error</a></td><td><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></td><td>Subroutine</td><td><p>Reports an array size error.</p></td></tr>
 			   <tr><td><a href='../proc/report_constraint_count_error.html'>report_constraint_count_error</a></td><td><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></td><td>Subroutine</td><td><p>Reports an error associated with an incorrect number of constraints.</p></td></tr>
+			   <tr><td><a href='../proc/report_convergence_error.html'>report_convergence_error</a></td><td><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></td><td>Subroutine</td><td><p>Reports a convergence error.</p></td></tr>
 			   <tr><td><a href='../proc/report_generic_counting_error.html'>report_generic_counting_error</a></td><td><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></td><td>Subroutine</td><td><p>A generic error reporting routine.</p></td></tr>
 			   <tr><td><a href='../proc/report_matrix_size_error.html'>report_matrix_size_error</a></td><td><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></td><td>Subroutine</td><td><p>Reports a matrix size error.</p></td></tr>
 			   <tr><td><a href='../proc/report_matrix_size_mismatch_error.html'>report_matrix_size_mismatch_error</a></td><td><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></td><td>Subroutine</td><td><p>Reports a mismatch in matrix sizes.</p></td></tr>
@@ -212,6 +216,7 @@ supplied trajectory with the specified plane.</p></td></tr>
 			   <tr><td><a href='../proc/report_nonsquare_matrix_error.html'>report_nonsquare_matrix_error</a></td><td><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></td><td>Subroutine</td><td><p>Reports an error relating to a non-square matrix.</p></td></tr>
 			   <tr><td><a href='../proc/report_nonsquare_stiffness_matrix_error.html'>report_nonsquare_stiffness_matrix_error</a></td><td><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></td><td>Subroutine</td><td><p>Reports an error relating to a non-square stiffness matrix.</p></td></tr>
 			   <tr><td><a href='../proc/report_null_forcing_routine_error.html'>report_null_forcing_routine_error</a></td><td><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></td><td>Subroutine</td><td><p>Reports a null forcing routine pointer error.</p></td></tr>
+			   <tr><td><a href='../proc/report_null_solver_routine_error.html'>report_null_solver_routine_error</a></td><td><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></td><td>Subroutine</td><td><p>Reports a null solver routine error.</p></td></tr>
 			   <tr><td><a href='../proc/report_overconstraint_error.html'>report_overconstraint_error</a></td><td><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></td><td>Subroutine</td><td><p>Reports an overconstraint error.</p></td></tr>
 			   <tr><td><a href='../proc/report_zero_difference_error.html'>report_zero_difference_error</a></td><td><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></td><td>Subroutine</td><td><p>Reports a zero-difference between two variables where a non-zero
 difference was expected.</p></td></tr>
@@ -234,6 +239,7 @@ such that
 <script type="math/tex"> \overrightarrow{r_2} = \textbf{R}_z \overrightarrow{r_1} </script>.</p><a href="../proc/rotate_z.html" class="pull-right"><emph>Read more&hellip;</emph></a></td></tr>
 			   <tr><td><a href='../proc/scalar_projection.html'>scalar_projection</a></td><td><a href='../module/dynamics_helper.html'>dynamics_helper</a></td><td>Function</td><td><p>Computes the projection of vector x onto vector y.  The scalar projection
 is defined such that <script type="math/tex"> s = \frac{\vec{x} \cdot \vec{y}}{||\vec{y}||} </script>.</p></td></tr>
+			   <tr><td><a href='../interface/serial_linkage.html'>serial_linkage</a></td><td><a href='../module/dynamics_linkage.html'>dynamics_linkage</a></td><td>Interface</td><td></td></tr>
 			   <tr><td><a href='../proc/shape_function_derivative.html'>shape_function_derivative</a></td><td><a href='../module/dynamics_structural.html'>dynamics_structural</a></td><td>Function</td><td><p>Computes the derivative of the shape function with respect to the natural
 coordinate specified.</p></td></tr>
 			   <tr><td><a href='../proc/shape_function_second_derivative.html'>shape_function_second_derivative</a></td><td><a href='../module/dynamics_structural.html'>dynamics_structural</a></td><td>Function</td><td><p>Computes the second derivative of the shape function with respect to the
@@ -271,7 +277,7 @@ its parent frame.</p><a href="../proc/velocity_transform.html" class="pull-right
             <p class="text-right">
               Documentation generated by
               <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-03-13 15:09              </p>
+ on 2026-03-25 14:44              </p>
           </div>
         </div>
         <br>
