@@ -34,6 +34,7 @@ module dynamics_error_handling
     integer(int32), parameter :: DYN_TOO_FEW_ITERATIONS_ERROR = FS_TOO_FEW_ITERATION_ERROR
         !! Defines an error when too few iterations were allowed.
     integer(int32), parameter :: DYN_CONVERGENCE_ERROR = NL_CONVERGENCE_ERROR
+        !! Defines an error related to convergence issues.
 contains
 ! ------------------------------------------------------------------------------
     subroutine report_null_forcing_routine_error(name, err)
@@ -47,6 +48,21 @@ contains
         ! Report the error
         call err%report_error(name, &
             "No forcing function routine was supplied.", &
+            DYN_NULL_POINTER_ERROR)
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    subroutine report_null_solver_routine_error(name, err)
+        !! Reports a null solver routine error.
+        character(len = *), intent(in) :: name
+            !! The name of the routine in which the error was found.
+        class(errors), intent(inout) :: err
+            !! An errors-based object that if provided can be used to retrieve 
+            !! information relating to any errors encountered during execution.
+        
+        ! Report the error
+        call err%report_error(name, &
+            "No routine has been defined to supply to the solver.", &
             DYN_NULL_POINTER_ERROR)
     end subroutine
 
