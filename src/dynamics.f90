@@ -75,6 +75,7 @@ module dynamics
     public :: jacobianfcn
     public :: least_squares_solver
     public :: iteration_behavior
+    public :: vecfcn_helper
     public :: jacobian_generating_vector
     public :: dh_jacobian
     public :: REVOLUTE_JOINT

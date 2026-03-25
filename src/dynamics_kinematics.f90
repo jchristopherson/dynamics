@@ -20,6 +20,7 @@ module dynamics_kinematics
     public :: jacobianfcn
     public :: least_squares_solver
     public :: iteration_behavior
+    public :: vecfcn_helper
     public :: jacobian_generating_vector
     public :: dh_jacobian
     public :: REVOLUTE_JOINT
@@ -99,6 +100,25 @@ module dynamics_kinematics
 
     interface dh_table
         module procedure :: dh_table_init
+    end interface
+
+    type, extends(least_squares_solver) :: inverse_kinematics_solver
+        !!
+        real(real64), private, allocatable, dimension(:) :: m_minQ
+            !! Minimum joint variable limits.
+        real(real64), private, allocatable, dimension(:) :: m_maxQ
+            !! Maximum joint variable limits.
+    contains
+        procedure, public :: get_upper_joint_limits => iks_get_upper_limit
+        procedure, public :: set_upper_joint_limits => iks_set_upper_limit
+        procedure, public :: get_lower_joint_limits => iks_get_lower_limit
+        procedure, public :: set_lower_joint_limits => iks_set_lower_limit
+        procedure, public :: apply_joint_limits => iks_apply_limits
+        procedure, public :: solve => iks_solve
+    end type
+
+    interface inverse_kinematics_solver
+        module procedure :: inverse_kinematics_solver
     end interface
 
 ! ------------------------------------------------------------------------------
@@ -670,7 +690,7 @@ contains
         end if
 
         ! Set up the solver
-        fcn => inverse_kinematics_solver
+        fcn => inverse_kinematics_solver_fcn
         call helper%set_fcn(fcn, neqn, nvar)
         if (present(jfcn)) then
             call helper%set_jacobian(jfcn)
@@ -694,7 +714,7 @@ contains
     end function
 
 ! ----------
-    subroutine inverse_kinematics_solver(x, f, args)
+    subroutine inverse_kinematics_solver_fcn(x, f, args)
         ! Routine called by the inverse kinematics solver
         real(real64), intent(in), dimension(:) :: x
         real(real64), intent(out), dimension(:) :: f
@@ -1171,6 +1191,244 @@ end function
             rst = -rst
         end if
     end function
+
+! ******************************************************************************
+! INVERSE_KINEMATICS_SOLVER
+! ------------------------------------------------------------------------------
+    function iks_init(n, maxq, minq, alpha) result(rst)
+        !! Initializes a new instance of the inverse_kinematics_solver type.
+        integer(int32), intent(in) :: n
+            !! The number of joint variables.
+        real(real64), intent(in), optional :: maxq(n)
+            !! An N-element array containing the upper limits on each joint
+            !! variable.  The default sets the value of the result of the
+            !! huge intrinsic function for double-precision values.
+        real(real64), intent(in), optional :: minq(n)
+            !! An N-element array containing the lower limits on each joint
+            !! variable.  The default sets the negative of the value of the
+            !! result of the huge intrinsic function for double-precision
+            !! values.
+        real(real64), intent(in), optional :: alpha
+            !! The scaling factor \(\alpha\) in the solution equation 
+            !! \( \delta \vec{q} = \alpha J^{T} \vec{e}\).  The default is set
+            !! to 0.1.
+        type(inverse_kinematics_solver) :: rst
+            !! The inverse_kinematics_solver type.
+
+        ! Initialization
+        allocate(rst%m_maxQ(n), source = huge(0.0d0))
+        allocate(rst%m_minQ(n), source = -huge(0.0d0))
+        if (present(maxq)) rst%m_maxQ = maxq
+        if (present(minq)) rst%m_minQ = minq
+
+        call rst%set_step_scaling_factor(0.1d0)
+        if (present(alpha)) call rst%set_step_scaling_factor(alpha)
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function iks_get_upper_limit(this) result(rst)
+        !! Gets the array of upper limits on the joint variables.
+        class(inverse_kinematics_solver), intent(in) :: this
+            !! The inverse_kinematics_solver object.
+        real(real64), allocatable, dimension(:) :: rst
+            !! The joint variable limits.
+
+        rst = this%m_maxQ
+    end function
+
+! -------------------
+    subroutine iks_set_upper_limit(this, x)
+        !! Sets the array of upper limits on the joint variables.
+        class(inverse_kinematics_solver), intent(inout) :: this
+            !! The inverse_kinematics_solver object.
+        real(real64), intent(in), dimension(:) :: x
+            !! The joint variable limit array. 
+
+        integer(int32) :: n
+        n = size(this%m_maxQ)
+        if (size(x) /= n) return
+        this%m_maxQ = x
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    pure function iks_get_lower_limit(this) result(rst)
+        !! Gets the array of lower limits on the joint variables.
+        class(inverse_kinematics_solver), intent(in) :: this
+            !! The inverse_kinematics_solver object.
+        real(real64), allocatable, dimension(:) :: rst
+            !! The joint variable limits.
+
+        rst = this%m_minQ
+    end function
+
+! -------------------
+    subroutine iks_set_lower_limit(this, x)
+        !! Sets the array of lower limits on the joint variables.
+        class(inverse_kinematics_solver), intent(inout) :: this
+            !! The inverse_kinematics_solver object.
+        real(real64), intent(in), dimension(:) :: x
+            !! The joint variable limit array.
+
+        integer(int32) :: n
+        n = size(this%m_minQ)
+        if (size(x) /= n) return
+        this%m_minQ = x
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    subroutine iks_apply_limits(this, x)
+        !! Ensures the supplied vector lies within the defined limits.
+        class(inverse_kinematics_solver), intent(in) :: this
+            !! The inverse_kinematics_solver object.
+        real(real64), intent(inout), dimension(:) :: x
+            !! On input, the vector to verify.  On output, the updated vector.
+
+        ! Local Variables
+        integer(int32) :: i, n
+        real(real64), allocatable, dimension(:) :: maxX, minX
+
+        ! Initialization
+        maxX = this%get_upper_joint_limits()
+        minX = this%get_lower_joint_limits()
+        n = min(size(maxX), size(minX), size(x))
+
+        ! Process
+        do i = 1, n
+            if (x(i) < minX(i)) x(i) = minX(i)
+            if (x(i) > maxX(i)) x(i) = maxX(i)
+        end do
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    subroutine iks_solve(this, fcn, x, fvec, ib, args, err)
+        class(inverse_kinematics_solver), intent(inout) :: this
+            !! The inverse_kinematics_solver object.
+        class(vecfcn_helper), intent(in) :: fcn
+            !! The object containing the equations to solve.
+        real(real64), intent(inout), dimension(:) :: x
+            !! On input, an N-element array containing an initial estimate 
+            !! to the solution.  On output, the updated solution estimate.
+            !! N is the number of variables.
+        real(real64), intent(out), dimension(:) :: fvec
+            !! An M-element array that, on output, will contain the values 
+            !! of each equation as evaluated at the variable values given 
+            !! in x.
+        type(iteration_behavior), optional :: ib
+            !! An optional output, that if provided, allows the caller to 
+            !! obtain iteration performance statistics.
+        class(*), intent(inout), optional :: args
+                !! An optional argument to allow the user to communicate with
+                !! the routine.
+        class(errors), intent(inout), optional, target :: err
+            !! An error handling object.
+
+        ! Local Variables
+        logical :: xcnvrg, fcnvrg, gcnvrg, converged
+        integer(int32) :: neqn, nvar, neval, iter, maxeval, njac, lwork
+        real(real64) :: alpha, ftol, xtol, xnorm, fnorm
+        real(real64), allocatable, dimension(:) :: w, dx
+        real(real64), allocatable, dimension(:,:) :: jac
+        class(errors), pointer :: errmgr
+        type(errors), target :: deferr
+        
+        ! Initialization
+        xcnvrg = .false.
+        fcnvrg = .false.
+        gcnvrg = .false.
+        converged = .false.
+        iter = 0
+        neval = 0
+        njac = 0
+        neqn = fcn%get_equation_count()
+        nvar = fcn%get_variable_count()
+        ftol = this%get_fcn_tolerance()
+        xtol = this%get_var_tolerance()
+        maxeval = this%get_max_fcn_evals()
+        if (present(ib)) then
+            ib%iter_count = iter
+            ib%fcn_count = neval
+            ib%jacobian_count = njac
+            ib%converge_on_fcn = fcnvrg
+            ib%converge_on_chng = xcnvrg
+            ib%converge_on_zero_diff = gcnvrg
+        end if
+        if (present(err)) then
+            errmgr => err
+        else
+            errmgr => deferr
+        end if
+
+        ! Input Check
+        if (.not.fcn%is_fcn_defined()) then
+            ! ERROR
+        end if
+        if (size(x) /= nvar) then
+            ! ERROR
+        end if
+        if (size(fvec) /= neqn) then
+            ! ERROR
+        end if
+
+        ! Local Memory Allocation
+        call fcn%jacobian(x, jac, fv = fvec, olwork = lwork)
+        allocate(w(lwork), dx(nvar))
+
+        ! Clamp the initial guess
+        call this%apply_joint_limits(x)
+
+        ! Perform the initial function evaluation
+        call fcn%fcn(x, fvec, args)
+        neval = 1
+        fnorm = norm2(fvec)
+
+        ! Iteration Process
+        iter_loop : do iter = 1, maxeval
+            ! Evaluate the Jacobian
+            call fcn%jacobian(x, jac, fvec, w, args = args)
+            njac = njac + 1
+
+            ! Gradient-Descent Step
+            dx = alpha * matmul(transpose(jac), fvec)
+            xnorm = norm2(dx)
+
+            ! Perform the update
+            x = x + dx
+
+            ! Enforce joint limits
+            call this%apply_joint_limits(x)
+
+            ! Compute the next solution update
+            call fcn%fcn(x, fvec, args)
+            fnorm = norm2(fvec)
+
+            ! Check for convergence
+            if (fnorm < ftol) then
+                converged = .true.
+                fcnvrg = .true.
+                exit iter_loop
+            end if
+            if (xnorm < xtol) then
+                converged = .true.
+                xcnvrg = .true.
+                exit iter_loop
+            end if
+        end do iter_loop
+
+        ! Update the iteration status
+        if (present(ib)) then
+            ib%iter_count = iter
+            ib%fcn_count = neval
+            ib%jacobian_count = njac
+            ib%converge_on_fcn = fcnvrg
+            ib%converge_on_chng = xcnvrg
+            ib%converge_on_zero_diff = gcnvrg
+        end if
+
+        ! Handle a failure to converge
+        if (.not.converged) then
+            ! ERROR
+        end if
+    end subroutine
 
 ! ------------------------------------------------------------------------------
 end module
