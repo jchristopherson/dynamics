@@ -1275,7 +1275,7 @@ end function
         end if
 
         if (rst%m_solverType /= DAMPED_LEAST_SQUARES_SOLVER) then
-            call rst%set_step_scaling_factor(1.0d-2)
+            call rst%set_step_scaling_factor(1.0d-1)
         end if
         if (present(alpha)) call rst%set_step_scaling_factor(alpha)
 

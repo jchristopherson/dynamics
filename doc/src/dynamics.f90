@@ -8,6 +8,7 @@ module dynamics
     use dynamics_stability
     use dynamics_controls
     use dynamics_system_id
+    use dynamics_linkage
     implicit none
     private
 
@@ -71,8 +72,10 @@ module dynamics
     public :: dh_forward_kinematics
     public :: solve_inverse_kinematics
     public :: vecfcn
+    public :: jacobianfcn
     public :: least_squares_solver
     public :: iteration_behavior
+    public :: vecfcn_helper
     public :: jacobian_generating_vector
     public :: dh_jacobian
     public :: REVOLUTE_JOINT
@@ -80,6 +83,9 @@ module dynamics
     public :: coordinate_system
     public :: dh_parameter_set
     public :: dh_table
+    public :: DAMPED_LEAST_SQUARES_SOLVER
+    public :: CONJUGATE_GRADIENT_SOLVER
+    public :: inverse_kinematics_solver
 
     ! DYNAMICS_VIBRATIONS
     public :: q_factor
@@ -122,4 +128,8 @@ module dynamics
     public :: model_information
     public :: siso_model_fit_least_squares
     public :: constraint_equations
+
+    ! DYNAMICS_LINKAGE
+    public :: binary_link
+    public :: serial_linkage
 end module
