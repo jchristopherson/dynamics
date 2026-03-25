@@ -5,6 +5,7 @@ module dynamics_error_handling
         DIFFEQ_MEMORY_ALLOCATION_ERROR, DIFFEQ_NULL_POINTER_ERROR
     use fstats_errors, only : FS_UNDERDEFINED_PROBLEM_ERROR, &
         FS_TOLERANCE_TOO_SMALL_ERROR, FS_TOO_FEW_ITERATION_ERROR
+    use nonlin_error_handling, only : NL_CONVERGENCE_ERROR
     implicit none
 
     integer(int32), parameter :: DYN_MEMORY_ERROR = DIFFEQ_MEMORY_ALLOCATION_ERROR
@@ -32,6 +33,7 @@ module dynamics_error_handling
         !! value.
     integer(int32), parameter :: DYN_TOO_FEW_ITERATIONS_ERROR = FS_TOO_FEW_ITERATION_ERROR
         !! Defines an error when too few iterations were allowed.
+    integer(int32), parameter :: DYN_CONVERGENCE_ERROR = NL_CONVERGENCE_ERROR
 contains
 ! ------------------------------------------------------------------------------
     subroutine report_null_forcing_routine_error(name, err)
@@ -418,6 +420,31 @@ contains
 
         ! Formatting
     100 format(A, I0, A, I0, A, I0, A, I0, A)
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    subroutine report_convergence_error(name, niter, resid, err)
+        !! Reports a convergence error.
+        character(len = *), intent(in) :: name
+            !! The name of the routine in which the error was found.
+        integer(int32), intent(in) :: niter
+            !! The actual number of iterations taken.
+        real(real64), intent(in) :: resid
+            !! The current residual estimate.
+        class(errors), intent(inout) :: err
+            !! An errors-based object that if provided can be used to retrieve 
+            !! information relating to any errors encountered during execution.
+
+        ! Local Variables
+        character(len = 512) :: errmsg
+
+        ! Report the error
+        write(errmsg, 100) "The iteration process failed to converge taking ", &
+            niter, " iterations with the current residual of ", resid, "."
+        call err%report_error(name, trim(errmsg), DYN_CONVERGENCE_ERROR)
+
+        ! Formatting
+    100 format(A, I0, A, E12.5, A)
     end subroutine
 
 ! ------------------------------------------------------------------------------
