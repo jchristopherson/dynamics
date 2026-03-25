@@ -1507,7 +1507,7 @@ end function
         end if
         if (size(fvec) /= neqn) then
             call report_array_size_error("iks_cg_solve", "fvec", neqn, &
-                size(neqn), errmgr)
+                size(fvec), errmgr)
             return
         end if
 
