@@ -28,6 +28,9 @@ module dynamics_kinematics
     public :: coordinate_system
     public :: dh_parameter_set
     public :: dh_table
+    public :: DAMPED_LEAST_SQUARES_SOLVER
+    public :: CONJUGATE_GRADIENT_SOLVER
+    public :: inverse_kinematics_solver
 
     interface dh_forward_kinematics
         module procedure :: dh_forward_kinematics_2
@@ -102,23 +105,34 @@ module dynamics_kinematics
         module procedure :: dh_table_init
     end interface
 
+    integer(int32), parameter :: DAMPED_LEAST_SQUARES_SOLVER = 0
+        !! Defines a damped-least-squares solver.
+    integer(int32), parameter :: CONJUGATE_GRADIENT_SOLVER = 1
+        !! Defines a conjugate-gradient solver.
+
     type, extends(least_squares_solver) :: inverse_kinematics_solver
         !!
         real(real64), private, allocatable, dimension(:) :: m_minQ
             !! Minimum joint variable limits.
         real(real64), private, allocatable, dimension(:) :: m_maxQ
             !! Maximum joint variable limits.
+        integer(int32), private :: m_solverType
+            !! The solver type to employ.  Must be one of the following:
+            !! - DAMPED_LEAST_SQUARES_SOLVER
+            !! - CONJUGATE_GRADIENT_SOLVER
     contains
         procedure, public :: get_upper_joint_limits => iks_get_upper_limit
         procedure, public :: set_upper_joint_limits => iks_set_upper_limit
         procedure, public :: get_lower_joint_limits => iks_get_lower_limit
         procedure, public :: set_lower_joint_limits => iks_set_lower_limit
         procedure, public :: apply_joint_limits => iks_apply_limits
+        procedure, public :: get_solver_type => iks_get_solver_type
+        procedure, public :: set_solver_type => iks_set_solver_type
         procedure, public :: solve => iks_solve
     end type
 
     interface inverse_kinematics_solver
-        module procedure :: inverse_kinematics_solver
+        module procedure :: iks_init
     end interface
 
 ! ------------------------------------------------------------------------------
@@ -613,7 +627,7 @@ contains
 
 ! ------------------------------------------------------------------------------
     function solve_inverse_kinematics(mdl, qo, constraints, df, &
-        slvr, ib, args, jfcn, err) result(rst)
+        slvr, ib, jfcn, qmax, qmin, stype, args, err) result(rst)
         !! Solves the inverse kinematics problem for a linkage.  An iterative
         !! solution procedure is utilized.
         procedure(vecfcn), intent(in), pointer :: mdl
@@ -635,14 +649,31 @@ contains
         type(iteration_behavior), intent(out), optional :: ib
             !! An optional output that can be used to gather information on the
             !! solver.
+        procedure(jacobianfcn), intent(in), pointer, optional :: jfcn
+            !! A routine that can be used to provide the Jacobian matrix for
+            !! the linkage.
+        real(real64), intent(in), dimension(size(qo)), optional :: qmax
+            !! An optional set of upper limits on each of the joint variables.
+            !! If not provided, the default is the output of the 'huge' 
+            !! intrinsic function.
+        real(real64), intent(in), dimension(size(qo)), optional :: qmin
+            !! An optional set of lower limits on each of the joint variables.
+            !! If not provided, the default is the negative of the output of 
+            !! the 'huge' intrinsic function.
+        integer(int32), intent(in), optional :: stype
+            !! The solver type.  Currently, the only supported options are
+            !! as follows.
+            !!
+            !! - DAMPED_LEAST_SQUARES_SOLVER
+            !!
+            !! - CONJUGATE_GRADIENT_SOLVER
+            !!
+            !! The default is the DAMPED_LEAST_SQUARES_SOLVER.
         class(*), intent(inout), optional, target :: args
             !! An optional argument that can be used to communicate with mdl.
         class(errors), intent(inout), optional, target :: err
             !! An errors-based object that if provided can be used to retrieve 
             !! information relating to any errors encountered during execution.
-        procedure(jacobianfcn), intent(in), pointer, optional :: jfcn
-            !! A routine that can be used to provide the Jacobian matrix for
-            !! the linkage.
         real(real64), allocatable, dimension(:) :: rst
             !! An M-element array containing the computed joint variables.
 
@@ -652,7 +683,7 @@ contains
         real(real64), allocatable, target, dimension(:) :: dresid
         type(vecfcn_helper) :: helper
         class(least_squares_solver), pointer :: solver
-        type(least_squares_solver), target :: default_solver
+        type(inverse_kinematics_solver), target :: default_solver
         procedure(vecfcn), pointer :: fcn
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
@@ -669,6 +700,8 @@ contains
         if (present(slvr)) then
             solver => slvr
         else
+            default_solver = inverse_kinematics_solver(nvar, maxq = qmax, &
+                minq = qmin, solver = stype)
             solver => default_solver
         end if
         obj%kinematics_equations => mdl
@@ -1195,7 +1228,7 @@ end function
 ! ******************************************************************************
 ! INVERSE_KINEMATICS_SOLVER
 ! ------------------------------------------------------------------------------
-    function iks_init(n, maxq, minq, alpha) result(rst)
+    function iks_init(n, maxq, minq, alpha, solver) result(rst)
         !! Initializes a new instance of the inverse_kinematics_solver type.
         integer(int32), intent(in) :: n
             !! The number of joint variables.
@@ -1212,6 +1245,15 @@ end function
             !! The scaling factor \(\alpha\) in the solution equation 
             !! \( \delta \vec{q} = \alpha J^{T} \vec{e}\).  The default is set
             !! to 0.1.
+        integer(int32), intent(in), optional :: solver
+            !! The solver type to employ.  This parameter must be set to
+            !! one of the following options.
+            !!
+            !! - DAMPED_LEAST_SQUARES_SOLVER
+            !!
+            !! - CONJUGATE_GRADIENT_SOLVER
+            !!
+            !! The default is a DAMPED_LEAST_SQUARES_SOLVER.
         type(inverse_kinematics_solver) :: rst
             !! The inverse_kinematics_solver type.
 
@@ -1221,8 +1263,25 @@ end function
         if (present(maxq)) rst%m_maxQ = maxq
         if (present(minq)) rst%m_minQ = minq
 
-        call rst%set_step_scaling_factor(0.1d0)
+        rst%m_solverType = DAMPED_LEAST_SQUARES_SOLVER
+        if (present(solver)) then
+            if (solver /= DAMPED_LEAST_SQUARES_SOLVER .and. &
+                solver /= CONJUGATE_GRADIENT_SOLVER) &
+            then
+                rst%m_solverType = DAMPED_LEAST_SQUARES_SOLVER
+            else
+                rst%m_solverType = solver
+            end if
+        end if
+
+        if (rst%m_solverType /= DAMPED_LEAST_SQUARES_SOLVER) then
+            call rst%set_step_scaling_factor(1.0d-2)
+        end if
         if (present(alpha)) call rst%set_step_scaling_factor(alpha)
+
+        if (rst%m_solverType == CONJUGATE_GRADIENT_SOLVER) then
+            call rst%set_max_fcn_evals(10000)
+        end if
     end function
 
 ! ------------------------------------------------------------------------------
@@ -1300,7 +1359,76 @@ end function
     end subroutine
 
 ! ------------------------------------------------------------------------------
+    pure function iks_get_solver_type(this) result(rst)
+        !! Gets the solver type.  Currently, the only supported options are
+        !!
+        !! - DAMPED_LEAST_SQUARES_SOLVER
+        !!
+        !! - CONJUGATE_GRADIENT_SOLVER
+        class(inverse_kinematics_solver), intent(in) :: this
+            !! The inverse_kinematics_solver object.
+        integer(int32) :: rst
+            !! The solver type.
+        rst = this%m_solverType
+    end function
+
+! --------------------
+    subroutine iks_set_solver_type(this, x)
+        !! Sets the solver type.  Currently, the only supported options are
+        !!
+        !! - DAMPED_LEAST_SQUARES_SOLVER
+        !!
+        !! - CONJUGATE_GRADIENT_SOLVER
+        !!
+        !! If an unrecognized value is provided, no change is made to the 
+        !! existing solver type.
+        class(inverse_kinematics_solver), intent(inout) :: this
+            !! The inverse_kinematics_solver object.
+        integer(int32), intent(in) :: x
+            !! The solver type.
+
+        if (x /= DAMPED_LEAST_SQUARES_SOLVER .and. &
+            x /= CONJUGATE_GRADIENT_SOLVER) &
+        then
+            return
+        else
+            this%m_solverType = x
+        end if
+    end subroutine
+
+! ------------------------------------------------------------------------------
     subroutine iks_solve(this, fcn, x, fvec, ib, args, err)
+        !! Solves the inverse kinematics problem using the requested solver.
+        class(inverse_kinematics_solver), intent(inout) :: this
+            !! The inverse_kinematics_solver object.
+        class(vecfcn_helper), intent(in) :: fcn
+            !! The object containing the equations to solve.
+        real(real64), intent(inout), dimension(:) :: x
+            !! On input, an N-element array containing an initial estimate 
+            !! to the solution.  On output, the updated solution estimate.
+            !! N is the number of variables.
+        real(real64), intent(out), dimension(:) :: fvec
+            !! An M-element array that, on output, will contain the values 
+            !! of each equation as evaluated at the variable values given 
+            !! in x.
+        type(iteration_behavior), optional :: ib
+            !! An optional output, that if provided, allows the caller to 
+            !! obtain iteration performance statistics.
+        class(*), intent(inout), optional :: args
+                !! An optional argument to allow the user to communicate with
+                !! the routine.
+        class(errors), intent(inout), optional, target :: err
+            !! An error handling object.
+
+        ! Process
+        if (this%get_solver_type() == CONJUGATE_GRADIENT_SOLVER) then
+            call iks_cg_solve(this, fcn, x, fvec, ib, args, err)
+        else
+            call this%least_squares_solver%solve(fcn, x, fvec, ib, args, err)
+        end if
+    end subroutine
+! ------------------------------------------------------------------------------
+    subroutine iks_cg_solve(this, fcn, x, fvec, ib, args, err)
         class(inverse_kinematics_solver), intent(inout) :: this
             !! The inverse_kinematics_solver object.
         class(vecfcn_helper), intent(in) :: fcn
@@ -1325,12 +1453,14 @@ end function
         ! Local Variables
         logical :: xcnvrg, fcnvrg, gcnvrg, converged
         integer(int32) :: neqn, nvar, neval, iter, maxeval, njac, lwork
-        real(real64) :: alpha, ftol, xtol, xnorm, fnorm
-        real(real64), allocatable, dimension(:) :: w, dx
+        integer(int32) :: ls_iter, max_ls
+        real(real64) :: alpha, ftol, xtol, gtol, xnorm, fnorm, gnorm, phi, phi_new
+        real(real64) :: beta, gdotp, c1, rho, min_alpha
+        real(real64), allocatable, dimension(:) :: w, dx, g, p, g_new, f_trial, x_trial
         real(real64), allocatable, dimension(:,:) :: jac
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
-        
+
         ! Initialization
         xcnvrg = .false.
         fcnvrg = .false.
@@ -1343,7 +1473,14 @@ end function
         nvar = fcn%get_variable_count()
         ftol = this%get_fcn_tolerance()
         xtol = this%get_var_tolerance()
+        gtol = this%get_gradient_tolerance()
         maxeval = this%get_max_fcn_evals()
+        alpha = this%get_step_scaling_factor()
+        c1 = 1.0d-4
+        rho = 0.5d0
+        min_alpha = 1.0d-16
+        max_ls = 20
+
         if (present(ib)) then
             ib%iter_count = iter
             ib%fcn_count = neval
@@ -1360,49 +1497,85 @@ end function
 
         ! Input Check
         if (.not.fcn%is_fcn_defined()) then
-            ! ERROR
+            call report_null_solver_routine_error("iks_cg_solve", errmgr)
+            return
         end if
         if (size(x) /= nvar) then
-            ! ERROR
+            call report_array_size_error("iks_cg_solve", "x", nvar, size(x), &
+                errmgr)
+            return
         end if
         if (size(fvec) /= neqn) then
-            ! ERROR
+            call report_array_size_error("iks_cg_solve", "fvec", neqn, &
+                size(neqn), errmgr)
+            return
         end if
 
         ! Local Memory Allocation
+        allocate(jac(neqn, nvar))
         call fcn%jacobian(x, jac, fv = fvec, olwork = lwork)
-        allocate(w(lwork), dx(nvar))
+        allocate(w(lwork), dx(nvar), g(nvar), p(nvar), g_new(nvar), &
+            f_trial(neqn), x_trial(nvar))
 
         ! Clamp the initial guess
         call this%apply_joint_limits(x)
 
-        ! Perform the initial function evaluation
+        ! Initial function, gradient and search direction
         call fcn%fcn(x, fvec, args)
         neval = 1
-        fnorm = norm2(fvec)
+        phi = 0.5d0 * dot_product(fvec, fvec)
+        call fcn%jacobian(x, jac, fvec, w, args = args)
+        njac = 1
+        g = matmul(transpose(jac), fvec)
+        p = -g
+        gnorm = norm2(g)
 
         ! Iteration Process
         iter_loop : do iter = 1, maxeval
-            ! Evaluate the Jacobian
-            call fcn%jacobian(x, jac, fvec, w, args = args)
-            njac = njac + 1
+            ! Line search with Armijo condition
+            gdotp = dot_product(g, p)
+            if (gdotp >= 0.0d0) then
+                p = -g
+                gdotp = -dot_product(g, g)
+            end if
 
-            ! Gradient-Descent Step
-            dx = alpha * matmul(transpose(jac), fvec)
+            x_trial = x
+            f_trial = fvec
+            phi_new = phi
+            ls_iter = 0
+            do while (ls_iter < max_ls)
+                ls_iter = ls_iter + 1
+                x_trial = x + alpha * p
+                call this%apply_joint_limits(x_trial)
+                call fcn%fcn(x_trial, f_trial, args)
+                neval = neval + 1
+                phi_new = 0.5d0 * dot_product(f_trial, f_trial)
+                if (phi_new <= phi + c1 * alpha * gdotp) exit
+                alpha = rho * alpha
+                if (alpha < min_alpha) exit
+            end do
+
+            dx = x_trial - x
             xnorm = norm2(dx)
 
-            ! Perform the update
-            x = x + dx
+            ! Update the current state
+            x = x_trial
+            fvec = f_trial
+            phi = phi_new
 
-            ! Enforce joint limits
-            call this%apply_joint_limits(x)
+            ! Recompute gradient
+            call fcn%jacobian(x, jac, fvec, w, args = args)
+            njac = njac + 1
+            g_new = matmul(transpose(jac), fvec)
+            gnorm = norm2(g_new)
 
-            ! Compute the next solution update
-            call fcn%fcn(x, fvec, args)
-            fnorm = norm2(fvec)
-
-            ! Check for convergence
-            if (fnorm < ftol) then
+            ! Convergence checks
+            if (gnorm < gtol) then
+                converged = .true.
+                gcnvrg = .true.
+                exit iter_loop
+            end if
+            if (norm2(fvec) < ftol) then
                 converged = .true.
                 fcnvrg = .true.
                 exit iter_loop
@@ -1412,6 +1585,18 @@ end function
                 xcnvrg = .true.
                 exit iter_loop
             end if
+
+            ! Conjugate gradient direction update (Polak-Ribiere plus restart)
+            beta = dot_product(g_new, g_new - g) / max(1.0d-30, dot_product(g, g))
+            if (beta < 0.0d0) beta = 0.0d0
+            p = -g_new + beta * p
+            if (dot_product(p, g_new) >= 0.0d0) then
+                p = -g_new
+            end if
+
+            ! Prepare for next iteration
+            g = g_new
+            alpha = max(alpha, 1.0d-6)
         end do iter_loop
 
         ! Update the iteration status
@@ -1426,7 +1611,9 @@ end function
 
         ! Handle a failure to converge
         if (.not.converged) then
-            ! ERROR
+            call report_convergence_error("iks_cg_solve", iter, &
+                max(xtol, ftol, gtol), errmgr)
+            return
         end if
     end subroutine
 

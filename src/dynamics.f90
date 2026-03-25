@@ -83,6 +83,9 @@ module dynamics
     public :: coordinate_system
     public :: dh_parameter_set
     public :: dh_table
+    public :: DAMPED_LEAST_SQUARES_SOLVER
+    public :: CONJUGATE_GRADIENT_SOLVER
+    public :: inverse_kinematics_solver
 
     ! DYNAMICS_VIBRATIONS
     public :: q_factor
