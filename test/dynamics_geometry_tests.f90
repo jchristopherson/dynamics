@@ -652,10 +652,14 @@ function test_line_common_normal_2() result(rst)
     if (.not.assert(cn%r0, apt)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_line_common_normal_2 -1"
+        print *, "cn%r0: ", cn%r0
+        print *, "apt: ", apt
     end if
     if (.not.assert(cn%v, av)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_line_common_normal_2 -2"
+        print *, "cn%v: ", cn%v
+        print *, "av: ", av
     end if
 end function
 

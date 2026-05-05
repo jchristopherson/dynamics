@@ -467,21 +467,29 @@ function test_define_link_csys_1() result(rst)
     if (.not.assert(csys%i, ians)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_define_link_csys_1 -1"
+        print *, "csys%i: ", csys%i
+        print *, "ians: ", ians
     end if
 
     if (.not.assert(csys%j, jans)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_define_link_csys_1 -2"
+        print *, "csys%j: ", csys%j
+        print *, "jans: ", jans
     end if
 
     if (.not.assert(csys%k, kans)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_define_link_csys_1 -3"
+        print *, "csys%k: ", csys%k
+        print *, "kans: ", kans
     end if
 
     if (.not.assert(csys%origin, u)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_define_link_csys_1 -4"
+        print *, "csys%origin: ", csys%origin
+        print *, "u: ", u
     end if
 end function
 
@@ -512,21 +520,29 @@ function test_define_link_csys_2() result(rst)
     if (.not.assert(csys%i, ians)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_define_link_csys_2 -1"
+        print *, "csys%i: ", csys%i
+        print *, "ians: ", ians
     end if
 
     if (.not.assert(csys%j, jans)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_define_link_csys_2 -2"
+        print *, "csys%j: ", csys%j
+        print *, "jans: ", jans
     end if
 
     if (.not.assert(csys%k, kans)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_define_link_csys_2 -3"
+        print *, "csys%k: ", csys%k
+        print *, "kans: ", kans
     end if
 
     if (.not.assert(csys%origin, u)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_define_link_csys_2 -4"
+        print *, "csys%origin: ", csys%origin
+        print *, "u: ", u
     end if
 end function
 
@@ -557,21 +573,29 @@ function test_define_link_csys_3() result(rst)
     if (.not.assert(csys%i, ians)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_define_link_csys_3 -1"
+        print *, "csys%i: ", csys%i
+        print *, "ians: ", ians
     end if
 
     if (.not.assert(csys%j, jans)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_define_link_csys_3 -2"
+        print *, "csys%j: ", csys%j
+        print *, "jans: ", jans
     end if
 
     if (.not.assert(csys%k, kans)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_define_link_csys_3 -3"
+        print *, "csys%k: ", csys%k
+        print *, "kans: ", kans
     end if
 
     if (.not.assert(csys%origin, u)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_define_link_csys_3 -4"
+        print *, "csys%origin: ", csys%origin
+        print *, "u: ", u
     end if
 end function
 
@@ -602,21 +626,29 @@ function test_define_link_csys_4() result(rst)
     if (.not.assert(csys%i, ians)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_define_link_csys_4 -1"
+        print *, "csys%i: ", csys%i
+        print *, "ians: ", ians
     end if
 
     if (.not.assert(csys%j, jans)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_define_link_csys_4 -2"
+        print *, "csys%j: ", csys%j
+        print *, "jans: ", jans
     end if
 
     if (.not.assert(csys%k, kans)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_define_link_csys_4 -3"
+        print *, "csys%k: ", csys%k
+        print *, "kans: ", kans
     end if
 
     if (.not.assert(csys%origin, u)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_define_link_csys_4 -4"
+        print *, "csys%origin: ", csys%origin
+        print *, "u: ", u
     end if
 end function
 
