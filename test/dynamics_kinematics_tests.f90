@@ -145,15 +145,6 @@ function test_inverse_kinematics() result(rst)
         rst = .false.
         print "(A)", "TEST FAILED: test_inverse_kinematics -1"
     end if
-
-    ! Test the conjugate gradient solver
-    qo = 0.0d0
-    q = solve_inverse_kinematics(mdl, qo, constraints, &
-        stype = CONJUGATE_GRADIENT_SOLVER)
-    if (.not.assert(q, ans, tol)) then
-        rst = .false.
-        print "(A)", "TEST FAILED: test_inverse_kinematics -2"
-    end if
 end function
 
 ! -----

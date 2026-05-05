@@ -110,7 +110,7 @@ bool c_test_inverse_kinematics()
     // Solver the inverse problem
     fptr = inverse_fcn;
     c_solve_inverse_kinematics(3, 6, fptr, qo, constraints, qmax, qmin,
-        DYN_DAMPED_LEAST_SQUARES_SOLVER, q, resid, &ib);
+        q, resid, &ib);
 
     // Test
     if (!compare_arrays(3, ans, q, tol))
@@ -121,7 +121,7 @@ bool c_test_inverse_kinematics()
 
     // Try the conjugate gradient solver
     c_solve_inverse_kinematics(3, 6, fptr, qo, constraints, qmax, qmin,
-        DYN_CONJUGATE_GRADIENT_SOLVER, q, resid, &ib);
+        q, resid, &ib);
     if (!compare_arrays(3, ans, q, tol))
     {
         rst = false;

@@ -949,7 +949,7 @@ end subroutine
 
 ! ------------------------------------------------------------------------------
 subroutine c_solve_inverse_kinematics(njoints, neqn, mdl, qo, constraints, &
-    qmax, qmin, stype, jvar, resid, ib) &
+    qmax, qmin, jvar, resid, ib) &
     bind(C, name = "c_solve_inverse_kinematics")
     integer(c_int), intent(in), value :: njoints
     integer(c_int), intent(in), value :: neqn
@@ -958,7 +958,6 @@ subroutine c_solve_inverse_kinematics(njoints, neqn, mdl, qo, constraints, &
     real(c_double), intent(in) :: constraints(neqn)
     real(c_double), intent(in) :: qmax(njoints)
     real(c_double), intent(in) :: qmin(njoints)
-    integer(c_int), intent(in), value :: stype
     real(c_double), intent(out) :: jvar(njoints)
     real(c_double), intent(out) :: resid(neqn)
     type(c_iteration_behavior), intent(out) :: ib
@@ -971,7 +970,7 @@ subroutine c_solve_inverse_kinematics(njoints, neqn, mdl, qo, constraints, &
     arg%fcn => fptr
     
     jvar = solve_inverse_kinematics(fcn, qo, constraints, df = resid, &
-        qmax = qmax, qmin = qmin, stype = stype, ib = iter, args = arg)
+        qmax = qmax, qmin = qmin, ib = iter, args = arg)
     ib = iter
 end subroutine
 

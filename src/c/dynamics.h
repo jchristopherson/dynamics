@@ -14,9 +14,6 @@
 #define DYN_REVOLUTE_JOINT 0
 #define DYN_PRISMATIC_JOINT 1
 
-#define DYN_DAMPED_LEAST_SQUARES_SOLVER 0
-#define DYN_CONJUGATE_GRADIENT_SOLVER 1
-
 #define DYN_FRF_ACCELERANCE_MODEL 1
 #define DYN_FRF_RECEPTANCE_MODEL 2
 
@@ -238,7 +235,7 @@ void c_jacobian_generating_vector(const double *d, const double *k,
     const double *R, int ldr, int jtype, double jvec[6]);
 void c_solve_inverse_kinematics(int njoints, int neqn, const c_vecfcn mdl,
     const double *qo, const double *constraints, const double *qmax,
-    const double *qmin, int stype, double *jvar, double *resid,
+    const double *qmin, double *jvar, double *resid,
     c_iteration_behavior *ib);
 void c_to_angle_axis(const double *r, int ldr, double *angle, double axis[3]);
 
