@@ -54,12 +54,8 @@ function test_lti_solve() result(rst)
     odeMdl%fcn => ode_fcn
 
     ! Build the state space model
-    allocate(mdl%A(2, 2), mdl%B(2, 1), mdl%C(1, 2), mdl%D(1, 1), source = 0.0d0)
-    mdl%A(2,1) = -k / m
-    mdl%A(2,2) = -b / m
-    mdl%A(1,2) = 1.0d0
-    mdl%B(2,1) = 1.0d0 / m
-    mdl%C(1,1) = 1.0d0
+    mdl = state_space(m, b, k)
+    mdl%C(1, 2) = 0.0d0
 
     ! Build a time vector and an initial conditions vector
     dt = tmax / (ntime - 1.0d0)
@@ -77,6 +73,77 @@ function test_lti_solve() result(rst)
     if (.not.assert(ltiSol, sol(:,1:2), tol)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_lti_solve -1"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_state_space_initialize() result(rst)
+    logical :: rst
+
+    ! Local Variables
+    real(real64) :: m1, m2, b1, b2, k1, k2, M(2,2), B(2,2), K(2,2), Aans(4,4), &
+        Bans(4,2), Cans(1,4), Dans(1,2)
+    type(state_space) :: mdl
+    
+    ! Initialization
+    rst = .true.
+    call random_number(m1)
+    call random_number(m2)
+    call random_number(b1)
+    call random_number(b2)
+    call random_number(k1)
+    call random_number(k2)
+
+    M = reshape([ &
+        m1, 0.0d0, &
+        0.0d0, m2 &
+        ], &
+    [2, 2])
+    B = reshape([ &
+        b1+b2, -b2, &
+        -b2, b2 &
+        ], &
+    [2, 2])
+    K = reshape([ &
+        k1+k2, -k2, &
+        -k2, k2 &
+        ], &
+    [2, 2])
+
+    Aans = reshape([ &
+        0.0d0, 0.0d0, -(k1+k2)/m1, k2/m2, &
+        0.0d0, 0.0d0, k2/m1, -k2/m2, &
+        1.0d0, 0.0d0, -(b1+b2)/m1, b2/m2, &
+        0.0d0, 1.0d0, b2/m1, -b2/m2 &
+        ], &
+    [4, 4])
+    Bans = reshape([ &
+        0.0d0, 0.0d0, 1.0d0/m1, 0.0d0, &
+        0.0d0, 0.0d0, 0.0d0, 1.0d0/m2 &
+        ], &
+    [4, 2])
+    Cans = 1.0d0
+    Dans = 0.0d0
+
+    ! Create a state space model
+    mdl = state_space(M, B, K)
+
+    ! Tests
+    if (.not.assert(mdl%A, Aans)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_state_space_initialize -1"
+    end if
+    if (.not.assert(mdl%B, Bans)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_state_space_initialize -2"
+    end if
+    if (.not.assert(mdl%C, Cans)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_state_space_initialize -3"
+    end if
+    if (.not.assert(mdl%D, Dans)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_state_space_initialize -4"
     end if
 end function
 

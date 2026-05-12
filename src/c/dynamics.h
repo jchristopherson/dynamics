@@ -165,6 +165,29 @@ typedef struct
     c_binary_link *links;
 } c_serial_linkage;
 
+typedef struct
+{
+    int order;
+    double *coefficients;
+} c_polynomial;
+
+typedef struct
+{
+    c_polynomial numerator;
+    c_polynomial denominator;
+} c_transfer_function;
+
+typedef struct
+{
+    int dimension;
+    int n_inputs;
+    int n_outputs;
+    double *A;  // dimension -by- dimension
+    double *B;  // dimension -by- n_inputs
+    double *C;  // n_outputs -by- dimension
+    double *D;  // n_outputs -by- n_inputs
+} c_state_space_model;
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -377,6 +400,30 @@ void c_serial_linkage_jacobian(int n, const c_serial_linkage *lnk,
 void c_serial_linkage_inverse_kinematics(int n, const c_serial_linkage *lnk,
     const double *qo, const double *trg, int ldt, double *q, 
     c_iteration_behavior *ib);
+
+int c_alloc_polynomial(int order, c_polynomial *p);
+void c_free_polynomial(c_polynomial *p);
+int c_alloc_transfer_function(int numer_order, int denom_order, 
+    c_transfer_function *tf);
+void c_free_transfer_function(c_transfer_function *tf);
+int c_alloc_state_space_model(int dimension, int n_inputs, int n_outputs, 
+    c_state_space_model *mdl);
+void c_free_state_space_model(c_state_space_model *mdl);
+void c_evaluate_transfer_function(const c_transfer_function *tf, int n,
+    const double complex *s, double complex *z);
+void c_transfer_function_poles(const c_transfer_function *tf, int n, 
+    double complex *p);
+void c_transfer_function_zeros(const c_transfer_function *tf, int n,
+    double complex *z);
+void c_to_ccf_state_space(const c_transfer_function *tf, c_state_space_model *ss);
+void c_to_ocf_state_space(const c_transfer_function *tf, c_state_space_model *ss);
+void c_create_state_space_model(int n, int n_out, const double *m, int ldm,
+    const double *b, int ldb, const double *k, int ldk, 
+    c_state_space_model *mdl);
+void c_transfer_function_multiply(const c_transfer_function *tf1,
+    const c_transfer_function *tf2, c_transfer_function *tf);
+void c_scale_transfer_function(double x, const c_transfer_function *tf1,
+    c_transfer_function *tf);
 
 #ifdef __cplusplus
 }

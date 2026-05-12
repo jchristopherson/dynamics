@@ -7,6 +7,8 @@
 #define INDEX(i,j,m)((j) * (m) + (i))
 
 bool compare_arrays(int n, const double *x, const double *y, double tol);
+bool compare_complex_arrays(int n, const double complex *x, 
+    const double complex *y, double tol);
 bool compare_matrices(int m, int n, const double *x, int ldx, const double *y,
     int ldy, double tol);
 void mtx_mult(int m, int n, int p, const double *a, int lda, const double *b,

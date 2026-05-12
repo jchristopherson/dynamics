@@ -312,6 +312,9 @@ program main
     check = test_serial_linkage_inverse_kinematics()
     if (.not.check) flag = 97
 
+    check = test_state_space_initialize()
+    if (.not.check) flag = 98
+
     ! End
     if (flag /= 0) stop flag
 end program
