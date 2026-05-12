@@ -20,7 +20,7 @@ jobs:
           - {compiler: gcc, version: 'latest'}
         include:
           - os: ubuntu-latest
-            toolchain: {compiler: intel, version: '2025.0'}
+            toolchain: {compiler: intel, version: '2025.2'}
 
     steps:
       - uses: fortran-lang/setup-fortran@v1
