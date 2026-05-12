@@ -1,7 +1,7 @@
 module dynamics_geometry_tests
     use iso_fortran_env
     use fortran_test_helper
-    use dynamics_geometry
+    use dynamics
     use dynamics_helper
     implicit none
 
