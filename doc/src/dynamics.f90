@@ -9,6 +9,8 @@ module dynamics
     use dynamics_controls
     use dynamics_system_id
     use dynamics_linkage
+    use dynamics_geometry
+    use dynamics_quaternions
     implicit none
     private
 
@@ -83,9 +85,6 @@ module dynamics
     public :: coordinate_system
     public :: dh_parameter_set
     public :: dh_table
-    public :: DAMPED_LEAST_SQUARES_SOLVER
-    public :: CONJUGATE_GRADIENT_SOLVER
-    public :: inverse_kinematics_solver
 
     ! DYNAMICS_VIBRATIONS
     public :: q_factor
@@ -118,7 +117,6 @@ module dynamics
     public :: polynomial
     public :: state_space
     public :: transfer_function
-    public :: operator(*)
     public :: lti_solve
     public :: ss_excitation
     public :: ode_integrator
@@ -132,4 +130,41 @@ module dynamics
     ! DYNAMICS_LINKAGE
     public :: binary_link
     public :: serial_linkage
+
+    ! DYNAMICS_GEOMETRY
+    public :: plane
+    public :: plane_normal
+    public :: line
+    public :: plucker_line
+    public :: is_parallel
+    public :: is_point_on_plane
+    public :: is_point_on_line
+    public :: nearest_point_on_line
+    public :: point_to_line_distance
+    public :: point_to_plane_distance
+    public :: vector_plane_projection
+    public :: point_plane_projection
+    public :: matmul
+    public :: line_from_point_and_vector
+    public :: line_common_normal
+    public :: do_lines_intersect
+
+    ! DYNAMICS_QUATERNIONS
+    public :: quaternion
+    public :: abs
+    public :: conjg
+    public :: real
+    public :: aimag
+    public :: inverse
+    public :: exp
+    public :: log
+    public :: dot_product
+
+    ! OPERATORS
+    public :: operator(+)
+    public :: operator(-)
+    public :: operator(*)
+    public :: operator(/)
+    public :: assignment(=)
+    public :: operator(**)
 end module
