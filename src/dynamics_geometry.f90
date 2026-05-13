@@ -2,7 +2,7 @@ module dynamics_geometry
     use iso_fortran_env
     use dynamics_helper
     use ieee_arithmetic
-    use lapack, only : DGESVD, DGELS
+    use lapack, only : DGESVD, DGELSY
     use fstats, only : mean
     implicit none
     private
@@ -824,12 +824,14 @@ contains
 
         ! Local Variables
         logical :: coincident
-        integer(int32) :: lwork, info
-        real(real64) :: s, t, xi(3), p1(3), p2(3), A(3,2), x(3), temp(1)
+        integer(int32) :: lwork, info, ipvt(2), rnk
+        real(real64) :: s, t, xi(3), p1(3), p2(3), A(3,2), x(3), temp(1), rc
         real(real64), allocatable, dimension(:) :: work
 
         ! Initialization
         t = 1.0d1 * epsilon(t)
+        ipvt = 0
+        rc = epsilon(rc)
 
         ! Compute the cross products of the direction vectors.
         xi = cross_product(ln2%v, ln1%v)
@@ -849,19 +851,14 @@ contains
         ! Compute the right-hand-side
         x = ln2%r0 - ln1%r0
 
-        ! Set up the least-squares solver.  We use DGELS as we have 3 equations
+        ! Set up the least-squares solver.  We use DGELSY as we have 3 equations
         ! but only 2 unknowns.
-        call DGELS('N', 3, 2, 1, A, 3, x, 3, temp, -1, info)
+        call DGELSY(3, 2, 1, A, 3, x, 3, ipvt, rc, rnk, temp, -1, info)
         lwork = int(temp(1), int32)
         allocate(work(lwork))
 
         ! Solve
-        call DGELS('N', 3, 2, 1, A, 3, x, 3, work, lwork, info)
-        if (info > 0) then
-            ! The system wasn't of full rank.  It seems the common normal
-            ! connecting the two axes is likely of zero length.
-            coincident = .true.
-        end if
+        call DGELSY(3, 2, 1, A, 3, x, 3, ipvt, rc, rnk, work, lwork, info)
         s = x(2)    ! we can use either t or s.  s is associated with ln2
         p2 = ln2%evaluate(s)
         rst = line(p1, p2)
@@ -906,9 +903,9 @@ contains
             !! is 10x machine epsilon.
 
         ! Local Variables
-        integer(int32) :: lwork, info
+        integer(int32) :: lwork, info, rnk, ipvt(2)
         real(real64) :: tolerance, A(3, 2), x(3), s, t, temp(1), p1(3), p2(3), &
-            dp(3), nan
+            dp(3), nan, rc
         real(real64), allocatable, dimension(:) :: work
 
         ! Initialization
@@ -921,14 +918,16 @@ contains
         A(:,1) = ln2%v
         A(:,2) = -ln1%v
         x = ln1%r0 - ln2%r0
+        ipvt = 0
+        rc = epsilon(rc)
 
         ! Set up the least-squares solver
-        call DGELS('N', 3, 2, 1, A, 3, x, 3, temp, -1, info)
+        call DGELSY(3, 2, 1, A, 3, x, 3, ipvt, rc, rnk, temp, -1, info)
         lwork = int(temp(1), int32)
         allocate(work(lwork))
 
         ! Solve A {s;t} = X
-        call DGELS('N', 3, 2, 1, A, 3, x, 3, work, lwork, info)
+        call DGELSY(3, 2, 1, A, 3, x, 3, ipvt, rc, rnk, work, lwork, info)
         if (info /= 0) then
             intersect = .false.
             s = nan
