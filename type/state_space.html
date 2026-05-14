@@ -88,7 +88,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title="<p> 3.7% of total for derived types.</p>Including implementation: 6 statements,  0.6% of total for derived types.">6 statements</a>
+               title="<p> 4.7% of total for derived types.</p>Including implementation: 6 statements,  0.6% of total for derived types.">6 statements</a>
           </li>
 
             <li id="source-file">
@@ -125,7 +125,7 @@
       </div>
       <div id="vars-0" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../type/state_space.html#variable-a">A</a>
+            <a class="list-group-item" href="../type/state_space.html#variable-a~3">A</a>
             <a class="list-group-item" href="../type/state_space.html#variable-b">B</a>
             <a class="list-group-item" href="../type/state_space.html#variable-c">C</a>
             <a class="list-group-item" href="../type/state_space.html#variable-d">D</a>
@@ -134,7 +134,19 @@
     </div>
 
   
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#cons-0">Constructor</a>
+        </h3>
+      </div>
+      <div id="cons-0" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../type/state_space.html#interface-state_space">state_space</a>
+        </div>
+      </div>
+    </div>
+
   
   
   
@@ -196,7 +208,7 @@ implementation takes the form:</p>
       </div>
       <div id="vars-1" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../type/state_space.html#variable-a">A</a>
+            <a class="list-group-item" href="../type/state_space.html#variable-a~3">A</a>
             <a class="list-group-item" href="../type/state_space.html#variable-b">B</a>
             <a class="list-group-item" href="../type/state_space.html#variable-c">C</a>
             <a class="list-group-item" href="../type/state_space.html#variable-d">D</a>
@@ -205,7 +217,19 @@ implementation takes the form:</p>
     </div>
 
   
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#cons-1">Constructor</a>
+        </h3>
+      </div>
+      <div id="cons-1" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../type/state_space.html#interface-state_space">state_space</a>
+        </div>
+      </div>
+    </div>
+
   
   
   
@@ -240,7 +264,7 @@ implementation takes the form:</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-a"></span>
+              <span class="anchor" id="variable-a~3"></span>
               real(kind=real64),
             </td>
               <td>public,</td>
@@ -313,6 +337,273 @@ variables.</p>
     </section>
     <br>
     
+      <section>
+        <h2>Constructor</h2>
+            <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="interface-state_space"></span>
+      <h3>public        interface <a href='../interface/state_space.html'>state_space</a> 
+      </h3>
+    </div>
+    <ul class="list-group">
+          <li class="list-group-item">
+                <h3>
+    private pure function state_space_init(m, b, k, n_out) result(rst)  
+
+    </h3>
+  <p>Initializes the state space model.</p>
+<p>The output matrix <script type="math/tex">C</script> is initialized to one, and the
+feedthrough matrix <script type="math/tex">D</script> is initialized to zero.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>m</strong></td>
+            <td>
+                <p>The N-by-N mass matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(size(m, 1), size(m, 2))
+            </td>
+            <td>::</td>
+            <td><strong>b</strong></td>
+            <td>
+                <p>The N-by-N damping matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(size(m, 1), size(m, 2))
+            </td>
+            <td>::</td>
+            <td><strong>k</strong></td>
+            <td>
+                <p>The N-by-N stiffness matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>n_out</strong></td>
+            <td>
+                <p>The number of outputs.  The default is 1.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/state_space.html'>state_space</a>)</small>
+    </h4>
+    <p>The [[state_space]] model.</p>
+
+          </li>
+          <li class="list-group-item">
+                <h3>
+    private pure function state_space_init_scalar(m, b, k) result(rst)  
+
+    </h3>
+  <p>Initializes the state space model.</p>
+<p>The output matrix <script type="math/tex">C</script> is initialized to one, and the
+feedthrough matrix <script type="math/tex">D</script> is initialized to zero.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>m</strong></td>
+            <td>
+                <p>The mass.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>b</strong></td>
+            <td>
+                <p>The damping.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>k</strong></td>
+            <td>
+                <p>The stiffness.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/state_space.html'>state_space</a>)</small>
+    </h4>
+    <p>The state-space model.</p>
+
+          </li>
+          <li class="list-group-item">
+                <h3>
+    private pure function state_space_init_matrices(a, b, c, d) result(rst)  
+
+    </h3>
+  <p>Initializes the state space model.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>a</strong></td>
+            <td>
+                <p>The N-by-N dynamics matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>b</strong></td>
+            <td>
+                <p>The N-by-M input matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>c</strong></td>
+            <td>
+                <p>The P-by-N output matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>d</strong></td>
+            <td>
+                <p>The P-by-M feedthrough matrix.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/state_space.html'>state_space</a>)</small>
+    </h4>
+    <p>The resulting state_space object.</p>
+
+          </li>
+    </ul>
+  </div>
+
+      </section>
+      <br>
 
 
 
@@ -332,7 +623,7 @@ variables.</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-02-08 18:57            </p>
+ on 2026-05-14 14:55            </p>
         </div>
       </div>
       <br>

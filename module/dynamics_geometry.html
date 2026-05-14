@@ -88,7 +88,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 8.0% of total for modules and submodules.">347 statements</a>
+               title="10.4% of total for modules and submodules.">530 statements</a>
           </li>
 
             <li id="source-file">
@@ -134,7 +134,9 @@
             <a class="list-group-item" href="../module/dynamics_geometry.html#interface-assignment%28%3D%29~2">assignment(=)</a>
             <a class="list-group-item" href="../module/dynamics_geometry.html#interface-is_parallel">is_parallel</a>
             <a class="list-group-item" href="../module/dynamics_geometry.html#interface-line">line</a>
+            <a class="list-group-item" href="../module/dynamics_geometry.html#interface-matmul">matmul</a>
             <a class="list-group-item" href="../module/dynamics_geometry.html#interface-plane">plane</a>
+            <a class="list-group-item" href="../module/dynamics_geometry.html#interface-plucker_line">plucker_line</a>
         </div>
       </div>
     </div>
@@ -150,6 +152,7 @@
         <div class="list-group">
             <a class="list-group-item" href="../module/dynamics_geometry.html#type-line">line</a>
             <a class="list-group-item" href="../module/dynamics_geometry.html#type-plane">plane</a>
+            <a class="list-group-item" href="../module/dynamics_geometry.html#type-plucker_line">plucker_line</a>
         </div>
       </div>
     </div>
@@ -164,6 +167,8 @@
         <div class="list-group">
             <a class="list-group-item" href="../module/dynamics_geometry.html#proc-is_point_on_line">is_point_on_line</a>
             <a class="list-group-item" href="../module/dynamics_geometry.html#proc-is_point_on_plane">is_point_on_plane</a>
+            <a class="list-group-item" href="../module/dynamics_geometry.html#proc-line_common_normal">line_common_normal</a>
+            <a class="list-group-item" href="../module/dynamics_geometry.html#proc-line_from_point_and_vector">line_from_point_and_vector</a>
             <a class="list-group-item" href="../module/dynamics_geometry.html#proc-nearest_point_on_line">nearest_point_on_line</a>
             <a class="list-group-item" href="../module/dynamics_geometry.html#proc-plane_normal">plane_normal</a>
             <a class="list-group-item" href="../module/dynamics_geometry.html#proc-point_plane_projection">point_plane_projection</a>
@@ -174,7 +179,19 @@
       </div>
     </div>
 
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#subs-0">Subroutines</a>
+        </h3>
+      </div>
+      <div id="subs-0" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_geometry.html#proc-do_lines_intersect">do_lines_intersect</a>
+        </div>
+      </div>
+    </div>
+
   
   
   
@@ -196,11 +213,11 @@
       <ul class="list-group">
           <li class="list-group-item">
             <ul class="list-inline">
-                <li>fstats</li>
-                <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
+                <li>lapack</li>
                 <li><a href="http://fortranwiki.org/fortran/show/ieee_arithmetic">ieee_arithmetic</a></li>
                 <li><a href='../module/dynamics_helper.html'>dynamics_helper</a></li>
-                <li>lapack</li>
+                <li>fstats</li>
+                <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
             </ul>
           </li>
       </ul>
@@ -230,7 +247,9 @@
             <a class="list-group-item" href="../module/dynamics_geometry.html#interface-assignment%28%3D%29~2">assignment(=)</a>
             <a class="list-group-item" href="../module/dynamics_geometry.html#interface-is_parallel">is_parallel</a>
             <a class="list-group-item" href="../module/dynamics_geometry.html#interface-line">line</a>
+            <a class="list-group-item" href="../module/dynamics_geometry.html#interface-matmul">matmul</a>
             <a class="list-group-item" href="../module/dynamics_geometry.html#interface-plane">plane</a>
+            <a class="list-group-item" href="../module/dynamics_geometry.html#interface-plucker_line">plucker_line</a>
         </div>
       </div>
     </div>
@@ -246,6 +265,7 @@
         <div class="list-group">
             <a class="list-group-item" href="../module/dynamics_geometry.html#type-line">line</a>
             <a class="list-group-item" href="../module/dynamics_geometry.html#type-plane">plane</a>
+            <a class="list-group-item" href="../module/dynamics_geometry.html#type-plucker_line">plucker_line</a>
         </div>
       </div>
     </div>
@@ -260,6 +280,8 @@
         <div class="list-group">
             <a class="list-group-item" href="../module/dynamics_geometry.html#proc-is_point_on_line">is_point_on_line</a>
             <a class="list-group-item" href="../module/dynamics_geometry.html#proc-is_point_on_plane">is_point_on_plane</a>
+            <a class="list-group-item" href="../module/dynamics_geometry.html#proc-line_common_normal">line_common_normal</a>
+            <a class="list-group-item" href="../module/dynamics_geometry.html#proc-line_from_point_and_vector">line_from_point_and_vector</a>
             <a class="list-group-item" href="../module/dynamics_geometry.html#proc-nearest_point_on_line">nearest_point_on_line</a>
             <a class="list-group-item" href="../module/dynamics_geometry.html#proc-plane_normal">plane_normal</a>
             <a class="list-group-item" href="../module/dynamics_geometry.html#proc-point_plane_projection">point_plane_projection</a>
@@ -270,7 +292,19 @@
       </div>
     </div>
 
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#subs-1">Subroutines</a>
+        </h3>
+      </div>
+      <div id="subs-1" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_geometry.html#proc-do_lines_intersect">do_lines_intersect</a>
+        </div>
+      </div>
+    </div>
+
   
   
   
@@ -393,6 +427,112 @@
             <td><strong>y</strong></td>
             <td>
                 <p>The source line</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+          </li>
+          <li class="list-group-item">
+                <h3>
+    private pure elemental subroutine pl_assign(x, y)  
+
+    </h3>
+  <p>Assigns a plucker_line to another.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(<a href='../type/plucker_line.html'>plucker_line</a>),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+                <p>The resulting plucker_line.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(<a href='../type/plucker_line.html'>plucker_line</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>y</strong></td>
+            <td>
+                <p>The source plucker_line.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+          </li>
+          <li class="list-group-item">
+                <h3>
+    private pure elemental subroutine pl_assign_line(x, y)  
+
+    </h3>
+  <p>Assigns a line to a plucker_line.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(<a href='../type/plucker_line.html'>plucker_line</a>),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+                <p>The resulting plucker_line.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(<a href='../type/line.html'>line</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>y</strong></td>
+            <td>
+                <p>The source line.</p>
             </td>
         </tr>
     </tbody>
@@ -811,6 +951,75 @@ larger.</p>
 
        <div class="panel panel-default">
     <div class="panel-heading codesum">
+      <span class="anchor" id="interface-matmul"></span>
+      <h3>public        interface <a href='../interface/matmul.html'>matmul</a> 
+      </h3>
+    </div>
+    <ul class="list-group">
+          <li class="list-group-item">
+                <h3>
+    private pure function pl_matmul(x, y) result(rst)  
+
+    </h3>
+  <p>Overloads the matmul routine to allow for multiplication of the
+Plücker line coordinate vector with a matrix.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+                <p>The N-by-6 matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(<a href='../type/plucker_line.html'>plucker_line</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>y</strong></td>
+            <td>
+                <p>The plucker_line object.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), allocatable, dimension(:)</small>
+    </h4>
+    <p>The resulting N-element array.</p>
+
+          </li>
+    </ul>
+  </div>
+
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
       <span class="anchor" id="interface-plane"></span>
       <h3>public        interface <a href='../interface/plane.html'>plane</a> 
       </h3>
@@ -996,6 +1205,236 @@ at least 3, but is typically much larger.</p>
     </ul>
   </div>
 
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="interface-plucker_line"></span>
+      <h3>public        interface <a href='../interface/plucker_line.html'>plucker_line</a> 
+      </h3>
+    </div>
+    <ul class="list-group">
+          <li class="list-group-item">
+                <h3>
+    private pure function pl_from_2pts(pt1, pt2) result(rst)  
+
+    </h3>
+  <p>Constructs a new plucker_line from two points.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>pt1</strong>(3)</td>
+            <td>
+                <p>The first point.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>pt2</strong>(3)</td>
+            <td>
+                <p>The second point.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/plucker_line.html'>plucker_line</a>)</small>
+    </h4>
+    <p>The resulting line.</p>
+
+          </li>
+          <li class="list-group-item">
+                <h3>
+    private pure function pl_from_line(ln) result(rst)  
+
+    </h3>
+  <p>Constructs a new plucker_line from a line object.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/line.html'>line</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ln</strong></td>
+            <td>
+                <p>The line.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/plucker_line.html'>plucker_line</a>)</small>
+    </h4>
+    <p>The equivalent plucker_line.</p>
+
+          </li>
+          <li class="list-group-item">
+                <h3>
+    private pure function pl_from_2_planes(p1, p2) result(rst)  
+
+    </h3>
+  <p>Constructs a new plucker_line from the intersection of two planes.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/plane.html'>plane</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>p1</strong></td>
+            <td>
+                <p>The first plane.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/plane.html'>plane</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>p2</strong></td>
+            <td>
+                <p>The second plane.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/plucker_line.html'>plucker_line</a>)</small>
+    </h4>
+    <p>The resulting line.  NaN's are returned in the event that the
+two planes are parallel.</p>
+
+          </li>
+          <li class="list-group-item">
+                <h3>
+    private pure function pl_from_array(x, nrm) result(rst)  
+
+    </h3>
+  <p>Constructs a new plucker_line from the supplied array.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>x</strong>(6)</td>
+            <td>
+                <p>A 6-element array containing the Plücker coordinates.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nrm</strong></td>
+            <td>
+                <p>An optional input that specifies if the first three coordinates
+(the unit vector) should be normalized (true), or left as-is
+(false).  The default is true such that the vector is normalized.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/plucker_line.html'>plucker_line</a>)</small>
+    </h4>
+    <p>The resulting line.</p>
+
+          </li>
+    </ul>
+  </div>
+
     </section>
   <br>
 
@@ -1113,7 +1552,7 @@ least-squares sense.</p></td>
                 <td>
                     procedure
                     ,                  public
-                  :: <strong><a href='../type/line.html#boundprocedure-evaluate~2'>evaluate</a></strong>
+                  :: <strong><a href='../type/line.html#boundprocedure-evaluate'>evaluate</a></strong>
  =>
                     line_eval
 <small>Function</small>                </td>
@@ -1149,7 +1588,7 @@ least-squares sense.</p></td>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-a~3"></span>
+              <span class="anchor" id="variable-a~2"></span>
               real(kind=real64),
             </td>
               <td>public</td>
@@ -1273,6 +1712,142 @@ least-squares sense.</p></td>
  =>
                     plane_flip_normal
 <small>Subroutine</small>                </td>
+                <td></td>
+              </tr>
+          </tbody>
+        </table>
+    </div>
+  </div>
+
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="type-plucker_line"></span>
+      <h3>
+        type, public&nbsp;::&nbsp;
+        <a href='../type/plucker_line.html'>plucker_line</a>
+        
+      </h3>
+    </div>
+    <div class="panel-body">
+      <p>Defines a line in 3D Euclidean space using Plücker coordinates.</p>
+
+        <h4>Components</h4>
+          <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Visibility</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+<th></th><th>Initial</th>        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-v~3"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>v</strong>(6)</td>
+                <td></td>
+                <td></td>
+            <td>
+<p>The 6-element array containing the Plücker coordinates.  The
+first 3 elements contain the unit vector and the last 3 elements
+contain the moment vector.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+        <h4>Constructor</h4>
+          
+        <table class="table table-striped varlist">
+          <tbody>
+                <tr>
+                  <td>
+                        private
+
+                    pure
+                    function
+                    <strong>pl_from_2pts</strong>
+                    (pt1, pt2)
+                  </td>
+                  <td><p>Constructs a new plucker_line from two points.</p></td>
+                </tr>
+                <tr>
+                  <td>
+                        private
+
+                    pure
+                    function
+                    <strong>pl_from_line</strong>
+                    (ln)
+                  </td>
+                  <td><p>Constructs a new plucker_line from a line object.</p></td>
+                </tr>
+                <tr>
+                  <td>
+                        private
+
+                    pure
+                    function
+                    <strong>pl_from_2_planes</strong>
+                    (p1, p2)
+                  </td>
+                  <td><p>Constructs a new plucker_line from the intersection of two planes.</p></td>
+                </tr>
+                <tr>
+                  <td>
+                        private
+
+                    pure
+                    function
+                    <strong>pl_from_array</strong>
+                    (x, nrm)
+                  </td>
+                  <td><p>Constructs a new plucker_line from the supplied array.</p></td>
+                </tr>
+          </tbody>
+        </table>
+
+
+        <h4>Type-Bound Procedures</h4>
+        <table class="table table-striped varlist">
+          <tbody>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/plucker_line.html#boundprocedure-m~8'>m</a></strong>
+ =>
+                    pl_m
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/plucker_line.html#boundprocedure-to_array~2'>to_array</a></strong>
+ =>
+                    pl_to_array
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/plucker_line.html#boundprocedure-u~3'>u</a></strong>
+ =>
+                    pl_u
+<small>Function</small>                </td>
                 <td></td>
               </tr>
           </tbody>
@@ -1434,6 +2009,151 @@ tolerance is 10x machine epsilon.</p>
     <small>logical</small>
     </h4>
     <p>Returns true if the point lies on the plane; else, false.</p>
+
+    </div>
+  </div>
+
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-line_common_normal"></span><h3>public pure function <a href='../proc/line_common_normal.html'>line_common_normal</a>(ln1, ln2) result(rst)  
+</h3></div>
+    <div class="panel-body">
+          
+  <p>Returns the common normal line between two lines pointing from ln1 to
+ln2.  In the event that the two lines are parallel within the 
+specified tolerance, there exist an infinite number of common 
+normals; therefore, a line will be chosen that runs from ln1 to ln2
+with the point at t = 0 coincident with the point at t = 0 on ln1.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/line.html'>line</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ln1</strong></td>
+            <td>
+<p>The first line.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/line.html'>line</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ln2</strong></td>
+            <td>
+<p>The second line.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/line.html'>line</a>)</small>
+    </h4>
+    <p>The common normal line.  The distance along this line between
+t = 0 and t = 1 defines the length of the common normal 
+connecting ln1 to ln2.  In the event that ln1 and ln2 intersect,
+the length of this line is zero.</p>
+
+    </div>
+  </div>
+
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-line_from_point_and_vector"></span><h3>public pure function <a href='../proc/line_from_point_and_vector.html'>line_from_point_and_vector</a>(pt, x, nx) result(rst)  
+</h3></div>
+    <div class="panel-body">
+          
+  <p>Constructs a new line from a point (defines the point where t = 0)
+and a direction vector.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>pt</strong>(3)</td>
+            <td>
+<p>The point at which t = 0 on the line.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>x</strong>(3)</td>
+            <td>
+<p>The direction vector defining the orientation of the line.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nx</strong></td>
+            <td>
+<p>An optional parameter that defines if x should be normalized to
+a unit vector (true), or left as-is (false).  The default is
+true such that x is normalized to a unit vector.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/line.html'>line</a>)</small>
+    </h4>
+    <p>The resulting line.</p>
 
     </div>
   </div>
@@ -1788,6 +2508,129 @@ the point nearest along the line.</p>
     </section>
     <br>
 
+    <section>
+    <h2>Subroutines</h2>
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-do_lines_intersect"></span><h3>public pure subroutine <a href='../proc/do_lines_intersect.html'>do_lines_intersect</a>(ln1, ln2, intersect, t1, t2, tol)  
+</h3></div>
+    <div class="panel-body">
+          
+  <p>Tests to see if two lines intersect.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/line.html'>line</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ln1</strong></td>
+            <td>
+<p>The first line.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/line.html'>line</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ln2</strong></td>
+            <td>
+<p>The second line.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              logical,
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>intersect</strong></td>
+            <td>
+<p>True if the two lines intersect within the specified tolerance;
+else, false if they do not intersect.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>t1</strong></td>
+            <td>
+<p>The parametric value associate with ln1 defining the intersection
+point.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>t2</strong></td>
+            <td>
+<p>The parametric value associate with ln2 defining the intersection
+point.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>tol</strong></td>
+            <td>
+<p>The intersection tolerance.  If not supplied, the default value
+is 10x machine epsilon.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+    </section>
+    <br>
 
 
 
@@ -1806,7 +2649,7 @@ the point nearest along the line.</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-02-08 18:57            </p>
+ on 2026-05-14 14:55            </p>
         </div>
       </div>
       <br>

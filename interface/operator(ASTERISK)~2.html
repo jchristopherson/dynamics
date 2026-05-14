@@ -88,17 +88,17 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title="<p> 0.5% of total for procedures.</p>Including implementation: 48 statements,  3.6% of total for procedures.">6 statements</a>
+               title="<p> 0.5% of total for procedures.</p>Including implementation: 42 statements,  2.8% of total for procedures.">7 statements</a>
           </li>
 
             <li id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dynamics_quaternions.f90"> Source File</a>
+              <a href="../src/dynamics_controls.f90"> Source File</a>
             </li>
         </ul>
         <ol class="breadcrumb in-well text-right">
-              <li><a href='../sourcefile/dynamics_quaternions.f90.html'>dynamics_quaternions.f90</a></li>
-              <li><a href='../module/dynamics_quaternions.html'>dynamics_quaternions</a></li>
+              <li><a href='../sourcefile/dynamics_controls.f90.html'>dynamics_controls.f90</a></li>
+              <li><a href='../module/dynamics_controls.html'>dynamics_controls</a></li>
           <li class="active">operator(*)</li>
         </ol>
       </div>
@@ -142,10 +142,11 @@
       </div>
       <div id="modprocs-0" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../interface/operator%28ASTERISK%29~2.html#moduleprocedure-quat_scalar_mult">quat_scalar_mult</a>
-            <a class="list-group-item" href="../interface/operator%28ASTERISK%29~2.html#moduleprocedure-scalar_quat_mult">scalar_quat_mult</a>
-            <a class="list-group-item" href="../interface/operator%28ASTERISK%29~2.html#moduleprocedure-quat_multiply">quat_multiply</a>
-            <a class="list-group-item" href="../interface/operator%28ASTERISK%29~2.html#moduleprocedure-quat_vec3_mult">quat_vec3_mult</a>
+            <a class="list-group-item" href="../interface/operator%28ASTERISK%29~2.html#moduleprocedure-tf_tf_mult">tf_tf_mult</a>
+            <a class="list-group-item" href="../interface/operator%28ASTERISK%29~2.html#moduleprocedure-poly_tf_mult">poly_tf_mult</a>
+            <a class="list-group-item" href="../interface/operator%28ASTERISK%29~2.html#moduleprocedure-tf_poly_mult">tf_poly_mult</a>
+            <a class="list-group-item" href="../interface/operator%28ASTERISK%29~2.html#moduleprocedure-tf_scalar_mult">tf_scalar_mult</a>
+            <a class="list-group-item" href="../interface/operator%28ASTERISK%29~2.html#moduleprocedure-scalar_tf_mult">scalar_tf_mult</a>
         </div>
       </div>
     </div>
@@ -188,10 +189,11 @@
       </div>
       <div id="modprocs-1" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../interface/operator%28ASTERISK%29~2.html#moduleprocedure-quat_scalar_mult">quat_scalar_mult</a>
-            <a class="list-group-item" href="../interface/operator%28ASTERISK%29~2.html#moduleprocedure-scalar_quat_mult">scalar_quat_mult</a>
-            <a class="list-group-item" href="../interface/operator%28ASTERISK%29~2.html#moduleprocedure-quat_multiply">quat_multiply</a>
-            <a class="list-group-item" href="../interface/operator%28ASTERISK%29~2.html#moduleprocedure-quat_vec3_mult">quat_vec3_mult</a>
+            <a class="list-group-item" href="../interface/operator%28ASTERISK%29~2.html#moduleprocedure-tf_tf_mult">tf_tf_mult</a>
+            <a class="list-group-item" href="../interface/operator%28ASTERISK%29~2.html#moduleprocedure-poly_tf_mult">poly_tf_mult</a>
+            <a class="list-group-item" href="../interface/operator%28ASTERISK%29~2.html#moduleprocedure-tf_poly_mult">tf_poly_mult</a>
+            <a class="list-group-item" href="../interface/operator%28ASTERISK%29~2.html#moduleprocedure-tf_scalar_mult">tf_scalar_mult</a>
+            <a class="list-group-item" href="../interface/operator%28ASTERISK%29~2.html#moduleprocedure-scalar_tf_mult">scalar_tf_mult</a>
         </div>
       </div>
     </div>
@@ -205,10 +207,10 @@
 
    <h2>Module Procedures</h2>
       <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="proc-quat_scalar_mult"></span><h3>private pure elemental function quat_scalar_mult(x, y) result(rst)  
+    <div class="panel-heading codesum"><span class="anchor" id="proc-tf_tf_mult"></span><h3>private  function tf_tf_mult(x, y) result(rst)  
 </h3></div>
     <div class="panel-body">
-        <p>Multiplies a quaternion with a scalar.</p>
+        <p>Multiplies two transfer functions.</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -224,125 +226,7 @@
         <tr>
             <td>
               <span class="anchor" ></span>
-              type(<a href='../type/quaternion.html'>quaternion</a>),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>x</strong></td>
-            <td>
-                <p>The quaternion.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" ></span>
-              real(kind=real64),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>y</strong></td>
-            <td>
-                <p>The scalar.</p>
-            </td>
-        </tr>
-    </tbody>
-  </table>
-
-    <h4>
-    Return Value
-    <small>type(<a href='../type/quaternion.html'>quaternion</a>)</small>
-    </h4>
-    <p>The resulting quaternion.</p>
-
-    </div>
-  </div>
-
-      <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="proc-scalar_quat_mult"></span><h3>private pure elemental function scalar_quat_mult(x, y) result(rst)  
-</h3></div>
-    <div class="panel-body">
-        <p>Multiplies a quaternion with a scalar.</p>
-
-  <h4>Arguments</h4>
-      <table class="table table-striped varlist">
-    <thead>
-      <tr>
-        <th>Type</th>
-<th>Intent</th><th>Optional</th>        <th>Attributes</th>
-        <th></th>
-        <th>Name</th>
-        <th></th>
-    </thead>
-    <tbody>
-        <tr>
-            <td>
-              <span class="anchor" ></span>
-              real(kind=real64),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>x</strong></td>
-            <td>
-                <p>The scalar.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" ></span>
-              type(<a href='../type/quaternion.html'>quaternion</a>),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>y</strong></td>
-            <td>
-                <p>The quaternion.</p>
-            </td>
-        </tr>
-    </tbody>
-  </table>
-
-    <h4>
-    Return Value
-    <small>type(<a href='../type/quaternion.html'>quaternion</a>)</small>
-    </h4>
-    <p>The resulting quaternion.</p>
-
-    </div>
-  </div>
-
-      <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="proc-quat_multiply"></span><h3>private pure elemental function quat_multiply(x, y) result(rst)  
-</h3></div>
-    <div class="panel-body">
-        <p>Multiplies two quaternions.</p>
-
-  <h4>Arguments</h4>
-      <table class="table table-striped varlist">
-    <thead>
-      <tr>
-        <th>Type</th>
-<th>Intent</th><th>Optional</th>        <th>Attributes</th>
-        <th></th>
-        <th>Name</th>
-        <th></th>
-    </thead>
-    <tbody>
-        <tr>
-            <td>
-              <span class="anchor" ></span>
-              type(<a href='../type/quaternion.html'>quaternion</a>),
+              class(<a href='../type/transfer_function.html'>transfer_function</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -357,7 +241,7 @@
         <tr>
             <td>
               <span class="anchor" ></span>
-              type(<a href='../type/quaternion.html'>quaternion</a>),
+              class(<a href='../type/transfer_function.html'>transfer_function</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -374,18 +258,19 @@
 
     <h4>
     Return Value
-    <small>type(<a href='../type/quaternion.html'>quaternion</a>)</small>
+    <small>type(<a href='../type/transfer_function.html'>transfer_function</a>)</small>
     </h4>
-    <p>The resulting quaternion.</p>
+    <p>The resulting transfer function.</p>
 
     </div>
   </div>
 
       <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="proc-quat_vec3_mult"></span><h3>private pure function quat_vec3_mult(x, y) result(rst)  
+    <div class="panel-heading codesum"><span class="anchor" id="proc-poly_tf_mult"></span><h3>private  function poly_tf_mult(x, y) result(rst)  
 </h3></div>
     <div class="panel-body">
-        <p>Multiplies a quaternion with a 3-element vector.</p>
+        <p>Multiplies a polynomial and a transfer function to result in a new
+transfer function.</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -401,7 +286,7 @@
         <tr>
             <td>
               <span class="anchor" ></span>
-              type(<a href='../type/quaternion.html'>quaternion</a>),
+              class(polynomial),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -410,22 +295,22 @@
             <td>::</td>
             <td><strong>x</strong></td>
             <td>
-                <p>The quaternion.</p>
+                <p>The left-hand-side argument.</p>
             </td>
         </tr>
         <tr>
             <td>
               <span class="anchor" ></span>
-              real(kind=real64),
+              class(<a href='../type/transfer_function.html'>transfer_function</a>),
             </td>
-<td>intent(in),</td>
+<td>intent(in)</td>
               <td></td>            <td>
-              dimension(3)
+              
             </td>
             <td>::</td>
             <td><strong>y</strong></td>
             <td>
-                <p>The vector.</p>
+                <p>The right-hand-side argument.</p>
             </td>
         </tr>
     </tbody>
@@ -433,9 +318,187 @@
 
     <h4>
     Return Value
-    <small>type(<a href='../type/quaternion.html'>quaternion</a>)</small>
+    <small>type(<a href='../type/transfer_function.html'>transfer_function</a>)</small>
     </h4>
-    <p>The resulting quaternion.</p>
+    <p>The resulting transfer function.</p>
+
+    </div>
+  </div>
+
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-tf_poly_mult"></span><h3>private  function tf_poly_mult(x, y) result(rst)  
+</h3></div>
+    <div class="panel-body">
+        <p>Multiplies a transfer function and a polynomial to result in a new
+transfer function.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/transfer_function.html'>transfer_function</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+                <p>The left-hand-side argument.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(polynomial),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>y</strong></td>
+            <td>
+                <p>The right-hand-side argument.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/transfer_function.html'>transfer_function</a>)</small>
+    </h4>
+    <p>The resulting transfer function.</p>
+
+    </div>
+  </div>
+
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-tf_scalar_mult"></span><h3>private  function tf_scalar_mult(x, y) result(rst)  
+</h3></div>
+    <div class="panel-body">
+        <p>Multiplies a transfer function by a scalar value.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/transfer_function.html'>transfer_function</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+                <p>The left-hand-side argument.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>y</strong></td>
+            <td>
+                <p>The right-hand-side argument.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/transfer_function.html'>transfer_function</a>)</small>
+    </h4>
+    <p>The resulting transfer function.</p>
+
+    </div>
+  </div>
+
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-scalar_tf_mult"></span><h3>private  function scalar_tf_mult(x, y) result(rst)  
+</h3></div>
+    <div class="panel-body">
+        <p>Multiplies a transfer function by a scalar value.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+                <p>The left-hand-side argument.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/transfer_function.html'>transfer_function</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>y</strong></td>
+            <td>
+                <p>The right-hand-side argument.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/transfer_function.html'>transfer_function</a>)</small>
+    </h4>
+    <p>The resulting transfer function.</p>
 
     </div>
   </div>
@@ -456,7 +519,7 @@
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-02-08 18:57            </p>
+ on 2026-05-14 14:55            </p>
         </div>
       </div>
       <br>

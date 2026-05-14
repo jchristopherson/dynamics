@@ -88,7 +88,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 5.9% of total for modules and submodules.">255 statements</a>
+               title=" 6.3% of total for modules and submodules.">319 statements</a>
           </li>
 
             <li id="source-file">
@@ -131,8 +131,10 @@
       </div>
       <div id="inters-0" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../module/dynamics_controls.html#interface-operator%28ASTERISK%29">operator(*)</a>
+            <a class="list-group-item" href="../module/dynamics_controls.html#interface-operator%28ASTERISK%29~2">operator(*)</a>
             <a class="list-group-item" href="../module/dynamics_controls.html#interface-ss_excitation">ss_excitation</a>
+            <a class="list-group-item" href="../module/dynamics_controls.html#interface-state_space">state_space</a>
+            <a class="list-group-item" href="../module/dynamics_controls.html#interface-transfer_function">transfer_function</a>
         </div>
       </div>
     </div>
@@ -187,12 +189,13 @@
       <ul class="list-group">
           <li class="list-group-item">
             <ul class="list-inline">
-                <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
-                <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
-                <li>diffeq</li>
-                <li>ferror</li>
                 <li>nonlin_polynomials</li>
+                <li>diffeq</li>
+                <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
                 <li><a href="http://fortranwiki.org/fortran/show/ieee_arithmetic">ieee_arithmetic</a></li>
+                <li>lapack</li>
+                <li>ferror</li>
+                <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
             </ul>
           </li>
       </ul>
@@ -219,8 +222,10 @@
       </div>
       <div id="inters-1" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../module/dynamics_controls.html#interface-operator%28ASTERISK%29">operator(*)</a>
+            <a class="list-group-item" href="../module/dynamics_controls.html#interface-operator%28ASTERISK%29~2">operator(*)</a>
             <a class="list-group-item" href="../module/dynamics_controls.html#interface-ss_excitation">ss_excitation</a>
+            <a class="list-group-item" href="../module/dynamics_controls.html#interface-state_space">state_space</a>
+            <a class="list-group-item" href="../module/dynamics_controls.html#interface-transfer_function">transfer_function</a>
         </div>
       </div>
     </div>
@@ -272,8 +277,8 @@
    <h2>Interfaces</h2>
        <div class="panel panel-default">
     <div class="panel-heading codesum">
-      <span class="anchor" id="interface-operator%28ASTERISK%29"></span>
-      <h3>public        interface <a href='../interface/operator%28ASTERISK%29.html'>operator(*)</a> 
+      <span class="anchor" id="interface-operator%28ASTERISK%29~2"></span>
+      <h3>public        interface <a href='../interface/operator%28ASTERISK%29~2.html'>operator(*)</a> 
       </h3>
     </div>
     <ul class="list-group">
@@ -652,6 +657,403 @@ routine.</p>
     </ul>
   </div>
 
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="interface-state_space"></span>
+      <h3>public        interface <a href='../interface/state_space.html'>state_space</a> 
+      </h3>
+    </div>
+    <ul class="list-group">
+          <li class="list-group-item">
+                <h3>
+    private pure function state_space_init(m, b, k, n_out) result(rst)  
+
+    </h3>
+  <p>Initializes the state space model.</p>
+<p>The output matrix <script type="math/tex">C</script> is initialized to one, and the
+feedthrough matrix <script type="math/tex">D</script> is initialized to zero.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>m</strong></td>
+            <td>
+                <p>The N-by-N mass matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(size(m, 1), size(m, 2))
+            </td>
+            <td>::</td>
+            <td><strong>b</strong></td>
+            <td>
+                <p>The N-by-N damping matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(size(m, 1), size(m, 2))
+            </td>
+            <td>::</td>
+            <td><strong>k</strong></td>
+            <td>
+                <p>The N-by-N stiffness matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>n_out</strong></td>
+            <td>
+                <p>The number of outputs.  The default is 1.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/state_space.html'>state_space</a>)</small>
+    </h4>
+    <p>The [[state_space]] model.</p>
+
+          </li>
+          <li class="list-group-item">
+                <h3>
+    private pure function state_space_init_scalar(m, b, k) result(rst)  
+
+    </h3>
+  <p>Initializes the state space model.</p>
+<p>The output matrix <script type="math/tex">C</script> is initialized to one, and the
+feedthrough matrix <script type="math/tex">D</script> is initialized to zero.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>m</strong></td>
+            <td>
+                <p>The mass.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>b</strong></td>
+            <td>
+                <p>The damping.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>k</strong></td>
+            <td>
+                <p>The stiffness.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/state_space.html'>state_space</a>)</small>
+    </h4>
+    <p>The state-space model.</p>
+
+          </li>
+          <li class="list-group-item">
+                <h3>
+    private pure function state_space_init_matrices(a, b, c, d) result(rst)  
+
+    </h3>
+  <p>Initializes the state space model.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>a</strong></td>
+            <td>
+                <p>The N-by-N dynamics matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>b</strong></td>
+            <td>
+                <p>The N-by-M input matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>c</strong></td>
+            <td>
+                <p>The P-by-N output matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>d</strong></td>
+            <td>
+                <p>The P-by-M feedthrough matrix.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/state_space.html'>state_space</a>)</small>
+    </h4>
+    <p>The resulting state_space object.</p>
+
+          </li>
+    </ul>
+  </div>
+
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="interface-transfer_function"></span>
+      <h3>public        interface <a href='../interface/transfer_function.html'>transfer_function</a> 
+      </h3>
+    </div>
+    <ul class="list-group">
+          <li class="list-group-item">
+                <h3>
+    private  function init_tf_array(y, x) result(rst)  
+
+    </h3>
+  <p>Initializes a new transfer function.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>y</strong></td>
+            <td>
+                <p>The numerator polynomial <script type="math/tex">Y(s)</script> in 
+<script type="math/tex"> H(s) = \frac{Y(s)}{X(s)} </script>.  The polynomial coefficients
+are stored in acending order such that 
+<script type="math/tex"> y_1 + y_2 s + y_3 s^2 ... </script>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+                <p>The denominator polynomial <script type="math/tex">X(s)</script> in 
+<script type="math/tex"> H(s) = \frac{Y(s)}{X(s)} </script>.  The polynomial coefficients
+are stored in acending order such that 
+<script type="math/tex"> x_1 + x_2 s + x_3 s^2 ... </script>.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/transfer_function.html'>transfer_function</a>)</small>
+    </h4>
+    <p>The resulting [[transfer_function]].</p>
+
+          </li>
+          <li class="list-group-item">
+                <h3>
+    private  function init_tf_poly(y, x) result(rst)  
+
+    </h3>
+  <p>Initializes a new transfer function.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(polynomial),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>y</strong></td>
+            <td>
+                <p>The numerator polynomial <script type="math/tex">Y(s)</script> in 
+<script type="math/tex"> H(s) = \frac{Y(s)}{X(s)} </script>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(polynomial),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+                <p>The denominator polynomial <script type="math/tex">X(s)</script> in 
+<script type="math/tex"> H(s) = \frac{Y(s)}{X(s)} </script>.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/transfer_function.html'>transfer_function</a>)</small>
+    </h4>
+    <p>The resulting [[transfer_function]].</p>
+
+          </li>
+    </ul>
+  </div>
+
     </section>
   <br>
 
@@ -684,7 +1086,7 @@ implementation takes the form:</p><a href="../type/state_space.html" class="pull
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-a"></span>
+              <span class="anchor" id="variable-a~3"></span>
               real(kind=real64),
             </td>
               <td>public,</td>
@@ -755,6 +1157,49 @@ variables.</p>
   </table>
 
 
+        <h4>Constructor</h4>
+          
+        <table class="table table-striped varlist">
+          <tbody>
+                <tr>
+                  <td>
+                        private
+
+                    pure
+                    function
+                    <strong>state_space_init</strong>
+                    (m, b, k, n_out)
+                  </td>
+                  <td><p>Initializes the state space model.</p>
+<p>The output matrix <script type="math/tex">C</script> is initialized to one, and the
+feedthrough matrix <script type="math/tex">D</script> is initialized to zero.</p></td>
+                </tr>
+                <tr>
+                  <td>
+                        private
+
+                    pure
+                    function
+                    <strong>state_space_init_scalar</strong>
+                    (m, b, k)
+                  </td>
+                  <td><p>Initializes the state space model.</p>
+<p>The output matrix <script type="math/tex">C</script> is initialized to one, and the
+feedthrough matrix <script type="math/tex">D</script> is initialized to zero.</p></td>
+                </tr>
+                <tr>
+                  <td>
+                        private
+
+                    pure
+                    function
+                    <strong>state_space_init_matrices</strong>
+                    (a, b, c, d)
+                  </td>
+                  <td><p>Initializes the state space model.</p></td>
+                </tr>
+          </tbody>
+        </table>
 
 
     </div>
@@ -828,6 +1273,34 @@ are stored in acending order such that
   </table>
 
 
+        <h4>Constructor</h4>
+          
+        <table class="table table-striped varlist">
+          <tbody>
+                <tr>
+                  <td>
+                        private
+
+                    
+                    function
+                    <strong>init_tf_array</strong>
+                    (y, x)
+                  </td>
+                  <td><p>Initializes a new transfer function.</p></td>
+                </tr>
+                <tr>
+                  <td>
+                        private
+
+                    
+                    function
+                    <strong>init_tf_poly</strong>
+                    (y, x)
+                  </td>
+                  <td><p>Initializes a new transfer function.</p></td>
+                </tr>
+          </tbody>
+        </table>
 
 
         <h4>Type-Bound Procedures</h4>
@@ -837,19 +1310,9 @@ are stored in acending order such that
                 <td>
 generic,
                   public
-                  :: <strong><a href='../type/transfer_function.html#boundprocedure-evaluate'>evaluate</a></strong>
+                  :: <strong><a href='../type/transfer_function.html#boundprocedure-evaluate~2'>evaluate</a></strong>
  =>
                     tf_eval_omega, tf_eval_s
-                </td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>
-generic,
-                  public
-                  :: <strong><a href='../type/transfer_function.html#boundprocedure-initialize'>initialize</a></strong>
- =>
-                    tf_init_poly, tf_init_array
                 </td>
                 <td></td>
               </tr>
@@ -1071,7 +1534,7 @@ remaining column(s).</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-02-08 18:57            </p>
+ on 2026-05-14 14:55            </p>
         </div>
       </div>
       <br>

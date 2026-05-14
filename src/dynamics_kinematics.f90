@@ -4,6 +4,8 @@ module dynamics_kinematics
     use ferror
     use dynamics_error_handling
     use dynamics_helper
+    use dynamics_geometry
+    use dynamics_quaternions
     implicit none
     private
     public :: identity_4
@@ -15,12 +17,17 @@ module dynamics_kinematics
     public :: dh_forward_kinematics
     public :: solve_inverse_kinematics
     public :: vecfcn
+    public :: jacobianfcn
     public :: least_squares_solver
     public :: iteration_behavior
+    public :: vecfcn_helper
     public :: jacobian_generating_vector
     public :: dh_jacobian
     public :: REVOLUTE_JOINT
     public :: PRISMATIC_JOINT
+    public :: coordinate_system
+    public :: dh_parameter_set
+    public :: dh_table
 
     interface dh_forward_kinematics
         module procedure :: dh_forward_kinematics_2
@@ -31,6 +38,8 @@ module dynamics_kinematics
         module procedure :: dh_forward_kinematics_7
         module procedure :: dh_forward_kinematics_8
         module procedure :: dh_forward_kinematics_array
+        module procedure :: dh_forward_kinematics_dh_params
+        module procedure :: dh_forward_kinematics_dh_table
     end interface
 
     interface dh_jacobian
@@ -42,8 +51,59 @@ module dynamics_kinematics
     integer(int32), parameter :: PRISMATIC_JOINT = 1
         !! Defines a prismatic joint.
 
+    type coordinate_system
+        !! Defines a 3D Cartesian coordinate system.
+        real(real64) :: origin(3)
+            !! The location of the origin of the coordinate system in the parent
+            !! coordinate system.
+        real(real64) :: i(3)
+            !! The unit vector along the coordinate system's x-axis.
+        real(real64) :: j(3)
+            !! The unit vector along the coordinate system's y-axis.
+        real(real64) :: k(3)
+            !! The unit vector along the coordinate system's z-axis.
+    end type
+
+    interface coordinate_system
+        module procedure :: define_link_csys
+        module procedure :: define_csys
+    end interface
+
+    type dh_parameter_set
+        !! Describes a set of Denavit-Hartenberg parameters for a single joint.
+        real(real64) :: link_length
+            !! The link length is the distance between the proximal and distal
+            !! joint axes as measured along the link's x-axis.
+        real(real64) :: link_twist
+            !! The link twist is the required rotation of the proximal joint 
+            !! axis about the link's x-axis to become parallel to the distal
+            !! joint's axis.
+        real(real64) :: link_offset
+            !! The link offset is the distance between the previous link's
+            !! x-axis and the current link's x-axis as measured along the
+            !! axis of the proximal joint.
+        real(real64) :: joint_angle
+            !! The joint angle is the required rotation of the previous link's
+            !! x-axis about the proximal joint's axis to become parallel to the
+            !! current link's x-axis.
+    end type
+
+    interface dh_parameter_set
+        module procedure :: dps_init
+    end interface
+
+    type dh_table
+        !! Describes a Denavit-Hartenberg table.
+        type(dh_parameter_set), allocatable, dimension(:) :: parameters
+            !! A collection of DH parameters for each joint in the linkage.
+    end type
+
+    interface dh_table
+        module procedure :: dh_table_init
+    end interface
+
 ! ------------------------------------------------------------------------------
-    ! PRIVATE VARIABLES - INVERSE KINEMATICS
+    ! PRIVATE - INVERSE KINEMATICS
     type inverse_kinematics_container
         !! A container for passing kinematics information around the inverse
         !! solver.
@@ -493,13 +553,53 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
+    pure function dh_forward_kinematics_dh_params(x) result(rst)
+        !! Assembles all of the individual link transformation matrices into
+        !! a single transformation matrix locating the end-effector in the
+        !! parent coordinate system for the overall mechanism.
+        class(dh_parameter_set), intent(in), dimension(:) :: x
+            !! The list of DH parameters.
+        real(real64) :: rst(4, 4)
+            !! The resulting 4-by-4 transformation matrix.
+
+        ! Local Variables
+        integer(int32) :: i, n
+        real(real64) :: Ti(4, 4)
+
+        ! Initialization
+        n = size(x)
+        rst = identity_4()
+
+        ! Process
+        do i = 1, n
+            Ti = dh_matrix(x(i)%link_twist, x(i)%link_length, &
+                x(i)%joint_angle, x(i)%link_offset)
+            rst = matmul(rst, Ti)
+        end do
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function dh_forward_kinematics_dh_table(x) result(rst)
+        !! Assembles all of the individual link transformation matrices into
+        !! a single transformation matrix locating the end-effector in the
+        !! parent coordinate system for the overall mechanism.
+        class(dh_table), intent(in) :: x
+            !! The DH table.
+        real(real64) :: rst(4, 4)
+            !! The resulting 4-by-4 transformation matrix.
+
+        ! Process
+        rst = dh_forward_kinematics(x%parameters)
+    end function
+
+! ------------------------------------------------------------------------------
     function solve_inverse_kinematics(mdl, qo, constraints, df, &
-        slvr, ib, args, err) result(rst)
+        slvr, ib, jfcn, qmax, qmin, args, err) result(rst)
         !! Solves the inverse kinematics problem for a linkage.  An iterative
         !! solution procedure is utilized.
         procedure(vecfcn), intent(in), pointer :: mdl
-            !! A routine used to compute the error in the kinematics 
-            !! equations based upon the current solution estimate.
+            !! A routine used to compute the forward kinematics for the linkage
+            !! given the current joint variable estimates.
         real(real64), intent(in), dimension(:) :: qo
             !! An M-element array containing an initial estimate of the M joint
             !! variables.
@@ -510,12 +610,23 @@ contains
         real(real64), intent(out), optional, target, dimension(:) :: df
             !! An optional N-element array that, if supplied, can be used to 
             !! retrieve the residuals of each of the N kinematic equations.
-        class(least_squares_solver), intent(inout), optional, target :: slvr
+        class(constrained_equation_solver), intent(inout), optional, target :: slvr
             !! An optional solver that can be used in place of the default
             !! Levenberg-Marquardt solver.
         type(iteration_behavior), intent(out), optional :: ib
             !! An optional output that can be used to gather information on the
             !! solver.
+        procedure(jacobianfcn), intent(in), pointer, optional :: jfcn
+            !! A routine that can be used to provide the Jacobian matrix for
+            !! the linkage.
+        real(real64), intent(in), dimension(size(qo)), optional :: qmax
+            !! An optional set of upper limits on each of the joint variables.
+            !! If not provided, the default is the output of the 'huge' 
+            !! intrinsic function.
+        real(real64), intent(in), dimension(size(qo)), optional :: qmin
+            !! An optional set of lower limits on each of the joint variables.
+            !! If not provided, the default is the negative of the output of 
+            !! the 'huge' intrinsic function.
         class(*), intent(inout), optional, target :: args
             !! An optional argument that can be used to communicate with mdl.
         class(errors), intent(inout), optional, target :: err
@@ -529,8 +640,8 @@ contains
         real(real64), pointer, dimension(:) :: resid
         real(real64), allocatable, target, dimension(:) :: dresid
         type(vecfcn_helper) :: helper
-        class(least_squares_solver), pointer :: solver
-        type(least_squares_solver), target :: default_solver
+        class(constrained_equation_solver), pointer :: solver
+        type(constrained_least_squares_solver), target :: default_solver
         procedure(vecfcn), pointer :: fcn
         class(errors), pointer :: errmgr
         type(errors), target :: deferr
@@ -566,10 +677,15 @@ contains
                 return
             end if
         end if
+        if (present(qmax)) call solver%set_upper_limits(qmax)
+        if (present(qmin)) call solver%set_lower_limits(qmin)
 
         ! Set up the solver
-        fcn => inverse_kinematics_solver
+        fcn => inverse_kinematics_solver_fcn
         call helper%set_fcn(fcn, neqn, nvar)
+        if (present(jfcn)) then
+            call helper%set_jacobian(jfcn)
+        end if
 
         ! Local Memory Allocations
         allocate(rst(nvar), source = qo, stat = flag)
@@ -589,7 +705,7 @@ contains
     end function
 
 ! ----------
-    subroutine inverse_kinematics_solver(x, f, args)
+    subroutine inverse_kinematics_solver_fcn(x, f, args)
         ! Routine called by the inverse kinematics solver
         real(real64), intent(in), dimension(:) :: x
         real(real64), intent(out), dimension(:) :: f
@@ -743,6 +859,329 @@ function dh_build_jacobian(alpha, a, theta, d, jtypes) result(rst)
         T = matmul(T, Ti)
     end do
 end function
+
+! ******************************************************************************
+! COORDINATE SYSTEM ROUTINES - V1.2.2 ADDITIONS
+! ------------------------------------------------------------------------------
+    pure function define_link_csys(xim1, zim1, zi, rim1, ri) &
+        result(rst)
+        !! Defines the DH coordinate system for the specified link.
+        real(real64), intent(in) :: xim1(3)
+            !! The x-axis of the previous link.
+        real(real64), intent(in) :: zim1(3)
+            !! The z-axis of the previous link.  This is also the axis of the
+            !! proximal joint of the current link.
+        real(real64), intent(in) :: zi(3)
+            !! The axis of the distal joint of the current link.
+        real(real64), intent(in) :: rim1(3)
+            !! The location of the proximal joint's center or home position.
+        real(real64), intent(in) :: ri(3)
+            !! The location of the distal joint's center or home position.
+        type(coordinate_system) :: rst
+            !! The resulting coordinate system.
+
+        ! Local Variables
+        logical :: intersect
+        type(line) :: cn, lzim1, lzi
+        real(real64) :: length, tol, pt0(3)
+
+        ! Initialization
+        tol = 1.0d1 * epsilon(tol)  ! zero tolerance
+        lzim1 = line_from_point_and_vector(rim1, zim1)
+        lzi = line_from_point_and_vector(ri, zi)
+
+        ! Process
+        call do_lines_intersect(lzim1, lzi, intersect)
+        if (intersect) then
+            ! The two joint axes intersect.  The x-axis as follows.
+            rst%i = cross_product(zim1, zi)
+
+            ! Define the origin
+            rst%origin = ri
+        else
+            ! Define the common normal between the two axes
+            cn = line_common_normal(lzim1, lzi)
+            pt0 = cn%evaluate(1.0d0)
+            length = norm2(pt0 - cn%evaluate(0.0d0))
+            if (length < tol) then
+                ! The axes are effectively colinear.  The x-axis is chosen
+                ! such that theta = 0 (i.e. the x axis is parallel with the
+                ! previous x axis)
+                rst%i = xim1
+                pt0 = ri
+            else
+                rst%i = cn%v
+            end if
+            
+            ! The origin is the point of intersection of the common normal with
+            ! the distal joint axis
+            rst%origin = pt0
+        end if
+        rst%i = rst%i / norm2(rst%i)    ! ensure i is a unit vector
+
+        ! Store z, and normalize to a unit vector
+        rst%k = zi / norm2(zi)
+
+        ! Compute y
+        rst%j = cross_product(rst%k, rst%i)
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function define_csys(i, j, k, o) result(rst)
+        !! Defines a new coordinate_system object.  It is the callers 
+        !! responsibility to ensure that the supplied vectors are orthogonal
+        !! to one another.
+        real(real64), intent(in) :: i(3)
+            !! The x-axis unit vector.
+        real(real64), intent(in) :: j(3)
+            !! The y-axis unit vector.
+        real(real64), intent(in) :: k(3)
+            !! The x-axis unit vector.
+        real(real64), intent(in), optional :: o(3)
+            !! The location of the coordinate system within a reference 
+            !! coordinate system.  If not supplied, a value of (0, 0, 0) will
+            !! be used.
+        type(coordinate_system) :: rst
+            !! The new coordinate_system object.
+
+        rst%i = i / norm2(i)
+        rst%j = j / norm2(j)
+        rst%k = k / norm2(k)
+        if (present(o)) then
+            rst%origin = o
+        else
+            rst%origin = [0.0d0, 0.0d0, 0.0d0]
+        end if
+    end function
+
+! ******************************************************************************
+! DENAVIT-HARTENBERG PARAMETER SET ROUTINES
+! ------------------------------------------------------------------------------
+    pure function dps_init(length, twist, offset, angle) result(rst)
+        !! Constructs a new dh_parameter_set object.
+        real(real64), intent(in) :: length
+            !! The link length.
+        real(real64), intent(in) :: twist
+            !! The link twist.
+        real(real64), intent(in) :: offset
+            !! The link offset.
+        real(real64), intent(in) :: angle
+            !! The joint angle.
+        type(dh_parameter_set) :: rst
+            !! The new dh_parameter_set object.
+
+        rst%link_length = length
+        rst%link_twist = twist
+        rst%link_offset = offset
+        rst%joint_angle = angle
+    end function
+
+! ******************************************************************************
+! DENAVIT-HARTENBERG TABLE ROUTINES
+! ------------------------------------------------------------------------------
+    pure function dh_table_init(c) result(rst)
+        !! Constructs a Denavit-Hartenberg table given the locations and 
+        !! orientations of a linkage.
+        class(coordinate_system), intent(in), dimension(:) :: c
+            !! An N-element array containing the coordinate frames for each
+            !! of the N links of the linkage.
+        type(dh_table) :: rst
+            !! The resulting Denavit-Hartenberg table.
+
+        ! Local Variables
+        integer(int32) :: i, n
+
+        ! Initialization
+        n = size(c)
+        allocate(rst%parameters(n - 1))
+
+        ! Process
+        do i = 2, n
+            rst%parameters(i - 1)%link_length = &
+                compute_dh_link_length(c(i - 1), c(i))
+            rst%parameters(i - 1)%link_twist = &
+                compute_dh_link_twist(c(i - 1), c(i))
+            rst%parameters(i - 1)%link_offset = &
+                compute_dh_link_offset(c(i - 1), c(i))
+            rst%parameters(i - 1)%joint_angle = &
+                compute_dh_joint_angle(c(i - 1), c(i))
+        end do
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function compute_dh_link_length(cs1, cs2) result(rst)
+        !! Computes the Denavit-Hartenberg link length as the distance between
+        !! the cs2 z-axis and the cs1 z-axis as measured along the cs2 x-axis.
+        class(coordinate_system), intent(in) :: cs1
+            !! The previous coordinate frame.
+        class(coordinate_system), intent(in) :: cs2
+            !! The current coordinate frame.
+        real(real64) :: rst
+            !! The link length.
+
+        ! Local Variables
+        real(real64) :: v(3), pv(3)
+
+        ! Compute a vector between the two coordinate system origins
+        v = cs2%origin - cs1%origin
+
+        ! Project the vector onto the cs2 x-axis
+        pv = vector_projection(v, cs2%i)
+
+        ! The result is the length of the projected vector
+        rst = norm2(pv)
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function compute_dh_link_twist(cs1, cs2) result(rst)
+        !! Computes the Denavit-Hartenberg link twist as the required rotation
+        !! of the cs1 z-axis about the cs2 x-axis to become parallel to the
+        !! cs2 z-axis.
+        class(coordinate_system), intent(in) :: cs1
+            !! The previous coordinate frame.
+        class(coordinate_system), intent(in) :: cs2
+            !! The current coordinate frame.
+        real(real64) :: rst
+            !! The link twist angle, in radians.  A positive angle is defined
+            !! via the right-hand-rule.
+
+        ! Local Variables
+        real(real64) :: pz1(3), tol
+
+        ! Initialization
+        tol = 1.0d1 * epsilon(tol)
+
+        ! Description:
+        ! To compute the angle about the cs2 x-axis, the cs1 z-axis will be
+        ! projected onto the plane formed by the cs2 y and z axes.  The angle
+        ! between the projected vector and the cs2 z-axis can then be 
+        ! determined.
+        !
+        ! To project a vector onto a plane, assume we're projecting vector X 
+        ! onto plane P that has a unit normal N.  The projected vector is then
+        ! X - (X dot N) * N.  For this instance, the normal vector of the cs2
+        ! y-z plane is the cs2 x-axis.
+        pz1 = cs1%k - dot_product(cs1%k, cs2%i) * cs2%i
+
+        ! Now, the angle between vectors may be determined.
+        if (norm2(pz1) < tol) then
+            ! The projected vector has a length of zero
+            rst = 0.0d0
+        else
+            ! Compute the angle
+            rst = compute_vector_angle(cs2%i, cs2%k, pz1)
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function compute_dh_link_offset(cs1, cs2) result(rst)
+        !! Computes the Denavit-Hartenberg link offset as the distance between
+        !! the cs1 x-axis and the cs2 x-axis as measured along the cs1 z-axis.
+        class(coordinate_system), intent(in) :: cs1
+            !! The previous coordinate frame.
+        class(coordinate_system), intent(in) :: cs2
+            !! The current coordinate frame.
+        real(real64) :: rst
+            !! The link offset.
+
+        ! Local Variables
+        real(real64) :: v(3), pv(3)
+
+        ! Compute a vector between the two coordinate system origins
+        v = cs2%origin - cs1%origin
+
+        ! Project the vector onto the cs1 z-axis
+        pv = vector_projection(v, cs1%k)
+
+        ! The result is the length of the projected vector
+        rst = norm2(pv)
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function compute_dh_joint_angle(cs1, cs2) result(rst)
+        !! Computes the Denavit-Hartenberg joint angle as rotation required of 
+        !! cs1 x-axis about the cs1 z-axis to become parallel to the cs2 x-axis.
+        class(coordinate_system), intent(in) :: cs1
+            !! The previous coordinate frame.
+        class(coordinate_system), intent(in) :: cs2
+            !! The current coordinate frame.
+        real(real64) :: rst
+            !! The joint angle, in radians.  A positive angle is defined
+            !! via the right-hand-rule.
+
+        ! Local Variables
+        real(real64) :: px2(3), tol
+
+        ! Initialization
+        tol = 1.0d1 * epsilon(tol)
+
+        ! Description:
+        ! To compute the angle about the cs1 z-axis, the cs2 x-axis will be
+        ! projected onto the plane formed by the cs1 x-y plane.  The angle 
+        ! between the projected vector and the cs1 x-axis can then be 
+        ! determined.
+        !
+        ! To project a vector onto a plane, assume we're projecting vector X 
+        ! onto plane P that has a unit normal N.  The projected vector is then
+        ! X - (X dot N) * N.  For this instance, the normal vector of the cs1
+        ! x-y plane is the cs1 z-axis.
+        px2 = cs2%i - dot_product(cs2%i, cs1%k) * cs1%k
+
+        ! Now, the angle between vectors may be determined
+        if (norm2(px2) < tol) then
+            ! The projected vector has a length of zero
+            rst = 0.0d0
+        else
+            ! Compute the angle
+            rst = compute_vector_angle(-cs1%k, cs1%i, px2)
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function compute_vector_angle(axis, x, y) result(rst)
+        !! Computes the angle of rotation between two vectors as measured about
+        !! the specified axis.
+        real(real64), intent(in) :: axis(3)
+            !! The rotation axis.
+        real(real64), intent(in) :: x(3)
+            !! The target vector.
+        real(real64), intent(in) :: y(3)
+            !! The other vector.
+        real(real64) :: rst
+            !! The angle, with correct sign assuming a right-hand convention.
+
+        ! Parameters
+        real(real64), parameter :: half_pi = acos(0.0d0)
+
+        ! Local Variables
+        type(quaternion) :: q
+        real(real64) :: ry(3), xy, xymag, tol
+        logical :: parallel
+
+        ! Initialization
+        tol = 1.0d1 * epsilon(tol)
+
+        ! Determine the angle
+        rst = vector_angle(x, y)
+
+        ! To determine the sign, we can establish a quaternion and perform the
+        ! rotation of one vector onto the other. 
+        q = quaternion(rst, axis)   ! angle and axis construction
+        ry = aimag(q * y * conjg(q))
+        xy = dot_product(x, ry)
+        xymag = norm2(x) * norm2(ry)
+        parallel = abs(abs(xy) - xymag) < tol
+        if (.not.parallel) then
+            rst = -rst
+        end if
+
+        ! If the angle is pi/2, it is possible for the vectors to point
+        ! in opposite directions but still pass the parallelism test
+        if (abs(abs(rst) - half_pi) < tol .and. xy < 0.0d0) then
+            ! The vectors point in opposite directions
+            rst = -rst
+        end if
+    end function
 
 ! ------------------------------------------------------------------------------
 end module

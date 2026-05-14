@@ -88,7 +88,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 8.9% of total for modules and submodules.">383 statements</a>
+               title="11.4% of total for modules and submodules.">581 statements</a>
           </li>
 
             <li id="source-file">
@@ -144,14 +144,31 @@
       </div>
       <div id="inters-0" class="panel-collapse collapse">
         <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_kinematics.html#interface-coordinate_system">coordinate_system</a>
             <a class="list-group-item" href="../module/dynamics_kinematics.html#interface-dh_forward_kinematics">dh_forward_kinematics</a>
             <a class="list-group-item" href="../module/dynamics_kinematics.html#interface-dh_jacobian">dh_jacobian</a>
+            <a class="list-group-item" href="../module/dynamics_kinematics.html#interface-dh_parameter_set">dh_parameter_set</a>
+            <a class="list-group-item" href="../module/dynamics_kinematics.html#interface-dh_table">dh_table</a>
         </div>
       </div>
     </div>
 
   
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#types-0">Derived Types</a>
+        </h3>
+      </div>
+      <div id="types-0" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_kinematics.html#type-coordinate_system">coordinate_system</a>
+            <a class="list-group-item" href="../module/dynamics_kinematics.html#type-dh_parameter_set">dh_parameter_set</a>
+            <a class="list-group-item" href="../module/dynamics_kinematics.html#type-dh_table">dh_table</a>
+        </div>
+      </div>
+    </div>
+
       <div class="panel panel-primary">
       <div class="panel-heading text-left">
         <h3 class="panel-title">
@@ -194,11 +211,13 @@
       <ul class="list-group">
           <li class="list-group-item">
             <ul class="list-inline">
-                <li>nonlin</li>
-                <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
                 <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
+                <li><a href='../module/dynamics_quaternions.html'>dynamics_quaternions</a></li>
                 <li><a href='../module/dynamics_helper.html'>dynamics_helper</a></li>
+                <li><a href='../module/dynamics_geometry.html'>dynamics_geometry</a></li>
+                <li>nonlin</li>
                 <li>ferror</li>
+                <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
             </ul>
           </li>
       </ul>
@@ -238,14 +257,31 @@
       </div>
       <div id="inters-1" class="panel-collapse collapse">
         <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_kinematics.html#interface-coordinate_system">coordinate_system</a>
             <a class="list-group-item" href="../module/dynamics_kinematics.html#interface-dh_forward_kinematics">dh_forward_kinematics</a>
             <a class="list-group-item" href="../module/dynamics_kinematics.html#interface-dh_jacobian">dh_jacobian</a>
+            <a class="list-group-item" href="../module/dynamics_kinematics.html#interface-dh_parameter_set">dh_parameter_set</a>
+            <a class="list-group-item" href="../module/dynamics_kinematics.html#interface-dh_table">dh_table</a>
         </div>
       </div>
     </div>
 
   
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#types-1">Derived Types</a>
+        </h3>
+      </div>
+      <div id="types-1" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_kinematics.html#type-coordinate_system">coordinate_system</a>
+            <a class="list-group-item" href="../module/dynamics_kinematics.html#type-dh_parameter_set">dh_parameter_set</a>
+            <a class="list-group-item" href="../module/dynamics_kinematics.html#type-dh_table">dh_table</a>
+        </div>
+      </div>
+    </div>
+
       <div class="panel panel-primary">
       <div class="panel-heading text-left">
         <h3 class="panel-title">
@@ -334,6 +370,212 @@ parameter
     
     <section>
    <h2>Interfaces</h2>
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="interface-coordinate_system"></span>
+      <h3>public        interface <a href='../interface/coordinate_system.html'>coordinate_system</a> 
+      </h3>
+    </div>
+    <ul class="list-group">
+          <li class="list-group-item">
+                <h3>
+    private pure function define_link_csys(xim1, zim1, zi, rim1, ri) result(rst)  
+
+    </h3>
+  <p>Defines the DH coordinate system for the specified link.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>xim1</strong>(3)</td>
+            <td>
+                <p>The x-axis of the previous link.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>zim1</strong>(3)</td>
+            <td>
+                <p>The z-axis of the previous link.  This is also the axis of the
+proximal joint of the current link.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>zi</strong>(3)</td>
+            <td>
+                <p>The axis of the distal joint of the current link.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>rim1</strong>(3)</td>
+            <td>
+                <p>The location of the proximal joint's center or home position.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ri</strong>(3)</td>
+            <td>
+                <p>The location of the distal joint's center or home position.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/coordinate_system.html'>coordinate_system</a>)</small>
+    </h4>
+    <p>The resulting coordinate system.</p>
+
+          </li>
+          <li class="list-group-item">
+                <h3>
+    private pure function define_csys(i, j, k, o) result(rst)  
+
+    </h3>
+  <p>Defines a new coordinate_system object.  It is the callers 
+responsibility to ensure that the supplied vectors are orthogonal
+to one another.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>i</strong>(3)</td>
+            <td>
+                <p>The x-axis unit vector.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>j</strong>(3)</td>
+            <td>
+                <p>The y-axis unit vector.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>k</strong>(3)</td>
+            <td>
+                <p>The x-axis unit vector.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>o</strong>(3)</td>
+            <td>
+                <p>The location of the coordinate system within a reference 
+coordinate system.  If not supplied, a value of (0, 0, 0) will
+be used.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/coordinate_system.html'>coordinate_system</a>)</small>
+    </h4>
+    <p>The new coordinate_system object.</p>
+
+          </li>
+    </ul>
+  </div>
+
        <div class="panel panel-default">
     <div class="panel-heading codesum">
       <span class="anchor" id="interface-dh_forward_kinematics"></span>
@@ -1179,6 +1421,96 @@ x(i-1) axis and the link's x-axis along the z(i-1) axis.</p>
     <p>The resulting 4-by-4 transformation matrix.</p>
 
           </li>
+          <li class="list-group-item">
+                <h3>
+    private pure function dh_forward_kinematics_dh_params(x) result(rst)  
+
+    </h3>
+  <p>Assembles all of the individual link transformation matrices into
+a single transformation matrix locating the end-effector in the
+parent coordinate system for the overall mechanism.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/dh_parameter_set.html'>dh_parameter_set</a>),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+                <p>The list of DH parameters.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), (4,4)</small>
+    </h4>
+    <p>The resulting 4-by-4 transformation matrix.</p>
+
+          </li>
+          <li class="list-group-item">
+                <h3>
+    private pure function dh_forward_kinematics_dh_table(x) result(rst)  
+
+    </h3>
+  <p>Assembles all of the individual link transformation matrices into
+a single transformation matrix locating the end-effector in the
+parent coordinate system for the overall mechanism.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/dh_table.html'>dh_table</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+                <p>The DH table.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), (4,4)</small>
+    </h4>
+    <p>The resulting 4-by-4 transformation matrix.</p>
+
+          </li>
     </ul>
   </div>
 
@@ -1306,10 +1638,489 @@ variables (i.e. the length of the input arrays).</p>
     </ul>
   </div>
 
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="interface-dh_parameter_set"></span>
+      <h3>public        interface <a href='../interface/dh_parameter_set.html'>dh_parameter_set</a> 
+      </h3>
+    </div>
+    <ul class="list-group">
+          <li class="list-group-item">
+                <h3>
+    private pure function dps_init(length, twist, offset, angle) result(rst)  
+
+    </h3>
+  <p>Constructs a new dh_parameter_set object.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>length</strong></td>
+            <td>
+                <p>The link length.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>twist</strong></td>
+            <td>
+                <p>The link twist.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>offset</strong></td>
+            <td>
+                <p>The link offset.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>angle</strong></td>
+            <td>
+                <p>The joint angle.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/dh_parameter_set.html'>dh_parameter_set</a>)</small>
+    </h4>
+    <p>The new dh_parameter_set object.</p>
+
+          </li>
+    </ul>
+  </div>
+
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="interface-dh_table"></span>
+      <h3>public        interface <a href='../interface/dh_table.html'>dh_table</a> 
+      </h3>
+    </div>
+    <ul class="list-group">
+          <li class="list-group-item">
+                <h3>
+    private pure function dh_table_init(c) result(rst)  
+
+    </h3>
+  <p>Constructs a Denavit-Hartenberg table given the locations and 
+orientations of a linkage.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/coordinate_system.html'>coordinate_system</a>),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>c</strong></td>
+            <td>
+                <p>An N-element array containing the coordinate frames for each
+of the N links of the linkage.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/dh_table.html'>dh_table</a>)</small>
+    </h4>
+    <p>The resulting Denavit-Hartenberg table.</p>
+
+          </li>
+    </ul>
+  </div>
+
     </section>
   <br>
 
     
+    <section>
+     <h2>Derived Types</h2>
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="type-coordinate_system"></span>
+      <h3>
+        type, public&nbsp;::&nbsp;
+        <a href='../type/coordinate_system.html'>coordinate_system</a>
+        
+      </h3>
+    </div>
+    <div class="panel-body">
+      <p>Defines a 3D Cartesian coordinate system.</p>
+
+        <h4>Components</h4>
+          <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Visibility</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+<th></th><th>Initial</th>        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-i~13"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>i</strong>(3)</td>
+                <td></td>
+                <td></td>
+            <td>
+<p>The unit vector along the coordinate system's x-axis.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-j~4"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>j</strong>(3)</td>
+                <td></td>
+                <td></td>
+            <td>
+<p>The unit vector along the coordinate system's y-axis.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-k~8"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>k</strong>(3)</td>
+                <td></td>
+                <td></td>
+            <td>
+<p>The unit vector along the coordinate system's z-axis.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-origin"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>origin</strong>(3)</td>
+                <td></td>
+                <td></td>
+            <td>
+<p>The location of the origin of the coordinate system in the parent
+coordinate system.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+        <h4>Constructor</h4>
+          
+        <table class="table table-striped varlist">
+          <tbody>
+                <tr>
+                  <td>
+                        private
+
+                    pure
+                    function
+                    <strong>define_link_csys</strong>
+                    (xim1, zim1, zi, rim1, ri)
+                  </td>
+                  <td><p>Defines the DH coordinate system for the specified link.</p></td>
+                </tr>
+                <tr>
+                  <td>
+                        private
+
+                    pure
+                    function
+                    <strong>define_csys</strong>
+                    (i, j, k, o)
+                  </td>
+                  <td><p>Defines a new coordinate_system object.  It is the callers 
+responsibility to ensure that the supplied vectors are orthogonal
+to one another.</p></td>
+                </tr>
+          </tbody>
+        </table>
+
+
+    </div>
+  </div>
+
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="type-dh_parameter_set"></span>
+      <h3>
+        type, public&nbsp;::&nbsp;
+        <a href='../type/dh_parameter_set.html'>dh_parameter_set</a>
+        
+      </h3>
+    </div>
+    <div class="panel-body">
+      <p>Describes a set of Denavit-Hartenberg parameters for a single joint.</p>
+
+        <h4>Components</h4>
+          <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Visibility</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+<th></th><th>Initial</th>        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-joint_angle~2"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>joint_angle</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>The joint angle is the required rotation of the previous link's
+x-axis about the proximal joint's axis to become parallel to the
+current link's x-axis.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-link_length~2"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>link_length</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>The link length is the distance between the proximal and distal
+joint axes as measured along the link's x-axis.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-link_offset~2"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>link_offset</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>The link offset is the distance between the previous link's
+x-axis and the current link's x-axis as measured along the
+axis of the proximal joint.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-link_twist~2"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>link_twist</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>The link twist is the required rotation of the proximal joint 
+axis about the link's x-axis to become parallel to the distal
+joint's axis.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+        <h4>Constructor</h4>
+          
+        <table class="table table-striped varlist">
+          <tbody>
+                <tr>
+                  <td>
+                        private
+
+                    pure
+                    function
+                    <strong>dps_init</strong>
+                    (length, twist, offset, angle)
+                  </td>
+                  <td><p>Constructs a new dh_parameter_set object.</p></td>
+                </tr>
+          </tbody>
+        </table>
+
+
+    </div>
+  </div>
+
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="type-dh_table"></span>
+      <h3>
+        type, public&nbsp;::&nbsp;
+        <a href='../type/dh_table.html'>dh_table</a>
+        
+      </h3>
+    </div>
+    <div class="panel-body">
+      <p>Describes a Denavit-Hartenberg table.</p>
+
+        <h4>Components</h4>
+          <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Visibility</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+<th></th><th>Initial</th>        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-parameters"></span>
+              type(<a href='../type/dh_parameter_set.html'>dh_parameter_set</a>),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>parameters</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>A collection of DH parameters for each joint in the linkage.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+        <h4>Constructor</h4>
+          
+        <table class="table table-striped varlist">
+          <tbody>
+                <tr>
+                  <td>
+                        private
+
+                    pure
+                    function
+                    <strong>dh_table_init</strong>
+                    (c)
+                  </td>
+                  <td><p>Constructs a Denavit-Hartenberg table given the locations and 
+orientations of a linkage.</p></td>
+                </tr>
+          </tbody>
+        </table>
+
+
+    </div>
+  </div>
+
+    </section>
+  <br>
     
  
     <section>
@@ -1711,7 +2522,7 @@ If incorrectly specified, the code defaults to a REVOLUTE_JOINT type.</p>
   </div>
 
       <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="proc-solve_inverse_kinematics"></span><h3>public  function <a href='../proc/solve_inverse_kinematics.html'>solve_inverse_kinematics</a>(mdl, qo, constraints, df, slvr, ib, args, err) result(rst)  
+    <div class="panel-heading codesum"><span class="anchor" id="proc-solve_inverse_kinematics"></span><h3>public  function <a href='../proc/solve_inverse_kinematics.html'>solve_inverse_kinematics</a>(mdl, qo, constraints, df, slvr, ib, jfcn, qmax, qmin, args, err) result(rst)  
 </h3></div>
     <div class="panel-body">
           
@@ -1741,8 +2552,8 @@ solution procedure is utilized.</p>
             <td>::</td>
             <td><strong>mdl</strong></td>
             <td>
-<p>A routine used to compute the error in the kinematics 
-equations based upon the current solution estimate.</p>
+<p>A routine used to compute the forward kinematics for the linkage
+given the current joint variable estimates.</p>
             </td>
         </tr>
         <tr>
@@ -1797,7 +2608,7 @@ retrieve the residuals of each of the N kinematic equations.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              class(least_squares_solver),
+              class(constrained_equation_solver),
             </td>
 <td>intent(inout),</td>
               <td>optional,</td>            <td>
@@ -1824,6 +2635,56 @@ Levenberg-Marquardt solver.</p>
             <td>
 <p>An optional output that can be used to gather information on the
 solver.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              procedure(jacobianfcn),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              pointer
+            </td>
+            <td>::</td>
+            <td><strong>jfcn</strong></td>
+            <td>
+<p>A routine that can be used to provide the Jacobian matrix for
+the linkage.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(size(qo))
+            </td>
+            <td>::</td>
+            <td><strong>qmax</strong></td>
+            <td>
+<p>An optional set of upper limits on each of the joint variables.
+If not provided, the default is the output of the 'huge' 
+intrinsic function.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(size(qo))
+            </td>
+            <td>::</td>
+            <td><strong>qmin</strong></td>
+            <td>
+<p>An optional set of lower limits on each of the joint variables.
+If not provided, the default is the negative of the output of 
+the 'huge' intrinsic function.</p>
             </td>
         </tr>
         <tr>
@@ -1890,7 +2751,7 @@ information relating to any errors encountered during execution.</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-02-08 18:57            </p>
+ on 2026-05-14 14:55            </p>
         </div>
       </div>
       <br>

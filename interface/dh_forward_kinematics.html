@@ -88,7 +88,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title="<p> 0.8% of total for procedures.</p>Including implementation: 100 statements,  7.5% of total for procedures.">10 statements</a>
+               title="<p> 0.8% of total for procedures.</p>Including implementation: 119 statements,  7.9% of total for procedures.">12 statements</a>
           </li>
 
             <li id="source-file">
@@ -150,6 +150,8 @@
             <a class="list-group-item" href="../interface/dh_forward_kinematics.html#moduleprocedure-dh_forward_kinematics_7">dh_forward_kinematics_7</a>
             <a class="list-group-item" href="../interface/dh_forward_kinematics.html#moduleprocedure-dh_forward_kinematics_8">dh_forward_kinematics_8</a>
             <a class="list-group-item" href="../interface/dh_forward_kinematics.html#moduleprocedure-dh_forward_kinematics_array">dh_forward_kinematics_array</a>
+            <a class="list-group-item" href="../interface/dh_forward_kinematics.html#moduleprocedure-dh_forward_kinematics_dh_params">dh_forward_kinematics_dh_params</a>
+            <a class="list-group-item" href="../interface/dh_forward_kinematics.html#moduleprocedure-dh_forward_kinematics_dh_table">dh_forward_kinematics_dh_table</a>
         </div>
       </div>
     </div>
@@ -200,6 +202,8 @@
             <a class="list-group-item" href="../interface/dh_forward_kinematics.html#moduleprocedure-dh_forward_kinematics_7">dh_forward_kinematics_7</a>
             <a class="list-group-item" href="../interface/dh_forward_kinematics.html#moduleprocedure-dh_forward_kinematics_8">dh_forward_kinematics_8</a>
             <a class="list-group-item" href="../interface/dh_forward_kinematics.html#moduleprocedure-dh_forward_kinematics_array">dh_forward_kinematics_array</a>
+            <a class="list-group-item" href="../interface/dh_forward_kinematics.html#moduleprocedure-dh_forward_kinematics_dh_params">dh_forward_kinematics_dh_params</a>
+            <a class="list-group-item" href="../interface/dh_forward_kinematics.html#moduleprocedure-dh_forward_kinematics_dh_table">dh_forward_kinematics_dh_table</a>
         </div>
       </div>
     </div>
@@ -1058,6 +1062,98 @@ x(i-1) axis and the link's x-axis along the z(i-1) axis.</p>
     </div>
   </div>
 
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-dh_forward_kinematics_dh_params"></span><h3>private pure function dh_forward_kinematics_dh_params(x) result(rst)  
+</h3></div>
+    <div class="panel-body">
+        <p>Assembles all of the individual link transformation matrices into
+a single transformation matrix locating the end-effector in the
+parent coordinate system for the overall mechanism.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/dh_parameter_set.html'>dh_parameter_set</a>),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+                <p>The list of DH parameters.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), (4,4)</small>
+    </h4>
+    <p>The resulting 4-by-4 transformation matrix.</p>
+
+    </div>
+  </div>
+
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-dh_forward_kinematics_dh_table"></span><h3>private pure function dh_forward_kinematics_dh_table(x) result(rst)  
+</h3></div>
+    <div class="panel-body">
+        <p>Assembles all of the individual link transformation matrices into
+a single transformation matrix locating the end-effector in the
+parent coordinate system for the overall mechanism.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/dh_table.html'>dh_table</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+                <p>The DH table.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), (4,4)</small>
+    </h4>
+    <p>The resulting 4-by-4 transformation matrix.</p>
+
+    </div>
+  </div>
+
 
  </div>
 </div>
@@ -1074,7 +1170,7 @@ x(i-1) axis and the link's x-axis along the z(i-1) axis.</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-02-08 18:57            </p>
+ on 2026-05-14 14:55            </p>
         </div>
       </div>
       <br>

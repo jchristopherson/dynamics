@@ -88,7 +88,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title="<p> 9.3% of total for derived types.</p>Including implementation: 127 statements, 13.7% of total for derived types.">15 statements</a>
+               title="<p> 6.8% of total for derived types.</p>Including implementation: 96 statements,  8.9% of total for derived types.">12 statements</a>
           </li>
 
             <li id="source-file">
@@ -132,7 +132,19 @@
     </div>
 
   
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#cons-0">Constructor</a>
+        </h3>
+      </div>
+      <div id="cons-0" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../type/transfer_function.html#interface-transfer_function">transfer_function</a>
+        </div>
+      </div>
+    </div>
+
   
   
   
@@ -154,8 +166,7 @@
       </div>
       <div id="boundprocs-0" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../type/transfer_function.html#boundprocedure-evaluate">evaluate</a>
-            <a class="list-group-item" href="../type/transfer_function.html#boundprocedure-initialize">initialize</a>
+            <a class="list-group-item" href="../type/transfer_function.html#boundprocedure-evaluate~2">evaluate</a>
             <a class="list-group-item" href="../type/transfer_function.html#boundprocedure-poles">poles</a>
             <a class="list-group-item" href="../type/transfer_function.html#boundprocedure-to_ccf_state_space">to_ccf_state_space</a>
             <a class="list-group-item" href="../type/transfer_function.html#boundprocedure-to_ocf_state_space">to_ocf_state_space</a>
@@ -195,7 +206,19 @@
     </div>
 
   
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#cons-1">Constructor</a>
+        </h3>
+      </div>
+      <div id="cons-1" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../type/transfer_function.html#interface-transfer_function">transfer_function</a>
+        </div>
+      </div>
+    </div>
+
   
   
   
@@ -217,8 +240,7 @@
       </div>
       <div id="boundprocs-1" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../type/transfer_function.html#boundprocedure-evaluate">evaluate</a>
-            <a class="list-group-item" href="../type/transfer_function.html#boundprocedure-initialize">initialize</a>
+            <a class="list-group-item" href="../type/transfer_function.html#boundprocedure-evaluate~2">evaluate</a>
             <a class="list-group-item" href="../type/transfer_function.html#boundprocedure-poles">poles</a>
             <a class="list-group-item" href="../type/transfer_function.html#boundprocedure-to_ccf_state_space">to_ccf_state_space</a>
             <a class="list-group-item" href="../type/transfer_function.html#boundprocedure-to_ocf_state_space">to_ocf_state_space</a>
@@ -291,12 +313,150 @@ are stored in acending order such that
     </section>
     <br>
     
+      <section>
+        <h2>Constructor</h2>
+            <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="interface-transfer_function"></span>
+      <h3>public        interface <a href='../interface/transfer_function.html'>transfer_function</a> 
+      </h3>
+    </div>
+    <ul class="list-group">
+          <li class="list-group-item">
+                <h3>
+    private  function init_tf_array(y, x) result(rst)  
+
+    </h3>
+  <p>Initializes a new transfer function.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>y</strong></td>
+            <td>
+                <p>The numerator polynomial <script type="math/tex">Y(s)</script> in 
+<script type="math/tex"> H(s) = \frac{Y(s)}{X(s)} </script>.  The polynomial coefficients
+are stored in acending order such that 
+<script type="math/tex"> y_1 + y_2 s + y_3 s^2 ... </script>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+                <p>The denominator polynomial <script type="math/tex">X(s)</script> in 
+<script type="math/tex"> H(s) = \frac{Y(s)}{X(s)} </script>.  The polynomial coefficients
+are stored in acending order such that 
+<script type="math/tex"> x_1 + x_2 s + x_3 s^2 ... </script>.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/transfer_function.html'>transfer_function</a>)</small>
+    </h4>
+    <p>The resulting [[transfer_function]].</p>
+
+          </li>
+          <li class="list-group-item">
+                <h3>
+    private  function init_tf_poly(y, x) result(rst)  
+
+    </h3>
+  <p>Initializes a new transfer function.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(polynomial),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>y</strong></td>
+            <td>
+                <p>The numerator polynomial <script type="math/tex">Y(s)</script> in 
+<script type="math/tex"> H(s) = \frac{Y(s)}{X(s)} </script>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(polynomial),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+                <p>The denominator polynomial <script type="math/tex">X(s)</script> in 
+<script type="math/tex"> H(s) = \frac{Y(s)}{X(s)} </script>.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/transfer_function.html'>transfer_function</a>)</small>
+    </h4>
+    <p>The resulting [[transfer_function]].</p>
+
+          </li>
+    </ul>
+  </div>
+
+      </section>
+      <br>
 
 
       <section>
         <h2>Type-Bound Procedures</h2>
             <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-evaluate"></span><h3>generic, public :: <strong>evaluate</strong>  => tf_eval_omega, tf_eval_s         
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-evaluate~2"></span><h3>generic, public :: <strong>evaluate</strong>  => tf_eval_omega, tf_eval_s         
     </h3></div>
     <ul class="list-group">
         <li class="list-group-item">
@@ -304,7 +464,7 @@ are stored in acending order such that
     private pure elemental function tf_eval_omega(this, omega) result(rst)  
 </h3>
   <p>Evaluates the transfer function at the specified value of the
-Laplace variable <script type="math/tex">s</script>.</p>
+<script type="math/tex">\omega</script>.</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -414,155 +574,6 @@ Laplace variable <script type="math/tex">s</script>.</p>
     <small>complex(kind=real64)</small>
     </h4>
     <p>The value of the transfer function.</p>
-
-        </li>
-    </ul>
-  </div>
-
-            <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-initialize"></span><h3>generic, public :: <strong>initialize</strong>  => tf_init_poly, tf_init_array         
-    </h3></div>
-    <ul class="list-group">
-        <li class="list-group-item">
-                  <h3>
-    private  subroutine tf_init_poly(this, y, x)  
-</h3>
-  <p>Initializes a new transfer function.</p>
-
-  <h4>Arguments</h4>
-      <table class="table table-striped varlist">
-    <thead>
-      <tr>
-        <th>Type</th>
-<th>Intent</th><th>Optional</th>        <th>Attributes</th>
-        <th></th>
-        <th>Name</th>
-        <th></th>
-    </thead>
-    <tbody>
-        <tr>
-            <td>
-              <span class="anchor" ></span>
-              class(<a href='../type/transfer_function.html'>transfer_function</a>),
-            </td>
-<td>intent(inout)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>this</strong></td>
-            <td>
-                <p>The transfer_function object.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" ></span>
-              class(polynomial),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>y</strong></td>
-            <td>
-                <p>The numerator polynomial <script type="math/tex">Y(s)</script> in 
-<script type="math/tex"> H(s) = \frac{Y(s)}{X(s)} </script>.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" ></span>
-              class(polynomial),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>x</strong></td>
-            <td>
-                <p>The denominator polynomial <script type="math/tex">X(s)</script> in 
-<script type="math/tex"> H(s) = \frac{Y(s)}{X(s)} </script>.</p>
-            </td>
-        </tr>
-    </tbody>
-  </table>
-
-
-        </li>
-        <li class="list-group-item">
-                  <h3>
-    private  subroutine tf_init_array(this, y, x)  
-</h3>
-  <p>Initializes a new transfer function.</p>
-
-  <h4>Arguments</h4>
-      <table class="table table-striped varlist">
-    <thead>
-      <tr>
-        <th>Type</th>
-<th>Intent</th><th>Optional</th>        <th>Attributes</th>
-        <th></th>
-        <th>Name</th>
-        <th></th>
-    </thead>
-    <tbody>
-        <tr>
-            <td>
-              <span class="anchor" ></span>
-              class(<a href='../type/transfer_function.html'>transfer_function</a>),
-            </td>
-<td>intent(inout)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>this</strong></td>
-            <td>
-                <p>The transfer_function object.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" ></span>
-              real(kind=real64),
-            </td>
-<td>intent(in),</td>
-              <td></td>            <td>
-              dimension(:)
-            </td>
-            <td>::</td>
-            <td><strong>y</strong></td>
-            <td>
-                <p>The numerator polynomial <script type="math/tex">Y(s)</script> in 
-<script type="math/tex"> H(s) = \frac{Y(s)}{X(s)} </script>.  The polynomial coefficients
-are stored in acending order such that 
-<script type="math/tex"> y_1 + y_2 s + y_3 s^2 ... </script>.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" ></span>
-              real(kind=real64),
-            </td>
-<td>intent(in),</td>
-              <td></td>            <td>
-              dimension(:)
-            </td>
-            <td>::</td>
-            <td><strong>x</strong></td>
-            <td>
-                <p>The denominator polynomial <script type="math/tex">X(s)</script> in 
-<script type="math/tex"> H(s) = \frac{Y(s)}{X(s)} </script>.  The polynomial coefficients
-are stored in acending order such that 
-<script type="math/tex"> x_1 + x_2 s + x_3 s^2 ... </script>.</p>
-            </td>
-        </tr>
-    </tbody>
-  </table>
-
 
         </li>
     </ul>
@@ -818,7 +829,7 @@ for a description of this form.</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-02-08 18:57            </p>
+ on 2026-05-14 14:55            </p>
         </div>
       </div>
       <br>
