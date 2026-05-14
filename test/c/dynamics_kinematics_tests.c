@@ -65,7 +65,7 @@ bool c_test_inverse_kinematics()
     const double L2 = 5.5;
     const double L3 = 2.0;
     double pi, a[3], alpha[3], theta[3], d[3], T[16], ans[3], q[3], qo[3], 
-        Tc[16], constraints[6], resid[6];
+        Tc[16], constraints[6], resid[6], qmax[3], qmin[3];
     const double tol = 1.0e-4;
     c_iteration_behavior ib;
     c_vecfcn fptr;
@@ -89,6 +89,10 @@ bool c_test_inverse_kinematics()
     ans[1] = theta[1];
     ans[2] = theta[2];
 
+    // Define the joint limits
+    qmax[0] = 1.0e6;    qmax[1] = 1.0e6;    qmax[2] = 1.0e6;
+    qmin[0] = -1.0e6;   qmin[1] = -1.0e6;   qmin[2] = -1.0e6;
+
     // Solve the forward kinematics problem to define the constraints
     c_dh_forward_kinematics(3, alpha, a, theta, d, T, 4);
     constraints[0] = T[INDEX(0,3,4)];
@@ -105,13 +109,23 @@ bool c_test_inverse_kinematics()
 
     // Solver the inverse problem
     fptr = inverse_fcn;
-    c_solve_inverse_kinematics(3, 6, fptr, qo, constraints, q, resid, &ib);
+    c_solve_inverse_kinematics(3, 6, fptr, qo, constraints, qmax, qmin,
+        q, resid, &ib);
 
     // Test
     if (!compare_arrays(3, ans, q, tol))
     {
         rst = false;
         printf("TEST FAILED: c_test_inverse_kinematics -1\n");
+    }
+
+    // Try the conjugate gradient solver
+    c_solve_inverse_kinematics(3, 6, fptr, qo, constraints, qmax, qmin,
+        q, resid, &ib);
+    if (!compare_arrays(3, ans, q, tol))
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_inverse_kinematics -2\n");
     }
 
     // End
@@ -150,5 +164,264 @@ void inverse_fcn(int njoints, int neqn, const double *x, double *f)
     f[3] = T[INDEX(0,0,4)];
     f[4] = T[INDEX(1,0,4)];
     f[5] = T[INDEX(2,0,4)];
+}
+
+bool c_test_define_link_csys()
+{
+    bool rst;
+    double xim1[3], zim1[3], zi[3], rim1[3], ri[3], u[3], ians[3], jans[3],
+        kans[3];
+    c_coordinate_system csys;
+    const double tol = 1.0e-8;
+
+    // Initialization
+    rst = true;
+    xim1[0] = 1.0;  xim1[1] = 0.0;  xim1[2] = 0.0;
+    zim1[0] = 0.0;  zim1[1] = 0.0;  zim1[2] = 1.0;
+    zi[0] = 1.0;    zi[1] = 0.0;    zi[2] = 0.0;
+    rim1[0] = 0.0;  rim1[1] = 0.0;  rim1[2] = 0.0;
+    ri[0] = 1.0;    ri[1] = 1.0;    ri[2] = 0.0;
+    u[0] = 0.0;     u[1] = 1.0;     u[2] = 0.0;
+    ians[0] = 0.0;  ians[1] = 1.0;  ians[2] = 0.0;
+    kans[0] = 1.0;  kans[1] = 0.0;  kans[2] = 0.0;
+    c_cross_product(kans, ians, jans);
+
+    // Build the coordinate system
+    c_define_link_csys(xim1, zim1, zi, rim1, ri, &csys);
+
+    // Tests
+    if (!compare_arrays(3, ians, csys.i, tol))
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_define_link_csys -1\n");
+    }
+
+    if (!compare_arrays(3, jans, csys.j, tol))
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_define_link_csys -2\n");
+    }
+
+    if (!compare_arrays(3, kans, csys.k, tol))
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_define_link_csys -3\n");
+    }
+
+    if (!compare_arrays(3, u, csys.origin, tol))
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_define_link_csys -4\n");
+    }
+
+    // End
+    return rst;
+}
+
+bool c_test_define_csys()
+{
+    bool rst;
+    double i[3], j[3], k[3], o[3];
+    c_coordinate_system csys;
+    const double tol = 1.0e-8;
+
+    // Initialization
+    rst = true;
+    i[0] = 1.0;     i[1] = 0.0;     i[2] = 0.0;
+    j[0] = 0.0;     j[1] = 1.0;     j[2] = 0.0;
+    k[0] = 0.0;     k[1] = 0.0;     k[2] = 0.0;
+    create_random_vector(3, o);
+    c_define_csys(i, j, k, o, &csys);
+
+    // Tests
+    if (!compare_arrays(3, i, csys.i, tol))
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_define_csys -1\n");
+    }
+
+    if (!compare_arrays(3, j, csys.j, tol))
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_define_csys -2\n");
+    }
+
+    if (!compare_arrays(3, k, csys.k, tol))
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_define_csys -3\n");
+    }
+
+    if (!compare_arrays(3, o, csys.origin, tol))
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_define_csys -4\n");
+    }
+
+    // End
+    return rst;
+}
+
+bool c_test_build_dh_table()
+{
+    bool rst;
+    const double tol = 1.0e-8;
+
+    // Local Variables
+    const double L1 = 1.75;
+    const double L2 = 3.5;
+    const double L3 = 2.0;
+    const double theta1 = 0.125;
+    const double theta2 = -0.25;
+    const double theta3 = 1.25;
+    c_coordinate_system csys[4];
+    c_dh_table tbl;
+    int ii;
+    double o[3], ob1[3], ob2[3], ob3[3], o1[3], o2[3], o3[3], ib[3], jb[3], 
+        kb[3], i1[3], j1[3], i2[3], j2[3], i3[3], j3[3], R1[9], R2[9], R3[9], 
+        R12[9], R123[9], T[16], p3b[4], p3[4], pans[4];
+
+    // Initialization
+    rst = true;
+
+    // Define the origin
+    o[0] = 0.0;     o[1] = 0.0;     o[2] = 0.0;
+
+    // Define the matrices used to locate the joints
+    c_rotate_z(theta1, R1, 3);
+    c_rotate_z(theta2, R2, 3);
+    c_rotate_z(theta3, R3, 3);
+    c_matmul(3, 3, 3, 1.0, R1, 3, R2, 3, 0.0, R12, 3);  // = R1 * R2
+    c_matmul(3, 3, 3, 1.0, R12, 3, R3, 3, 0.0, R123, 3); // = R1 * R2 * R3
+
+    // Define the locations of each of the joints
+    ob1[0] = L1;    ob1[1] = 0.0;   ob1[2] = 0.0;
+    ob2[0] = L2;    ob2[1] = 0.0;   ob2[2] = 0.0;
+    ob3[0] = L3;    ob3[1] = 0.0;   ob3[2] = 0.0;
+    p3b[0] = 0.0;   p3b[1] = 0.0;   p3b[2] = 0.0;   p3b[3] = 1.0;
+
+    c_matmul(3, 1, 3, 1.0, R1, 3, ob1, 3, 0.0, o1, 3);   // o1 = R1 * ob1
+    c_matmul(3, 1, 3, 1.0, R12, 3, ob2, 3, 0.0, o2, 3);  // o2 = R1 * R2 * ob2
+    c_matmul(3, 1, 3, 1.0, R123, 3, ob3, 3, 0.0, o3, 3); // o3 = R1 * R2 * R3 * ob3
+
+    for (ii = 0; ii < 3; ++ii)
+    {
+        o2[ii] += o1[ii];
+        o3[ii] += o2[ii];
+    }
+    pans[0] = o3[0];    pans[1] = o3[1];    pans[2] = o3[2];    pans[3] = 1.0;
+
+    // Define unit vectors
+    ib[0] = 1.0;    ib[1] = 0.0;    ib[2] = 0.0;
+    jb[0] = 0.0;    jb[1] = 1.0;    jb[2] = 0.0;
+    kb[0] = 0.0;    kb[1] = 0.0;    kb[2] = 1.0;
+
+    // Define the ground coordinate system
+    c_define_csys(ib, jb, kb, o, &csys[0]);
+
+    // Define CSYS 1
+    c_matmul(3, 1, 3, 1.0, R1, 3, ib, 3, 0.0, i1, 3);
+    c_matmul(3, 1, 3, 1.0, R1, 3, jb, 3, 0.0, j1, 3);
+    c_define_csys(i1, j1, kb, o1, &csys[1]);
+    
+    // Define CSYS 2
+    c_matmul(3, 1, 3, 1.0, R12, 3, ib, 3, 0.0, i2, 3);
+    c_matmul(3, 1, 3, 1.0, R12, 3, jb, 3, 0.0, j2, 3);
+    c_define_csys(i2, j2, kb, o2, &csys[2]);
+
+    // Define CSYS 3
+    c_matmul(3, 1, 3, 1.0, R123, 3, ib, 3, 0.0, i3, 3);
+    c_matmul(3, 1, 3, 1.0, R123, 3, jb, 3, 0.0, j3, 3);
+    c_define_csys(i3, j3, kb, o3, &csys[3]);
+
+    // Build the table
+    c_build_dh_table(4, csys, &tbl);
+
+    // Build the linkage transformation matrix & locate the end effector
+    c_dh_forward_kinematics_table(&tbl, T, 4);
+    c_matmul(4, 1, 4, 1.0, T, 4, p3b, 4, 0.0, p3, 4);
+
+    // Tests
+    if (tbl.count != 3)
+    {
+        printf("TEST FAILED: c_test_build_dh_table\n");
+        c_free_dh_table(&tbl);
+        return false;
+    }
+    
+    if (fabs(tbl.parameters[0].link_length - L1) > tol)
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_build_dh_table -1a\n");
+    }
+    if (fabs(tbl.parameters[0].link_twist) > tol)
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_build_dh_table -1b\n");
+    }
+    if (fabs(tbl.parameters[0].link_offset) > tol)
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_build_dh_table -1c\n");
+    }
+    if (fabs(tbl.parameters[0].joint_angle - theta1) > tol)
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_build_dh_table -1d\n");
+    }
+
+    if (fabs(tbl.parameters[1].link_length - L2) > tol)
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_build_dh_table -2a\n");
+    }
+    if (fabs(tbl.parameters[1].link_twist) > tol)
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_build_dh_table -2b\n");
+    }
+    if (fabs(tbl.parameters[1].link_offset) > tol)
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_build_dh_table -2c\n");
+    }
+    if (fabs(tbl.parameters[1].joint_angle - theta2) > tol)
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_build_dh_table -2d\n");
+    }
+
+    if (fabs(tbl.parameters[2].link_length - L3) > tol)
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_build_dh_table -3a\n");
+    }
+    if (fabs(tbl.parameters[2].link_twist) > tol)
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_build_dh_table -3b\n");
+    }
+    if (fabs(tbl.parameters[2].link_offset) > tol)
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_build_dh_table -3c\n");
+    }
+    if (fabs(tbl.parameters[2].joint_angle - theta3) > tol)
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_build_dh_table -3d\n");
+    }
+
+    if (!compare_arrays(4, p3, pans, tol))
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_build_dh_table -4\n");
+    }
+
+    // Clean up
+    c_free_dh_table(&tbl);
+
+    // End
+    return rst;
 }
 

@@ -119,10 +119,82 @@ typedef struct
     double v[3];
 } c_line;
 
+typedef struct
+{
+    double u[3];
+    double m[3];
+} c_plucker_line;
+
+typedef struct 
+{
+    double origin[3];
+    double i[3];
+    double j[3];
+    double k[3];
+} c_coordinate_system;
+
+typedef struct
+{
+    double link_length;
+    double link_twist;
+    double link_offset;
+    double joint_angle;
+} c_dh_parameter_set;
+
+typedef struct
+{
+    int count;
+    c_dh_parameter_set *parameters;
+} c_dh_table;
+
+typedef struct
+{
+    double link_length;
+    double link_twist;
+    double link_offset;
+    double joint_angle;
+    int joint_type;     // DYN_REVOLUTE_JOINT or DYN_PRISMATIC_JOINT
+    double mass;
+    double cg[3];
+    double inertia[9];  // 3-by-3 matrix in column-major format
+} c_binary_link;
+
+typedef struct
+{
+    int link_count;
+    c_binary_link *links;
+} c_serial_linkage;
+
+typedef struct
+{
+    int order;
+    double *coefficients;
+} c_polynomial;
+
+typedef struct
+{
+    c_polynomial numerator;
+    c_polynomial denominator;
+} c_transfer_function;
+
+typedef struct
+{
+    int dimension;
+    int n_inputs;
+    int n_outputs;
+    double *A;  // dimension -by- dimension
+    double *B;  // dimension -by- n_inputs
+    double *C;  // n_outputs -by- dimension
+    double *D;  // n_outputs -by- n_inputs
+} c_state_space_model;
+
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+void c_matmul(int m, int n, int k, double alpha, const double *a, int lda,
+    const double *b, int ldb, double beta, double *c, int ldc);
 
 double c_q_factor(double zeta);
 double c_estimate_bandwidth(double fn, double zeta);
@@ -150,6 +222,7 @@ void c_velocity_transform(const double omega[3], const double v[3],
 void c_determine_local_stability(int n, const double *a, int lda,
     double complex *ev, int *flag);
 
+void c_dh_forward_kinematics_table(const c_dh_table *tbl, double *T, int ldt);
 void c_dh_forward_kinematics(int n, const double *alpha, const double *a,
     const double *theta, const double *d, double *T, int ldt);
 void c_dh_forward_kinematics_2(const double *T1, int ldt1, const double *T2,
@@ -184,7 +257,8 @@ void c_dh_translate_z(double d, double *T, int ldt);
 void c_jacobian_generating_vector(const double *d, const double *k, 
     const double *R, int ldr, int jtype, double jvec[6]);
 void c_solve_inverse_kinematics(int njoints, int neqn, const c_vecfcn mdl,
-    const double *qo, const double *constraints, double *jvar, double *resid,
+    const double *qo, const double *constraints, const double *qmax,
+    const double *qmin, double *jvar, double *resid,
     c_iteration_behavior *ib);
 void c_to_angle_axis(const double *r, int ldr, double *angle, double axis[3]);
 
@@ -287,10 +361,69 @@ double c_point_to_line_distance(const double pt[3], const c_line *ln);
 double c_point_to_plane_distance(const double pt[3], const c_plane *pln);
 void c_vector_plane_projection(const double x[3], const c_plane *pln, double px[3]);
 void c_point_plane_projection(const double pt[3], const c_plane *pln, double ppt[3]);
+void c_plucker_line_from_2_points(const double pt1[3], const double pt2[3], 
+    c_plucker_line *ln);
+void c_plucker_line_from_line(const c_line *src, c_plucker_line *ln);
+void c_plucker_line_from_2_planes(const c_plane *p1, const c_plane *p2, 
+    c_plucker_line *ln);
+void c_plucker_line_from_array(const double x[6], c_plucker_line *ln);
+void c_plucker_line_mtx_mult(int n, const double *x, int ldx, 
+    const c_plucker_line *ln, double *y);
+void c_plucker_line_to_array(const c_plucker_line *ln, double x[6]);
+void c_line_common_normal(const c_line *ln1, const c_line *ln2, c_line *ln);
+void c_do_lines_intersect(const c_line *ln1, const c_line *ln2, bool *intersect,
+    double *t1, double *t2, double tol);
+void c_line_from_point_and_vector(const double pt[3], const double v[3],
+    c_line *ln);
 
 void c_poincare_map(int n, const double *x, const double *y, const double *z,
     const c_plane *pln, int side, int nbuffer, double *xbuffer, double *ybuffer,
     double *zbuffer, int *nactual);
+
+int c_alloc_dh_table(int n, c_dh_table *tbl);
+void c_free_dh_table(c_dh_table *tbl);
+void c_define_link_csys(const double xim1[3], const double zim1[3], 
+    const double zi[3], const double rim1[3], const double ri[3],
+    c_coordinate_system *csys);
+void c_define_csys(const double i[3], const double j[3], const double k[3], 
+    const double o[3], c_coordinate_system *csys);
+void c_build_dh_table(int n, const c_coordinate_system *csys, c_dh_table *tbl);
+
+int c_alloc_serial_linkage(int n, c_serial_linkage *lnk);
+void c_free_serial_linkage(c_serial_linkage *lnk);
+void c_build_serial_linkage(int n, const c_binary_link *links, 
+    c_serial_linkage *linkage);
+void c_serial_linkage_forward_kinematics(int n, const c_serial_linkage *lnk,
+    const double *q, double *T, int ldt);
+void c_serial_linkage_jacobian(int n, const c_serial_linkage *lnk, 
+    const double *q, double *jac, int ldj);
+void c_serial_linkage_inverse_kinematics(int n, const c_serial_linkage *lnk,
+    const double *qo, const double *trg, int ldt, double *q, 
+    c_iteration_behavior *ib);
+
+int c_alloc_polynomial(int order, c_polynomial *p);
+void c_free_polynomial(c_polynomial *p);
+int c_alloc_transfer_function(int numer_order, int denom_order, 
+    c_transfer_function *tf);
+void c_free_transfer_function(c_transfer_function *tf);
+int c_alloc_state_space_model(int dimension, int n_inputs, int n_outputs, 
+    c_state_space_model *mdl);
+void c_free_state_space_model(c_state_space_model *mdl);
+void c_evaluate_transfer_function(const c_transfer_function *tf, int n,
+    const double complex *s, double complex *z);
+void c_transfer_function_poles(const c_transfer_function *tf, int n, 
+    double complex *p);
+void c_transfer_function_zeros(const c_transfer_function *tf, int n,
+    double complex *z);
+void c_to_ccf_state_space(const c_transfer_function *tf, c_state_space_model *ss);
+void c_to_ocf_state_space(const c_transfer_function *tf, c_state_space_model *ss);
+void c_create_state_space_model(int n, int n_out, const double *m, int ldm,
+    const double *b, int ldb, const double *k, int ldk, 
+    c_state_space_model *mdl);
+void c_transfer_function_multiply(const c_transfer_function *tf1,
+    const c_transfer_function *tf2, c_transfer_function *tf);
+void c_scale_transfer_function(double x, const c_transfer_function *tf1,
+    c_transfer_function *tf);
 
 #ifdef __cplusplus
 }

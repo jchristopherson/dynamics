@@ -17,6 +17,8 @@ set(DYNAMICS_SOURCES
     ${dir}/dynamics_quaternions.f90
     ${dir}/dynamics_maps.f90
     ${dir}/dynamics_geometry.f90
+    ${dir}/dynamics_rigid_bodies.f90
+    ${dir}/dynamics_linkage.f90
 )
 
 # C API
@@ -29,8 +31,8 @@ endif()
 include(FetchContent)
 
 find_package(ferror QUIET)
-find_package(linalg QUIET)
-find_package(nonlin QUIET)
+find_package(linalg 1.8.8 QUIET)
+find_package(nonlin 2.1.1 QUIET)
 find_package(fstats QUIET)
 find_package(diffeq QUIET)
 find_package(peaks QUIET)

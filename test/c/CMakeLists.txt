@@ -8,6 +8,8 @@ set(dynamics_c_sources
     dynamics_kinematics_tests.c
     dynamics_frf_tests.c
     dynamics_geometry_tests.c
+    dynamics_linkage_tests.c
+    dynamics_transfer_function_tests.c
 )
 
 # Build the tests

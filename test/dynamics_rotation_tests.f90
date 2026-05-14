@@ -2,7 +2,6 @@ module dynamics_rotation_tests
     use iso_fortran_env
     use fortran_test_helper
     use dynamics
-    use dynamics_quaternions
     implicit none
 
 contains

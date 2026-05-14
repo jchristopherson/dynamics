@@ -8,6 +8,9 @@ module dynamics
     use dynamics_stability
     use dynamics_controls
     use dynamics_system_id
+    use dynamics_linkage
+    use dynamics_geometry
+    use dynamics_quaternions
     implicit none
     private
 
@@ -71,12 +74,17 @@ module dynamics
     public :: dh_forward_kinematics
     public :: solve_inverse_kinematics
     public :: vecfcn
+    public :: jacobianfcn
     public :: least_squares_solver
     public :: iteration_behavior
+    public :: vecfcn_helper
     public :: jacobian_generating_vector
     public :: dh_jacobian
     public :: REVOLUTE_JOINT
     public :: PRISMATIC_JOINT
+    public :: coordinate_system
+    public :: dh_parameter_set
+    public :: dh_table
 
     ! DYNAMICS_VIBRATIONS
     public :: q_factor
@@ -109,7 +117,6 @@ module dynamics
     public :: polynomial
     public :: state_space
     public :: transfer_function
-    public :: operator(*)
     public :: lti_solve
     public :: ss_excitation
     public :: ode_integrator
@@ -119,4 +126,45 @@ module dynamics
     public :: model_information
     public :: siso_model_fit_least_squares
     public :: constraint_equations
+
+    ! DYNAMICS_LINKAGE
+    public :: binary_link
+    public :: serial_linkage
+
+    ! DYNAMICS_GEOMETRY
+    public :: plane
+    public :: plane_normal
+    public :: line
+    public :: plucker_line
+    public :: is_parallel
+    public :: is_point_on_plane
+    public :: is_point_on_line
+    public :: nearest_point_on_line
+    public :: point_to_line_distance
+    public :: point_to_plane_distance
+    public :: vector_plane_projection
+    public :: point_plane_projection
+    public :: matmul
+    public :: line_from_point_and_vector
+    public :: line_common_normal
+    public :: do_lines_intersect
+
+    ! DYNAMICS_QUATERNIONS
+    public :: quaternion
+    public :: abs
+    public :: conjg
+    public :: real
+    public :: aimag
+    public :: inverse
+    public :: exp
+    public :: log
+    public :: dot_product
+
+    ! OPERATORS
+    public :: operator(+)
+    public :: operator(-)
+    public :: operator(*)
+    public :: operator(/)
+    public :: assignment(=)
+    public :: operator(**)
 end module

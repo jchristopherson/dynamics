@@ -10,6 +10,7 @@ program main
     use dynamics_system_id_tests
     use dynamics_rotation_tests
     use dynamics_geometry_tests
+    use dynamics_linkage_tests
     implicit none
 
     ! Variables
@@ -256,6 +257,63 @@ program main
 
     check = test_flip_plane_normal()
     if (.not.check) flag = 79
+
+    check = test_plucker_line_from_2_points()
+    if (.not.check) flag = 80
+
+    check = test_plucker_line_from_line()
+    if (.not.check) flag = 81
+
+    check = test_plucker_line_from_2_planes()
+    if (.not.check) flag = 82
+
+    check = test_plucker_line_matmul()
+    if (.not.check) flag = 83
+
+    check = test_line_from_point_and_vector()
+    if (.not.check) flag = 84
+
+    check = test_line_common_normal_1()
+    if (.not.check) flag = 85
+
+    check = test_line_common_normal_2()
+    if (.not.check) flag = 86
+
+    check = test_line_common_normal_3()
+    if (.not.check) flag = 87
+
+    check = test_define_link_csys_1()
+    if (.not.check) flag = 88
+
+    check = test_define_link_csys_2()
+    if (.not.check) flag = 89
+
+    check = test_define_link_csys_3()
+    if (.not.check) flag = 90
+
+    check = test_define_link_csys_4()
+    if (.not.check) flag = 91
+
+    check = test_dh_table_1()
+    if (.not.check) flag = 92
+
+    check = test_dh_table_2()
+    if (.not.check) flag = 93
+
+    check = test_dh_table_3()
+    if (.not.check) flag = 94
+
+    check = test_serial_linkage_forward_kinematics()
+    if (.not.check) flag = 95
+
+    check = test_serial_linkage_jacobian()
+    if (.not.check) flag = 96
+
+    check = test_serial_linkage_inverse_kinematics()
+    if (.not.check) flag = 97
+
+    check = test_state_space_initialize()
+    if (.not.check) flag = 98
 
     ! End
     if (flag /= 0) stop flag

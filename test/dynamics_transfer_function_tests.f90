@@ -28,7 +28,7 @@ function test_tf_evaluate() result(rst)
     s = j * omega
 
     ! Set up the transfer function
-    call tf%initialize([1.0d0], [k, b, m])
+    tf = transfer_function([1.0d0], [k, b, m])
 
     ! Compute the solution
     ans = 1.0d0 / (m * s**2 + b * s + k)
@@ -65,8 +65,8 @@ function test_tf_multiply() result(rst)
     call random_number(k)
     
     ! Set up the transfer functions
-    call tf1%initialize([1.0d0], [k, b, m])
-    call tf2%initialize([1.0d0], [1.0d0, rc])
+    tf1 = transfer_function([1.0d0], [k, b, m])
+    tf2 = transfer_function([1.0d0], [1.0d0, rc])
 
     ! Define the answer
     ans1 = [1.0d0]
@@ -105,7 +105,7 @@ function test_tf_poles_zeros() result(rst)
     call random_number(m)
     call random_number(b)
     call random_number(k)
-    call tf%initialize([k, b], [k, b, m])
+    tf = transfer_function([k, b], [k, b, m])
 
     ! Compute the solution
     pAns = tf%X%roots()
@@ -148,7 +148,7 @@ function test_ccf_form_conversion() result(rst)
     B = 0.0d0
     C = 0.0d0
     D = 0.0d0
-    call tf%initialize(y, x)
+    tf = transfer_function(y, x)
 
     ! Define the solution
     y = y / x(n + 1)
@@ -207,7 +207,7 @@ function test_ocf_form_conversion() result(rst)
     B = 0.0d0
     C = 0.0d0
     D = 0.0d0
-    call tf%initialize(y, x)
+    tf = transfer_function(y, x)
 
     ! Define the solution
     y = y / x(n + 1)

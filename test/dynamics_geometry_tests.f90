@@ -1,7 +1,7 @@
 module dynamics_geometry_tests
     use iso_fortran_env
     use fortran_test_helper
-    use dynamics_geometry
+    use dynamics
     use dynamics_helper
     implicit none
 
@@ -464,6 +464,232 @@ function test_flip_plane_normal() result(rst)
     if (.not.assert(-nrm, n)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_flip_plane_normal -1"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_plucker_line_from_2_points() result(rst)
+    logical :: rst
+    real(real64) :: pt1(3), pt2(3), u(3), m(3)
+    type(plucker_line) :: ln
+
+    ! Initialization
+    rst = .true.
+    call random_number(pt1)
+    call random_number(pt2)
+    u = pt2 - pt1
+    u = u / norm2(u)
+    m = cross_product(pt1, u)
+    ln = plucker_line(pt1, pt2)
+
+    ! Tests
+    if (.not.assert(u, ln%u())) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_plucker_line_from_2_points -1"
+    end if
+    if (.not.assert(m, ln%m())) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_plucker_line_from_2_points -2"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_plucker_line_from_line() result(rst)
+    logical :: rst
+    real(real64) :: pt1(3), pt2(3), u(3), m(3)
+    type(plucker_line) :: pln
+    type(line) :: ln
+
+    ! Initialization
+    rst = .true.
+    call random_number(pt1)
+    call random_number(pt2)
+    u = pt2 - pt1
+    u = u / norm2(u)
+    m = cross_product(pt1, u)
+    ln = line(pt1, pt2)
+    pln = plucker_line(ln)
+
+    ! Tests
+    if (.not.assert(u, pln%u())) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_plucker_line_from_line -1"
+    end if
+    if (.not.assert(m, pln%m())) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_plucker_line_from_line -2"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_plucker_line_from_2_planes() result(rst)
+    logical :: rst
+    real(real64) :: n1(3), n2(3), pt(3), v(3), m(3)
+    type(plane) :: p1, p2
+    type(plucker_line) :: ln
+
+    rst = .true.
+    n1 = [1.0d0, 1.0d0, 0.0d0]
+    n2 = [0.0d0, 0.0d0, 1.0d0]
+    n1 = n1 / norm2(n1)
+    n2 = n2 / norm2(n2)
+    pt = [0.0d0, 0.0d0, 0.0d0]
+    v = [1.0d0, -1.0d0, 0.0d0]
+    v = v / norm2(v)
+
+    p1 = plane(pt, n1)
+    p2 = plane(pt, n2)
+    ln = plucker_line(p1, p2)
+    m = cross_product(pt, v)
+
+    ! Tests
+    if (.not.assert(v, ln%u())) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_plucker_line_from_2_planes -1"
+    end if
+    if (.not.assert(m, ln%m())) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_plucker_line_from_2_planes -2"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_plucker_line_matmul() result(rst)
+    logical :: rst
+    real(real64) :: v(6), x(6, 6), r(6), ans(6)
+    type(plucker_line) :: ln
+
+    ! Initialization
+    rst = .true.
+    call random_number(v)
+    call random_number(x)
+    ln = plucker_line(v)
+    v(1:3) = v(1:3) / norm2(v(1:3))
+
+    ans = matmul(x, v)
+    r = matmul(x, ln)
+
+    if (.not.assert(ans, r)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_plucker_line_matmul -1"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_line_from_point_and_vector() result(rst)
+    logical :: rst
+    real(real64) :: pt1(3), v(3)
+    type(line) :: ln
+
+    ! Initialization
+    rst = .true.
+    call random_number(pt1)
+    call random_number(v)
+    ln = line_from_point_and_vector(pt1, v)
+    v = v / norm2(v)
+
+    ! Test
+    if (.not.assert(ln%r0, pt1)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_line_from_point_and_vector -1"
+    end if
+    if (.not.assert(ln%v, v)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_line_from_point_and_vector -2"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_line_common_normal_1() result(rst)
+    ! Skew and offset
+    logical :: rst
+    real(real64) :: pt1(3), v1(3), pt2(3), v2(3), apt(3), av(3)
+    type(line) :: ln1, ln2, cn
+
+    ! Initialization
+    rst = .true.
+    pt1 = [0.0d0, 0.0d0, 0.0d0]
+    v1 = [0.0d0, 0.0d0, 1.0d0]
+    pt2 = [1.0d0, 0.0d0, 0.0d0]
+    v2 = [0.0d0, 1.0d0, 0.0d0]
+    apt = pt1
+    av = [1.0d0, 0.0d0, 0.0d0]
+    ln1 = line_from_point_and_vector(pt1, v1)
+    ln2 = line_from_point_and_vector(pt2, v2)
+
+    ! Tests
+    cn = line_common_normal(ln1, ln2)
+    if (.not.assert(cn%r0, apt)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_line_common_normal_1 -1"
+    end if
+    if (.not.assert(cn%v, av)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_line_common_normal_1 -2"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_line_common_normal_2() result(rst)
+    ! Parallel but offset
+    logical :: rst
+    real(real64) :: pt1(3), v1(3), pt2(3), v2(3), apt(3), av(3)
+    type(line) :: ln1, ln2, cn
+
+    ! Initialization
+    rst = .true.
+    pt1 = [0.0d0, 0.0d0, 0.0d0]
+    v1 = [0.0d0, 0.0d0, 1.0d0]
+    pt2 = [1.0d0, 1.0d0, 1.0d0]
+    v2 = [0.0d0, 0.0d0, 1.0d0]
+    apt = pt1
+    av = [1.0d0, 1.0d0, 0.0d0]
+    ln1 = line_from_point_and_vector(pt1, v1)
+    ln2 = line_from_point_and_vector(pt2, v2)
+
+    ! Tests
+    cn = line_common_normal(ln1, ln2)
+    if (.not.assert(cn%r0, apt)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_line_common_normal_2 -1"
+        print *, "cn%r0: ", cn%r0
+        print *, "apt: ", apt
+    end if
+    if (.not.assert(cn%v, av)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_line_common_normal_2 -2"
+        print *, "cn%v: ", cn%v
+        print *, "av: ", av
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_line_common_normal_3() result(rst)
+    ! Skew and intersecting
+    logical :: rst
+    real(real64) :: pt1(3), v1(3), pt2(3), v2(3), apt(3), av(3)
+    type(line) :: ln1, ln2, cn
+
+    ! Initialization
+    rst = .true.
+    pt1 = [0.0d0, 0.0d0, 0.0d0]
+    v1 = [0.0d0, 0.0d0, 1.0d0]
+    pt2 = [0.0d0, 0.0d0, 0.0d0]
+    v2 = [0.0d0, 1.0d0, 0.0d0]
+    apt = pt1
+    av = [0.0d0, 0.0d0, 0.0d0]
+    ln1 = line_from_point_and_vector(pt1, v1)
+    ln2 = line_from_point_and_vector(pt2, v2)
+
+    ! Tests
+    cn = line_common_normal(ln1, ln2)
+    if (.not.assert(cn%r0, apt)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_line_common_normal_3 -1"
+    end if
+    if (.not.assert(cn%v, av)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_line_common_normal_3 -2"
     end if
 end function
 

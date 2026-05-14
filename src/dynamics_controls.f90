@@ -5,6 +5,7 @@ module dynamics_controls
     use ieee_arithmetic
     use dynamics_error_handling
     use diffeq
+    use lapack, only : dgetrf, dgetri, dgetrs
     implicit none
     private
     public :: polynomial
@@ -43,6 +44,12 @@ module dynamics_controls
             !! The P-by-M feedthrough matrix.
     end type
 
+    interface state_space
+        module procedure :: state_space_init
+        module procedure :: state_space_init_scalar
+        module procedure :: state_space_init_matrices
+    end interface
+
 ! ------------------------------------------------------------------------------
     type transfer_function
         !! Defines a transfer function for a continuous system of the form
@@ -58,9 +65,6 @@ module dynamics_controls
             !! are stored in acending order such that 
             !! \( x_1 + x_2 s + x_3 s^2 ... \).
     contains
-        procedure, private :: tf_init_poly
-        procedure, private :: tf_init_array
-        generic, public :: initialize => tf_init_poly, tf_init_array
         procedure, private :: tf_eval_s
         procedure, private :: tf_eval_omega
         generic, public :: evaluate => tf_eval_omega, tf_eval_s
@@ -69,6 +73,11 @@ module dynamics_controls
         procedure, public :: to_ccf_state_space => tf_to_ccf_statespace
         procedure, public :: to_ocf_state_space => tf_to_ocf_statespace
     end type
+
+    interface transfer_function
+        module procedure :: init_tf_array
+        module procedure :: init_tf_poly
+    end interface
 
 ! ------------------------------------------------------------------------------
     interface operator(*)
@@ -107,29 +116,140 @@ module dynamics_controls
 
 contains
 ! ******************************************************************************
+! STATE_SPACE
+! ------------------------------------------------------------------------------
+    pure function state_space_init(m, b, k, n_out) result(rst)
+        !! Initializes the state space model.
+        !!
+        !! The output matrix \(C\) is initialized to one, and the
+        !! feedthrough matrix \(D\) is initialized to zero.
+        real(real64), intent(in), dimension(:,:) :: m
+            !! The N-by-N mass matrix.
+        real(real64), intent(in), dimension(size(m, 1), size(m, 2)) :: b
+            !! The N-by-N damping matrix.
+        real(real64), intent(in), dimension(size(m, 1), size(m, 2)) :: k
+            !! The N-by-N stiffness matrix.
+        integer(int32), intent(in), optional :: n_out
+            !! The number of outputs.  The default is 1.
+        type(state_space) :: rst
+            !! The [[state_space]] model.
+
+        ! Local Variables
+        integer(int32) :: ii, jj, n, p, q, lwork, info
+        integer(int32), allocatable, dimension(:) :: pvt
+        real(real64) :: temp(1)
+        real(real64), allocatable, dimension(:) :: work
+
+        ! Initialization
+        p = size(m, 1)
+        n = 2 * p
+        q = 1
+        if (present(n_out)) q = n_out
+        if (q <= 1) q = 1
+        allocate( &
+            rst%A(n, n), &
+            rst%B(n, p), &
+            rst%D(q, p), &
+            source = 0.0d0 &
+        )
+        allocate(rst%C(q, n), source = 1.0d0)
+        allocate(pvt(p))
+
+        ! Workspace
+        call dgetri(p, rst%b(p+1:n,:), p, pvt, temp, -1, info)
+        lwork = int(temp(1), int32)
+        allocate(work(lwork))
+
+        ! Build p-by-p Identity sub-matrix matrix
+        jj = p + 1
+        do ii = 1, p
+            rst%A(ii,jj) = 1.0d0
+            jj = jj + 1
+        end do
+        
+        ! Fill in the matrices
+        rst%B(p+1:n,1:p) = m
+        rst%A(p+1:n,1:p) = -k
+        rst%A(p+1:n,p+1:n) = -b
+        call dgetrf(p, p, rst%B(p+1:n,1:p), p, pvt, info)
+        call dgetrs('N', p, p, rst%B(p+1:n,1:p), p, pvt, rst%A(p+1:n,1:p), p, &
+            info)
+        call dgetrs('N', p, p, rst%B(p+1:n,1:p), p, pvt, rst%A(p+1:n,p+1:n), &
+            p, info)
+        call dgetri(p, rst%B(p+1:n,1:p), p, pvt, work, lwork, info)
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function state_space_init_scalar(m, b, k) result(rst)
+        !! Initializes the state space model.
+        !!
+        !! The output matrix \(C\) is initialized to one, and the
+        !! feedthrough matrix \(D\) is initialized to zero.
+        real(real64), intent(in) :: m
+            !! The mass.
+        real(real64), intent(in) :: b
+            !! The damping.
+        real(real64), intent(in) :: k
+            !! The stiffness.
+        type(state_space) :: rst
+            !! The state-space model.
+
+        ! Process
+        allocate( &
+            rst%A(2, 2), &
+            rst%B(2, 1), &
+            rst%D(1, 1), &
+            source = 0.0d0 &
+        )
+        allocate(rst%C(1, 2), source = 1.0d0)
+        rst%A(2,1) = -k / m
+        rst%A(1,2) = 1.0d0
+        rst%A(2,2) = -b / m
+        rst%B(2,1) = 1.0d0 / m
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function state_space_init_matrices(a, b, c, d) result(rst)
+        !! Initializes the state space model.
+        real(real64), intent(in), dimension(:,:) :: a
+            !! The N-by-N dynamics matrix.
+        real(real64), intent(in), dimension(:,:) :: b
+            !! The N-by-M input matrix.
+        real(real64), intent(in), dimension(:,:) :: c
+            !! The P-by-N output matrix.
+        real(real64), intent(in), dimension(:,:) :: d
+            !! The P-by-M feedthrough matrix.
+        type(state_space) :: rst
+            !! The resulting state_space object.
+
+        allocate(rst%A, source = a)
+        allocate(rst%B, source = b)
+        allocate(rst%C, source = c)
+        allocate(rst%D, source = d)
+    end function
+
+! ******************************************************************************
 ! TRANSFER_FUNCTION
 ! ------------------------------------------------------------------------------
-subroutine tf_init_poly(this, y, x)
+function init_tf_poly(y, x) result(rst)
     !! Initializes a new transfer function.
-    class(transfer_function), intent(inout) :: this
-        !! The transfer_function object.
     class(polynomial), intent(in) :: y
         !! The numerator polynomial \(Y(s)\) in 
         !! \( H(s) = \frac{Y(s)}{X(s)} \).
     class(polynomial), intent(in) :: x
         !! The denominator polynomial \(X(s)\) in 
         !! \( H(s) = \frac{Y(s)}{X(s)} \).
+    type(transfer_function) :: rst
+        !! The resulting [[transfer_function]].
 
     ! Process
-    call this%Y%initialize(y%get_all())
-    call this%X%initialize(x%get_all())
-end subroutine
+    call rst%Y%initialize(y%get_all())
+    call rst%X%initialize(x%get_all())
+end function
 
 ! ------------------------------------------------------------------------------
-subroutine tf_init_array(this, y, x)
+function init_tf_array(y, x) result(rst)
     !! Initializes a new transfer function.
-    class(transfer_function), intent(inout) :: this
-        !! The transfer_function object.
     real(real64), intent(in), dimension(:) :: y
         !! The numerator polynomial \(Y(s)\) in 
         !! \( H(s) = \frac{Y(s)}{X(s)} \).  The polynomial coefficients
@@ -140,11 +260,13 @@ subroutine tf_init_array(this, y, x)
         !! \( H(s) = \frac{Y(s)}{X(s)} \).  The polynomial coefficients
         !! are stored in acending order such that 
         !! \( x_1 + x_2 s + x_3 s^2 ... \).
+    type(transfer_function) :: rst
+        !! The resulting [[transfer_function]].
 
     ! Process
-    call this%Y%initialize(y)
-    call this%X%initialize(x)
-end subroutine
+    call rst%Y%initialize(y)
+    call rst%X%initialize(x)
+end function
 
 ! ------------------------------------------------------------------------------
 pure elemental function tf_eval_s(this, s) result(rst)
@@ -164,7 +286,7 @@ end function
 ! ------------------------------------------------------------------------------
 pure elemental function tf_eval_omega(this, omega) result(rst)
     !! Evaluates the transfer function at the specified value of the
-    !! Laplace variable \(s\).
+    !! \(\omega\).
     class(transfer_function), intent(in) :: this
         !! The transfer_function object.
     real(real64), intent(in) :: omega

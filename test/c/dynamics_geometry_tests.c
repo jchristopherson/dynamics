@@ -535,3 +535,205 @@ bool c_test_flip_plane_normal()
     }
     return rst;
 }
+
+bool c_test_plucker_line_from_2_points()
+{
+    bool rst;
+    int i;
+    double pt1[3], pt2[3], u[3], m[3];
+    c_plucker_line ln;
+    const double tol = 1.0e-8;
+
+    // Initialization
+    rst = true;
+    create_random_vector(3, pt1);
+    create_random_vector(3, pt2);
+    for (i = 0; i < 3; ++i) u[i] = pt2[i] - pt1[i];
+    c_vector_normalize(3, u);
+    c_cross_product(pt1, u, m);
+    c_plucker_line_from_2_points(pt1, pt2, &ln);
+
+    // Tests
+    if (!compare_arrays(3, u, ln.u, tol))
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_plucker_line_from_2_points -1\n");
+    }
+    if (!compare_arrays(3, m, ln.m, tol))
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_plucker_line_from_2_points -2\n");
+    }
+    return rst;
+}
+
+bool c_test_plucker_line_from_line()
+{
+    bool rst;
+    int i;
+    double pt1[3], pt2[3], u[3], m[3];
+    c_plucker_line pln;
+    c_line ln;
+    const double tol = 1.0e-8;
+
+    // Initialization
+    rst = true;
+    create_random_vector(3, pt1);
+    create_random_vector(3, pt2);
+    for (i = 0; i < 3; ++i) u[i] = pt2[i] - pt1[i];
+    c_vector_normalize(3, u);
+    c_cross_product(pt1, u, m);
+    c_line_from_2_points(pt1, pt2, &ln);
+    c_plucker_line_from_line(&ln, &pln);
+
+    // Tests
+    if (!compare_arrays(3, u, pln.u, tol))
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_plucker_line_from_line -1\n");
+    }
+    if (!compare_arrays(3, m, pln.m, tol))
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_plucker_line_from_line -2\n");
+    }
+    return rst;
+}
+
+bool c_test_plucker_line_from_2_planes()
+{
+    bool rst;
+    double n1[3], n2[3], pt[3], v[3], m[3];
+    c_plane p1, p2;
+    c_plucker_line ln;
+    const double tol = 1.0e-8;
+
+    // Initialization
+    rst = true;
+    n1[0] = 1.0;        n1[1] = 1.0;        n1[2] = 0.0;
+    n2[0] = 0.0;        n2[1] = 0.0;        n2[2] = 1.0;
+    pt[0] = 0.0;        pt[1] = 0.0;        pt[2] = 0.0;
+    v[0] = 1.0;         v[1] = -1.0;        v[2] = 0.0;
+    c_vector_normalize(3, n1);
+    c_vector_normalize(3, n2);
+    c_vector_normalize(3, v);
+    c_cross_product(pt, v, m);
+    c_plane_from_point_and_normal(pt, n1, &p1);
+    c_plane_from_point_and_normal(pt, n2, &p2);
+    c_plucker_line_from_2_planes(&p1, &p2, &ln);
+
+    // Tests
+    if (!compare_arrays(3, v, ln.u, tol))
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_plucker_line_from_2_planes -1\n");
+    }
+    if (!compare_arrays(3, m, ln.m, tol))
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_plucker_line_from_2_planes -2\n");
+    }
+    return rst;
+}
+
+bool c_test_plucker_line_matmul()
+{
+    bool rst;
+    double v[6], x[36], r[6], ans[6];
+    c_plucker_line ln;
+    const double tol = 1.0e-8;
+
+    // Initialization
+    rst = true;
+    create_random_vector(6, v);
+    create_random_vector(36, x);
+    c_plucker_line_from_array(v, &ln);
+    c_vector_normalize(3, v);   // only the first 3 elements
+
+    mtx_mult(6, 1, 6, x, 6, v, 6, ans, 6);
+    c_plucker_line_mtx_mult(6, x, 6, &ln, r);
+
+    // Test
+    if (!compare_arrays(6, r, ans, tol))
+    {
+        printf("TEST FAILED: c_test_plucker_line_matmul -1\n");
+        rst = false;
+    }
+    return rst;
+}
+
+bool c_test_line_common_normal()
+{
+    bool rst;
+    double pt1[3], v1[3], pt2[3], v2[3], apt[3], av[3];
+    c_line ln1, ln2, cn;
+    const double tol = 1.0e-8;
+
+    // Initialization
+    rst = true;
+    pt1[0] = 0.0;   pt1[1] = 0.0;   pt1[2] = 0.0;
+    v1[0] = 0.0;    v1[1] = 0.0;    v1[2] = 1.0;
+    pt2[0] = 1.0;   pt2[1] = 0.0;   pt2[2] = 0.0;
+    v2[0] = 0.0;    v2[1] = 1.0;    v2[2] = 0.0;
+    apt[0] = 0.0;   apt[1] = 0.0;   apt[2] = 0.0;
+    av[0] = 1.0;    av[1] = 0.0;    av[2] = 0.0;
+    c_line_from_point_and_vector(pt1, v1, &ln1);
+    c_line_from_point_and_vector(pt2, v2, &ln2);
+
+    // Tests
+    c_line_common_normal(&ln1, &ln2, &cn);
+    if (!compare_arrays(3, apt, cn.r0, tol))
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_line_common_normal -1\n");
+    }
+    if (!compare_arrays(3, av, cn.v, tol))
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_line_common_normal -2\n");
+    }
+
+    // End
+    return rst;
+}
+
+bool c_test_do_lines_intersect()
+{
+    bool rst, intersect;
+    double pt1[3], pt2[3], pt3[3], pt4[3], ip[3], t1, t2, i1[3], i2[3];
+    c_line ln1, ln2;
+    const double tol = 1.0e-12;
+
+    // Initialization
+    rst = true;
+    pt1[0] = -1.0;  pt1[1] = 0.5;   pt1[2] = 0.5;
+    pt2[0] = 1.0;   pt2[1] = 0.5;   pt2[2] = 0.5;
+    pt3[0] = 0.0;   pt3[1] = -1.0;  pt3[2] = 0.5;
+    pt4[0] = 0.0;   pt4[1] = 1.0;   pt4[2] = 0.5;
+    ip[0] = 0.0;    ip[1] = 0.5;    ip[2] = 0.5;
+    c_line_from_2_points(pt1, pt2, &ln1);
+    c_line_from_2_points(pt3, pt4, &ln2);
+
+    // Tests
+    c_do_lines_intersect(&ln1, &ln2, &intersect, &t1, &t2, tol);
+    c_evaluate_line_position(&ln1, t1, i1);
+    c_evaluate_line_position(&ln2, t2, i2);
+    if (!intersect)
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_do_lines_intersect -1\n");
+    }
+    if (!compare_arrays(3, ip, i1, tol))
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_do_lines_intersect -2\n");
+    }
+    if (!compare_arrays(3, ip, i2, tol))
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_do_lines_intersect -3\n");
+    }
+
+    // End
+    return rst;
+}

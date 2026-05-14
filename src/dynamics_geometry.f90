@@ -2,13 +2,14 @@ module dynamics_geometry
     use iso_fortran_env
     use dynamics_helper
     use ieee_arithmetic
-    use lapack, only : DGESVD
+    use lapack, only : DGESVD, DGELSY
     use fstats, only : mean
     implicit none
     private
     public :: plane
     public :: plane_normal
     public :: line
+    public :: plucker_line
     public :: assignment(=)
     public :: is_parallel
     public :: is_point_on_plane
@@ -18,6 +19,10 @@ module dynamics_geometry
     public :: point_to_plane_distance
     public :: vector_plane_projection
     public :: point_plane_projection
+    public :: matmul
+    public :: line_from_point_and_vector
+    public :: line_common_normal
+    public :: do_lines_intersect
 
     type :: plane
         !! Defines a plane as \( a x + b y + c z + d = 0 \).
@@ -59,12 +64,37 @@ module dynamics_geometry
     interface assignment(=)
         module procedure :: plane_assign
         module procedure :: line_assign
+        module procedure :: pl_assign
+        module procedure :: pl_assign_line
     end interface
 
     interface is_parallel
         module procedure :: is_parallel_vectors
         module procedure :: is_parallel_lines
         module procedure :: is_parallel_planes
+    end interface
+
+    type :: plucker_line
+        !! Defines a line in 3D Euclidean space using Plücker coordinates.
+        real(real64), public :: v(6)
+            !! The 6-element array containing the Plücker coordinates.  The
+            !! first 3 elements contain the unit vector and the last 3 elements
+            !! contain the moment vector.
+    contains
+        procedure, public :: u => pl_u
+        procedure, public :: m => pl_m
+        procedure, public :: to_array => pl_to_array
+    end type
+
+    interface plucker_line
+        module procedure :: pl_from_2pts
+        module procedure :: pl_from_line
+        module procedure :: pl_from_2_planes
+        module procedure :: pl_from_array
+    end interface
+
+    interface matmul
+        module procedure :: pl_matmul
     end interface
 
 contains
@@ -368,6 +398,37 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
+    pure function line_from_point_and_vector(pt, x, nx) result(rst)
+        !! Constructs a new line from a point (defines the point where t = 0)
+        !! and a direction vector.
+        real(real64), intent(in) :: pt(3)
+            !! The point at which t = 0 on the line.
+        real(real64), intent(in) :: x(3)
+            !! The direction vector defining the orientation of the line.
+        logical, intent(in), optional :: nx
+            !! An optional parameter that defines if x should be normalized to
+            !! a unit vector (true), or left as-is (false).  The default is
+            !! true such that x is normalized to a unit vector.
+        type(line) :: rst
+            !! The resulting line.
+
+        ! Local Variables
+        logical :: nrm
+
+        ! Initialization
+        nrm = .true.
+        if (present(nx)) nrm = nx
+
+        ! Process
+        rst%r0 = pt
+        if (nrm) then
+            rst%v = x / norm2(x)
+        else
+            rst%v = x
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
 ! LINE MEMBER ROUTINES
 ! ------------------------------------------------------------------------------
     pure function line_eval(this, t) result(rst)
@@ -605,6 +666,294 @@ contains
             (norm2(n)**2)
         rst = pt + t * n
     end function
+
+! ******************************************************************************
+! PLUCKER_LINE
+! ------------------------------------------------------------------------------
+    pure function pl_from_2pts(pt1, pt2) result(rst)
+        !! Constructs a new plucker_line from two points.
+        real(real64), intent(in) :: pt1(3)
+            !! The first point.
+        real(real64), intent(in) :: pt2(3)
+            !! The second point.
+        type(plucker_line) :: rst
+            !! The resulting line.
+
+        rst%v(1:3) = pt2 - pt1
+        rst%v(1:3) = rst%v(1:3) / norm2(rst%v(1:3))
+        rst%v(4:6) = cross_product(pt1, rst%v(1:3))
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function pl_from_line(ln) result(rst)
+        !! Constructs a new plucker_line from a line object.
+        class(line), intent(in) :: ln
+            !! The line.
+        type(plucker_line) :: rst
+            !! The equivalent plucker_line.
+
+        rst = pl_from_2pts(ln%evaluate(0.0d0), ln%evaluate(1.0d0))
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function pl_from_2_planes(p1, p2) result(rst)
+        !! Constructs a new plucker_line from the intersection of two planes.
+        class(plane), intent(in) :: p1
+            !! The first plane.
+        class(plane), intent(in) :: p2
+            !! The second plane.
+        type(plucker_line) :: rst
+            !! The resulting line.  NaN's are returned in the event that the
+            !! two planes are parallel.
+
+        rst = pl_from_line(line(p1, p2))
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function pl_from_array(x, nrm) result(rst)
+        !! Constructs a new plucker_line from the supplied array.
+        real(real64), intent(in) :: x(6)
+            !! A 6-element array containing the Plücker coordinates.
+        logical, intent(in), optional :: nrm
+            !! An optional input that specifies if the first three coordinates
+            !! (the unit vector) should be normalized (true), or left as-is
+            !! (false).  The default is true such that the vector is normalized.
+        type(plucker_line) :: rst
+            !! The resulting line.
+
+        logical :: n
+        n = .true.
+        if (present(nrm)) n = nrm
+        if (n) then
+            rst%v(1:3) = x(1:3) / norm2(x(1:3))
+            rst%v(4:6) = x(4:6)
+        else
+            rst%v = x
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function pl_matmul(x, y) result(rst)
+        !! Overloads the matmul routine to allow for multiplication of the
+        !! Plücker line coordinate vector with a matrix.
+        real(real64), intent(in), dimension(:,:) :: x
+            !! The N-by-6 matrix.
+        type(plucker_line), intent(in) :: y
+            !! The plucker_line object.
+        real(real64), allocatable, dimension(:) :: rst
+            !! The resulting N-element array.
+
+        rst = matmul(x, y%v)
+    end function
+
+! ------------------------------------------------------------------------------
+! PLUCKER_LINE OPERATORS
+! ------------------------------------------------------------------------------
+    pure elemental subroutine pl_assign(x, y)
+        !! Assigns a plucker_line to another.
+        type(plucker_line), intent(out) :: x
+            !! The resulting plucker_line.
+        type(plucker_line), intent(in) :: y
+            !! The source plucker_line.
+
+        x%v = y%v
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    pure elemental subroutine pl_assign_line(x, y)
+        !! Assigns a line to a plucker_line.
+        type(plucker_line), intent(out) :: x
+            !! The resulting plucker_line.
+        type(line), intent(in) :: y
+            !! The source line.
+
+        x = plucker_line(y)
+    end subroutine
+
+! ------------------------------------------------------------------------------
+! PLUCKER_LINE MEMBERS
+! ------------------------------------------------------------------------------
+    pure function pl_u(this) result(rst)
+        !! The unit vector representing the orientation of the line.
+        class(plucker_line), intent(in) :: this
+            !! The plucker_line object.
+        real(real64) :: rst(3)
+            !! The unit vector.
+        rst = this%v(1:3) 
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function pl_m(this) result(rst)
+        !! The line moment vector.
+        class(plucker_line), intent(in) :: this
+            !! The plucker_line object.
+        real(real64) :: rst(3)
+            !! The moment vector.
+        rst = this%v(4:6)
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function pl_to_array(this) result(rst)
+        !! Returns the plucker_line as a 6-element array of the form [u, m].
+        class(plucker_line), intent(in) :: this
+            !! The plucker_line object.
+        real(real64) :: rst(6)
+            !! The resulting array.
+
+        rst = this%v
+    end function
+
+! ******************************************************************************
+! ADDITIONAL GEOMETRIC CALCULATIONS (ADDED 3/5/2026, JAC)
+! ------------------------------------------------------------------------------
+    pure function line_common_normal(ln1, ln2) result(rst)
+        !! Returns the common normal line between two lines pointing from ln1 to
+        !! ln2.  In the event that the two lines are parallel within the 
+        !! specified tolerance, there exist an infinite number of common 
+        !! normals; therefore, a line will be chosen that runs from ln1 to ln2
+        !! with the point at t = 0 coincident with the point at t = 0 on ln1.
+        class(line), intent(in) :: ln1
+            !! The first line.
+        class(line), intent(in) :: ln2
+            !! The second line.
+        type(line) :: rst
+            !! The common normal line.  The distance along this line between
+            !! t = 0 and t = 1 defines the length of the common normal 
+            !! connecting ln1 to ln2.  In the event that ln1 and ln2 intersect,
+            !! the length of this line is zero.
+
+        ! Local Variables
+        logical :: coincident
+        integer(int32) :: lwork, info, ipvt(2), rnk
+        real(real64) :: s, t, xi(3), p1(3), p2(3), A(3,2), x(3), temp(1), rc
+        real(real64), allocatable, dimension(:) :: work
+
+        ! Initialization
+        t = 1.0d1 * epsilon(t)
+        ipvt = 0
+        rc = epsilon(rc)
+
+        ! Compute the cross products of the direction vectors.
+        xi = cross_product(ln2%v, ln1%v)
+
+        ! Locate the point on ln2 that is an intersection between the common 
+        ! normal and ln2.  This can be accomplished by noting that:
+        !
+        ! ln1%r0 + t * xi = ln2%ro + s * ln2%v
+        !
+        ! We need to solve for s and t
+        p1 = ln1%evaluate(0.0d0)
+
+        ! Compute the coefficient matrix
+        A(:,1) = xi
+        A(:,2) = -ln2%v
+
+        ! Compute the right-hand-side
+        x = ln2%r0 - ln1%r0
+
+        ! Set up the least-squares solver.  We use DGELSY as we have 3 equations
+        ! but only 2 unknowns.
+        call DGELSY(3, 2, 1, A, 3, x, 3, ipvt, rc, rnk, temp, -1, info)
+        lwork = int(temp(1), int32)
+        allocate(work(lwork))
+
+        ! Solve
+        call DGELSY(3, 2, 1, A, 3, x, 3, ipvt, rc, rnk, work, lwork, info)
+        s = x(2)    ! we can use either t or s.  s is associated with ln2
+        p2 = ln2%evaluate(s)
+        rst = line(p1, p2)
+
+        ! Ensure that rst is of finite length
+        if (norm2(rst%evaluate(1.0d0) - rst%evaluate(0.0d0)) <= t) then
+            coincident = .true.
+        else if (ieee_is_nan(rst%v(1)) .or. ieee_is_nan(rst%v(2)) .or. &
+            ieee_is_nan(rst%v(3))) &
+        then
+            coincident = .true.
+        else
+            coincident = .false.
+        end if
+
+        if (coincident) then
+            ! If the lines are coincident we offset them by the specified
+            ! zero tolerance along the computed common normal axis
+            rst%r0 = p1
+            rst%v = 0.0d0
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
+    pure subroutine do_lines_intersect(ln1, ln2, intersect, t1, t2, tol)
+        !! Tests to see if two lines intersect.
+        class(line), intent(in) :: ln1
+            !! The first line.
+        class(line), intent(in) :: ln2
+            !! The second line.
+        logical, intent(out) :: intersect
+            !! True if the two lines intersect within the specified tolerance;
+            !! else, false if they do not intersect.
+        real(real64), intent(out), optional :: t1
+            !! The parametric value associate with ln1 defining the intersection
+            !! point.
+        real(real64), intent(out), optional :: t2
+            !! The parametric value associate with ln2 defining the intersection
+            !! point.
+        real(real64), intent(in), optional :: tol
+            !! The intersection tolerance.  If not supplied, the default value
+            !! is 10x machine epsilon.
+
+        ! Local Variables
+        integer(int32) :: lwork, info, rnk, ipvt(2)
+        real(real64) :: tolerance, A(3, 2), x(3), s, t, temp(1), p1(3), p2(3), &
+            dp(3), nan, rc
+        real(real64), allocatable, dimension(:) :: work
+
+        ! Initialization
+        if (present(tol)) then
+            tolerance = tol
+        else
+            tolerance = 1.0d1 * epsilon(tolerance)
+        end if
+        nan = ieee_value(nan, IEEE_QUIET_NAN)
+        A(:,1) = ln2%v
+        A(:,2) = -ln1%v
+        x = ln1%r0 - ln2%r0
+        ipvt = 0
+        rc = epsilon(rc)
+
+        ! Set up the least-squares solver
+        call DGELSY(3, 2, 1, A, 3, x, 3, ipvt, rc, rnk, temp, -1, info)
+        lwork = int(temp(1), int32)
+        allocate(work(lwork))
+
+        ! Solve A {s;t} = X
+        call DGELSY(3, 2, 1, A, 3, x, 3, ipvt, rc, rnk, work, lwork, info)
+        if (info /= 0) then
+            intersect = .false.
+            s = nan
+            t = nan
+        else
+            s = x(1)
+            t = x(2)
+            p1 = ln1%evaluate(t)
+            p2 = ln2%evaluate(s)
+            dp = abs(p2 - p1)
+            if (dp(1) > tolerance .or. dp(2) > tolerance .or. &
+                dp(3) > tolerance) &
+            then
+                ! No intersection
+                intersect = .false.
+                s = nan
+                t = nan
+            else
+                ! We've got an intersection point
+                intersect = .true.
+            end if
+        end if
+
+        if (present(t1)) t1 = t
+        if (present(t2)) t2 = s
+    end subroutine
 
 ! ------------------------------------------------------------------------------
 end module

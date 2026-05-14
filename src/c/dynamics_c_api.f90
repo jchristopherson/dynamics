@@ -7,6 +7,7 @@ module dynamics_c_api
     use spectrum, only : window
     use dynamics_quaternions
     use dynamics_geometry
+    use nonlin, only : polynomial
     implicit none
 
     interface
@@ -165,16 +166,169 @@ module dynamics_c_api
         real(c_double) :: v(3)
     end type
 
+    type, bind(C) :: c_plucker_line
+        real(c_double) :: u(3)
+        real(c_double) :: m(3)
+    end type
+
+    type, bind(C) :: c_coordinate_system
+        real(c_double) :: origin(3)
+        real(c_double) :: i(3)
+        real(c_double) :: j(3)
+        real(c_double) :: k(3)
+    end type
+
+    type, bind(C) :: c_dh_parameter_set
+        real(c_double) :: link_length
+        real(c_double) :: link_twist
+        real(c_double) :: link_offset
+        real(c_double) :: joint_angle
+    end type
+
+    type, bind(C) :: c_dh_table
+        integer(c_int) :: count
+        type(c_ptr) :: parameters   ! pointer to an array of c_dh_parameter_set items
+    end type
+
+    type, bind(C) :: c_binary_link
+        real(c_double) :: link_length
+        real(c_double) :: link_twist
+        real(c_double) :: link_offset
+        real(c_double) :: joint_angle
+        integer(c_int) :: joint_type
+        real(c_double) :: mass
+        real(c_double) :: cg(3)
+        real(c_double) :: inertia(9)
+    end type
+
+    type, bind(C) :: c_serial_linkage
+        integer(c_int) :: link_count
+        type(c_ptr) :: links    ! pointer to an array of c_binary_link items
+    end type
+
+    type, bind(C) :: c_polynomial
+        integer(c_int) :: order
+        type(c_ptr) :: coefficients ! ascending order
+    end type
+
+    type, bind(C) :: c_transfer_function
+        type(c_polynomial) :: numerator
+        type(c_polynomial) :: denominator
+    end type
+
+    type, bind(C) :: c_state_space_model
+        integer(c_int) :: dimension
+        integer(c_int) :: n_inputs
+        integer(c_int) :: n_outputs
+        type(c_ptr) :: A    ! dimension -by- dimension
+        type(c_ptr) :: B    ! dimension -by- n_inputs
+        type(c_ptr) :: C    ! n_outputs -by- dimension
+        type(c_ptr) :: D    ! n_outputs -by- n_inputs
+    end type
+
     interface assignment(=)
+        module procedure :: convert_to_c_iteration_behavior
+        module procedure :: convert_from_c_iteration_behavior
         module procedure :: convert_to_c_quaternion
         module procedure :: convert_from_c_quaternion
         module procedure :: convert_to_c_line
         module procedure :: convert_from_c_line
         module procedure :: convert_to_c_plane
         module procedure :: convert_from_c_plane
+        module procedure :: convert_to_c_plucker_line
+        module procedure :: convert_from_c_plucker_line
+        module procedure :: convert_to_c_coordinate_system
+        module procedure :: convert_from_c_coordinate_system
+        module procedure :: convert_to_c_dh_parameter_set
+        module procedure :: convert_from_c_dh_parameter_set
+        module procedure :: convert_from_c_dh_table
+        module procedure :: convert_to_c_binary_link
+        module procedure :: convert_from_c_binary_link
+        module procedure :: convert_from_c_serial_linkage
+        module procedure :: convert_to_c_polynomial
+        module procedure :: convert_from_c_polynomial
+        module procedure :: convert_to_c_transfer_function
+        module procedure :: convert_from_c_transfer_function
+        module procedure :: convert_to_c_state_space
+        module procedure :: convert_from_c_state_space
+    end interface
+
+    interface
+        function c_alloc_dh_table(n, tbl) result(rst) &
+            bind(C, name = "c_alloc_dh_table")
+            use iso_c_binding, only : c_int
+            import c_dh_table
+            integer(c_int), intent(in), value :: n
+            type(c_dh_table), intent(out) :: tbl
+            integer(c_int) :: rst
+        end function
+
+        function c_alloc_serial_linkage(n, lnk) result(rst) &
+            bind(C, name = "c_alloc_serial_linkage")
+            use iso_c_binding, only : c_int
+            import c_serial_linkage
+            integer(c_int), intent(in), value :: n
+            type(c_serial_linkage), intent(out) :: lnk
+            integer(c_int) :: rst
+        end function
+
+        function c_alloc_polynomial(order, p) result(rst) &
+            bind(C, name = "c_alloc_polynomial")
+            use iso_c_binding, only : c_int
+            import c_polynomial
+            integer(c_int), intent(in), value :: order
+            type(c_polynomial), intent(out) :: p
+            integer(c_int) :: rst
+        end function
+
+        function c_alloc_transfer_function(numer_order, denom_order, tf) &
+            result(rst) bind(C, name = "c_alloc_transfer_function")
+            use iso_c_binding, only : c_int
+            import c_transfer_function
+            integer(c_int), intent(in), value :: numer_order, denom_order
+            type(c_transfer_function), intent(out) :: tf
+            integer(c_int) :: rst
+        end function
+
+        function c_alloc_state_space_model(dimension, n_inputs, n_outputs, &
+            mdl) result(rst) bind(C, name = "c_alloc_state_space_model")
+            use iso_c_binding, only : c_int
+            import c_state_space_model
+            integer(c_int), intent(in), value :: dimension
+            integer(c_int), intent(in), value :: n_inputs
+            integer(c_int), intent(in), value :: n_outputs
+            type(c_state_space_model), intent(out) :: mdl
+            integer(c_int) :: rst
+        end function
     end interface
 
 contains
+! ------------------------------------------------------------------------------
+pure subroutine convert_to_c_iteration_behavior(c, f)
+    type(c_iteration_behavior), intent(out) :: c
+    type(iteration_behavior), intent(in) :: f
+    c%converge_on_chng = logical(f%converge_on_chng, c_bool)
+    c%converge_on_fcn = logical(f%converge_on_fcn, c_bool)
+    c%converge_on_zero_diff = logical(f%converge_on_zero_diff, c_bool)
+    c%fcn_count = f%fcn_count
+    c%gradient_count = f%gradient_count
+    c%iter_count = f%iter_count
+    c%jacobian_count = f%jacobian_count
+end subroutine
+
+! ------------------------------------------------------------------------------
+pure subroutine convert_from_c_iteration_behavior(f, c)
+    type(iteration_behavior), intent(out) :: f
+    type(c_iteration_behavior), intent(in) :: c
+    f%converge_on_chng = c%converge_on_chng
+    f%converge_on_fcn = c%converge_on_fcn
+    f%converge_on_zero_diff = c%converge_on_zero_diff
+    f%fcn_count = c%fcn_count
+    f%gradient_count = c%gradient_count
+    f%iter_count = c%iter_count
+    f%jacobian_count = c%jacobian_count
+end subroutine
+
 ! ------------------------------------------------------------------------------
 subroutine c_report_invalid_input(fcn, name, err)
     character(len = *), intent(in) :: fcn
@@ -192,6 +346,18 @@ subroutine c_report_invalid_input(fcn, name, err)
     end if
 
     call errmgr%report_error(fcn, "Invalid Input: " // name, -1)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_matmul(m, n, k, alpha, a, lda, b, ldb, beta, c, ldc) &
+    bind(C, name = "c_matmul")
+    use blas, only : DGEMM
+    integer(c_int), intent(in), value :: m, n, k, lda, ldb, ldc
+    real(c_double), intent(in), value :: alpha, beta
+    real(c_double), intent(in) :: a(lda,k), b(ldb,n)
+    real(c_double), intent(inout) :: c(ldc,n)
+    call DGEMM('N', 'N', m, n, k, alpha, a(1:m,:), lda, b(1:k,:), ldb, beta, &
+        c(1:m,:), ldc)
 end subroutine
 
 ! ******************************************************************************
@@ -399,6 +565,21 @@ end subroutine
 
 ! ******************************************************************************
 ! DYNAMICS_KINEMATICS.F90
+! ------------------------------------------------------------------------------
+subroutine c_dh_forward_kinematics_table(tbl, T, ldt) &
+    bind(C, name = "c_dh_forward_kinematics_table")
+    type(c_dh_table), intent(in) :: tbl
+    integer(c_int), intent(in), value :: ldt
+    real(c_double), intent(out) :: T(ldt, 4)
+    type(dh_table) :: ftbl
+    if (ldt < 4) then
+        call c_report_invalid_input("c_dh_forward_kinematics_table", "ldt")
+        return
+    end if
+    ftbl = tbl
+    T(1:4,1:4) = dh_forward_kinematics(ftbl)
+end subroutine
+
 ! ------------------------------------------------------------------------------
 subroutine c_dh_forward_kinematics(n, alpha, a, theta, d, T, ldt) &
     bind(C, name = "c_dh_forward_kinematics")
@@ -824,12 +1005,15 @@ end subroutine
 
 ! ------------------------------------------------------------------------------
 subroutine c_solve_inverse_kinematics(njoints, neqn, mdl, qo, constraints, &
-    jvar, resid, ib) bind(C, name = "c_solve_inverse_kinematics")
+    qmax, qmin, jvar, resid, ib) &
+    bind(C, name = "c_solve_inverse_kinematics")
     integer(c_int), intent(in), value :: njoints
     integer(c_int), intent(in), value :: neqn
     type(c_funptr), intent(in), value :: mdl
     real(c_double), intent(in) :: qo(njoints)
     real(c_double), intent(in) :: constraints(neqn)
+    real(c_double), intent(in) :: qmax(njoints)
+    real(c_double), intent(in) :: qmin(njoints)
     real(c_double), intent(out) :: jvar(njoints)
     real(c_double), intent(out) :: resid(neqn)
     type(c_iteration_behavior), intent(out) :: ib
@@ -842,14 +1026,8 @@ subroutine c_solve_inverse_kinematics(njoints, neqn, mdl, qo, constraints, &
     arg%fcn => fptr
     
     jvar = solve_inverse_kinematics(fcn, qo, constraints, df = resid, &
-        ib = iter, args = arg)
-    ib%converge_on_chng = iter%converge_on_chng
-    ib%converge_on_fcn = iter%converge_on_fcn
-    ib%converge_on_zero_diff = iter%converge_on_zero_diff
-    ib%fcn_count = iter%fcn_count
-    ib%gradient_count = iter%gradient_count
-    ib%iter_count = iter%iter_count
-    ib%jacobian_count = iter%jacobian_count
+        qmax = qmax, qmin = qmin, ib = iter, args = arg)
+    ib = iter
 end subroutine
 
 ! --------------------
@@ -1181,7 +1359,7 @@ subroutine c_siso_frequency_response(n, nf, x, y, fs, winsize, winfun, method, &
 
     type(c_window) :: win
     type(frf) :: frsp
-    procedure(c_window_function), pointer :: fcn
+    procedure(c_window_function), pointer :: cfcn
     integer(c_int) :: m
 
     
@@ -1192,9 +1370,9 @@ subroutine c_siso_frequency_response(n, nf, x, y, fs, winsize, winfun, method, &
     end if
     if (nf /= m) return
 
-    call c_f_procpointer(winfun, fcn)
+    call c_f_procpointer(winfun, cfcn)
     win%size = winsize
-    win%fcn => fcn
+    win%fcn => cfcn
 
     frsp = frequency_response(x, y, fs, win = win, method = method)
     freq = frsp%frequency
@@ -1959,6 +2137,122 @@ subroutine c_point_plane_projection(pt, pln, ppt) &
     ppt = point_plane_projection(pt, pf)
 end subroutine
 
+! ------------------------------------------------------------------------------
+pure subroutine convert_to_c_plucker_line(pc, pf)
+    type(c_plucker_line), intent(out) :: pc
+    type(plucker_line), intent(in) :: pf
+    pc%u = pf%v(1:3)
+    pc%m = pf%v(4:6)
+end subroutine
+
+! ------------------------------------------------------------------------------
+pure subroutine convert_from_c_plucker_line(pf, pc)
+    type(plucker_line), intent(out) :: pf
+    type(c_plucker_line), intent(in) :: pc
+    pf%v(1:3) = pc%u
+    pf%v(4:6) = pc%m
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_plucker_line_from_2_points(pt1, pt2, ln) &
+    bind(C, name = "c_plucker_line_from_2_points")
+    real(c_double), intent(in) :: pt1(3)
+    real(c_double), intent(in) :: pt2(3)
+    type(c_plucker_line), intent(out) :: ln
+    ln = plucker_line(pt1, pt2)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_plucker_line_from_line(src, ln) &
+    bind(C, name = "c_plucker_line_from_line")
+    type(c_line), intent(in) :: src
+    type(c_plucker_line), intent(out) :: ln
+    type(line) :: fsrc
+    fsrc = src
+    ln = plucker_line(fsrc)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_plucker_line_from_2_planes(p1, p2, ln) &
+    bind(C, name = "c_plucker_line_from_2_planes")
+    type(c_plane), intent(in) :: p1
+    type(c_plane), intent(in) :: p2
+    type(c_plucker_line), intent(out) :: ln
+    type(plane) :: pln1, pln2
+    pln1 = p1
+    pln2 = p2
+    ln = plucker_line(pln1, pln2)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_plucker_line_from_array(x, ln) &
+    bind(C, name = "c_plucker_line_from_array")
+    real(c_double), intent(in) :: x(6)
+    type(c_plucker_line), intent(out) :: ln
+    ln = plucker_line(x, nrm = .true.)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_plucker_line_mtx_mult(n, x, ldx, ln, y) &
+    bind(C, name = "c_plucker_line_mtx_mult")
+    integer(c_int), intent(in), value :: n, ldx
+    real(c_double), intent(in) :: x(ldx,6)
+    type(c_plucker_line), intent(in) :: ln
+    real(c_double), intent(out) :: y(n)
+    type(plucker_line) :: l
+    l = ln
+    y = matmul(x(1:n,:), l)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_plucker_line_to_array(ln, x) &
+    bind(C, name = "c_plucker_line_to_array")
+    type(c_plucker_line), intent(in) :: ln
+    real(c_double), intent(out) :: x(6)
+    x(1:3) = ln%u
+    x(4:6) = ln%m
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_line_common_normal(ln1, ln2, ln) &
+    bind(C, name = "c_line_common_normal")
+    type(c_line), intent(in) :: ln1
+    type(c_line), intent(in) :: ln2
+    type(c_line), intent(out) :: ln
+
+    type(line) :: f1, f2
+    f1 = ln1
+    f2 = ln2
+    ln = line_common_normal(f1, f2)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_do_lines_intersect(ln1, ln2, intersect, t1, t2, tol) &
+    bind(C, name = "c_do_lines_intersect")
+    type(c_line), intent(in) :: ln1
+    type(c_line), intent(in) :: ln2
+    logical(c_bool), intent(out) :: intersect
+    real(c_double), intent(out) :: t1
+    real(c_double), intent(out) :: t2
+    real(c_double), intent(in), value :: tol
+
+    logical :: check
+    type(line) :: f1, f2
+    f1 = ln1
+    f2 = ln2
+    call do_lines_intersect(f1, f2, check, t1, t2, tol)
+    intersect = logical(check, c_bool)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_line_from_point_and_vector(pt, v, ln) &
+    bind(C, name = "c_line_from_point_and_vector")
+    real(c_double), intent(in) :: pt(3)
+    real(c_double), intent(in) :: v(3)
+    type(c_line), intent(out) :: ln
+    ln = line_from_point_and_vector(pt, v)
+end subroutine
+
 ! ******************************************************************************
 ! DYNAMICS_MAPS.F90
 ! ------------------------------------------------------------------------------
@@ -1991,6 +2285,487 @@ subroutine c_poincare_map(n, x, y, z, pln, side, nbuffer, xbuff, ybuff, zbuff, &
         ybuff(i) = rst(i,2)
         zbuff(i) = rst(i,3)
     end do
+end subroutine
+
+! ******************************************************************************
+! ADDITIONAL KINEMATICS ROUTINES - ADDED V1.2.2
+! ------------------------------------------------------------------------------
+pure subroutine convert_to_c_coordinate_system(cc, cf)
+    type(c_coordinate_system), intent(out) :: cc
+    type(coordinate_system), intent(in) :: cf
+    cc%origin = cf%origin
+    cc%i = cf%i
+    cc%j = cf%j
+    cc%k = cf%k
+end subroutine
+
+! ------------------------------------------------------------------------------
+pure subroutine convert_from_c_coordinate_system(cf, cc)
+    type(coordinate_system), intent(out) :: cf
+    type(c_coordinate_system), intent(in) :: cc
+    cf%origin = cc%origin
+    cf%i = cc%i
+    cf%j = cc%j
+    cf%k = cc%k
+end subroutine
+
+! ------------------------------------------------------------------------------
+pure subroutine convert_to_c_dh_parameter_set(dc, df)
+    type(c_dh_parameter_set), intent(out) :: dc
+    type(dh_parameter_set), intent(in) :: df
+    dc%joint_angle = df%joint_angle
+    dc%link_length = df%link_length
+    dc%link_offset = df%link_offset
+    dc%link_twist = df%link_twist
+end subroutine
+
+! ------------------------------------------------------------------------------
+pure subroutine convert_from_c_dh_parameter_set(df, dc)
+    type(dh_parameter_set), intent(out) :: df
+    type(c_dh_parameter_set), intent(in) :: dc
+    df%joint_angle = dc%joint_angle
+    df%link_length = dc%link_length
+    df%link_offset = dc%link_offset
+    df%link_twist = dc%link_twist
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine convert_from_c_dh_table(df, dc)
+    type(dh_table), intent(out) :: df
+    type(c_dh_table), intent(in) :: dc
+    integer(int32) :: i, n
+    type(c_dh_parameter_set), pointer, dimension(:) :: ptr
+    n = int(dc%count, int32)
+    allocate(df%parameters(n))
+    call c_f_pointer(dc%parameters, ptr, [n])
+    do i = 1, n
+        df%parameters(i) = ptr(i)   ! = automatically makes the conversion
+    end do
+    ! Notes: No memory need be allocated for ptr as it is just a container for
+    ! the already allocated C pointer.
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine convert_to_c_dh_table(dc, df) ! cannot be used by assignment operator
+    type(c_dh_table), intent(inout) :: dc
+    type(dh_table), intent(in) :: df
+    integer(int32) :: i, n
+    type(c_dh_parameter_set), pointer, dimension(:) :: ptr
+    n = size(df%parameters)
+    dc%count = int(n, c_int)
+    call c_f_pointer(dc%parameters, ptr, [n])
+    do i = 1, n
+        ptr(i) = df%parameters(i)
+    end do
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_define_link_csys(xim1, zim1, zi, rim1, ri, csys) &
+    bind(C, name = "c_define_link_csys")
+    real(c_double), intent(in) :: xim1(3)
+    real(c_double), intent(in) :: zim1(3)
+    real(c_double), intent(in) :: zi(3)
+    real(c_double), intent(in) :: rim1(3)
+    real(c_double), intent(in) :: ri(3)
+    type(c_coordinate_system), intent(out) :: csys
+    csys = coordinate_system(xim1, zim1, zi, rim1, ri)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_define_csys(i, j, k, o, csys) bind(C, name = "c_define_csys")
+    real(c_double), intent(in) :: i(3)
+    real(c_double), intent(in) :: j(3)
+    real(c_double), intent(in) :: k(3)
+    real(c_double), intent(in) :: o(3)
+    type(c_coordinate_system), intent(out) :: csys
+    csys = coordinate_system(i, j, k, o)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_build_dh_table(n, csys, tbl) bind(C, name = "c_build_dh_table")
+    integer(c_int), intent(in), value :: n
+    type(c_coordinate_system), intent(in) :: csys(n)
+    type(c_dh_table), intent(out) :: tbl
+    type(dh_table) :: ftbl
+    integer(int32) :: i, flag
+    type(coordinate_system), allocatable, dimension(:) :: c
+    allocate(c(n))
+    do i = 1, n
+        c(i) = csys(i)
+    end do
+    ftbl = dh_table(c)
+    flag = c_alloc_dh_table(size(ftbl%parameters), tbl)
+    if (flag /= 0) return
+    call convert_to_c_dh_table(tbl, ftbl)
+end subroutine
+
+! ******************************************************************************
+! DYNAMICS_LINKAGE.F90
+! ------------------------------------------------------------------------------
+pure subroutine convert_to_c_binary_link(bc, bf)
+    type(c_binary_link), intent(out) :: bc
+    type(binary_link), intent(in) :: bf
+    bc%joint_angle = bf%joint_angle
+    bc%joint_type = bf%joint_type
+    bc%link_length = bf%link_length
+    bc%link_offset = bf%link_offset
+    bc%link_twist = bf%link_twist
+    bc%mass = bf%mass
+    bc%cg = bf%cg
+    bc%inertia = reshape(bf%inertia, [9])
+end subroutine
+
+! ------------------------------------------------------------------------------
+pure subroutine convert_from_c_binary_link(bf, bc)
+    type(binary_link), intent(out) :: bf
+    type(c_binary_link), intent(in) :: bc
+    bf%joint_angle = bc%joint_angle
+    bf%joint_type = bc%joint_type
+    bf%link_length = bc%link_length
+    bf%link_offset = bc%link_offset
+    bf%link_twist = bc%link_twist
+    bf%mass = bc%mass
+    bf%cg = bc%cg
+    bf%inertia = reshape(bc%inertia, [3, 3])
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine convert_from_c_serial_linkage(sf, sc)
+    type(serial_linkage), intent(out) :: sf
+    type(c_serial_linkage), intent(in) :: sc
+    integer(int32) :: i, n
+    type(binary_link), allocatable, dimension(:) :: links
+    type(c_binary_link), pointer, dimension(:) :: ptr
+    n = int(sc%link_count, int32)
+    allocate(links(n))
+    call c_f_pointer(sc%links, ptr, [n])
+    do i = 1, n
+        links(i) = ptr(i)
+    end do
+    sf = serial_linkage(links)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine convert_to_c_serial_linkage(sc, sf)
+    type(c_serial_linkage), intent(out) :: sc
+    type(serial_linkage), intent(in) :: sf
+    integer(int32) :: i, n
+    type(c_binary_link), pointer, dimension(:) :: ptr
+    n = sf%get_link_count()
+    sc%link_count = int(n, c_int)
+    call c_f_pointer(sc%links, ptr, [n])
+    do i = 1, n
+        ptr(i) = sf%get_link(i)
+    end do
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_build_serial_linkage(n, links, linkage) &
+    bind(C, name = "c_build_serial_linkage")
+    ! Arguments
+    integer(c_int), intent(in), value :: n
+    type(c_binary_link), intent(in) :: links(n)
+    type(c_serial_linkage), intent(out) :: linkage
+
+    ! Local Variables
+    type(binary_link), allocatable, dimension(:) :: f_links
+    type(serial_linkage) :: sf
+    integer(int32) :: i, flag
+
+    ! Process
+    allocate(f_links(n))
+    do i = 1, n
+        f_links(i) = links(i)
+    end do
+    sf = serial_linkage(f_links)
+    flag = c_alloc_serial_linkage(n, linkage)
+    if (flag /= 0) return
+    call convert_to_c_serial_linkage(linkage, sf)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_serial_linkage_forward_kinematics(n, lnk, q, T, ldt) &
+    bind(C, name = "c_serial_linkage_forward_kinematics")
+    integer(c_int), intent(in), value :: n, ldt
+    type(c_serial_linkage), intent(in) :: lnk
+    real(c_double), intent(in) :: q(n)
+    real(c_double), intent(out) :: T(ldt, 4)
+
+    type(serial_linkage) :: f_lnk
+
+    if (ldt < 4) then
+        call c_report_invalid_input("c_serial_linkage_forward_kinematics", "ldt")
+        return
+    end if
+
+    f_lnk = lnk
+    T(1:4,1:4) = f_lnk%forward_kinematics(q)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_serial_linkage_jacobian(n, lnk, q, J, ldj) &
+    bind(C, name = "c_serial_linkage_jacobian")
+    integer(c_int), intent(in), value :: n, ldj
+    type(c_serial_linkage), intent(in) :: lnk
+    real(c_double), intent(in) :: q(n)
+    real(c_double), intent(out) :: J(ldj, n)
+    
+    type(serial_linkage) :: f_lnk
+
+    if (ldj < 6) then
+        call c_report_invalid_input("c_serial_linkage_jacobian", "ldj")
+        return
+    end if
+
+    f_lnk = lnk
+    J(1:6,1:n) = f_lnk%jacobian(q)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_serial_linkage_inverse_kinematics(n, lnk, qo, trg, ldt, q, ib) &
+    bind(C, name = "c_serial_linkage_inverse_kinematics")
+    integer(c_int), intent(in), value :: n, ldt
+    type(c_serial_linkage), intent(in) :: lnk
+    real(c_double), intent(in) :: qo(n)
+    real(c_double), intent(in) :: trg(ldt, 4)
+    real(c_double), intent(out) :: q(n)
+    type(c_iteration_behavior), intent(out) :: ib
+
+    type(serial_linkage) :: f_lnk
+    type(iteration_behavior) :: fib
+
+    if (ldt < 4) then
+        call c_report_invalid_input("c_serial_linkage_inverse_kinematics", "ldt")
+        return
+    end if
+
+    f_lnk = lnk
+    q = f_lnk%inverse_kinematics(qo, trg(1:4,1:4), fib)
+    ib = fib
+end subroutine
+
+! ******************************************************************************
+! DYNAMICS_CONTROLS.F90
+! ------------------------------------------------------------------------------
+subroutine convert_to_c_polynomial(pc, pf)
+    type(c_polynomial), intent(out) :: pc
+    type(polynomial), intent(in) :: pf
+
+    integer(c_int) :: i, flag, n
+    real(c_double), pointer, dimension(:) :: ptr
+
+    flag = c_alloc_polynomial(pf%order(), pc)
+    if (flag < 0) return
+    n = pf%order() + 1
+    call c_f_pointer(pc%coefficients, ptr, [n])
+    do i = 1, n
+        ptr(i) = pf%get(i)
+    end do
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine convert_from_c_polynomial(pf, pc)
+    type(polynomial), intent(out) :: pf
+    type(c_polynomial), intent(in) :: pc
+
+    integer(c_int) :: i, order, n
+    real(c_double), pointer, dimension(:) :: ptr
+
+    order = pc%order
+    n = order + 1
+    call c_f_pointer(pc%coefficients, ptr, [n])
+    call pf%initialize(ptr)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine convert_to_c_transfer_function(tc, tf)
+    type(c_transfer_function), intent(out) :: tc
+    type(transfer_function), intent(in) :: tf
+
+    tc%numerator = tf%Y
+    tc%denominator = tf%X
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine convert_from_c_transfer_function(tf, tc)
+    type(transfer_function), intent(out) :: tf
+    type(c_transfer_function), intent(in) :: tc
+
+    tf%Y = tc%numerator
+    tf%X = tc%denominator
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine convert_to_c_state_space(sc, sf)
+    type(c_state_space_model), intent(out) :: sc
+    type(state_space), intent(in) :: sf
+
+    integer(int32) :: i, j, n, m, p, flag
+    real(real64), pointer, dimension(:,:) :: a, b, c, d
+
+    n = size(sf%A, 1)   ! size
+    m = size(sf%B, 2)   ! # of inputs
+    p = size(sf%C, 1)   ! # of outputs
+    flag = c_alloc_state_space_model(n, m, p, sc)
+    if (flag < 0) return
+    call c_f_pointer(sc%A, a, [n, n])
+    call c_f_pointer(sc%B, b, [n, m])
+    call c_f_pointer(sc%C, c, [p, n])
+    call c_f_pointer(sc%D, d, [p, m])
+    do j = 1, n
+        do i = 1, n
+            a(i,j) = sf%A(i,j)
+        end do
+        do i = 1, p
+            c(i,j) = sf%C(i,j)
+        end do
+    end do
+    do j = 1, m
+        do i = 1, n
+            b(i,j) = sf%B(i,j)
+        end do
+        do i = 1, p
+            d(i,j) = sf%D(i,j)
+        end do
+    end do
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine convert_from_c_state_space(sf, sc)
+    type(state_space), intent(out) :: sf
+    type(c_state_space_model), intent(in) :: sc
+
+    integer(int32) :: n, m, p
+    real(real64), pointer, dimension(:,:) :: a, b, c, d
+
+    n = sc%dimension
+    m = sc%n_inputs
+    p = sc%n_outputs
+    call c_f_pointer(sc%A, a, [n, n])
+    call c_f_pointer(sc%B, b, [n, m])
+    call c_f_pointer(sc%C, c, [p, n])
+    call c_f_pointer(sc%D, d, [p, m])
+    sf = state_space(a, b, c, d)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_evaluate_transfer_function(tf, n, s, z) &
+    bind(C, name = "c_evaluate_transfer_function")
+    type(c_transfer_function), intent(in) :: tf
+    integer(c_int), intent(in), value :: n
+    complex(c_double), intent(in) :: s(n)
+    complex(c_double), intent(out) :: z(n)
+
+    type(transfer_function) :: t
+    t = tf
+    z = t%evaluate(s)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_transfer_function_poles(tf, n, p) &
+    bind(C, name = "c_transfer_function_poles")
+    type(c_transfer_function), intent(in) :: tf
+    integer(c_int), intent(in), value :: n
+    complex(c_double), intent(out) :: p(n)
+
+    integer(int32) :: np, mnp
+    complex(real64), allocatable, dimension(:) :: poles
+    type(transfer_function) :: t
+    t = tf
+    poles = t%poles()
+    np = size(poles)
+    mnp = min(n, np)
+    p(1:mnp) = poles(1:mnp)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_transfer_function_zeros(tf, n, z) &
+    bind(C, name = "c_transfer_function_zeros")
+    type(c_transfer_function), intent(in) :: tf
+    integer(c_int), intent(in), value :: n
+    complex(c_double), intent(out) :: z(n)
+
+    integer(int32) :: nz, mnz
+    complex(real64), allocatable, dimension(:) :: zeros
+    type(transfer_function) :: t
+    t = tf
+    zeros = t%zeros()
+    nz = size(zeros)
+    mnz = min(nz, n)
+    z(1:mnz) = zeros(1:mnz)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_to_ccf_state_space(tf, ss) bind(C, name = "c_to_ccf_state_space")
+    type(c_transfer_function), intent(in) :: tf
+    type(c_state_space_model), intent(out) :: ss
+
+    type(transfer_function) :: t
+    type(state_space) :: s
+    t = tf
+    s = t%to_ccf_state_space()
+    ss = s
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_to_ocf_state_space(tf, ss) bind(C, name = "c_to_ocf_state_space")
+    type(c_transfer_function), intent(in) :: tf
+    type(c_state_space_model), intent(out) :: ss
+
+    type(transfer_function) :: t
+    type(state_space) :: s
+    t = tf
+    s = t%to_ocf_state_space()
+    ss = s
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_create_state_space_model(n, n_out, m, ldm, b, ldb, k, ldk, mdl) &
+    bind(C, name = "c_create_state_space_model")
+    integer(c_int), intent(in), value :: n, n_out, ldm, ldb, ldk
+    real(c_double), intent(in) :: m(ldm,n/2), b(ldb,n/2), k(ldk,n/2)
+    type(c_state_space_model), intent(out) :: mdl
+    type(state_space) :: ss
+    integer(c_int) :: n2
+    n2 = n / 2
+    if (ldm < n2) then
+        call c_report_invalid_input("c_create_state_space_model", "ldm")
+        return
+    end if
+    if (ldb < n2) then
+        call c_report_invalid_input("c_create_state_space_model", "ldb")
+        return
+    end if
+    if (ldk < n2) then
+        call c_report_invalid_input("c_create_state_space_model", "ldk")
+        return
+    end if
+    ss = state_space(m(1:n2,:), b(1:n2,:), k(1:n2,:), n_out)
+    mdl = ss
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_transfer_function_multiply(tf1, tf2, tf) &
+    bind(C, name = "c_transfer_function_multiply")
+    type(c_transfer_function), intent(in) :: tf1, tf2
+    type(c_transfer_function), intent(out) :: tf
+    type(transfer_function) :: t1, t2, t
+    t1 = tf1
+    t2 = tf2
+    t = t1 * t2
+    tf = t
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_scale_transfer_function(x, tf1, tf) &
+    bind(C, name = "c_scale_transfer_function")
+    real(c_double), intent(in), value :: x
+    type(c_transfer_function), intent(in) :: tf1
+    type(c_transfer_function), intent(out) :: tf
+    type(transfer_function) :: t1, t
+    t1 = tf1
+    t = x * t1
+    tf = t
 end subroutine
 
 ! ------------------------------------------------------------------------------
