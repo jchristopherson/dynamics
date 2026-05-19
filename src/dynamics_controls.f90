@@ -42,12 +42,16 @@ module dynamics_controls
             !! The P-by-N output matrix, where P is the number of outputs.
         real(real64), allocatable, dimension(:,:) :: D
             !! The P-by-M feedthrough matrix.
+    contains
+        procedure, public :: evaluate_derivatives => ss_eval_deriv
+        procedure, public :: evaluate_output => ss_eval_output
     end type
 
     interface state_space
         module procedure :: state_space_init
         module procedure :: state_space_init_scalar
         module procedure :: state_space_init_matrices
+        module procedure :: state_space_init_pid
     end interface
 
 ! ------------------------------------------------------------------------------
@@ -111,7 +115,7 @@ module dynamics_controls
         procedure(ss_excitation), pointer, nopass :: excitation
         class(*), allocatable :: user_args
         logical :: has_user_args
-        type(state_space) :: model
+        class(state_space), pointer :: model
     end type
 
 contains
@@ -192,7 +196,7 @@ contains
         real(real64), intent(in) :: k
             !! The stiffness.
         type(state_space) :: rst
-            !! The state-space model.
+            !! The [[state_space]] model.
 
         ! Process
         allocate( &
@@ -220,7 +224,7 @@ contains
         real(real64), intent(in), dimension(:,:) :: d
             !! The P-by-M feedthrough matrix.
         type(state_space) :: rst
-            !! The resulting state_space object.
+            !! The resulting [[state_space]] object.
 
         allocate(rst%A, source = a)
         allocate(rst%B, source = b)
@@ -228,6 +232,138 @@ contains
         allocate(rst%D, source = d)
     end function
 
+! ------------------------------------------------------------------------------
+    pure function state_space_init_pid(kp, ki, kd, tau, a, b, c, d) result(rst)
+        !! Initializes a state-space model that employs a closed-loop PID
+        !! controller.
+        !!
+        !! The PID model is augmented into the plant model as follows.
+        !!
+        !! $$ e = r - y $$
+        !! $$ \dot{x_1} = e $$
+        !! $$ \dot{x_3} = -\frac{x_3}{\tau} + \frac{e}{\tau} $$
+        !! $$ u = K_{i} x_{i} + K_{p} e + \frac{K_{d}}{\tau} \left(e - 
+        !! x_{3} \right) $$
+        !! $$ \alpha = K_{p} + \frac{K_{d}}{\tau} $$
+        !! $$ \beta = \frac{1}{1 + \alpha D} $$
+        !! $$ x = \left[ \begin{matrix} x_{p} \\ x_{1} \\ x_{3} \end{matrix} 
+        !! \right] $$
+        !! $$ \dot{x} = A_{cl} x + B_{cl} r $$
+        !! $$ y = C_{cl} x + D_{cl} r $$
+        !!
+        !! Where the augmented matrices are as follows.
+        !!
+        !! $$ A_{cl} = \left[ \begin{matrix} A - \alpha \beta B C & 
+        !! \beta K_{i} B & -\frac{\beta K_{d}}{\tau} B \\ 
+        !! -C + \alpha \beta D C & -\beta K_{i} D & \frac{\beta K_{d}}{\tau} D 
+        !! \\ \frac{1}{\tau}\left(-C + \alpha \beta D C \right) & 
+        !! -\frac{\beta K_{i}}{\tau} D & \frac{1}{\tau} \left( 
+        !! 1 + \frac{\beta K_{d}}{\tau^{2}} D \right) \end{matrix} \right] $$
+        !! $$ B_{cl} = \left[ \begin{matrix} \alpha \beta B \\ 1 - 
+        !! \alpha \beta D \\ \frac{1}{\tau} \left( 1 - \alpha \beta D \right) 
+        !! \end{matrix} \right] $$
+        !! $$ C_{cl} = \left[ \begin{matrix} C - \alpha \beta D C & 
+        !! \beta K_{i} D & -\frac{\beta K_{d}}{\tau} D \end{matrix} \right] $$
+        !! $$ D_{cl} = \alpha \beta D $$
+        real(real64), intent(in) :: kp
+            !! The proportional gain term.
+        real(real64), intent(in) :: ki
+            !! The integral gain term.
+        real(real64), intent(in) :: kd
+            !! The derivative gain term.
+        real(real64), intent(in) :: tau
+            !! The time constant of the first order derivative filter
+            !! \( K_{d} \frac{s}{\tau s + 1} \).
+        real(real64), intent(in), dimension(:,:) :: a
+            !! The N-by-N dynamics matrix for the plant.
+        real(real64), intent(in), dimension(size(a, 1), 1) :: b
+            !! The N-by-1 input matrix for the plant.
+        real(real64), intent(in), dimension(1, size(a, 1)) :: c
+            !! The 1-by-N output matrix for the plant.
+        real(real64), intent(in), dimension(1, 1) :: d
+            !! The 1-by-1 feedthrough matrix for the plant.
+        type(state_space) :: rst
+            !! The resulting [[state_space]] object.
+
+        ! Local Variables
+        integer(int32) :: n, n1, n2
+        real(real64) :: alpha, beta, ab
+        real(real64), allocatable, dimension(:,:) :: dc
+
+        ! Initialization
+        n = size(a, 1)
+        n1 = n + 1
+        n2 = n + 2
+        allocate( &
+            rst%A(n2, n2), &
+            rst%B(n2, 1), &
+            rst%C(1, n2), &
+            rst%D(1, 1) &
+        )
+        dc = matmul(d, c)
+
+        ! Process
+        alpha = kp + kd / tau
+        if (d(1,1) == 0.0d0) then
+            beta = 1.0d0
+        else
+            beta = 1.0d0 / (1.0d0 + alpha * d(1,1))
+        end if
+        ab = alpha * beta
+        rst%A(1:n,1:n) = a - ab * matmul(b, c)
+        rst%A(n1,1:n) = -c(1,1:n) + ab * dc(1,1:n)
+        rst%A(4,1:n) = (1.0d0 / tau) * rst%A(3,1:2)
+
+        rst%A(1:n,n1) = beta * ki * b(1:n,1)
+        rst%A(n1,n1) = -beta * ki * d(1,1)
+        rst%A(n2,n1) = rst%A(3,3) / tau
+
+        rst%A(1:n,n2) = -(beta * kd / tau) * b(1:n,1)
+        rst%A(n1,n2) = beta * kd * d(1,1) / tau
+        rst%A(n2,n2) = -1.0d0 / tau + beta * kd * d(1,1) / (tau**2)
+
+        rst%B(1:n,1) = ab * b(1:n,1)
+        rst%B(n1,1) = 1.0d0 - ab * d(1,1)
+        rst%B(n2,1) = (1.0d0 / tau) * rst%B(3,1)
+
+        rst%C(1,1:n) = c(1,1:n) - ab * dc(1,1:n)
+        rst%C(1,n1) = beta * ki * d(1,1)
+        rst%C(1,n2) = -(beta * kd / tau) * d(1,1)
+
+        rst%D = ab * d
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function ss_eval_deriv(this, u, x) result(rst)
+        !! Evaluates the state time derivative \( \dot{x}(t) = A x(t) + 
+        !! B u(t) \).
+        class(state_space), intent(in) :: this
+            !! The [[state_space]] object.
+        real(real64), intent(in), dimension(:) :: u
+            !! The M-element input array.
+        real(real64), intent(in), dimension(:) :: x
+            !! The N-element state array.
+        real(real64), allocatable, dimension(:) :: rst
+            !! The N-element state time derivative vector.
+
+        rst = matmul(this%A, x) + matmul(this%B, u)
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function ss_eval_output(this, u, x) result(rst)
+        !! Evaluates the output vector \( y(t) = C x(t) + D u(t) \).
+        class(state_space), intent(in) :: this
+            !! The [[state_space]] object.
+        real(real64), intent(in), dimension(:) :: u
+            !! The M-element input array.
+        real(real64), intent(in), dimension(:) :: x
+            !! The N-element state array.
+        real(real64), allocatable, dimension(:) :: rst
+            !! The P-element output array.
+
+        rst = matmul(this%C, x) + matmul(this%D, u)
+    end function
+    
 ! ******************************************************************************
 ! TRANSFER_FUNCTION
 ! ------------------------------------------------------------------------------
@@ -489,7 +625,7 @@ end function
 ! ------------------------------------------------------------------------------
 function lti_solve(mdl, u, t, ic, solver, args, err) result(rst)
     !! Solves the LTI system given by the specified state space model.
-    class(state_space), intent(in) :: mdl
+    class(state_space), intent(in), target :: mdl
         !! The state_space model to solve.
     procedure(ss_excitation), pointer, intent(in) :: u
         !! The routine used to compute the excitation vector.
@@ -535,7 +671,7 @@ function lti_solve(mdl, u, t, ic, solver, args, err) result(rst)
         errmgr => deferr
     end if
     container%excitation => u
-    container%model = mdl
+    container%model => mdl
     container%has_user_args = present(args)
     if (present(args)) allocate(container%user_args, source = args)
     n = size(mdl%A, 1)
@@ -574,7 +710,7 @@ function lti_solve(mdl, u, t, ic, solver, args, err) result(rst)
     do i = 1, npts
         call u(sol(i,1), uv, args)
         rst(i,1) = sol(i,1)
-        rst(i,2:) = matmul(mdl%C, sol(i,2:)) + matmul(mdl%D, uv)
+        rst(i,2:) = mdl%evaluate_output(uv, sol(i,2:))
     end do
 end function
 
@@ -606,7 +742,7 @@ subroutine ode_solver_routine(t, x, dxdt, args)
         end if
 
         ! Evaluate the model
-        dxdt = matmul(args%model%A, x) + matmul(args%model%B, u)
+        dxdt = args%model%evaluate_derivatives(u, x)
     class default
         dxdt = nan
     end select
