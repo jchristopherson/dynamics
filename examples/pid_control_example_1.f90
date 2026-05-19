@@ -4,7 +4,7 @@ module model
 
     real(real64), public, parameter :: m = 6.0d-4
     real(real64), public, parameter :: k = 2.0d3
-    real(real64), public, parameter :: zeta = 1.0d-1
+    real(real64), public, parameter :: zeta = 3.0d-1
     real(real64), public, parameter :: b = 2.0d0 * zeta * sqrt(k * m)
     real(real64), public, parameter :: X = 0.5d0
     real(real64), public, parameter :: f = 5.0d0
@@ -33,7 +33,7 @@ program example
     use model
     implicit none
 
-    ! Control Parameters
+    ! Control Parameters - Arbitrarily Chosen
     real(real64), parameter :: Kp = 5.0d1
     real(real64), parameter :: Ki = 1.5d1
     real(real64), parameter :: Kd = 2.5d-1
