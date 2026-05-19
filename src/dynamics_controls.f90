@@ -52,6 +52,7 @@ module dynamics_controls
         module procedure :: state_space_init_scalar
         module procedure :: state_space_init_matrices
         module procedure :: state_space_init_pid
+        module procedure :: state_space_init_pid_plant
     end interface
 
 ! ------------------------------------------------------------------------------
@@ -331,6 +332,57 @@ contains
         rst%C(1,n2) = -(beta * kd / tau) * d(1,1)
 
         rst%D = ab * d
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function state_space_init_pid_plant(kp, ki, kd, tau, plant) result(rst)
+        !! Initializes a state-space model that employs a closed-loop PID
+        !! controller.
+        !!
+        !! The PID model is augmented into the plant model as follows.
+        !!
+        !! $$ e = r - y $$
+        !! $$ \dot{x_1} = e $$
+        !! $$ \dot{x_3} = -\frac{x_3}{\tau} + \frac{e}{\tau} $$
+        !! $$ u = K_{i} x_{i} + K_{p} e + \frac{K_{d}}{\tau} \left(e - 
+        !! x_{3} \right) $$
+        !! $$ \alpha = K_{p} + \frac{K_{d}}{\tau} $$
+        !! $$ \beta = \frac{1}{1 + \alpha D} $$
+        !! $$ x = \left[ \begin{matrix} x_{p} \\ x_{1} \\ x_{3} \end{matrix} 
+        !! \right] $$
+        !! $$ \dot{x} = A_{cl} x + B_{cl} r $$
+        !! $$ y = C_{cl} x + D_{cl} r $$
+        !!
+        !! Where the augmented matrices are as follows.
+        !!
+        !! $$ A_{cl} = \left[ \begin{matrix} A - \alpha \beta B C & 
+        !! \beta K_{i} B & -\frac{\beta K_{d}}{\tau} B \\ 
+        !! -C + \alpha \beta D C & -\beta K_{i} D & \frac{\beta K_{d}}{\tau} D 
+        !! \\ \frac{1}{\tau}\left(-C + \alpha \beta D C \right) & 
+        !! -\frac{\beta K_{i}}{\tau} D & \frac{1}{\tau} \left( 
+        !! 1 + \frac{\beta K_{d}}{\tau^{2}} D \right) \end{matrix} \right] $$
+        !! $$ B_{cl} = \left[ \begin{matrix} \alpha \beta B \\ 1 - 
+        !! \alpha \beta D \\ \frac{1}{\tau} \left( 1 - \alpha \beta D \right) 
+        !! \end{matrix} \right] $$
+        !! $$ C_{cl} = \left[ \begin{matrix} C - \alpha \beta D C & 
+        !! \beta K_{i} D & -\frac{\beta K_{d}}{\tau} D \end{matrix} \right] $$
+        !! $$ D_{cl} = \alpha \beta D $$
+        real(real64), intent(in) :: kp
+            !! The proportional gain term.
+        real(real64), intent(in) :: ki
+            !! The integral gain term.
+        real(real64), intent(in) :: kd
+            !! The derivative gain term.
+        real(real64), intent(in) :: tau
+            !! The time constant of the first order derivative filter
+            !! \( K_{d} \frac{s}{\tau s + 1} \).
+        class(state_space), intent(in) :: plant
+            !! The plant model.
+        type(state_space) :: rst
+            !! The resulting [[state_space]] object.
+
+        rst = state_space_init_pid(kp, ki, kd, tau, plant%A, plant%B, &
+            plant%C, plant%D)
     end function
 
 ! ------------------------------------------------------------------------------
