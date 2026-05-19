@@ -263,3 +263,14 @@ target_include_directories(
     PUBLIC
     ${CMAKE_SOURCE_DIR}/src/c
 )
+
+# PID Control Example 1
+add_executable(
+    pid_control_example_1
+    pid_control_example_1.f90
+)
+target_link_libraries(
+    pid_control_example_1
+    ${PROJECT_NAME}
+    ${FPLOT_LIBRARIES}
+)
