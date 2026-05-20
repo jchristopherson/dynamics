@@ -28,6 +28,7 @@ end module
 
 program example
     use iso_fortran_env
+    use ieee_arithmetic
     use dynamics
     use fplot_core
     use model
@@ -48,14 +49,17 @@ program example
     procedure(ss_excitation), pointer :: fcn
     integer(int32) :: i, n
     real(real64) :: ic(4), t(2), ri(1)
-    real(real64), allocatable, dimension(:) :: r
+    real(real64), allocatable, dimension(:) :: r, freq, omega, mag, phase
     real(real64), allocatable, dimension(:,:) :: sol
+    complex(real64), allocatable, dimension(:) :: poles, zeros
+    complex(real64), allocatable, dimension(:,:,:) :: Z
     type(state_space) :: plant, mdl
 
     ! Plot Variables
-    type(plot_2d) :: plt
+    type(plot_2d) :: plt, plt1, plt2
     type(plot_data_2d) :: pd
-    class(plot_axis), pointer :: xAxis, yAxis
+    class(plot_axis), pointer :: xAxis, yAxis, x1, y1, x2, y2
+    type(multiplot) :: bode
 
     ! Define a plant model (simple mass-spring-damper model)
     plant = state_space(m, b, k)
@@ -71,6 +75,28 @@ program example
     ! Compute the solution
     fcn => command_signal   ! from the model module
     sol = lti_solve(mdl, fcn, t, ic)
+
+    ! Compute the poles and zeros of the closed-loop system
+    poles = mdl%poles()
+    zeros = mdl%zeros()
+    print "(A)", "Poles:"
+    do i = 1, size(poles)
+        print "(A, A, F0.3, A, F0.3, A)", &
+            achar(9), "(", real(poles(i)), ", ", aimag(poles(i)), ")"
+    end do
+    print "(A)", "Zeros:"
+    do i = 1, size(zeros)
+        if (ieee_is_nan(real(zeros(i)))) cycle
+        print "(A, A, F0.3, A, F0.3, A)", &
+            achar(9), "(", real(zeros(i)), ", ", aimag(zeros(i)), ")"
+    end do
+
+    ! Compute the transfer functions
+    freq = linspace(1.0d0, 1.0d3, 1000)
+    omega = 2.0d0 * pi * freq
+    Z = mdl%transfer_function(omega)
+    mag = 2.0d1 * log10(abs(Z(1,1,:)))  ! convert to dB
+    phase = atan2(aimag(Z(1,1,:)), real(Z(1,1,:))) * 1.8d2 / pi
 
     ! Compute the reference signal at each time point - not needed, but useful
     ! for illustration purposes
@@ -89,6 +115,7 @@ program example
     call yAxis%set_title("x(t)")
     
     call pd%define_data(sol(:,1), sol(:,2))
+    call pd%set_line_width(2.0)
     call pd%set_name("Output")
     call plt%push(pd)
 
@@ -97,4 +124,27 @@ program example
     call plt%push(pd)
 
     call plt%draw()
+
+    ! Bode Plot
+    call bode%initialize(2, 1)
+    call plt1%initialize()
+    call plt2%initialize()
+    x1 => plt1%get_x_axis()
+    y1 => plt1%get_y_axis()
+    x2 => plt2%get_x_axis()
+    y2 => plt2%get_y_axis()
+    call x1%set_title("f [Hz]")
+    call y1%set_title("Y/U [dB]")
+    call x2%set_title("f [Hz]")
+    call y2%set_title("{/Symbol f} [deg]")
+
+    call pd%define_data(freq, mag)
+    call plt1%push(pd)
+
+    call pd%define_data(freq, phase)
+    call plt2%push(pd)
+
+    call bode%set(1, 1, plt1)
+    call bode%set(2, 1, plt2)
+    call bode%draw()
 end program
