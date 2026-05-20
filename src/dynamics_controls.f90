@@ -5,7 +5,8 @@ module dynamics_controls
     use ieee_arithmetic
     use dynamics_error_handling
     use diffeq
-    use lapack, only : dgetrf, dgetri, dgetrs
+    use linalg, only : eigen
+    use lapack, only : dgetrf, dgetri, dgetrs, zgels
     implicit none
     private
     public :: polynomial
@@ -21,8 +22,8 @@ module dynamics_controls
         !! Defines a state-space representation of a dynamic system.  This
         !! implementation takes the form:
         !!
-        !! $$ \dot{x}(t) = A(t) x(t) + B(t) u(t) $$
-        !! $$ y(t) = C(t) x(t) + D(t) u(t) $$
+        !! $$ \dot{x}(t) = A x(t) + B u(t) $$
+        !! $$ y(t) = C x(t) + D u(t) $$
         !!
         !! Where:
         !! 
@@ -45,6 +46,15 @@ module dynamics_controls
     contains
         procedure, public :: evaluate_derivatives => ss_eval_deriv
         procedure, public :: evaluate_output => ss_eval_output
+        procedure, public :: poles => ss_poles
+        procedure, public :: zeros => ss_zeros
+        generic, public :: transfer_function => ss_transfer_fcn, &
+            ss_transfer_fcn_omega, ss_transfer_fcn_array, &
+            ss_transfer_fcn_omega_array
+        procedure, private :: ss_transfer_fcn
+        procedure, private :: ss_transfer_fcn_omega
+        procedure, private :: ss_transfer_fcn_array
+        procedure, private :: ss_transfer_fcn_omega_array
     end type
 
     interface state_space
@@ -123,299 +133,474 @@ contains
 ! ******************************************************************************
 ! STATE_SPACE
 ! ------------------------------------------------------------------------------
-    pure function state_space_init(m, b, k, n_out) result(rst)
-        !! Initializes the state space model.
-        !!
-        !! The output matrix \(C\) is initialized to one, and the
-        !! feedthrough matrix \(D\) is initialized to zero.
-        real(real64), intent(in), dimension(:,:) :: m
-            !! The N-by-N mass matrix.
-        real(real64), intent(in), dimension(size(m, 1), size(m, 2)) :: b
-            !! The N-by-N damping matrix.
-        real(real64), intent(in), dimension(size(m, 1), size(m, 2)) :: k
-            !! The N-by-N stiffness matrix.
-        integer(int32), intent(in), optional :: n_out
-            !! The number of outputs.  The default is 1.
-        type(state_space) :: rst
-            !! The [[state_space]] model.
+pure function state_space_init(m, b, k, n_out) result(rst)
+    !! Initializes the state space model.
+    !!
+    !! The output matrix \(C\) is initialized to one, and the
+    !! feedthrough matrix \(D\) is initialized to zero.
+    real(real64), intent(in), dimension(:,:) :: m
+        !! The N-by-N mass matrix.
+    real(real64), intent(in), dimension(size(m, 1), size(m, 2)) :: b
+        !! The N-by-N damping matrix.
+    real(real64), intent(in), dimension(size(m, 1), size(m, 2)) :: k
+        !! The N-by-N stiffness matrix.
+    integer(int32), intent(in), optional :: n_out
+        !! The number of outputs.  The default is 1.
+    type(state_space) :: rst
+        !! The [[state_space]] model.
 
-        ! Local Variables
-        integer(int32) :: ii, jj, n, p, q, lwork, info
-        integer(int32), allocatable, dimension(:) :: pvt
-        real(real64) :: temp(1)
-        real(real64), allocatable, dimension(:) :: work
+    ! Local Variables
+    integer(int32) :: ii, jj, n, p, q, lwork, info
+    integer(int32), allocatable, dimension(:) :: pvt
+    real(real64) :: temp(1)
+    real(real64), allocatable, dimension(:) :: work
 
-        ! Initialization
-        p = size(m, 1)
-        n = 2 * p
-        q = 1
-        if (present(n_out)) q = n_out
-        if (q <= 1) q = 1
-        allocate( &
-            rst%A(n, n), &
-            rst%B(n, p), &
-            rst%D(q, p), &
-            source = 0.0d0 &
-        )
-        allocate(rst%C(q, n), source = 1.0d0)
-        allocate(pvt(p))
+    ! Initialization
+    p = size(m, 1)
+    n = 2 * p
+    q = 1
+    if (present(n_out)) q = n_out
+    if (q <= 1) q = 1
+    allocate( &
+        rst%A(n, n), &
+        rst%B(n, p), &
+        rst%D(q, p), &
+        source = 0.0d0 &
+    )
+    allocate(rst%C(q, n), source = 1.0d0)
+    allocate(pvt(p))
 
-        ! Workspace
-        call dgetri(p, rst%b(p+1:n,:), p, pvt, temp, -1, info)
-        lwork = int(temp(1), int32)
-        allocate(work(lwork))
+    ! Workspace
+    call dgetri(p, rst%b(p+1:n,:), p, pvt, temp, -1, info)
+    lwork = int(temp(1), int32)
+    allocate(work(lwork))
 
-        ! Build p-by-p Identity sub-matrix matrix
-        jj = p + 1
-        do ii = 1, p
-            rst%A(ii,jj) = 1.0d0
-            jj = jj + 1
-        end do
-        
-        ! Fill in the matrices
-        rst%B(p+1:n,1:p) = m
-        rst%A(p+1:n,1:p) = -k
-        rst%A(p+1:n,p+1:n) = -b
-        call dgetrf(p, p, rst%B(p+1:n,1:p), p, pvt, info)
-        call dgetrs('N', p, p, rst%B(p+1:n,1:p), p, pvt, rst%A(p+1:n,1:p), p, &
-            info)
-        call dgetrs('N', p, p, rst%B(p+1:n,1:p), p, pvt, rst%A(p+1:n,p+1:n), &
-            p, info)
-        call dgetri(p, rst%B(p+1:n,1:p), p, pvt, work, lwork, info)
-    end function
-
-! ------------------------------------------------------------------------------
-    pure function state_space_init_scalar(m, b, k) result(rst)
-        !! Initializes the state space model.
-        !!
-        !! The output matrix \(C\) is initialized to one, and the
-        !! feedthrough matrix \(D\) is initialized to zero.
-        real(real64), intent(in) :: m
-            !! The mass.
-        real(real64), intent(in) :: b
-            !! The damping.
-        real(real64), intent(in) :: k
-            !! The stiffness.
-        type(state_space) :: rst
-            !! The [[state_space]] model.
-
-        ! Process
-        allocate( &
-            rst%A(2, 2), &
-            rst%B(2, 1), &
-            rst%D(1, 1), &
-            source = 0.0d0 &
-        )
-        allocate(rst%C(1, 2), source = 1.0d0)
-        rst%A(2,1) = -k / m
-        rst%A(1,2) = 1.0d0
-        rst%A(2,2) = -b / m
-        rst%B(2,1) = 1.0d0 / m
-    end function
-
-! ------------------------------------------------------------------------------
-    pure function state_space_init_matrices(a, b, c, d) result(rst)
-        !! Initializes the state space model.
-        real(real64), intent(in), dimension(:,:) :: a
-            !! The N-by-N dynamics matrix.
-        real(real64), intent(in), dimension(:,:) :: b
-            !! The N-by-M input matrix.
-        real(real64), intent(in), dimension(:,:) :: c
-            !! The P-by-N output matrix.
-        real(real64), intent(in), dimension(:,:) :: d
-            !! The P-by-M feedthrough matrix.
-        type(state_space) :: rst
-            !! The resulting [[state_space]] object.
-
-        allocate(rst%A, source = a)
-        allocate(rst%B, source = b)
-        allocate(rst%C, source = c)
-        allocate(rst%D, source = d)
-    end function
-
-! ------------------------------------------------------------------------------
-    pure function state_space_init_pid(kp, ki, kd, tau, a, b, c, d) result(rst)
-        !! Initializes a state-space model that employs a closed-loop PID
-        !! controller.
-        !!
-        !! The PID model is augmented into the plant model as follows.
-        !!
-        !! $$ e = r - y $$
-        !! $$ \dot{x_1} = e $$
-        !! $$ \dot{x_3} = -\frac{x_3}{\tau} + \frac{e}{\tau} $$
-        !! $$ u = K_{i} x_{i} + K_{p} e + \frac{K_{d}}{\tau} \left(e - 
-        !! x_{3} \right) $$
-        !! $$ \alpha = K_{p} + \frac{K_{d}}{\tau} $$
-        !! $$ \beta = \frac{1}{1 + \alpha D} $$
-        !! $$ x = \left[ \begin{matrix} x_{p} \\ x_{1} \\ x_{3} \end{matrix} 
-        !! \right] $$
-        !! $$ \dot{x} = A_{cl} x + B_{cl} r $$
-        !! $$ y = C_{cl} x + D_{cl} r $$
-        !!
-        !! Where the augmented matrices are as follows.
-        !!
-        !! $$ A_{cl} = \left[ \begin{matrix} A - \alpha \beta B C & 
-        !! \beta K_{i} B & -\frac{\beta K_{d}}{\tau} B \\ 
-        !! -C + \alpha \beta D C & -\beta K_{i} D & \frac{\beta K_{d}}{\tau} D 
-        !! \\ \frac{1}{\tau}\left(-C + \alpha \beta D C \right) & 
-        !! -\frac{\beta K_{i}}{\tau} D & \frac{1}{\tau} \left( 
-        !! 1 + \frac{\beta K_{d}}{\tau^{2}} D \right) \end{matrix} \right] $$
-        !! $$ B_{cl} = \left[ \begin{matrix} \alpha \beta B \\ 1 - 
-        !! \alpha \beta D \\ \frac{1}{\tau} \left( 1 - \alpha \beta D \right) 
-        !! \end{matrix} \right] $$
-        !! $$ C_{cl} = \left[ \begin{matrix} C - \alpha \beta D C & 
-        !! \beta K_{i} D & -\frac{\beta K_{d}}{\tau} D \end{matrix} \right] $$
-        !! $$ D_{cl} = \alpha \beta D $$
-        real(real64), intent(in) :: kp
-            !! The proportional gain term.
-        real(real64), intent(in) :: ki
-            !! The integral gain term.
-        real(real64), intent(in) :: kd
-            !! The derivative gain term.
-        real(real64), intent(in) :: tau
-            !! The time constant of the first order derivative filter
-            !! \( K_{d} \frac{s}{\tau s + 1} \).
-        real(real64), intent(in), dimension(:,:) :: a
-            !! The N-by-N dynamics matrix for the plant.
-        real(real64), intent(in), dimension(size(a, 1), 1) :: b
-            !! The N-by-1 input matrix for the plant.
-        real(real64), intent(in), dimension(1, size(a, 1)) :: c
-            !! The 1-by-N output matrix for the plant.
-        real(real64), intent(in), dimension(1, 1) :: d
-            !! The 1-by-1 feedthrough matrix for the plant.
-        type(state_space) :: rst
-            !! The resulting [[state_space]] object.
-
-        ! Local Variables
-        integer(int32) :: n, n1, n2
-        real(real64) :: alpha, beta, ab
-        real(real64), allocatable, dimension(:,:) :: dc
-
-        ! Initialization
-        n = size(a, 1)
-        n1 = n + 1
-        n2 = n + 2
-        allocate( &
-            rst%A(n2, n2), &
-            rst%B(n2, 1), &
-            rst%C(1, n2), &
-            rst%D(1, 1) &
-        )
-        dc = matmul(d, c)
-
-        ! Process
-        alpha = kp + kd / tau
-        if (d(1,1) == 0.0d0) then
-            beta = 1.0d0
-        else
-            beta = 1.0d0 / (1.0d0 + alpha * d(1,1))
-        end if
-        ab = alpha * beta
-        rst%A(1:n,1:n) = a - ab * matmul(b, c)
-        rst%A(n1,1:n) = -c(1,1:n) + ab * dc(1,1:n)
-        rst%A(4,1:n) = (1.0d0 / tau) * rst%A(3,1:2)
-
-        rst%A(1:n,n1) = beta * ki * b(1:n,1)
-        rst%A(n1,n1) = -beta * ki * d(1,1)
-        rst%A(n2,n1) = rst%A(3,3) / tau
-
-        rst%A(1:n,n2) = -(beta * kd / tau) * b(1:n,1)
-        rst%A(n1,n2) = beta * kd * d(1,1) / tau
-        rst%A(n2,n2) = -1.0d0 / tau + beta * kd * d(1,1) / (tau**2)
-
-        rst%B(1:n,1) = ab * b(1:n,1)
-        rst%B(n1,1) = 1.0d0 - ab * d(1,1)
-        rst%B(n2,1) = (1.0d0 / tau) * rst%B(3,1)
-
-        rst%C(1,1:n) = c(1,1:n) - ab * dc(1,1:n)
-        rst%C(1,n1) = beta * ki * d(1,1)
-        rst%C(1,n2) = -(beta * kd / tau) * d(1,1)
-
-        rst%D = ab * d
-    end function
-
-! ------------------------------------------------------------------------------
-    pure function state_space_init_pid_plant(kp, ki, kd, tau, plant) result(rst)
-        !! Initializes a state-space model that employs a closed-loop PID
-        !! controller.
-        !!
-        !! The PID model is augmented into the plant model as follows.
-        !!
-        !! $$ e = r - y $$
-        !! $$ \dot{x_1} = e $$
-        !! $$ \dot{x_3} = -\frac{x_3}{\tau} + \frac{e}{\tau} $$
-        !! $$ u = K_{i} x_{i} + K_{p} e + \frac{K_{d}}{\tau} \left(e - 
-        !! x_{3} \right) $$
-        !! $$ \alpha = K_{p} + \frac{K_{d}}{\tau} $$
-        !! $$ \beta = \frac{1}{1 + \alpha D} $$
-        !! $$ x = \left[ \begin{matrix} x_{p} \\ x_{1} \\ x_{3} \end{matrix} 
-        !! \right] $$
-        !! $$ \dot{x} = A_{cl} x + B_{cl} r $$
-        !! $$ y = C_{cl} x + D_{cl} r $$
-        !!
-        !! Where the augmented matrices are as follows.
-        !!
-        !! $$ A_{cl} = \left[ \begin{matrix} A - \alpha \beta B C & 
-        !! \beta K_{i} B & -\frac{\beta K_{d}}{\tau} B \\ 
-        !! -C + \alpha \beta D C & -\beta K_{i} D & \frac{\beta K_{d}}{\tau} D 
-        !! \\ \frac{1}{\tau}\left(-C + \alpha \beta D C \right) & 
-        !! -\frac{\beta K_{i}}{\tau} D & \frac{1}{\tau} \left( 
-        !! 1 + \frac{\beta K_{d}}{\tau^{2}} D \right) \end{matrix} \right] $$
-        !! $$ B_{cl} = \left[ \begin{matrix} \alpha \beta B \\ 1 - 
-        !! \alpha \beta D \\ \frac{1}{\tau} \left( 1 - \alpha \beta D \right) 
-        !! \end{matrix} \right] $$
-        !! $$ C_{cl} = \left[ \begin{matrix} C - \alpha \beta D C & 
-        !! \beta K_{i} D & -\frac{\beta K_{d}}{\tau} D \end{matrix} \right] $$
-        !! $$ D_{cl} = \alpha \beta D $$
-        real(real64), intent(in) :: kp
-            !! The proportional gain term.
-        real(real64), intent(in) :: ki
-            !! The integral gain term.
-        real(real64), intent(in) :: kd
-            !! The derivative gain term.
-        real(real64), intent(in) :: tau
-            !! The time constant of the first order derivative filter
-            !! \( K_{d} \frac{s}{\tau s + 1} \).
-        class(state_space), intent(in) :: plant
-            !! The plant model.
-        type(state_space) :: rst
-            !! The resulting [[state_space]] object.
-
-        rst = state_space_init_pid(kp, ki, kd, tau, plant%A, plant%B, &
-            plant%C, plant%D)
-    end function
-
-! ------------------------------------------------------------------------------
-    pure function ss_eval_deriv(this, u, x) result(rst)
-        !! Evaluates the state time derivative \( \dot{x}(t) = A x(t) + 
-        !! B u(t) \).
-        class(state_space), intent(in) :: this
-            !! The [[state_space]] object.
-        real(real64), intent(in), dimension(:) :: u
-            !! The M-element input array.
-        real(real64), intent(in), dimension(:) :: x
-            !! The N-element state array.
-        real(real64), allocatable, dimension(:) :: rst
-            !! The N-element state time derivative vector.
-
-        rst = matmul(this%A, x) + matmul(this%B, u)
-    end function
-
-! ------------------------------------------------------------------------------
-    pure function ss_eval_output(this, u, x) result(rst)
-        !! Evaluates the output vector \( y(t) = C x(t) + D u(t) \).
-        class(state_space), intent(in) :: this
-            !! The [[state_space]] object.
-        real(real64), intent(in), dimension(:) :: u
-            !! The M-element input array.
-        real(real64), intent(in), dimension(:) :: x
-            !! The N-element state array.
-        real(real64), allocatable, dimension(:) :: rst
-            !! The P-element output array.
-
-        rst = matmul(this%C, x) + matmul(this%D, u)
-    end function
+    ! Build p-by-p Identity sub-matrix matrix
+    jj = p + 1
+    do ii = 1, p
+        rst%A(ii,jj) = 1.0d0
+        jj = jj + 1
+    end do
     
+    ! Fill in the matrices
+    rst%B(p+1:n,1:p) = m
+    rst%A(p+1:n,1:p) = -k
+    rst%A(p+1:n,p+1:n) = -b
+    call dgetrf(p, p, rst%B(p+1:n,1:p), p, pvt, info)
+    call dgetrs('N', p, p, rst%B(p+1:n,1:p), p, pvt, rst%A(p+1:n,1:p), p, &
+        info)
+    call dgetrs('N', p, p, rst%B(p+1:n,1:p), p, pvt, rst%A(p+1:n,p+1:n), &
+        p, info)
+    call dgetri(p, rst%B(p+1:n,1:p), p, pvt, work, lwork, info)
+end function
+
+! ------------------------------------------------------------------------------
+pure function state_space_init_scalar(m, b, k) result(rst)
+    !! Initializes the state space model.
+    !!
+    !! The output matrix \(C\) is initialized to one, and the
+    !! feedthrough matrix \(D\) is initialized to zero.
+    real(real64), intent(in) :: m
+        !! The mass.
+    real(real64), intent(in) :: b
+        !! The damping.
+    real(real64), intent(in) :: k
+        !! The stiffness.
+    type(state_space) :: rst
+        !! The [[state_space]] model.
+
+    ! Process
+    allocate( &
+        rst%A(2, 2), &
+        rst%B(2, 1), &
+        rst%D(1, 1), &
+        source = 0.0d0 &
+    )
+    allocate(rst%C(1, 2), source = 1.0d0)
+    rst%A(2,1) = -k / m
+    rst%A(1,2) = 1.0d0
+    rst%A(2,2) = -b / m
+    rst%B(2,1) = 1.0d0 / m
+end function
+
+! ------------------------------------------------------------------------------
+pure function state_space_init_matrices(a, b, c, d) result(rst)
+    !! Initializes the state space model.
+    real(real64), intent(in), dimension(:,:) :: a
+        !! The N-by-N dynamics matrix.
+    real(real64), intent(in), dimension(:,:) :: b
+        !! The N-by-M input matrix.
+    real(real64), intent(in), dimension(:,:) :: c
+        !! The P-by-N output matrix.
+    real(real64), intent(in), dimension(:,:) :: d
+        !! The P-by-M feedthrough matrix.
+    type(state_space) :: rst
+        !! The resulting [[state_space]] object.
+
+    allocate(rst%A, source = a)
+    allocate(rst%B, source = b)
+    allocate(rst%C, source = c)
+    allocate(rst%D, source = d)
+end function
+
+! ------------------------------------------------------------------------------
+pure function state_space_init_pid(kp, ki, kd, tau, a, b, c, d) result(rst)
+    !! Initializes a state-space model that employs a closed-loop PID
+    !! controller.
+    !!
+    !! The PID model is augmented into the plant model as follows.
+    !!
+    !! $$ e = r - y $$
+    !! $$ \dot{x_1} = e $$
+    !! $$ \dot{x_3} = -\frac{x_3}{\tau} + \frac{e}{\tau} $$
+    !! $$ u = K_{i} x_{i} + K_{p} e + \frac{K_{d}}{\tau} \left(e - 
+    !! x_{3} \right) $$
+    !! $$ \alpha = K_{p} + \frac{K_{d}}{\tau} $$
+    !! $$ \beta = \frac{1}{1 + \alpha D} $$
+    !! $$ x = \left[ \begin{matrix} x_{p} \\ x_{1} \\ x_{3} \end{matrix} 
+    !! \right] $$
+    !! $$ \dot{x} = A_{cl} x + B_{cl} r $$
+    !! $$ y = C_{cl} x + D_{cl} r $$
+    !!
+    !! Where the augmented matrices are as follows.
+    !!
+    !! $$ A_{cl} = \left[ \begin{matrix} A - \alpha \beta B C & 
+    !! \beta K_{i} B & -\frac{\beta K_{d}}{\tau} B \\ 
+    !! -C + \alpha \beta D C & -\beta K_{i} D & \frac{\beta K_{d}}{\tau} D 
+    !! \\ \frac{1}{\tau}\left(-C + \alpha \beta D C \right) & 
+    !! -\frac{\beta K_{i}}{\tau} D & \frac{1}{\tau} \left( 
+    !! 1 + \frac{\beta K_{d}}{\tau^{2}} D \right) \end{matrix} \right] $$
+    !! $$ B_{cl} = \left[ \begin{matrix} \alpha \beta B \\ 1 - 
+    !! \alpha \beta D \\ \frac{1}{\tau} \left( 1 - \alpha \beta D \right) 
+    !! \end{matrix} \right] $$
+    !! $$ C_{cl} = \left[ \begin{matrix} C - \alpha \beta D C & 
+    !! \beta K_{i} D & -\frac{\beta K_{d}}{\tau} D \end{matrix} \right] $$
+    !! $$ D_{cl} = \alpha \beta D $$
+    real(real64), intent(in) :: kp
+        !! The proportional gain term.
+    real(real64), intent(in) :: ki
+        !! The integral gain term.
+    real(real64), intent(in) :: kd
+        !! The derivative gain term.
+    real(real64), intent(in) :: tau
+        !! The time constant of the first order derivative filter
+        !! \( K_{d} \frac{s}{\tau s + 1} \).
+    real(real64), intent(in), dimension(:,:) :: a
+        !! The N-by-N dynamics matrix for the plant.
+    real(real64), intent(in), dimension(size(a, 1), 1) :: b
+        !! The N-by-1 input matrix for the plant.
+    real(real64), intent(in), dimension(1, size(a, 1)) :: c
+        !! The 1-by-N output matrix for the plant.
+    real(real64), intent(in), dimension(1, 1) :: d
+        !! The 1-by-1 feedthrough matrix for the plant.
+    type(state_space) :: rst
+        !! The resulting [[state_space]] object.
+
+    ! Local Variables
+    integer(int32) :: n, n1, n2
+    real(real64) :: alpha, beta, ab
+    real(real64), allocatable, dimension(:,:) :: dc
+
+    ! Initialization
+    n = size(a, 1)
+    n1 = n + 1
+    n2 = n + 2
+    allocate( &
+        rst%A(n2, n2), &
+        rst%B(n2, 1), &
+        rst%C(1, n2), &
+        rst%D(1, 1) &
+    )
+    dc = matmul(d, c)
+
+    ! Process
+    alpha = kp + kd / tau
+    if (d(1,1) == 0.0d0) then
+        beta = 1.0d0
+    else
+        beta = 1.0d0 / (1.0d0 + alpha * d(1,1))
+    end if
+    ab = alpha * beta
+    rst%A(1:n,1:n) = a - ab * matmul(b, c)
+    rst%A(n1,1:n) = -c(1,1:n) + ab * dc(1,1:n)
+    rst%A(4,1:n) = (1.0d0 / tau) * rst%A(3,1:2)
+
+    rst%A(1:n,n1) = beta * ki * b(1:n,1)
+    rst%A(n1,n1) = -beta * ki * d(1,1)
+    rst%A(n2,n1) = rst%A(3,3) / tau
+
+    rst%A(1:n,n2) = -(beta * kd / tau) * b(1:n,1)
+    rst%A(n1,n2) = beta * kd * d(1,1) / tau
+    rst%A(n2,n2) = -1.0d0 / tau + beta * kd * d(1,1) / (tau**2)
+
+    rst%B(1:n,1) = ab * b(1:n,1)
+    rst%B(n1,1) = 1.0d0 - ab * d(1,1)
+    rst%B(n2,1) = (1.0d0 / tau) * rst%B(3,1)
+
+    rst%C(1,1:n) = c(1,1:n) - ab * dc(1,1:n)
+    rst%C(1,n1) = beta * ki * d(1,1)
+    rst%C(1,n2) = -(beta * kd / tau) * d(1,1)
+
+    rst%D = ab * d
+end function
+
+! ------------------------------------------------------------------------------
+pure function state_space_init_pid_plant(kp, ki, kd, tau, plant) result(rst)
+    !! Initializes a state-space model that employs a closed-loop PID
+    !! controller.
+    !!
+    !! The PID model is augmented into the plant model as follows.
+    !!
+    !! $$ e = r - y $$
+    !! $$ \dot{x_1} = e $$
+    !! $$ \dot{x_3} = -\frac{x_3}{\tau} + \frac{e}{\tau} $$
+    !! $$ u = K_{i} x_{i} + K_{p} e + \frac{K_{d}}{\tau} \left(e - 
+    !! x_{3} \right) $$
+    !! $$ \alpha = K_{p} + \frac{K_{d}}{\tau} $$
+    !! $$ \beta = \frac{1}{1 + \alpha D} $$
+    !! $$ x = \left[ \begin{matrix} x_{p} \\ x_{1} \\ x_{3} \end{matrix} 
+    !! \right] $$
+    !! $$ \dot{x} = A_{cl} x + B_{cl} r $$
+    !! $$ y = C_{cl} x + D_{cl} r $$
+    !!
+    !! Where the augmented matrices are as follows.
+    !!
+    !! $$ A_{cl} = \left[ \begin{matrix} A - \alpha \beta B C & 
+    !! \beta K_{i} B & -\frac{\beta K_{d}}{\tau} B \\ 
+    !! -C + \alpha \beta D C & -\beta K_{i} D & \frac{\beta K_{d}}{\tau} D 
+    !! \\ \frac{1}{\tau}\left(-C + \alpha \beta D C \right) & 
+    !! -\frac{\beta K_{i}}{\tau} D & \frac{1}{\tau} \left( 
+    !! 1 + \frac{\beta K_{d}}{\tau^{2}} D \right) \end{matrix} \right] $$
+    !! $$ B_{cl} = \left[ \begin{matrix} \alpha \beta B \\ 1 - 
+    !! \alpha \beta D \\ \frac{1}{\tau} \left( 1 - \alpha \beta D \right) 
+    !! \end{matrix} \right] $$
+    !! $$ C_{cl} = \left[ \begin{matrix} C - \alpha \beta D C & 
+    !! \beta K_{i} D & -\frac{\beta K_{d}}{\tau} D \end{matrix} \right] $$
+    !! $$ D_{cl} = \alpha \beta D $$
+    real(real64), intent(in) :: kp
+        !! The proportional gain term.
+    real(real64), intent(in) :: ki
+        !! The integral gain term.
+    real(real64), intent(in) :: kd
+        !! The derivative gain term.
+    real(real64), intent(in) :: tau
+        !! The time constant of the first order derivative filter
+        !! \( K_{d} \frac{s}{\tau s + 1} \).
+    class(state_space), intent(in) :: plant
+        !! The plant model.
+    type(state_space) :: rst
+        !! The resulting [[state_space]] object.
+
+    rst = state_space_init_pid(kp, ki, kd, tau, plant%A, plant%B, &
+        plant%C, plant%D)
+end function
+
+! ------------------------------------------------------------------------------
+pure function ss_eval_deriv(this, u, x) result(rst)
+    !! Evaluates the state time derivative \( \dot{x}(t) = A x(t) + 
+    !! B u(t) \).
+    class(state_space), intent(in) :: this
+        !! The [[state_space]] object.
+    real(real64), intent(in), dimension(:) :: u
+        !! The M-element input array.
+    real(real64), intent(in), dimension(:) :: x
+        !! The N-element state array.
+    real(real64), allocatable, dimension(:) :: rst
+        !! The N-element state time derivative vector.
+
+    rst = matmul(this%A, x) + matmul(this%B, u)
+end function
+
+! ------------------------------------------------------------------------------
+pure function ss_eval_output(this, u, x) result(rst)
+    !! Evaluates the output vector \( y(t) = C x(t) + D u(t) \).
+    class(state_space), intent(in) :: this
+        !! The [[state_space]] object.
+    real(real64), intent(in), dimension(:) :: u
+        !! The M-element input array.
+    real(real64), intent(in), dimension(:) :: x
+        !! The N-element state array.
+    real(real64), allocatable, dimension(:) :: rst
+        !! The P-element output array.
+
+    rst = matmul(this%C, x) + matmul(this%D, u)
+end function
+
+! ------------------------------------------------------------------------------
+function ss_poles(this, err) result(rst)
+    !! Computes the poles of the state space model.
+    class(state_space), intent(in) :: this
+        !! The [[state_space]] object.
+    class(errors), intent(inout), optional, target :: err
+        !! An error handling object.
+    complex(real64), allocatable, dimension(:) :: rst
+        !! The poles of the model.
+
+    ! Local Variables
+    integer(int32) :: n
+    real(real64), allocatable, dimension(:,:) :: ac
+
+    ! Process
+    n = size(this%A, 1)
+    allocate(rst(n))
+    if (n == 0) return
+    allocate(ac(n, n), source = this%A)
+    call eigen(ac, rst, err = err)
+end function
+
+! ------------------------------------------------------------------------------
+function ss_zeros(this, err) result(rst)
+    !! Computes the zeros of the state space model.
+    class(state_space), intent(in) :: this
+        !! The [[state_space]] object.
+    class(errors), intent(inout), optional, target :: err
+        !! An error handling object.
+    complex(real64), allocatable, dimension(:) :: rst
+        !! The zeros of the model.
+
+    ! Local Variables
+    integer(int32) :: i, n, m, p, nz
+    real(real64), allocatable, dimension(:,:) :: Az, Bz
+
+    ! Initialization
+    n = size(this%A, 1)
+    m = size(this%B, 2)
+    p = size(this%C, 1)
+    nz = n + max(m, p)
+    allocate(Az(nz, nz), Bz(nz, nz), source = 0.0d0)
+    allocate(rst(nz))
+
+    ! Build the matrices
+    Az(1:n,1:n) = this%A
+    Az(1:n,n+1:n+m) = this%B
+    do i = 1, nz
+        Bz(i,i) = 1.0d0
+    end do
+    Bz(n+1:n+p,1:n) = this%C
+    Bz(n+1:n+p,n+1:n+m) = this%D
+
+    ! Compute the eigenvalues
+    call eigen(Az, Bz, rst)
+end function
+
+! ------------------------------------------------------------------------------
+pure function ss_transfer_fcn(this, s) result(rst)
+    !! Evaluates the transfer functions for the model at the parameter \(s\).
+    class(state_space), intent(in) :: this
+        !! The [[state_space]] object.
+    complex(real64), intent(in) :: s
+        !! The frequency at which to evaluate the transfer functions.
+    complex(real64), allocatable, dimension(:,:) :: rst
+        !! The resulting transfer functions.
+
+    ! Local Variables
+    integer(int32) :: j, ninput, noutput, n, info, lwork
+    complex(real64) :: temp(1)
+    complex(real64), allocatable, dimension(:) :: work, Bj
+    complex(real64), allocatable, dimension(:,:) :: A, Ac
+
+    ! Initialization
+    n = size(this%A, 1)
+    ninput = size(this%B, 2)
+    noutput = size(this%C, 1)
+    allocate(rst(noutput, ninput))
+    allocate(Ac(n, n), Bj(n))
+
+    ! Determine DGELS workspace requirements
+    call zgels('N', n, n, 1, Ac, n, Bj, n, temp, -1, info)
+    lwork = int(temp(1), int32)
+    allocate(work(lwork))
+
+    ! Build s * I - A
+    do j = 1, n
+        Ac(:,j) = -this%A(:,j)
+        Ac(j,j) = Ac(j,j) + s
+    end do
+    allocate(A(n, n), source = Ac)
+
+    ! For each column j, solve Ac * x(j) = B(j) and then compute
+    ! the output: C x(j) + D(j)
+    do j = 1, ninput
+        if (j /= 1) A = Ac  ! We need a copy as A will be overwritten
+        Bj = this%B(:,j)
+        call zgels('N', n, n, 1, A, n, Bj, n, work, lwork, info)
+        rst(:,j) = matmul(this%C, Bj) + this%D(:,j)
+    end do
+end function
+    
+! ------------------------------------------------------------------------------
+pure function ss_transfer_fcn_omega(this, omega) result(rst)
+    !! Evaluates the transfer functions for the model at frequency \(\omega\).
+    class(state_space), intent(in) :: this
+        !! The [[state_space]] object.
+    real(real64), intent(in) :: omega
+        !! The frequency at which to evaluate the transfer functions.
+    complex(real64), allocatable, dimension(:,:) :: rst
+        !! The resulting transfer functions.
+
+    ! Local Variables
+    complex(real64), parameter :: j = (0.0d0, 1.0d0)
+    complex(real64) :: s
+
+    ! Process
+    s = j * omega
+    rst = ss_transfer_fcn(this, s)
+end function
+
+! ------------------------------------------------------------------------------
+pure function ss_transfer_fcn_array(this, s) result(rst)
+    !! Evaluates the transfer functions for the model at the frequencies given
+    !! in the array \(s\).
+    class(state_space), intent(in) :: this
+        !! The [[state_space]] object.
+    complex(real64), intent(in), dimension(:) :: s
+        !! The frequencies at which to evaluate the transfer functions.
+    complex(real64), allocatable, dimension(:,:,:) :: rst
+        !! The resulting transfer functions, with each page of the array 
+        !! containing the transfer functions for a specific frequency.
+
+    ! Local Variables
+    integer(int32) :: i, ninput, noutput, n
+
+    ! Initialization
+    ninput = size(this%B, 2)
+    noutput = size(this%C, 1)
+    n = size(s)
+    allocate(rst(noutput, ninput, n))
+
+    ! Process
+    do concurrent (i = 1:n)
+        rst(:,:,i) = ss_transfer_fcn(this, s(i))
+    end do
+end function
+
+! ------------------------------------------------------------------------------
+pure function ss_transfer_fcn_omega_array(this, omega) result(rst)
+    !! Evaluates the transfer functions for the model at the frequencies given
+    !! in the array \(omega\).
+    class(state_space), intent(in) :: this
+        !! The [[state_space]] object.
+    real(real64), intent(in), dimension(:) :: omega
+        !! The frequencies at which to evaluate the transfer functions.
+    complex(real64), allocatable, dimension(:,:,:) :: rst
+        !! The resulting transfer functions, with each page of the array 
+        !! containing the transfer functions for a specific frequency.
+
+    ! Local Variables
+    integer(int32) :: i, ninput, noutput, n
+
+    ! Initialization
+    ninput = size(this%B, 2)
+    noutput = size(this%C, 1)
+    n = size(omega)
+    allocate(rst(noutput, ninput, n))
+
+    ! Process
+    do concurrent (i = 1:n)
+        rst(:,:,i) = ss_transfer_fcn_omega(this, omega(i))
+    end do
+end function
+
 ! ******************************************************************************
 ! TRANSFER_FUNCTION
 ! ------------------------------------------------------------------------------

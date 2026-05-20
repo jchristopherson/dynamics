@@ -2865,10 +2865,64 @@ subroutine c_lti_solver_routine(t, u, args)
 end subroutine
 
 ! ------------------------------------------------------------------------------
+subroutine c_state_space_poles(mdl, n, p) bind(C, name = "c_state_space_poles")
+    type(c_state_space_model), intent(in) :: mdl
+    integer(c_int), intent(in), value :: n
+    complex(c_double), intent(out) :: p(n)
+
+    integer(c_int) :: np
+    complex(real64), allocatable, dimension(:) :: poles
+    type(state_space) :: fmdl
+
+    fmdl = mdl
+    poles = fmdl%poles()
+    np = min(size(poles), n)
+    p(1:np) = poles(1:np)
+end subroutine
 
 ! ------------------------------------------------------------------------------
+subroutine c_state_space_zeros(mdl, n, z) bind(C, name = "c_state_space_zeros")
+    type(c_state_space_model), intent(in) :: mdl
+    integer(c_int), intent(in), value :: n
+    complex(c_double), intent(out) :: z(n)
+
+    integer(c_int) :: nz
+    complex(real64), allocatable, dimension(:) :: zeros
+    type(state_space) :: fmdl
+
+    fmdl = mdl
+    zeros = fmdl%zeros()
+    nz = min(size(zeros), n)
+    z(1:nz) = zeros(1:nz)
+end subroutine
 
 ! ------------------------------------------------------------------------------
+subroutine c_state_space_transfer_function(mdl, nin, nout, n, s, z, ldz) &
+    bind(C, name = "c_state_space_transfer_function")
+    type(c_state_space_model), intent(in) :: mdl
+    integer(c_int), intent(in), value :: nin, nout, n, ldz
+    complex(c_double), intent(in) :: s(n)
+    complex(c_double), intent(out) :: z(ldz,nout,n)
+
+    type(state_space) :: fmdl
+
+    fmdl = mdl
+
+    if (nin /= size(fmdl%B, 2)) then
+        call c_report_invalid_input("c_state_space_transfer_function", "nin")
+        return
+    end if
+    if (nout /= size(fmdl%C, 1)) then
+        call c_report_invalid_input("c_state_space_transfer_function", "nout")
+        return
+    end if
+    if (ldz < nin) then
+        call c_report_invalid_input("c_state_space_transfer_function", "ldz")
+        return
+    end if
+
+    z(1:nin,:,:) = fmdl%transfer_function(s)
+end subroutine
 
 ! ------------------------------------------------------------------------------
 end module
