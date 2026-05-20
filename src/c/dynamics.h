@@ -434,7 +434,7 @@ void c_lti_solve(const c_state_space_model *mdl, const c_ss_excitation u,
 void c_state_space_poles(const c_state_space_model *mdl, int n,
     double complex *p);
 void c_state_space_zeros(const c_state_space_model *mdl, int n,
-    double complex *z);
+    double complex *z, int *nz);
 void c_state_space_transfer_function(const c_state_space_model *mdl, int nin,
     int nout, int n, const double complex *s, double complex *z, int ldz);
 

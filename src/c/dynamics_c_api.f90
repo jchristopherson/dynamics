@@ -2881,12 +2881,13 @@ subroutine c_state_space_poles(mdl, n, p) bind(C, name = "c_state_space_poles")
 end subroutine
 
 ! ------------------------------------------------------------------------------
-subroutine c_state_space_zeros(mdl, n, z) bind(C, name = "c_state_space_zeros")
+subroutine c_state_space_zeros(mdl, n, z, nz) &
+    bind(C, name = "c_state_space_zeros")
     type(c_state_space_model), intent(in) :: mdl
     integer(c_int), intent(in), value :: n
     complex(c_double), intent(out) :: z(n)
+    integer(c_int), intent(out) :: nz
 
-    integer(c_int) :: nz
     complex(real64), allocatable, dimension(:) :: zeros
     type(state_space) :: fmdl
 

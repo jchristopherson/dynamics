@@ -459,8 +459,9 @@ function ss_zeros(this, err) result(rst)
         !! The zeros of the model.
 
     ! Local Variables
-    integer(int32) :: i, n, m, p, nz
+    integer(int32) :: i, j, n, m, p, nz
     real(real64), allocatable, dimension(:,:) :: Az, Bz
+    complex(real64), allocatable, dimension(:) :: buffer, trimmed
 
     ! Initialization
     n = size(this%A, 1)
@@ -468,7 +469,7 @@ function ss_zeros(this, err) result(rst)
     p = size(this%C, 1)
     nz = n + max(m, p)
     allocate(Az(nz, nz), Bz(nz, nz), source = 0.0d0)
-    allocate(rst(nz))
+    allocate(buffer(nz), trimmed(nz))
 
     ! Build the matrices
     Az(1:n,1:n) = this%A
@@ -480,7 +481,17 @@ function ss_zeros(this, err) result(rst)
     Bz(n+1:n+p,n+1:n+m) = this%D
 
     ! Compute the eigenvalues
-    call eigen(Az, Bz, rst)
+    call eigen(Az, Bz, buffer)
+
+    ! Only keep the physically realizable zeros - exclude NaN's and (0,0)
+    j = 0
+    do i = 1, nz
+        if (ieee_is_nan(real(buffer(i)))) cycle
+        if (real(buffer(i)) == 0.0d0 .and. aimag(buffer(i)) == 0.0d0) cycle
+        j = j + 1
+        trimmed(j) = buffer(i)
+    end do
+    rst = trimmed(1:j)
 end function
 
 ! ------------------------------------------------------------------------------
