@@ -148,4 +148,45 @@ function test_state_space_initialize() result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+function test_state_space_poles_zeros() result(rst)
+    logical :: rst
+
+    ! Parameters
+    real(real64), parameter :: tol = 1.0d-8
+
+    ! Local Variables
+    complex(real64), allocatable, dimension(:) :: pAns, zAns, poles, zeros
+    real(real64) :: m, b, k
+    type(transfer_function) :: tf
+    type(state_space) :: mdl
+
+    ! Initialization
+    rst = .true.
+    call random_number(m)
+    call random_number(b)
+    call random_number(k)
+    tf = transfer_function([k, b], [k, b, m])
+    mdl = tf%to_ccf_state_space()
+
+    ! Compute the solution
+    pAns = tf%poles()
+    zAns = tf%zeros()
+
+    ! Test
+    poles = mdl%poles()
+    if (.not.assert(poles, pAns, tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_state_space_poles_zeros -1"
+    end if
+
+    zeros = mdl%zeros()
+    if (.not.assert(zeros, zAns, tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_state_space_poles_zeros -2"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
 end module
