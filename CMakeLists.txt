@@ -18,6 +18,24 @@ message(STATUS "Build DYNAMICS C interface: ${BUILD_DYNAMICS_C_INTERFACE}")
 # Source
 add_subdirectory(src)
 
+# Allow for parallel execution of do concurrent loops
+if (DEFINED ENV{CMPLR_ROOT})
+    # Intel Compiler
+    target_compile_options(${PROJECT_NAME} PRIVATE -parallel)
+else()
+    # Fallback to GFortran
+    include(ProcessorCount)
+    ProcessorCount(PROCESSOR_COUNT)
+    if (PROCESSOR_COUNT EQUAL 0)
+        # Processor count could not be determined - default to 1
+        set(PROCESSOR_COUNT 1)
+    endif()
+    message(STATUS "Processor Count: ${PROCESSOR_COUNT}")
+    target_compile_options(${PROJECT_NAME} PRIVATE 
+        -ftree-parallelize-loops=${PROCESSOR_COUNT}
+    )
+endif()
+
 # Installation Instructions
 install(
   EXPORT ${PROJECT_NAME}-targets
