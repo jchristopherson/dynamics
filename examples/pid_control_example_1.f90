@@ -34,10 +34,10 @@ program example
     implicit none
 
     ! Control Parameters - Arbitrarily Chosen
-    real(real64), parameter :: Kp = 5.0d1
-    real(real64), parameter :: Ki = 1.5d1
-    real(real64), parameter :: Kd = 2.5d-1
-    real(real64), parameter :: tau = 1.0d-2
+    real(real64), parameter :: Kp = 1.0d-2
+    real(real64), parameter :: Ki = 1.0d3
+    real(real64), parameter :: Kd = 5.0d-3
+    real(real64), parameter :: tau = 5.0d-1
 
     ! Solution Parameters
     real(real64), parameter :: tmax = 0.5d0
