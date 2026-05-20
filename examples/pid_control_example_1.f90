@@ -28,7 +28,6 @@ end module
 
 program example
     use iso_fortran_env
-    use ieee_arithmetic
     use dynamics
     use fplot_core
     use model
@@ -86,7 +85,6 @@ program example
     end do
     print "(A)", "Zeros:"
     do i = 1, size(zeros)
-        if (ieee_is_nan(real(zeros(i)))) cycle
         print "(A, A, F0.3, A, F0.3, A)", &
             achar(9), "(", real(zeros(i)), ", ", aimag(zeros(i)), ")"
     end do
