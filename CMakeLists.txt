@@ -19,7 +19,8 @@ message(STATUS "Build DYNAMICS C interface: ${BUILD_DYNAMICS_C_INTERFACE}")
 add_subdirectory(src)
 
 # Allow for parallel execution of do concurrent loops
-if (DEFINED ENV{CMPLR_ROOT})
+if (CMAKE_Fortran_COMPILER_ID STREQUAL "IntelLLVM" OR 
+    CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
     # Intel Compiler
     target_compile_options(${PROJECT_NAME} PRIVATE -parallel)
 else()
