@@ -177,12 +177,16 @@ function test_state_space_poles_zeros() result(rst)
     if (.not.assert(poles, pAns, tol)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_state_space_poles_zeros -1"
+        print *, "ANSWER: ", pAns
+        print *, "COMPUTED: ", poles
     end if
 
     zeros = mdl%zeros()
     if (.not.assert(zeros, zAns, tol)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_state_space_poles_zeros -2"
+        print *, "ANSWER: ", zAns
+        print *, "COMPUTED: ", zeros
     end if
 end function
 
