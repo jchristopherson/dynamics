@@ -487,6 +487,9 @@ function ss_zeros(this, err) result(rst)
     j = 0
     do i = 1, nz
         if (ieee_is_nan(real(buffer(i)))) cycle
+        if (ieee_is_nan(aimag(buffer(i)))) cycle
+        if (.not.ieee_is_finite(real(buffer(i)))) cycle
+        if (.not.ieee_is_finite(aimag(buffer(i)))) cycle
         if (abs(buffer(i)) <= epsilon(0.0d0)) cycle
         j = j + 1
         trimmed(j) = buffer(i)
