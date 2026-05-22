@@ -318,6 +318,9 @@ program main
     check = test_state_space_poles_zeros()
     if (.not.check) flag = 99
 
+    check = test_state_space_to_transfer_function()
+    if (.not.check) flag = 100
+
     ! End
     if (flag /= 0) stop flag
 end program

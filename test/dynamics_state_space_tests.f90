@@ -191,6 +191,37 @@ function test_state_space_poles_zeros() result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+function test_state_space_to_transfer_function() result(rst)
+    logical :: rst
+
+    ! Parameters
+    real(real64), parameter :: tol = 1.0d-8
+    complex(real64), parameter :: j = (0.0d0, 1.0d0)
+
+    ! Local Variables
+    real(real64) :: m, b, k, omega
+    complex(real64) :: s, ans
+    complex(real64), allocatable, dimension(:,:) :: z
+    type(transfer_function) :: tf
+    type(state_space) :: mdl
+
+    ! Initialization
+    rst = .true.
+    call random_number(m)
+    call random_number(b)
+    call random_number(k)
+    call random_number(omega)
+    s = j * omega
+    tf = transfer_function([k, b], [k, b, m])
+    mdl = tf%to_ccf_state_space()
+
+    ! Test
+    ans = tf%evaluate(s)
+    z = mdl%transfer_function(s)
+    if (.not.assert(ans, z(1,1))) then
+        rst = .false.
+    end if
+end function
 
 ! ------------------------------------------------------------------------------
 end module
