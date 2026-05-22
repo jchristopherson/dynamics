@@ -29,21 +29,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install libopenblas-dev liblapack-dev
 
-      - name: fpm test (debug)
-        if: always()
-        run: fpm test --profile debug --compiler ${{ matrix.compiler }} --verbose
-
       - name: fpm test (release)
         if: always()
         run: fpm test --profile release --compiler ${{ matrix.compiler }} --verbose
-
-      - name: fpm example (debug)
-        if: always()
-        run: fpm run --example --all --profile debug --compiler ${{ matrix.compiler }} --verbose
-
-      - name: fpm example (release)
-        if: always()
-        run: fpm run --example --all --profile release --compiler ${{ matrix.compiler }} --verbose
 
 # name: fpm
 

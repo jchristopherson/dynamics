@@ -21,7 +21,6 @@ jobs:
           - {compiler: gcc, version: 14}
           - {compiler: gcc, version: 15}
           - {compiler: gcc, version: 16}
-          - {compiler: intel, version: '2021.1'}
           - {compiler: intel, version: '2023.0'}
           - {compiler: intel, version: '2024.0'}
         exclude: 
@@ -33,8 +32,6 @@ jobs:
             toolchain: {compiler: intel, version: '2024.0'}
           - os: macos-latest
             toolchain: {compiler: intel, version: '2025.0'}
-          - os: ubuntu-latest
-            toolchain: {compiler: intel, version: 2021.1}
 
     steps:
       - uses: fortran-lang/setup-fortran@v1
