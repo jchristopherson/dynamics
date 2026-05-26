@@ -17,10 +17,21 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
         toolchain:
-          - {compiler: gcc, version: 'latest'}
-        include:
-          - os: ubuntu-latest
-            toolchain: {compiler: intel, version: '2025.2'}
+          - {compiler: gcc, version: 13}
+          - {compiler: gcc, version: 14}
+          - {compiler: gcc, version: 15}
+          - {compiler: gcc, version: 16}
+          - {compiler: intel, version: '2023.0'}
+          - {compiler: intel, version: '2024.0'}
+        exclude: 
+          - os: macos-latest
+            toolchain: {compiler: gcc, version: 16}
+          - os: macos-latest
+            toolchain: {compiler: intel, version: '2023.0'}
+          - os: macos-latest
+            toolchain: {compiler: intel, version: '2024.0'}
+          - os: macos-latest
+            toolchain: {compiler: intel, version: '2025.0'}
 
     steps:
       - uses: fortran-lang/setup-fortran@v1

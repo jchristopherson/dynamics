@@ -49,6 +49,8 @@ typedef void (*c_constraint_equations)(int n, int neqn, int nparam,
 typedef void (*c_ode_fit)(int n, int nparam, const double *mdl, double t, 
     const double *x, double F, double *dxdt);
 
+typedef void (*c_ss_excitation)(int n, double t, double *u);
+
 typedef struct {
     bool converge_on_chng;
     bool converge_on_fcn;
@@ -420,10 +422,21 @@ void c_to_ocf_state_space(const c_transfer_function *tf, c_state_space_model *ss
 void c_create_state_space_model(int n, int n_out, const double *m, int ldm,
     const double *b, int ldb, const double *k, int ldk, 
     c_state_space_model *mdl);
+void c_create_pid_state_space_model(double kp, double ki, double kd, double tau,
+    const c_state_space_model *plant, c_state_space_model *mdl);
 void c_transfer_function_multiply(const c_transfer_function *tf1,
     const c_transfer_function *tf2, c_transfer_function *tf);
 void c_scale_transfer_function(double x, const c_transfer_function *tf1,
     c_transfer_function *tf);
+void c_lti_solve(const c_state_space_model *mdl, const c_ss_excitation u,
+    int n, const double *t, int ndof, const double *ic, int solver, 
+    int nout, double *y, int ldy);
+void c_state_space_poles(const c_state_space_model *mdl, int n,
+    double complex *p);
+void c_state_space_zeros(const c_state_space_model *mdl, int n,
+    double complex *z, int *nz);
+void c_state_space_transfer_function(const c_state_space_model *mdl, int nin,
+    int nout, int n, const double complex *s, double complex *z, int ldz);
 
 #ifdef __cplusplus
 }

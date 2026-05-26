@@ -6,6 +6,7 @@
 #include "dynamics_geometry_tests.h"
 #include "dynamics_linkage_tests.h"
 #include "dynamics_transfer_function_tests.h"
+#include "dynamics_state_space_tests.h"
 #include <stdbool.h>
 
 int main()
@@ -100,7 +101,10 @@ int main()
     if (!c_test_ocf_form()) flag = 70;
     if (!c_test_poles_zeros()) flag = 71;
     if (!c_test_tf_multiply()) flag = 72;
+    
     if (!c_test_state_space_initialize()) flag = 73;
+    if (!c_test_state_space_poles_zeros()) flag = 74;
+    if (!c_test_state_space_to_transfer_function()) flag = 75;
 
     return flag;
 }

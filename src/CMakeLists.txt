@@ -29,7 +29,7 @@ endif()
 
 # Dependencies
 include(FetchContent)
-
+find_package(OpenMP REQUIRED COMPONENTS Fortran)
 find_package(ferror QUIET)
 find_package(linalg 1.8.8 QUIET)
 find_package(nonlin 2.1.1 QUIET)
@@ -174,6 +174,10 @@ target_link_libraries(
     ${SPECTRUM_LIBRARIES}
     ${COLLECTIONS_LIBRARIES}
 )
+if (OpenMP_Fortran_FOUND)
+    target_link_libraries(${PROJECT_NAME} PRIVATE OpenMP::OpenMP_Fortran)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE USEOPENMP=1)
+endif()
 
 set_target_properties(
     ${PROJECT_NAME}

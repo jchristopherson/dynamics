@@ -597,7 +597,7 @@ contains
             !! The axis of rotation.
 
         ! Process
-        real(real64) :: qnorm, enorm, e0
+        real(real64) :: qnorm, enorm
         qnorm = abs(q)
         enorm = norm2(aimag(q))
         axis = aimag(q) / enorm

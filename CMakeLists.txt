@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.24)
 project(
     dynamics
     LANGUAGES Fortran C CXX
-    VERSION 1.3.0
+    VERSION 1.3.1
 )
 set(CMAKE_Fortran_STANDARD 2018)
 set(CMAKE_Fortran_STANDARD_REQUIRED TRUE)
@@ -17,6 +17,25 @@ message(STATUS "Build DYNAMICS C interface: ${BUILD_DYNAMICS_C_INTERFACE}")
 
 # Source
 add_subdirectory(src)
+
+# Allow for parallel execution of do concurrent loops
+if (CMAKE_Fortran_COMPILER_ID STREQUAL "IntelLLVM" OR 
+    CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
+    # Intel Compiler
+    target_compile_options(${PROJECT_NAME} PRIVATE -parallel)
+else()
+    # Fallback to GFortran
+    include(ProcessorCount)
+    ProcessorCount(PROCESSOR_COUNT)
+    if (PROCESSOR_COUNT EQUAL 0)
+        # Processor count could not be determined - default to 1
+        set(PROCESSOR_COUNT 1)
+    endif()
+    message(STATUS "Processor Count: ${PROCESSOR_COUNT}")
+    target_compile_options(${PROJECT_NAME} PRIVATE 
+        -ftree-parallelize-loops=${PROCESSOR_COUNT}
+    )
+endif()
 
 # Installation Instructions
 install(

@@ -68,6 +68,13 @@ module dynamics_c_api
             real(c_double), intent(in), value :: F
             real(c_double), intent(out) :: dxdt(neqn)
         end subroutine
+
+        subroutine c_ss_excitation(n, t, u) bind(C, name = "c_ss_excitation")
+            use iso_c_binding
+            integer(c_int), intent(in), value :: n
+            real(c_double), intent(in), value :: t
+            real(c_double), intent(out) :: u(n)
+        end subroutine
     end interface
 
     type c_vecfcn_container
@@ -85,6 +92,10 @@ module dynamics_c_api
     type c_siso_fit_container
         procedure(c_ode_fit), pointer, nopass :: odefcn
         procedure(c_constraint_equations), pointer, nopass :: constraints
+    end type
+
+    type c_ss_excitation_container
+        procedure(c_ss_excitation), pointer, nopass :: fcn
     end type
 
     type, bind(C) :: c_iteration_behavior
@@ -2723,25 +2734,36 @@ end subroutine
 subroutine c_create_state_space_model(n, n_out, m, ldm, b, ldb, k, ldk, mdl) &
     bind(C, name = "c_create_state_space_model")
     integer(c_int), intent(in), value :: n, n_out, ldm, ldb, ldk
-    real(c_double), intent(in) :: m(ldm,n/2), b(ldb,n/2), k(ldk,n/2)
+    real(c_double), intent(in) :: m(ldm,n), b(ldb,n), k(ldk,n)
     type(c_state_space_model), intent(out) :: mdl
     type(state_space) :: ss
-    integer(c_int) :: n2
-    n2 = n / 2
-    if (ldm < n2) then
+    if (ldm < n) then
         call c_report_invalid_input("c_create_state_space_model", "ldm")
         return
     end if
-    if (ldb < n2) then
+    if (ldb < n) then
         call c_report_invalid_input("c_create_state_space_model", "ldb")
         return
     end if
-    if (ldk < n2) then
+    if (ldk < n) then
         call c_report_invalid_input("c_create_state_space_model", "ldk")
         return
     end if
-    ss = state_space(m(1:n2,:), b(1:n2,:), k(1:n2,:), n_out)
+    ss = state_space(m(1:n,:), b(1:n,:), k(1:n,:), n_out)
     mdl = ss
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_create_pid_state_space_model(kp, ki, kd, tau, plant, mdl) &
+    bind(C, name = "c_create_pid_state_space_model")
+    real(c_double), intent(in), value :: kp, ki, kd, tau
+    type(c_state_space_model), intent(in) :: plant
+    type(c_state_space_model), intent(out) :: mdl
+
+    type(state_space) :: fplant, fmdl
+    fplant = plant
+    fmdl = state_space(kp, ki, kd, tau, fplant)
+    mdl = fmdl
 end subroutine
 
 ! ------------------------------------------------------------------------------
@@ -2766,6 +2788,139 @@ subroutine c_scale_transfer_function(x, tf1, tf) &
     t1 = tf1
     t = x * t1
     tf = t
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_lti_solve(mdl, u, n, t, ndof, ic, solver, nout, y, ldy) &
+    bind(C, name = "c_lti_solve")
+    type(c_state_space_model), intent(in) :: mdl
+    type(c_funptr), intent(in), value :: u
+    integer(c_int), intent(in), value :: n, ndof, ldy, solver, nout
+    real(c_double), intent(in) :: t(n)
+    real(c_double), intent(in) :: ic(ndof)
+    real(c_double), intent(out) :: y(ldy,nout)
+
+    type(c_ss_excitation_container) :: arg
+    procedure(c_ss_excitation), pointer :: fptr
+    procedure(ss_excitation), pointer :: ptr
+    real(real64), allocatable, dimension(:,:) :: sol
+    class(ode_integrator), pointer :: integrator
+    type(runge_kutta_23), target :: rk23
+    type(runge_kutta_45), target :: rk45
+    type(runge_kutta_853), target :: rk853
+    type(rosenbrock), target :: rbk
+    type(adams), target :: adms
+    type(bdf), target :: bdiff
+    type(state_space) :: fmdl
+
+    if (n <= 2) then
+        call c_report_invalid_input("c_lti_solve", "n")
+        return
+    end if
+    if (ldy < n) then
+        call c_report_invalid_input("c_lti_solve", "ldy")
+        return
+    end if
+
+    call c_f_procpointer(u, fptr)
+    arg%fcn => fptr
+    ptr => c_lti_solver_routine
+
+    fmdl = mdl
+
+    select case (solver)
+    case (DYN_RUNGE_KUTTA_23)
+        integrator => rk23
+    case (DYN_RUNGE_KUTTA_45)
+        integrator => rk45
+    case (DYN_RUNGE_KUTTA_853)
+        integrator => rk853
+    case (DYN_ROSENBROCK)
+        integrator => rbk
+    case (DYN_BDF)
+        integrator => bdiff
+    case (DYN_ADAMS)
+        integrator => adms
+    case default
+        integrator => rk45
+    end select
+
+    sol = lti_solve(fmdl, ptr, t, ic, solver = integrator, args = arg)
+    y(1:n,1:nout) = sol(1:n,2:nout+1)
+end subroutine
+
+subroutine c_lti_solver_routine(t, u, args)
+    real(real64), intent(in) :: t
+    real(real64), intent(out), dimension(:) :: u
+    class(*), intent(inout), optional :: args
+
+    integer(int32) :: n
+    n = size(u)
+    select type (args)
+    class is (c_ss_excitation_container)
+        call args%fcn(n, t, u)
+    end select
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_state_space_poles(mdl, n, p) bind(C, name = "c_state_space_poles")
+    type(c_state_space_model), intent(in) :: mdl
+    integer(c_int), intent(in), value :: n
+    complex(c_double), intent(out) :: p(n)
+
+    integer(c_int) :: np
+    complex(real64), allocatable, dimension(:) :: poles
+    type(state_space) :: fmdl
+
+    fmdl = mdl
+    poles = fmdl%poles()
+    np = min(size(poles), n)
+    p(1:np) = poles(1:np)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_state_space_zeros(mdl, n, z, nz) &
+    bind(C, name = "c_state_space_zeros")
+    type(c_state_space_model), intent(in) :: mdl
+    integer(c_int), intent(in), value :: n
+    complex(c_double), intent(out) :: z(n)
+    integer(c_int), intent(out) :: nz
+
+    complex(real64), allocatable, dimension(:) :: zeros
+    type(state_space) :: fmdl
+
+    fmdl = mdl
+    zeros = fmdl%zeros()
+    nz = min(size(zeros), n)
+    z(1:nz) = zeros(1:nz)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_state_space_transfer_function(mdl, nin, nout, n, s, z, ldz) &
+    bind(C, name = "c_state_space_transfer_function")
+    type(c_state_space_model), intent(in) :: mdl
+    integer(c_int), intent(in), value :: nin, nout, n, ldz
+    complex(c_double), intent(in) :: s(n)
+    complex(c_double), intent(out) :: z(ldz,nout,n)
+
+    type(state_space) :: fmdl
+
+    fmdl = mdl
+
+    if (nin /= size(fmdl%B, 2)) then
+        call c_report_invalid_input("c_state_space_transfer_function", "nin")
+        return
+    end if
+    if (nout /= size(fmdl%C, 1)) then
+        call c_report_invalid_input("c_state_space_transfer_function", "nout")
+        return
+    end if
+    if (ldz < nin) then
+        call c_report_invalid_input("c_state_space_transfer_function", "ldz")
+        return
+    end if
+
+    z(1:nin,:,:) = fmdl%transfer_function(s)
 end subroutine
 
 ! ------------------------------------------------------------------------------
