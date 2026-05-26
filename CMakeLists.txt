@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.24)
 project(
     dynamics
     LANGUAGES Fortran C CXX
-    VERSION 1.3.0
+    VERSION 1.3.1
 )
 set(CMAKE_Fortran_STANDARD 2018)
 set(CMAKE_Fortran_STANDARD_REQUIRED TRUE)
