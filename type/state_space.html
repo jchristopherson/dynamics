@@ -88,7 +88,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title="<p> 4.7% of total for derived types.</p>Including implementation: 6 statements,  0.6% of total for derived types.">6 statements</a>
+               title="<p> 9.3% of total for derived types.</p>Including implementation: 201 statements, 15.8% of total for derived types.">16 statements</a>
           </li>
 
             <li id="source-file">
@@ -125,7 +125,7 @@
       </div>
       <div id="vars-0" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../type/state_space.html#variable-a">A</a>
+            <a class="list-group-item" href="../type/state_space.html#variable-a~3">A</a>
             <a class="list-group-item" href="../type/state_space.html#variable-b">B</a>
             <a class="list-group-item" href="../type/state_space.html#variable-c">C</a>
             <a class="list-group-item" href="../type/state_space.html#variable-d">D</a>
@@ -160,7 +160,23 @@
   
   
   
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#boundprocs-0">Type-Bound Procedures</a>
+        </h3>
+      </div>
+      <div id="boundprocs-0" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../type/state_space.html#boundprocedure-evaluate_derivatives">evaluate_derivatives</a>
+            <a class="list-group-item" href="../type/state_space.html#boundprocedure-evaluate_output">evaluate_output</a>
+            <a class="list-group-item" href="../type/state_space.html#boundprocedure-poles">poles</a>
+            <a class="list-group-item" href="../type/state_space.html#boundprocedure-transfer_function">transfer_function</a>
+            <a class="list-group-item" href="../type/state_space.html#boundprocedure-zeros">zeros</a>
+        </div>
+      </div>
+    </div>
+
   
 
 
@@ -173,8 +189,8 @@
     <p>Defines a state-space representation of a dynamic system.  This
 implementation takes the form:</p>
 <p>
-<script type="math/tex; mode=display"> \dot{x}(t) = A(t) x(t) + B(t) u(t) </script>
-<script type="math/tex; mode=display"> y(t) = C(t) x(t) + D(t) u(t) </script>
+<script type="math/tex; mode=display"> \dot{x}(t) = A x(t) + B u(t) </script>
+<script type="math/tex; mode=display"> y(t) = C x(t) + D u(t) </script>
 </p>
 <p>Where:</p>
 <ul>
@@ -208,7 +224,7 @@ implementation takes the form:</p>
       </div>
       <div id="vars-1" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../type/state_space.html#variable-a">A</a>
+            <a class="list-group-item" href="../type/state_space.html#variable-a~3">A</a>
             <a class="list-group-item" href="../type/state_space.html#variable-b">B</a>
             <a class="list-group-item" href="../type/state_space.html#variable-c">C</a>
             <a class="list-group-item" href="../type/state_space.html#variable-d">D</a>
@@ -243,7 +259,23 @@ implementation takes the form:</p>
   
   
   
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#boundprocs-1">Type-Bound Procedures</a>
+        </h3>
+      </div>
+      <div id="boundprocs-1" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../type/state_space.html#boundprocedure-evaluate_derivatives">evaluate_derivatives</a>
+            <a class="list-group-item" href="../type/state_space.html#boundprocedure-evaluate_output">evaluate_output</a>
+            <a class="list-group-item" href="../type/state_space.html#boundprocedure-poles">poles</a>
+            <a class="list-group-item" href="../type/state_space.html#boundprocedure-transfer_function">transfer_function</a>
+            <a class="list-group-item" href="../type/state_space.html#boundprocedure-zeros">zeros</a>
+        </div>
+      </div>
+    </div>
+
   
 
 
@@ -264,7 +296,7 @@ implementation takes the form:</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-a"></span>
+              <span class="anchor" id="variable-a~3"></span>
               real(kind=real64),
             </td>
               <td>public,</td>
@@ -508,7 +540,7 @@ feedthrough matrix <script type="math/tex">D</script> is initialized to zero.</p
     Return Value
     <small>type(<a href='../type/state_space.html'>state_space</a>)</small>
     </h4>
-    <p>The state-space model.</p>
+    <p>The [[state_space]] model.</p>
 
           </li>
           <li class="list-group-item">
@@ -596,7 +628,320 @@ feedthrough matrix <script type="math/tex">D</script> is initialized to zero.</p
     Return Value
     <small>type(<a href='../type/state_space.html'>state_space</a>)</small>
     </h4>
-    <p>The resulting state_space object.</p>
+    <p>The resulting [[state_space]] object.</p>
+
+          </li>
+          <li class="list-group-item">
+                <h3>
+    private pure function state_space_init_pid(kp, ki, kd, tau, a, b, c, d) result(rst)  
+
+    </h3>
+  <p>Initializes a state-space model that employs a closed-loop PID
+controller.</p>
+<p>The PID model is augmented into the plant model as follows.</p>
+<p>
+<script type="math/tex; mode=display"> e = r - y </script>
+<script type="math/tex; mode=display"> \dot{x_1} = e </script>
+<script type="math/tex; mode=display"> \dot{x_3} = -\frac{x_3}{\tau} + \frac{e}{\tau} </script>
+<script type="math/tex; mode=display"> u = K_{i} x_{i} + K_{p} e + \frac{K_{d}}{\tau} \left(e - 
+x_{3} \right) </script>
+<script type="math/tex; mode=display"> \alpha = K_{p} + \frac{K_{d}}{\tau} </script>
+<script type="math/tex; mode=display"> \beta = \frac{1}{1 + \alpha D} </script>
+<script type="math/tex; mode=display"> x = \left[ \begin{matrix} x_{p} \\ x_{1} \\ x_{3} \end{matrix} 
+\right] </script>
+<script type="math/tex; mode=display"> \dot{x} = A_{cl} x + B_{cl} r </script>
+<script type="math/tex; mode=display"> y = C_{cl} x + D_{cl} r </script>
+</p>
+<p>Where the augmented matrices are as follows.</p>
+<p>
+<script type="math/tex; mode=display"> A_{cl} = \left[ \begin{matrix} A - \alpha \beta B C & 
+\beta K_{i} B & -\frac{\beta K_{d}}{\tau} B \\ 
+-C + \alpha \beta D C & -\beta K_{i} D & \frac{\beta K_{d}}{\tau} D 
+\\ \frac{1}{\tau}\left(-C + \alpha \beta D C \right) & 
+-\frac{\beta K_{i}}{\tau} D & \frac{1}{\tau} \left( 
+1 + \frac{\beta K_{d}}{\tau^{2}} D \right) \end{matrix} \right] </script>
+<script type="math/tex; mode=display"> B_{cl} = \left[ \begin{matrix} \alpha \beta B \\ 1 - 
+\alpha \beta D \\ \frac{1}{\tau} \left( 1 - \alpha \beta D \right) 
+\end{matrix} \right] </script>
+<script type="math/tex; mode=display"> C_{cl} = \left[ \begin{matrix} C - \alpha \beta D C & 
+\beta K_{i} D & -\frac{\beta K_{d}}{\tau} D \end{matrix} \right] </script>
+<script type="math/tex; mode=display"> D_{cl} = \alpha \beta D </script>
+</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>kp</strong></td>
+            <td>
+                <p>The proportional gain term.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ki</strong></td>
+            <td>
+                <p>The integral gain term.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>kd</strong></td>
+            <td>
+                <p>The derivative gain term.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>tau</strong></td>
+            <td>
+                <p>The time constant of the first order derivative filter
+<script type="math/tex"> K_{d} \frac{s}{\tau s + 1} </script>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>a</strong></td>
+            <td>
+                <p>The N-by-N dynamics matrix for the plant.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(size(a, 1), 1)
+            </td>
+            <td>::</td>
+            <td><strong>b</strong></td>
+            <td>
+                <p>The N-by-1 input matrix for the plant.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(1, size(a, 1))
+            </td>
+            <td>::</td>
+            <td><strong>c</strong></td>
+            <td>
+                <p>The 1-by-N output matrix for the plant.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(1, 1)
+            </td>
+            <td>::</td>
+            <td><strong>d</strong></td>
+            <td>
+                <p>The 1-by-1 feedthrough matrix for the plant.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/state_space.html'>state_space</a>)</small>
+    </h4>
+    <p>The resulting [[state_space]] object.</p>
+
+          </li>
+          <li class="list-group-item">
+                <h3>
+    private pure function state_space_init_pid_plant(kp, ki, kd, tau, plant) result(rst)  
+
+    </h3>
+  <p>Initializes a state-space model that employs a closed-loop PID
+controller.</p>
+<p>The PID model is augmented into the plant model as follows.</p>
+<p>
+<script type="math/tex; mode=display"> e = r - y </script>
+<script type="math/tex; mode=display"> \dot{x_1} = e </script>
+<script type="math/tex; mode=display"> \dot{x_3} = -\frac{x_3}{\tau} + \frac{e}{\tau} </script>
+<script type="math/tex; mode=display"> u = K_{i} x_{i} + K_{p} e + \frac{K_{d}}{\tau} \left(e - 
+x_{3} \right) </script>
+<script type="math/tex; mode=display"> \alpha = K_{p} + \frac{K_{d}}{\tau} </script>
+<script type="math/tex; mode=display"> \beta = \frac{1}{1 + \alpha D} </script>
+<script type="math/tex; mode=display"> x = \left[ \begin{matrix} x_{p} \\ x_{1} \\ x_{3} \end{matrix} 
+\right] </script>
+<script type="math/tex; mode=display"> \dot{x} = A_{cl} x + B_{cl} r </script>
+<script type="math/tex; mode=display"> y = C_{cl} x + D_{cl} r </script>
+</p>
+<p>Where the augmented matrices are as follows.</p>
+<p>
+<script type="math/tex; mode=display"> A_{cl} = \left[ \begin{matrix} A - \alpha \beta B C & 
+\beta K_{i} B & -\frac{\beta K_{d}}{\tau} B \\ 
+-C + \alpha \beta D C & -\beta K_{i} D & \frac{\beta K_{d}}{\tau} D 
+\\ \frac{1}{\tau}\left(-C + \alpha \beta D C \right) & 
+-\frac{\beta K_{i}}{\tau} D & \frac{1}{\tau} \left( 
+1 + \frac{\beta K_{d}}{\tau^{2}} D \right) \end{matrix} \right] </script>
+<script type="math/tex; mode=display"> B_{cl} = \left[ \begin{matrix} \alpha \beta B \\ 1 - 
+\alpha \beta D \\ \frac{1}{\tau} \left( 1 - \alpha \beta D \right) 
+\end{matrix} \right] </script>
+<script type="math/tex; mode=display"> C_{cl} = \left[ \begin{matrix} C - \alpha \beta D C & 
+\beta K_{i} D & -\frac{\beta K_{d}}{\tau} D \end{matrix} \right] </script>
+<script type="math/tex; mode=display"> D_{cl} = \alpha \beta D </script>
+</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>kp</strong></td>
+            <td>
+                <p>The proportional gain term.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ki</strong></td>
+            <td>
+                <p>The integral gain term.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>kd</strong></td>
+            <td>
+                <p>The derivative gain term.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>tau</strong></td>
+            <td>
+                <p>The time constant of the first order derivative filter
+<script type="math/tex"> K_{d} \frac{s}{\tau s + 1} </script>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/state_space.html'>state_space</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>plant</strong></td>
+            <td>
+                <p>The plant model.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/state_space.html'>state_space</a>)</small>
+    </h4>
+    <p>The resulting [[state_space]] object.</p>
 
           </li>
     </ul>
@@ -606,6 +951,535 @@ feedthrough matrix <script type="math/tex">D</script> is initialized to zero.</p
       <br>
 
 
+      <section>
+        <h2>Type-Bound Procedures</h2>
+            <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-evaluate_derivatives"></span><h3>procedure, public :: <strong>evaluate_derivatives</strong>  => ss_eval_deriv         
+    </h3></div>
+    <ul class="list-group">
+        <li class="list-group-item">
+                  <h3>
+    private pure function ss_eval_deriv(this, u, x) result(rst)  
+</h3>
+  <p>Evaluates the state time derivative <script type="math/tex"> \dot{x}(t) = A x(t) + 
+B u(t) </script>.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/state_space.html'>state_space</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>this</strong></td>
+            <td>
+                <p>The <a href="../type/state_space.html">state_space</a> object.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>u</strong></td>
+            <td>
+                <p>The M-element input array.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+                <p>The N-element state array.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), allocatable, dimension(:)</small>
+    </h4>
+    <p>The N-element state time derivative vector.</p>
+
+        </li>
+    </ul>
+  </div>
+
+            <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-evaluate_output"></span><h3>procedure, public :: <strong>evaluate_output</strong>  => ss_eval_output         
+    </h3></div>
+    <ul class="list-group">
+        <li class="list-group-item">
+                  <h3>
+    private pure function ss_eval_output(this, u, x) result(rst)  
+</h3>
+  <p>Evaluates the output vector <script type="math/tex"> y(t) = C x(t) + D u(t) </script>.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/state_space.html'>state_space</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>this</strong></td>
+            <td>
+                <p>The <a href="../type/state_space.html">state_space</a> object.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>u</strong></td>
+            <td>
+                <p>The M-element input array.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+                <p>The N-element state array.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), allocatable, dimension(:)</small>
+    </h4>
+    <p>The P-element output array.</p>
+
+        </li>
+    </ul>
+  </div>
+
+            <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-poles"></span><h3>procedure, public :: <strong>poles</strong>  => ss_poles         
+    </h3></div>
+    <ul class="list-group">
+        <li class="list-group-item">
+                  <h3>
+    private  function ss_poles(this, err) result(rst)  
+</h3>
+  <p>Computes the poles of the state space model.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/state_space.html'>state_space</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>this</strong></td>
+            <td>
+                <p>The <a href="../type/state_space.html">state_space</a> object.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(errors),
+            </td>
+<td>intent(inout),</td>
+              <td>optional,</td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>err</strong></td>
+            <td>
+                <p>An error handling object.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>complex(kind=real64), allocatable, dimension(:)</small>
+    </h4>
+    <p>The poles of the model.</p>
+
+        </li>
+    </ul>
+  </div>
+
+            <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-transfer_function"></span><h3>generic, public :: <strong>transfer_function</strong>  => ss_transfer_fcn, ss_transfer_fcn_omega, ss_transfer_fcn_array, ss_transfer_fcn_omega_array         
+    </h3></div>
+    <ul class="list-group">
+        <li class="list-group-item">
+                  <h3>
+    private pure function ss_transfer_fcn(this, s) result(rst)  
+</h3>
+  <p>Evaluates the transfer functions for the model at the parameter <script type="math/tex">s</script>.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/state_space.html'>state_space</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>this</strong></td>
+            <td>
+                <p>The <a href="../type/state_space.html">state_space</a> object.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              complex(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>s</strong></td>
+            <td>
+                <p>The frequency at which to evaluate the transfer functions.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>complex(kind=real64), allocatable, dimension(:,:)</small>
+    </h4>
+    <p>The resulting transfer functions.</p>
+
+        </li>
+        <li class="list-group-item">
+                  <h3>
+    private pure function ss_transfer_fcn_omega(this, omega) result(rst)  
+</h3>
+  <p>Evaluates the transfer functions for the model at frequency <script type="math/tex">\omega</script>.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/state_space.html'>state_space</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>this</strong></td>
+            <td>
+                <p>The <a href="../type/state_space.html">state_space</a> object.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>omega</strong></td>
+            <td>
+                <p>The frequency at which to evaluate the transfer functions.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>complex(kind=real64), allocatable, dimension(:,:)</small>
+    </h4>
+    <p>The resulting transfer functions.</p>
+
+        </li>
+        <li class="list-group-item">
+                  <h3>
+    private pure function ss_transfer_fcn_array(this, s) result(rst)  
+</h3>
+  <p>Evaluates the transfer functions for the model at the frequencies given
+in the array <script type="math/tex">s</script>.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/state_space.html'>state_space</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>this</strong></td>
+            <td>
+                <p>The <a href="../type/state_space.html">state_space</a> object.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              complex(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>s</strong></td>
+            <td>
+                <p>The frequencies at which to evaluate the transfer functions.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>complex(kind=real64), allocatable, dimension(:,:,:)</small>
+    </h4>
+    <p>The resulting transfer functions, with each page of the array 
+containing the transfer functions for a specific frequency.</p>
+
+        </li>
+        <li class="list-group-item">
+                  <h3>
+    private pure function ss_transfer_fcn_omega_array(this, omega) result(rst)  
+</h3>
+  <p>Evaluates the transfer functions for the model at the frequencies given
+in the array <script type="math/tex">omega</script>.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/state_space.html'>state_space</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>this</strong></td>
+            <td>
+                <p>The <a href="../type/state_space.html">state_space</a> object.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>omega</strong></td>
+            <td>
+                <p>The frequencies at which to evaluate the transfer functions.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>complex(kind=real64), allocatable, dimension(:,:,:)</small>
+    </h4>
+    <p>The resulting transfer functions, with each page of the array 
+containing the transfer functions for a specific frequency.</p>
+
+        </li>
+    </ul>
+  </div>
+
+            <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-zeros"></span><h3>procedure, public :: <strong>zeros</strong>  => ss_zeros         
+    </h3></div>
+    <ul class="list-group">
+        <li class="list-group-item">
+                  <h3>
+    private  function ss_zeros(this, err) result(rst)  
+</h3>
+  <p>Computes the zeros of the state space model.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/state_space.html'>state_space</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>this</strong></td>
+            <td>
+                <p>The <a href="../type/state_space.html">state_space</a> object.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(errors),
+            </td>
+<td>intent(inout),</td>
+              <td>optional,</td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>err</strong></td>
+            <td>
+                <p>An error handling object.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>complex(kind=real64), allocatable, dimension(:)</small>
+    </h4>
+    <p>The zeros of the model.</p>
+
+        </li>
+    </ul>
+  </div>
+
+      </section>
 
     
     </div>
@@ -623,7 +1497,7 @@ feedthrough matrix <script type="math/tex">D</script> is initialized to zero.</p
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-05-14 14:55            </p>
+ on 2026-05-26 17:57            </p>
         </div>
       </div>
       <br>

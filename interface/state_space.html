@@ -88,7 +88,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title="<p> 0.3% of total for procedures.</p>Including implementation: 62 statements,  4.1% of total for procedures.">5 statements</a>
+               title="<p> 0.5% of total for procedures.</p>Including implementation: 115 statements,  7.6% of total for procedures.">7 statements</a>
           </li>
 
             <li id="source-file">
@@ -145,6 +145,8 @@
             <a class="list-group-item" href="../interface/state_space.html#moduleprocedure-state_space_init">state_space_init</a>
             <a class="list-group-item" href="../interface/state_space.html#moduleprocedure-state_space_init_scalar">state_space_init_scalar</a>
             <a class="list-group-item" href="../interface/state_space.html#moduleprocedure-state_space_init_matrices">state_space_init_matrices</a>
+            <a class="list-group-item" href="../interface/state_space.html#moduleprocedure-state_space_init_pid">state_space_init_pid</a>
+            <a class="list-group-item" href="../interface/state_space.html#moduleprocedure-state_space_init_pid_plant">state_space_init_pid_plant</a>
         </div>
       </div>
     </div>
@@ -190,6 +192,8 @@
             <a class="list-group-item" href="../interface/state_space.html#moduleprocedure-state_space_init">state_space_init</a>
             <a class="list-group-item" href="../interface/state_space.html#moduleprocedure-state_space_init_scalar">state_space_init_scalar</a>
             <a class="list-group-item" href="../interface/state_space.html#moduleprocedure-state_space_init_matrices">state_space_init_matrices</a>
+            <a class="list-group-item" href="../interface/state_space.html#moduleprocedure-state_space_init_pid">state_space_init_pid</a>
+            <a class="list-group-item" href="../interface/state_space.html#moduleprocedure-state_space_init_pid_plant">state_space_init_pid_plant</a>
         </div>
       </div>
     </div>
@@ -364,7 +368,7 @@ feedthrough matrix <script type="math/tex">D</script> is initialized to zero.</p
     Return Value
     <small>type(<a href='../type/state_space.html'>state_space</a>)</small>
     </h4>
-    <p>The state-space model.</p>
+    <p>The [[state_space]] model.</p>
 
     </div>
   </div>
@@ -453,7 +457,322 @@ feedthrough matrix <script type="math/tex">D</script> is initialized to zero.</p
     Return Value
     <small>type(<a href='../type/state_space.html'>state_space</a>)</small>
     </h4>
-    <p>The resulting state_space object.</p>
+    <p>The resulting [[state_space]] object.</p>
+
+    </div>
+  </div>
+
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-state_space_init_pid"></span><h3>private pure function state_space_init_pid(kp, ki, kd, tau, a, b, c, d) result(rst)  
+</h3></div>
+    <div class="panel-body">
+        <p>Initializes a state-space model that employs a closed-loop PID
+controller.</p>
+<p>The PID model is augmented into the plant model as follows.</p>
+<p>
+<script type="math/tex; mode=display"> e = r - y </script>
+<script type="math/tex; mode=display"> \dot{x_1} = e </script>
+<script type="math/tex; mode=display"> \dot{x_3} = -\frac{x_3}{\tau} + \frac{e}{\tau} </script>
+<script type="math/tex; mode=display"> u = K_{i} x_{i} + K_{p} e + \frac{K_{d}}{\tau} \left(e - 
+x_{3} \right) </script>
+<script type="math/tex; mode=display"> \alpha = K_{p} + \frac{K_{d}}{\tau} </script>
+<script type="math/tex; mode=display"> \beta = \frac{1}{1 + \alpha D} </script>
+<script type="math/tex; mode=display"> x = \left[ \begin{matrix} x_{p} \\ x_{1} \\ x_{3} \end{matrix} 
+\right] </script>
+<script type="math/tex; mode=display"> \dot{x} = A_{cl} x + B_{cl} r </script>
+<script type="math/tex; mode=display"> y = C_{cl} x + D_{cl} r </script>
+</p>
+<p>Where the augmented matrices are as follows.</p>
+<p>
+<script type="math/tex; mode=display"> A_{cl} = \left[ \begin{matrix} A - \alpha \beta B C & 
+\beta K_{i} B & -\frac{\beta K_{d}}{\tau} B \\ 
+-C + \alpha \beta D C & -\beta K_{i} D & \frac{\beta K_{d}}{\tau} D 
+\\ \frac{1}{\tau}\left(-C + \alpha \beta D C \right) & 
+-\frac{\beta K_{i}}{\tau} D & \frac{1}{\tau} \left( 
+1 + \frac{\beta K_{d}}{\tau^{2}} D \right) \end{matrix} \right] </script>
+<script type="math/tex; mode=display"> B_{cl} = \left[ \begin{matrix} \alpha \beta B \\ 1 - 
+\alpha \beta D \\ \frac{1}{\tau} \left( 1 - \alpha \beta D \right) 
+\end{matrix} \right] </script>
+<script type="math/tex; mode=display"> C_{cl} = \left[ \begin{matrix} C - \alpha \beta D C & 
+\beta K_{i} D & -\frac{\beta K_{d}}{\tau} D \end{matrix} \right] </script>
+<script type="math/tex; mode=display"> D_{cl} = \alpha \beta D </script>
+</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>kp</strong></td>
+            <td>
+                <p>The proportional gain term.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ki</strong></td>
+            <td>
+                <p>The integral gain term.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>kd</strong></td>
+            <td>
+                <p>The derivative gain term.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>tau</strong></td>
+            <td>
+                <p>The time constant of the first order derivative filter
+<script type="math/tex"> K_{d} \frac{s}{\tau s + 1} </script>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>a</strong></td>
+            <td>
+                <p>The N-by-N dynamics matrix for the plant.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(size(a, 1), 1)
+            </td>
+            <td>::</td>
+            <td><strong>b</strong></td>
+            <td>
+                <p>The N-by-1 input matrix for the plant.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(1, size(a, 1))
+            </td>
+            <td>::</td>
+            <td><strong>c</strong></td>
+            <td>
+                <p>The 1-by-N output matrix for the plant.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(1, 1)
+            </td>
+            <td>::</td>
+            <td><strong>d</strong></td>
+            <td>
+                <p>The 1-by-1 feedthrough matrix for the plant.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/state_space.html'>state_space</a>)</small>
+    </h4>
+    <p>The resulting [[state_space]] object.</p>
+
+    </div>
+  </div>
+
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-state_space_init_pid_plant"></span><h3>private pure function state_space_init_pid_plant(kp, ki, kd, tau, plant) result(rst)  
+</h3></div>
+    <div class="panel-body">
+        <p>Initializes a state-space model that employs a closed-loop PID
+controller.</p>
+<p>The PID model is augmented into the plant model as follows.</p>
+<p>
+<script type="math/tex; mode=display"> e = r - y </script>
+<script type="math/tex; mode=display"> \dot{x_1} = e </script>
+<script type="math/tex; mode=display"> \dot{x_3} = -\frac{x_3}{\tau} + \frac{e}{\tau} </script>
+<script type="math/tex; mode=display"> u = K_{i} x_{i} + K_{p} e + \frac{K_{d}}{\tau} \left(e - 
+x_{3} \right) </script>
+<script type="math/tex; mode=display"> \alpha = K_{p} + \frac{K_{d}}{\tau} </script>
+<script type="math/tex; mode=display"> \beta = \frac{1}{1 + \alpha D} </script>
+<script type="math/tex; mode=display"> x = \left[ \begin{matrix} x_{p} \\ x_{1} \\ x_{3} \end{matrix} 
+\right] </script>
+<script type="math/tex; mode=display"> \dot{x} = A_{cl} x + B_{cl} r </script>
+<script type="math/tex; mode=display"> y = C_{cl} x + D_{cl} r </script>
+</p>
+<p>Where the augmented matrices are as follows.</p>
+<p>
+<script type="math/tex; mode=display"> A_{cl} = \left[ \begin{matrix} A - \alpha \beta B C & 
+\beta K_{i} B & -\frac{\beta K_{d}}{\tau} B \\ 
+-C + \alpha \beta D C & -\beta K_{i} D & \frac{\beta K_{d}}{\tau} D 
+\\ \frac{1}{\tau}\left(-C + \alpha \beta D C \right) & 
+-\frac{\beta K_{i}}{\tau} D & \frac{1}{\tau} \left( 
+1 + \frac{\beta K_{d}}{\tau^{2}} D \right) \end{matrix} \right] </script>
+<script type="math/tex; mode=display"> B_{cl} = \left[ \begin{matrix} \alpha \beta B \\ 1 - 
+\alpha \beta D \\ \frac{1}{\tau} \left( 1 - \alpha \beta D \right) 
+\end{matrix} \right] </script>
+<script type="math/tex; mode=display"> C_{cl} = \left[ \begin{matrix} C - \alpha \beta D C & 
+\beta K_{i} D & -\frac{\beta K_{d}}{\tau} D \end{matrix} \right] </script>
+<script type="math/tex; mode=display"> D_{cl} = \alpha \beta D </script>
+</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>kp</strong></td>
+            <td>
+                <p>The proportional gain term.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ki</strong></td>
+            <td>
+                <p>The integral gain term.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>kd</strong></td>
+            <td>
+                <p>The derivative gain term.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>tau</strong></td>
+            <td>
+                <p>The time constant of the first order derivative filter
+<script type="math/tex"> K_{d} \frac{s}{\tau s + 1} </script>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/state_space.html'>state_space</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>plant</strong></td>
+            <td>
+                <p>The plant model.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/state_space.html'>state_space</a>)</small>
+    </h4>
+    <p>The resulting [[state_space]] object.</p>
 
     </div>
   </div>
@@ -474,7 +793,7 @@ feedthrough matrix <script type="math/tex">D</script> is initialized to zero.</p
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-05-14 14:55            </p>
+ on 2026-05-26 17:57            </p>
         </div>
       </div>
       <br>
