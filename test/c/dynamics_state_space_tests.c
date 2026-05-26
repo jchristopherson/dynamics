@@ -39,7 +39,7 @@ bool c_test_state_space_initialize()
     Dans[0] = 0.0;  Dans[1] = 0.0;
 
     // Test
-    c_create_state_space_model(4, 1, M, 2, B, 2, K, 2, &mdl);
+    c_create_state_space_model(2, 1, M, 2, B, 2, K, 2, &mdl);
     if (mdl.dimension != 4)
     {
         rst = false;
