@@ -429,8 +429,8 @@ void c_transfer_function_multiply(const c_transfer_function *tf1,
 void c_scale_transfer_function(double x, const c_transfer_function *tf1,
     c_transfer_function *tf);
 void c_lti_solve(const c_state_space_model *mdl, const c_ss_excitation u,
-    int n, const double *t, int ndof, const double *ic, int solver, double *y,
-    int ldy);
+    int n, const double *t, int ndof, const double *ic, int solver, 
+    int nout, double *y, int ldy);
 void c_state_space_poles(const c_state_space_model *mdl, int n,
     double complex *p);
 void c_state_space_zeros(const c_state_space_model *mdl, int n,

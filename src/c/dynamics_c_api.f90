@@ -2734,24 +2734,22 @@ end subroutine
 subroutine c_create_state_space_model(n, n_out, m, ldm, b, ldb, k, ldk, mdl) &
     bind(C, name = "c_create_state_space_model")
     integer(c_int), intent(in), value :: n, n_out, ldm, ldb, ldk
-    real(c_double), intent(in) :: m(ldm,n/2), b(ldb,n/2), k(ldk,n/2)
+    real(c_double), intent(in) :: m(ldm,n), b(ldb,n), k(ldk,n)
     type(c_state_space_model), intent(out) :: mdl
     type(state_space) :: ss
-    integer(c_int) :: n2
-    n2 = n / 2
-    if (ldm < n2) then
+    if (ldm < n) then
         call c_report_invalid_input("c_create_state_space_model", "ldm")
         return
     end if
-    if (ldb < n2) then
+    if (ldb < n) then
         call c_report_invalid_input("c_create_state_space_model", "ldb")
         return
     end if
-    if (ldk < n2) then
+    if (ldk < n) then
         call c_report_invalid_input("c_create_state_space_model", "ldk")
         return
     end if
-    ss = state_space(m(1:n2,:), b(1:n2,:), k(1:n2,:), n_out)
+    ss = state_space(m(1:n,:), b(1:n,:), k(1:n,:), n_out)
     mdl = ss
 end subroutine
 
@@ -2793,14 +2791,14 @@ subroutine c_scale_transfer_function(x, tf1, tf) &
 end subroutine
 
 ! ------------------------------------------------------------------------------
-subroutine c_lti_solve(mdl, u, n, t, ndof, ic, solver, y, ldy) &
+subroutine c_lti_solve(mdl, u, n, t, ndof, ic, solver, nout, y, ldy) &
     bind(C, name = "c_lti_solve")
     type(c_state_space_model), intent(in) :: mdl
     type(c_funptr), intent(in), value :: u
-    integer(c_int), intent(in), value :: n, ndof, ldy, solver
+    integer(c_int), intent(in), value :: n, ndof, ldy, solver, nout
     real(c_double), intent(in) :: t(n)
     real(c_double), intent(in) :: ic(ndof)
-    real(c_double), intent(out) :: y(ldy,ndof)
+    real(c_double), intent(out) :: y(ldy,nout)
 
     type(c_ss_excitation_container) :: arg
     procedure(c_ss_excitation), pointer :: fptr
@@ -2848,7 +2846,7 @@ subroutine c_lti_solve(mdl, u, n, t, ndof, ic, solver, y, ldy) &
     end select
 
     sol = lti_solve(fmdl, ptr, t, ic, solver = integrator, args = arg)
-    y(1:n,:) = sol(1:n,2:)
+    y(1:n,1:nout) = sol(1:n,2:nout+1)
 end subroutine
 
 subroutine c_lti_solver_routine(t, u, args)
