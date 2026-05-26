@@ -274,3 +274,18 @@ target_link_libraries(
     ${PROJECT_NAME}
     ${FPLOT_LIBRARIES}
 )
+
+# C LTI Example 1
+add_executable(
+    c_lti_example_1
+    c_lti_example_1.c
+)
+target_link_libraries(
+    c_lti_example_1
+    ${PROJECT_NAME}
+)
+target_include_directories(
+    c_lti_example_1
+    PUBLIC
+    ${CMAKE_SOURCE_DIR}/src/c
+)
