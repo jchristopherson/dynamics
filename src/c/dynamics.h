@@ -65,6 +65,7 @@ typedef struct {
     int cycle_count;
     int transient_cycles;
     int points_per_cycle;
+    bool frequency_in_hz;
 } c_frequency_sweep_controls;
 
 typedef struct {

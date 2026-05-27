@@ -193,7 +193,7 @@ void c_example_2nd_order_sweep(int n, double freq, double t, const double *x,
     const double wn = 2.0 * pi * 50.0;
     double f;
 
-    f = sin(2.0 * pi * freq * t);
+    f = 1.0e3 * sin(2.0 * pi * freq * t);
     dxdt[0] = x[1];
     dxdt[1] = f - (2.0 * z * wn * x[1] + wn * wn * x[0]);
 }
@@ -204,7 +204,7 @@ bool c_test_frf_sweep()
     bool rst;
     const double fmax = 60.0;
     const double fmin = 40.0;
-    const double tol = 0.05;
+    const double tol = 0.01;
     const int npts = 10;
     const double pi = 2.0 * acos(0.0);
     const double z = 1.0e-1;
@@ -218,6 +218,7 @@ bool c_test_frf_sweep()
     // Initialization
     rst = true;
     c_set_frequency_sweep_defaults(&opts);
+    opts.frequency_in_hz = true;
     init_vals[0] = 0.0;
     init_vals[1] = 0.0;
     df = (fmax - fmin) / (npts - 1.0);
@@ -232,7 +233,7 @@ bool c_test_frf_sweep()
     for (i = 0; i < npts; ++i)
     {
         s = I * omega[i];
-        tf1 = 1.0 / (s * s + 2.0 * z * wn * s + wn * wn);
+        tf1 = 1.0e3 / (s * s + 2.0 * z * wn * s + wn * wn);
         tf2 = tf1 * s;
         magans1[i] = cabs(tf1);
         magans2[i] = cabs(tf2);
