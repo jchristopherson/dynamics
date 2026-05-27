@@ -88,7 +88,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title="<p> 0.3% of total for procedures.</p>Including implementation: 157 statements, 10.4% of total for procedures.">4 statements</a>
+               title="<p> 0.3% of total for procedures.</p>Including implementation: 164 statements, 10.8% of total for procedures.">4 statements</a>
           </li>
 
             <li id="source-file">
@@ -201,11 +201,21 @@
 
    <h2>Module Procedures</h2>
       <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="proc-frf_sweep_1"></span><h3>private  function frf_sweep_1(fcn, freq, iv, solver, ncycles, ntransient, points, args, err) result(rst)  
+    <div class="panel-heading codesum"><span class="anchor" id="proc-frf_sweep_1"></span><h3>private  function frf_sweep_1(fcn, freq, iv, solver, ncycles, ntransient, points, inHz, args, err) result(rst)  
 </h3></div>
     <div class="panel-body">
         <p>Computes the frequency response of each equation of a system of
-harmonically excited ODE's by sweeping through frequency.</p>
+harmonically excited ODE's by sweeping through frequency. </p>
+<p>The amplitude and phase are determined by means of a harmonic 
+projection method.</p>
+<p>
+<script type="math/tex; mode=display"> Y = \sqrt{a^{2} + b^{2}} </script>
+<script type="math/tex; mode=display"> \phi = \tan^{-1}{\left( \frac{a}{b} \right)} </script>
+</p>
+<p>where
+<script type="math/tex; mode=display"> a = \frac{2}{T} \int y(t) \cos{\left(\omega t \right)} \, dt </script>
+<script type="math/tex; mode=display"> b = \frac{2}{T} \int y(t) \sin{\left(\omega t \right)} \, dt </script>
+</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -248,10 +258,9 @@ harmonically excited ODE's by sweeping through frequency.</p>
                 <p>An M-element array containing the frequency points at which the 
 solution should be computed.  Notice, whatever units are utilized
 for this array are also the units of the excitation_frequency
-property in @p sys.  It is recommended that the units be set to 
-Hz.  Additionally, this array cannot contain any zero-valued 
-elements as the ODE solution time for each frequency is 
-determined by the period of oscillation and number of cycles.</p>
+property in sys.  Additionally, this array cannot contain any
+zero-valued elements as the ODE solution time for each frequency 
+is determined by the period of oscillation and number of cycles.</p>
             </td>
         </tr>
         <tr>
@@ -301,7 +310,7 @@ library.</p>
             <td>
                 <p>An optional parameter controlling the number of cycles to 
 analyze when determining the amplitude and phase of the response.
-The default is 20.</p>
+The default is 5.</p>
             </td>
         </tr>
         <tr>
@@ -317,7 +326,7 @@ The default is 20.</p>
             <td><strong>ntransient</strong></td>
             <td>
                 <p>An optional parameter controlling how many of the initial 
-"transient" cycles to ignore.  The default is 200.</p>
+"transient" cycles to ignore.  The default is 30.</p>
             </td>
         </tr>
         <tr>
@@ -334,11 +343,24 @@ The default is 20.</p>
             <td>
                 <p>An optional parameter controlling how many evenly spaced 
 solution points should be considered per cycle.  The default is 
-1000.  Notice, there must be at least 2 points per cycle for the
-analysis to be effective.  The algorithm utilizes a discrete 
-Fourier transform to determine the phase and amplitude, and in 
-order to satisfy Nyquist conditions, the value must be at least 
-2.</p>
+1000.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>inHz</strong></td>
+            <td>
+                <p>Set to true if the units of the frequency vector are in Hz.  If
+false, the units are assumed as rad/s.  The default is false such
+that the frequency units are assumed to be rad/s.</p>
             </td>
         </tr>
         <tr>
@@ -398,11 +420,21 @@ encountered are as follows.</p>
   </div>
 
       <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="proc-frf_sweep_2"></span><h3>private  function frf_sweep_2(fcn, nfreq, freq1, freq2, iv, solver, ncycles, ntransient, points, args, err) result(rst)  
+    <div class="panel-heading codesum"><span class="anchor" id="proc-frf_sweep_2"></span><h3>private  function frf_sweep_2(fcn, nfreq, freq1, freq2, iv, solver, ncycles, ntransient, points, inHz, args, err) result(rst)  
 </h3></div>
     <div class="panel-body">
         <p>Computes the frequency response of each equation of a system of
 harmonically excited ODE's by sweeping through frequency.</p>
+<p>The amplitude and phase are determined by means of a harmonic 
+projection method.</p>
+<p>
+<script type="math/tex; mode=display"> Y = \sqrt{a^{2} + b^{2}} </script>
+<script type="math/tex; mode=display"> \phi = \tan^{-1}{\left( \frac{a}{b} \right)} </script>
+</p>
+<p>where
+<script type="math/tex; mode=display"> a = \frac{2}{T} \int y(t) \cos{\left(\omega t \right)} \, dt </script>
+<script type="math/tex; mode=display"> b = \frac{2}{T} \int y(t) \sin{\left(\omega t \right)} \, dt </script>
+</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -458,8 +490,7 @@ at least 2.</p>
             <td>::</td>
             <td><strong>freq1</strong></td>
             <td>
-                <p>The starting frequency.  It is recommended that the units be set
-to Hz.</p>
+                <p>The starting frequency.</p>
             </td>
         </tr>
         <tr>
@@ -474,8 +505,7 @@ to Hz.</p>
             <td>::</td>
             <td><strong>freq2</strong></td>
             <td>
-                <p>The ending frequency.  It is recommended that the units be set to
-Hz.</p>
+                <p>The ending frequency.</p>
             </td>
         </tr>
         <tr>
@@ -525,7 +555,7 @@ library.</p>
             <td>
                 <p>An optional parameter controlling the number of cycles to 
 analyze when determining the amplitude and phase of the response.
-The default is 20.</p>
+The default is 5.</p>
             </td>
         </tr>
         <tr>
@@ -541,7 +571,7 @@ The default is 20.</p>
             <td><strong>ntransient</strong></td>
             <td>
                 <p>An optional parameter controlling how many of the initial 
-"transient" cycles to ignore.  The default is 200.</p>
+"transient" cycles to ignore.  The default is 30.</p>
             </td>
         </tr>
         <tr>
@@ -558,11 +588,24 @@ The default is 20.</p>
             <td>
                 <p>An optional parameter controlling how many evenly spaced 
 solution points should be considered per cycle.  The default is 
-1000.  Notice, there must be at least 2 points per cycle for the
-analysis to be effective.  The algorithm utilizes a discrete 
-Fourier transform to determine the phase and amplitude, and in 
-order to satisfy Nyquist conditions, the value must be at least 
-2.</p>
+1000.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>inHz</strong></td>
+            <td>
+                <p>Set to true if the units of the frequency units are in Hz.  If
+false, the units are assumed as rad/s.  The default is false such
+that the frequency units are assumed to be rad/s.</p>
             </td>
         </tr>
         <tr>
@@ -637,7 +680,7 @@ encountered are as follows.</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-05-26 17:58            </p>
+ on 2026-05-27 19:22            </p>
         </div>
       </div>
       <br>
