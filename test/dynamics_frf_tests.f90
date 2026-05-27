@@ -54,7 +54,7 @@ pure subroutine example_2nd_order_sweep(freq, x, y, dydx, args)
     real(real64) :: f
 
     ! Process
-    f = sin(2.0d0 * pi * freq * x)
+    f = 1.0d3 * sin(2.0d0 * pi * freq * x)
     dydx(1) = y(2)
     dydx(2) = f - (2.0d0 * z * wn * y(2) + wn**2 * y(1))
 end subroutine
@@ -66,7 +66,7 @@ function test_frf_sweep() result(rst)
     ! Parameters
     real(real64), parameter :: fmax = 6.0d1
     real(real64), parameter :: fmin = 4.0d1
-    real(real64), parameter :: tol = 0.05d0
+    real(real64), parameter :: tol = 1.0d-2
     integer(int32), parameter :: npts = 10
     real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
     real(real64), parameter :: z = 1.0d-1
@@ -90,13 +90,13 @@ function test_frf_sweep() result(rst)
     omega = 2.0d0 * pi * freq
 
     ! Compute the FRF's
-    sol = frequency_sweep(fcn, freq, [0.0d0, 0.0d0])
+    sol = frequency_sweep(fcn, freq, [0.0d0, 0.0d0], inHz = .true.)
     mag1 = abs(sol%responses(:,1))
     mag2 = abs(sol%responses(:,2))
 
     ! Compute the solution
     s = j * omega
-    tf1 = 1.0d0 / (s**2 + 2.0d0 * z * wn * s + wn**2)
+    tf1 = 1.0d3 / (s**2 + 2.0d0 * z * wn * s + wn**2)
     tf2 = s * tf1
     magans1 = abs(tf1)
     magans2 = abs(tf2)

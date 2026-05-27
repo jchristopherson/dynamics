@@ -581,11 +581,19 @@ contains
 ! HARMONIC_ODE_CONTAINER ROUTINES
 ! ------------------------------------------------------------------------------
     function frf_sweep_1(fcn, freq, iv, solver, ncycles, ntransient, &
-        points, args, err) result(rst)
+        points, inHz, args, err) result(rst)
         !! Computes the frequency response of each equation of a system of
-        !! harmonically excited ODE's by sweeping through frequency.
-        use spectrum, only : next_power_of_two
-        use fftpack, only : zffti
+        !! harmonically excited ODE's by sweeping through frequency. 
+        !!
+        !! The amplitude and phase are determined by means of a harmonic 
+        !! projection method.
+        !!
+        !! $$ a = \frac{2}{T} \int y(t) \cos{\left(\omega t \right)} \, dt $$
+        !! $$ b = \frac{2}{T} \int y(t) \sin{\left(\omega t \right)} \, dt $$
+        !!
+        !! The amplitude and phase can then be computed as follows.
+        !! $$ Y = \sqrt{a^{2} + b^{2}} $$
+        !! $$ \phi = \tan^{-1}{\left( \frac{a}{b} \right)} $$
         use diffeq, only : runge_kutta_45
         use dynamics_error_handling
         procedure(harmonic_ode), pointer, intent(in) :: fcn
@@ -594,10 +602,9 @@ contains
             !! An M-element array containing the frequency points at which the 
             !! solution should be computed.  Notice, whatever units are utilized
             !! for this array are also the units of the excitation_frequency
-            !! property in @p sys.  It is recommended that the units be set to 
-            !! Hz.  Additionally, this array cannot contain any zero-valued 
-            !! elements as the ODE solution time for each frequency is 
-            !! determined by the period of oscillation and number of cycles.
+            !! property in @p sys.  Additionally, this array cannot contain any
+            !! zero-valued elements as the ODE solution time for each frequency 
+            !! is determined by the period of oscillation and number of cycles.
         real(real64), intent(in), dimension(:) :: iv
             !! An N-element array containing the initial conditions for each of 
             !! the N ODEs.
@@ -608,18 +615,18 @@ contains
         integer(int32), intent(in), optional :: ncycles
             !! An optional parameter controlling the number of cycles to 
             !! analyze when determining the amplitude and phase of the response.
-            !! The default is 20.
+            !! The default is 5.
         integer(int32), intent(in), optional :: ntransient
             !! An optional parameter controlling how many of the initial 
-            !! "transient" cycles to ignore.  The default is 200.
+            !! "transient" cycles to ignore.  The default is 30.
         integer(int32), intent(in), optional :: points
             !! An optional parameter controlling how many evenly spaced 
             !! solution points should be considered per cycle.  The default is 
-            !! 1000.  Notice, there must be at least 2 points per cycle for the
-            !! analysis to be effective.  The algorithm utilizes a discrete 
-            !! Fourier transform to determine the phase and amplitude, and in 
-            !! order to satisfy Nyquist conditions, the value must be at least 
-            !! 2.
+            !! 1000.
+        logical, intent(in), optional :: inHz
+            !! Set to true if the units of the frequency vector are in Hz.  If
+            !! false, the units are assumed as rad/s.  The default is false such
+            !! that the frequency units are assumed to be rad/s.
         class(*), intent(inout), optional :: args
             !! An optional argument allowing for passing of data in/out of the
             !! fcn subroutine.
@@ -642,14 +649,15 @@ contains
 
         ! Parameters
         real(real64), parameter :: zerotol = sqrt(epsilon(0.0d0))
+        real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
 
         ! Local Variables
+        logical :: hz
         integer(int32) :: i, j, nfreq, neqn, nc, nt, ntotal, npts, ppc, flag, &
-            nfft, i1, ncpts, lsave
-        real(real64) :: dt, tare, phase, amp
-        real(real64), allocatable, dimension(:) :: ic, t, wsave
+            i1, ncpts
+        real(real64) :: dt, tare, phase, amp, omega, f
+        real(real64), allocatable, dimension(:) :: ic, t
         real(real64), allocatable, dimension(:,:) :: sol
-        complex(real64), allocatable, dimension(:) :: xpts
         type(ode_container) :: sys
         class(ode_integrator), pointer :: integrator
         type(runge_kutta_45), target :: default_integrator
@@ -666,17 +674,22 @@ contains
         if (present(ncycles)) then
             nc = ncycles
         else
-            nc = 20
+            nc = 5
         end if
         if (present(ntransient)) then
             nt = ntransient
         else
-            nt = 200
+            nt = 30
         end if
         if (present(points)) then
             ppc = points
         else
             ppc = 1000
+        end if
+        if (present(inHz)) then
+            hz = inHz
+        else
+            hz = .false.
         end if
         nfreq = size(freq)
         neqn = size(iv)
@@ -684,8 +697,6 @@ contains
         npts = ntotal * ppc
         ncpts = nc * ppc
         i1 = npts - ncpts + 1
-        nfft = 2**next_power_of_two(ppc * nc)
-        lsave = 4 * nfft + 15
         sys%fcn => sweep_eom
 
         ! Set up the optional argument container
@@ -716,17 +727,19 @@ contains
             stat = flag)
         if (flag == 0) allocate(ic(neqn), stat = flag, source = iv)
         if (flag == 0) allocate(t(npts), stat = flag)
-        if (flag == 0) allocate(xpts(nfft), stat = flag, source = (0.0d0, 0.0d0))
-        if (flag == 0) allocate(wsave(lsave), stat = flag)
         if (flag /= 0) go to 10
-
-        ! Set up the FFT calculations for the get_magnitude_phase routine
-        call zffti(nfft, wsave)
 
         ! Cycle over each frequency point
         do i = 1, nfreq
             ! Define the time vector
-            dt = (1.0d0 / freq(i)) / (ppc - 1.0d0)
+            if (hz) then
+                f = freq(i)
+                omega = 2.0d0 * pi * f
+            else
+                omega = freq(i)
+                f = omega / (2.0d0 * pi)
+            end if
+            dt = (1.0d0 / f) / (ppc - 1.0d0)
             t = (/ (dt * j, j = 0, npts - 1) /)
 
             ! Set the frequency
@@ -743,7 +756,8 @@ contains
             ! Determine the magnitude and phase for each equation
             do j = 1, neqn
                 rst%responses(i,j) = &
-                    get_magnitude_phase(sol(i1:npts,j+1), xpts, wsave)
+                    harmonic_projection(omega, sol(i1:npts,1), &
+                    sol(i1:npts,j+1))
             end do
 
             ! Clear the solution buffer for the next time around
@@ -788,7 +802,7 @@ contains
         return
     end function
 
-    ! ----------
+! ----------
     subroutine sweep_eom(x, y, dydx, args)
         real(real64), intent(in) :: x
         real(real64), intent(in), dimension(:) :: y
@@ -805,48 +819,39 @@ contains
         end select
     end subroutine
 
-    ! ----------
-    function get_magnitude_phase(x, xzeros, wsave) result(rst)
-        !! Returns the magnitude and phase of a signal.
-        use fftpack, only : zfftf
-        use spectrum, only : compute_transform_length
-        ! Arguments
-        real(real64), intent(in), dimension(:) :: x
-            !! The array containing the signal.
-        complex(real64), intent(out), dimension(:) :: xzeros
-            !! A workspace array for the FFT operation.
-        real(real64), intent(in), dimension(:) :: wsave
-            !! A workspace array for the FFT operation
+! ----------
+    pure function harmonic_projection(omega, t, y) result(rst)
+        real(real64), intent(in) :: omega
+        real(real64), intent(in), dimension(:) :: t
+        real(real64), intent(in), dimension(size(t)) :: y
         complex(real64) :: rst
-            !! The complex-valued result defining both magnitude and phase.
-
-        ! Parameters
-        complex(real64), parameter :: czero = (0.0d0, 0.0d0)
 
         ! Local Variables
-        integer(int32) :: i, ind, m, n, nx
+        integer(int32) :: i, n
+        real(real64) :: a, b, r, phi
 
         ! Initialization
-        nx = size(x)
-        n = size(xzeros)
-        m = compute_transform_length(n)
+        n = size(t)
+        a = 0.0d0
+        b = 0.0d0
 
-        ! Zero pad the data
-        xzeros(:nx) = cmplx(x, 0.0d0, real64)
-        xzeros(nx+1:) = czero
-
-        ! Compute the FFT to estimate the phase
-        call zfftf(n, xzeros, wsave)
-        ind = maxloc(abs(xzeros(2:m)), 1) + 1 ! start at 2 to avoid any DC issues
-        rst = 2.0d0 * xzeros(ind) / nx
+        ! Process
+        do i = 1, n
+            a = a + y(i) * cos(omega * t(i))
+            b = b + y(i) * sin(omega * t(i))
+        end do
+        a = 2.0d0 * a / n
+        b = 2.0d0 * b / n
+        r = sqrt(a**2 + b**2)
+        phi = atan2(a, b)
+        rst = cmplx(r * cos(phi), r * sin(phi))
     end function
 
 ! ------------------------------------------------------------------------------
     function frf_sweep_2(fcn, nfreq, freq1, freq2, iv, solver, ncycles, &
-        ntransient, points, args, err) result(rst)
+        ntransient, points, inHz, args, err) result(rst)
         !! Computes the frequency response of each equation of a system of
         !! harmonically excited ODE's by sweeping through frequency.
-        use spectrum, only : next_power_of_two
         use diffeq, only : runge_kutta_45
         use dynamics_error_handling
         procedure(harmonic_ode), pointer, intent(in) :: fcn
@@ -855,11 +860,9 @@ contains
             !! The number of frequency values to analyze.  This value must be
             !! at least 2.
         real(real64), intent(in) :: freq1
-            !! The starting frequency.  It is recommended that the units be set
-            !! to Hz.
+            !! The starting frequency.
         real(real64), intent(in) :: freq2
-            !! The ending frequency.  It is recommended that the units be set to
-            !! Hz.
+            !! The ending frequency.
         real(real64), intent(in), dimension(:) :: iv
             !! An N-element array containing the initial conditions for each of 
             !! the N ODEs.
@@ -870,18 +873,18 @@ contains
         integer(int32), intent(in), optional :: ncycles
             !! An optional parameter controlling the number of cycles to 
             !! analyze when determining the amplitude and phase of the response.
-            !! The default is 20.
+            !! The default is 5.
         integer(int32), intent(in), optional :: ntransient
             !! An optional parameter controlling how many of the initial 
-            !! "transient" cycles to ignore.  The default is 200.
+            !! "transient" cycles to ignore.  The default is 30.
         integer(int32), intent(in), optional :: points
             !! An optional parameter controlling how many evenly spaced 
             !! solution points should be considered per cycle.  The default is 
-            !! 1000.  Notice, there must be at least 2 points per cycle for the
-            !! analysis to be effective.  The algorithm utilizes a discrete 
-            !! Fourier transform to determine the phase and amplitude, and in 
-            !! order to satisfy Nyquist conditions, the value must be at least 
-            !! 2.
+            !! 1000.
+        logical, intent(in), optional :: inHz
+            !! Set to true if the units of the frequency units are in Hz.  If
+            !! false, the units are assumed as rad/s.  The default is false such
+            !! that the frequency units are assumed to be rad/s.
         class(*), intent(inout), optional :: args
             !! An optional argument allowing for passing of data in/out of the
             !! fcn subroutine.
@@ -940,7 +943,7 @@ contains
         end if
         freq = (/ (df * i + freq1, i = 0, nfreq - 1) /)
         rst = frf_sweep_1(fcn, freq, iv, solver, ncycles, ntransient, &
-            points, args = args, err = err)
+            points, inHz = inHz, args = args, err = err)
     end function
 
 ! ******************************************************************************

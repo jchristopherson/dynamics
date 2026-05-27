@@ -112,6 +112,7 @@ module dynamics_c_api
         integer(c_int) :: cycle_count
         integer(c_int) :: transient_cycles
         integer(c_int) :: points_per_cycle
+        logical(c_bool) :: frequency_in_hz
     end type
 
     type, bind(C) :: c_iteration_controls
@@ -1243,7 +1244,8 @@ subroutine c_frf_sweep(n, nfreq, fcn, freq, iv, solver, rsp, ldr, opts) &
 
     frsp = frequency_sweep(odefcn, freq, iv, solver = integrator_obj, &
         args = arg, ncycles = opts%cycle_count, &
-        ntransient = opts%transient_cycles, points = opts%points_per_cycle)
+        ntransient = opts%transient_cycles, points = opts%points_per_cycle, &
+        inHz = logical(opts%frequency_in_hz))
     rsp(1:nfreq,1:n) = frsp%responses
 end subroutine
 
@@ -1264,9 +1266,10 @@ end subroutine
 subroutine c_set_frequency_sweep_defaults(x) &
     bind(C, name = "c_set_frequency_sweep_defaults")
     type(c_frequency_sweep_controls), intent(inout) :: x
-    x%cycle_count = 20
-    x%transient_cycles = 200
+    x%cycle_count = 5
+    x%transient_cycles = 30
     x%points_per_cycle = 1000
+    x%frequency_in_hz = .false.
 end subroutine
 
 ! ------------------------------------------------------------------------------
