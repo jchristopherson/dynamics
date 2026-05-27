@@ -588,12 +588,12 @@ contains
         !! The amplitude and phase are determined by means of a harmonic 
         !! projection method.
         !!
-        !! $$ a = \frac{2}{T} \int y(t) \cos{\left(\omega t \right)} \, dt $$
-        !! $$ b = \frac{2}{T} \int y(t) \sin{\left(\omega t \right)} \, dt $$
-        !!
-        !! The amplitude and phase can then be computed as follows.
         !! $$ Y = \sqrt{a^{2} + b^{2}} $$
         !! $$ \phi = \tan^{-1}{\left( \frac{a}{b} \right)} $$
+        !!
+        !! where
+        !! $$ a = \frac{2}{T} \int y(t) \cos{\left(\omega t \right)} \, dt $$
+        !! $$ b = \frac{2}{T} \int y(t) \sin{\left(\omega t \right)} \, dt $$
         use diffeq, only : runge_kutta_45
         use dynamics_error_handling
         procedure(harmonic_ode), pointer, intent(in) :: fcn
@@ -602,7 +602,7 @@ contains
             !! An M-element array containing the frequency points at which the 
             !! solution should be computed.  Notice, whatever units are utilized
             !! for this array are also the units of the excitation_frequency
-            !! property in @p sys.  Additionally, this array cannot contain any
+            !! property in sys.  Additionally, this array cannot contain any
             !! zero-valued elements as the ODE solution time for each frequency 
             !! is determined by the period of oscillation and number of cycles.
         real(real64), intent(in), dimension(:) :: iv
@@ -821,9 +821,14 @@ contains
 
 ! ----------
     pure function harmonic_projection(omega, t, y) result(rst)
+        !! Utilizes a harmonic projection method to determine the amplitude and
+        !! phase of the supplied solution.
         real(real64), intent(in) :: omega
+            !! The excitation frequency, in rad/s.
         real(real64), intent(in), dimension(:) :: t
+            !! The solution time points.
         real(real64), intent(in), dimension(size(t)) :: y
+            !! The solution vector.
         complex(real64) :: rst
 
         ! Local Variables
@@ -852,6 +857,16 @@ contains
         ntransient, points, inHz, args, err) result(rst)
         !! Computes the frequency response of each equation of a system of
         !! harmonically excited ODE's by sweeping through frequency.
+        !!
+        !! The amplitude and phase are determined by means of a harmonic 
+        !! projection method.
+        !!
+        !! $$ Y = \sqrt{a^{2} + b^{2}} $$
+        !! $$ \phi = \tan^{-1}{\left( \frac{a}{b} \right)} $$
+        !!
+        !! where
+        !! $$ a = \frac{2}{T} \int y(t) \cos{\left(\omega t \right)} \, dt $$
+        !! $$ b = \frac{2}{T} \int y(t) \sin{\left(\omega t \right)} \, dt $$
         use diffeq, only : runge_kutta_45
         use dynamics_error_handling
         procedure(harmonic_ode), pointer, intent(in) :: fcn
