@@ -16,6 +16,7 @@ set(dynamics_test_sources
 
 # Dependencies
 include(FetchContent)
+find_package(OpenMP REQUIRED COMPONENTS Fortran)
 find_package(fortran_test_helper QUIET)
 find_package(ferror QUIET)
 find_package(linalg QUIET)
@@ -109,6 +110,9 @@ target_link_libraries(
     ${COLLECTIONS_LIBRARIES}
     ${DIFFEQ_LIBRARIES}
 )
+if (OpenMP_Fortran_FOUND)
+    target_link_libraries(dynamics_tests OpenMP::OpenMP_Fortran)
+endif()
 add_test(
     NAME dynamics_tests
     WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}

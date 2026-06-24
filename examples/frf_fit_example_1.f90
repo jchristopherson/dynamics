@@ -88,10 +88,10 @@ program example
     ! Print out the model coefficients
     print "(A)", "MODEL COEFFICIENTS:"
     do i = 1, size(mdl) / 3
-        print "(AI0AF0.4)", tab // "A", i, ": ", mdl(3 * i - 2)
-        print "(AI0AF0.4A)", tab // "wn", i, ": ", &
+        print "(A, I0, A, F0.4)", tab // "A", i, ": ", mdl(3 * i - 2)
+        print "(A, I0, A, F0.4, A)", tab // "wn", i, ": ", &
             mdl(3 * i - 1) / (2.0d0 * pi), " Hz"
-        print "(AI0AF0.4)", tab // "z", i, ": ", mdl(3 * i)
+        print "(A, I0, A, F0.4)", tab // "z", i, ": ", mdl(3 * i)
     end do
 
     ! For comparison purposes, compute and display the actual modal 
@@ -100,7 +100,7 @@ program example
     natfreqs = natfreqs / (2.0d0 * pi)  ! convert units to Hz
     print "(A)", new_line('a') // "ACTUAL MODAL FREQUENCIES:"
     do i = 1, size(natfreqs)
-        print "(AI0AF0.4A)", tab // "Mode ", i, ": ", natfreqs(i), " Hz"
+        print "(A, I0, A, F0.4, A)", tab // "Mode ", i, ": ", natfreqs(i), " Hz"
     end do
 
 ! ------------------------------------------------------------------------------

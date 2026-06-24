@@ -40,10 +40,10 @@ program example
     zx = damping_from_log_decrement(delta)
 
     ! Write out comparisons
-    print "(AF5.3)", "Actual Damping Ratio: ", zeta
-    print "(AF5.3)", "Estimated Damping Ratio: ", zx
-    print "(AF6.3A)", "Actual Damped Frequency: ", wd / (2.0d0 * pi), " Hz"
-    print "(AF6.3A)", "Estimated Damped Frequency: ", fnx, " Hz"
+    print "(A, F5.3)", "Actual Damping Ratio: ", zeta
+    print "(A, F5.3)", "Estimated Damping Ratio: ", zx
+    print "(A, F6.3, A)", "Actual Damped Frequency: ", wd / (2.0d0 * pi), " Hz"
+    print "(A, F6.3, A)", "Estimated Damped Frequency: ", fnx, " Hz"
 
     ! Plot the response
     call plt%initialize()

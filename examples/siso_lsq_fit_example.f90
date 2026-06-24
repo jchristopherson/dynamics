@@ -105,22 +105,22 @@ program example
 
     ! Compare the solution and the actual values
     print "(A)", "NATURAL FREQUENCY TERM:"
-    print "(AAF8.3A)", achar(9), "Actual: ", wn, " rad/s"
-    print "(AAF8.3A)", achar(9), "Computed: ", p(1), " rad/s"
-    print "(AAF8.3A)", achar(9), "Difference: ", p(1) - wn, " rad/s"
-    print "(AAF8.3A)", achar(9), "Std. Error: ", stats(1)%standard_error, " rad/s"
-    print "(AAF8.3A)", achar(9), "Conf. Int.: +/-", stats(1)%confidence_interval, " rad/s"
-    print "(AAEN10.3)", achar(9), "P-Value: ", stats(1)%probability
-    print "(AAEN12.3)", achar(9), "T-Statistic: ", stats(1)%t_statistic
+    print "(A, A, F8.3, A)", achar(9), "Actual: ", wn, " rad/s"
+    print "(A, A, F8.3, A)", achar(9), "Computed: ", p(1), " rad/s"
+    print "(A, A, F8.3, A)", achar(9), "Difference: ", p(1) - wn, " rad/s"
+    print "(A, A, F8.3, A)", achar(9), "Std. Error: ", stats(1)%standard_error, " rad/s"
+    print "(A, A, F8.3, A)", achar(9), "Conf. Int.: +/-", stats(1)%confidence_interval, " rad/s"
+    print "(A, A, EN10.3)", achar(9), "P-Value: ", stats(1)%probability
+    print "(A, A, EN12.3)", achar(9), "T-Statistic: ", stats(1)%t_statistic
     
     print "(A)", "DAMPING TERM:"
-    print "(AAF6.3)", achar(9), "Actual: ", zeta
-    print "(AAF6.3)", achar(9), "Computed: ", p(2)
-    print "(AAF6.3)", achar(9), "Difference: ", p(2) - zeta
-    print "(AAF6.3)", achar(9), "Std. Error: ", stats(2)%standard_error
-    print "(AAF6.3)", achar(9), "Conf. Int.: +/-", stats(2)%confidence_interval
-    print "(AAEN10.3)", achar(9), "P-Value: ", stats(2)%probability
-    print "(AAEN12.3)", achar(9), "T-Statistic: ", stats(2)%t_statistic
+    print "(A, A, F6.3)", achar(9), "Actual: ", zeta
+    print "(A, A, F6.3)", achar(9), "Computed: ", p(2)
+    print "(A, A, F6.3)", achar(9), "Difference: ", p(2) - zeta
+    print "(A, A, F6.3)", achar(9), "Std. Error: ", stats(2)%standard_error
+    print "(A, A, F6.3)", achar(9), "Conf. Int.: +/-", stats(2)%confidence_interval
+    print "(A, A, EN10.3)", achar(9), "P-Value: ", stats(2)%probability
+    print "(A, A, EN12.3)", achar(9), "T-Statistic: ", stats(2)%t_statistic
 
     ! Re-evaluate the model with the computed parameters
     info%model = p
