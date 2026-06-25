@@ -117,6 +117,7 @@ program example
     call pd%set_name("Output")
     call plt%push(pd)
 
+    call pd%clear_all()
     call pd%define_data(sol(:,1), r)
     call pd%set_name("Command")
     call plt%push(pd)
@@ -136,9 +137,11 @@ program example
     call x2%set_title("f [Hz]")
     call y2%set_title("{/Symbol f} [deg]")
 
+    call pd%clear_all()
     call pd%define_data(freq, mag)
     call plt1%push(pd)
 
+    call pd%clear_all()
     call pd%define_data(freq, phase)
     call plt2%push(pd)
 

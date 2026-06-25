@@ -71,6 +71,7 @@ program main
     call plt%draw()
 
     ! Plot the Poincare map on the original trajectory
+    call pd3%clear_all()
     call pd3%define_data(map(:,1), map(:,2), map(:,3))
     call pd3%set_draw_line(.false.)
     call pd3%set_draw_markers(.true.)
