@@ -115,12 +115,15 @@ program example
     call yAxis%set_use_default_tic_label_format(.false.)
     call yAxis%set_tic_label_format("%4.0f")
 
+    call pd1%clear_all()
     call pd1%define_data(freq, phase(:,1))
     call plt2%push(pd1)
 
+    call pd2%clear_all()
     call pd2%define_data(freq, phase(:,2))
     call plt2%push(pd2)
 
+    call pd3%clear_all()
     call pd3%define_data(freq, phase(:,3))
     call plt2%push(pd3)
     

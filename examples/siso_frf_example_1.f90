@@ -120,6 +120,7 @@ program example
     call pd1%set_name("SISO")
     call plt1%push(pd1)
 
+    call pd1%clear_all()
     call pd1%define_data(rsp%frequency, phase)
     call plt2%push(pd1)
 
@@ -130,6 +131,7 @@ program example
     call pd2%set_name("Analytical")
     call plt1%push(pd2)
 
+    call pd2%clear_all()
     call pd2%define_data(rsp%frequency, aphase)
     call plt2%push(pd2)
 

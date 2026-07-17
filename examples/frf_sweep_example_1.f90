@@ -179,9 +179,11 @@ program example
     call xAxis%set_autoscale(.false.)
     call xAxis%set_limits(0.0d0, 2.0d0)
 
+    call pd1%clear_all()
     call pd1%define_data(solup%frequency, phase1)
     call plt2%push(pd1)
 
+    call pd2%clear_all()
     call pd2%define_data(soldown%frequency, phase2)
     call plt2%push(pd2)
 

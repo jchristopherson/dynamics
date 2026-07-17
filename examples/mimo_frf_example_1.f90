@@ -134,14 +134,17 @@ program example
     call plt1%push(pd)
     call plt%set(1, 1, plt1)
 
+    call pd%clear_all()
     call pd%define_data(rsp%frequency, amp12)
     call plt2%push(pd)
     call plt%set(1, 2, plt2)
 
+    call pd%clear_all()
     call pd%define_data(rsp%frequency, phase11)
     call plt3%push(pd)
     call plt%set(2, 1, plt3)
 
+    call pd%clear_all()
     call pd%define_data(rsp%frequency, phase12)
     call plt4%push(pd)
     call plt%set(2, 2, plt4)

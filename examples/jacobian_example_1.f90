@@ -153,6 +153,8 @@ program example
     call pltX%push(pd2)
 
     ! ----
+    call pd1%clear_all()
+    call pd2%clear_all()
     call pd1%define_data(t, V(:,2))
     call pltY%push(pd1)
 
@@ -160,6 +162,8 @@ program example
     call pltY%push(pd2)
 
     ! ----
+    call pd1%clear_all()
+    call pd2%clear_all()
     call pd1%define_data(t, V(:,3))
     call pltZ%push(pd1)
 

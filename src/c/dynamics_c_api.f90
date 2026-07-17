@@ -7,7 +7,7 @@ module dynamics_c_api
     use spectrum, only : window
     use dynamics_quaternions
     use dynamics_geometry
-    use nonlin, only : polynomial
+    use nonlin
     implicit none
 
     interface
