@@ -15,7 +15,7 @@ set(dynamics_c_sources
 
 # Build the tests
 add_executable(dynamics_c_tests ${dynamics_c_sources})
-target_link_libraries(dynamics_c_tests dynamics)
+target_link_libraries(dynamics_c_tests dynamics m)
 target_include_directories(dynamics_c_tests PRIVATE
     "${PROJECT_SOURCE_DIR}/src/c"
 )
