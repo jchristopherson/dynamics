@@ -1,14 +1,13 @@
 module dynamics_kinematics
     use iso_fortran_env
     use nonlin
-    use ferror
     use dynamics_error_handling
     use dynamics_helper
     use dynamics_geometry
     use dynamics_quaternions
+    use linalg, only : identity
     implicit none
     private
-    public :: identity_4
     public :: dh_rotate_x
     public :: dh_rotate_z
     public :: dh_translate_x
@@ -116,38 +115,6 @@ module dynamics_kinematics
     end type
 
 contains
-! ------------------------------------------------------------------------------
-    pure function identity_4() result(rst)
-        !! Computes a 4-by-4 identity matrix.
-        real(real64) :: rst(4, 4)
-            !! The resulting identity matrix.
-
-        ! Local Variables & Parameters
-        real(real64), parameter :: zero = 0.0d0
-        real(real64), parameter :: one = 1.0d0
-
-        ! Process
-        rst(1,1) = one
-        rst(2,1) = zero
-        rst(3,1) = zero
-        rst(4,1) = zero
-
-        rst(1,2) = zero
-        rst(2,2) = one
-        rst(3,2) = zero
-        rst(4,2) = zero
-
-        rst(1,3) = zero
-        rst(2,3) = zero
-        rst(3,3) = one
-        rst(4,3) = zero
-
-        rst(1,4) = zero
-        rst(2,4) = zero
-        rst(3,4) = zero
-        rst(4,4) = one
-    end function
-
 ! ------------------------------------------------------------------------------
     pure function dh_rotate_x(alpha) result(rst)
         !! Computes the Denavit-Hartenberg matrix for a local x-axis rotation.
@@ -543,7 +510,7 @@ contains
 
         ! Initialization
         n = size(alpha)
-        rst = identity_4()
+        rst = identity(4)
 
         ! Process
         do i = 1, n
@@ -568,7 +535,7 @@ contains
 
         ! Initialization
         n = size(x)
-        rst = identity_4()
+        rst = identity(4)
 
         ! Process
         do i = 1, n
@@ -594,7 +561,7 @@ contains
 
 ! ------------------------------------------------------------------------------
     function solve_inverse_kinematics(mdl, qo, constraints, df, &
-        slvr, ib, jfcn, qmax, qmin, args, err) result(rst)
+        slvr, ib, jfcn, qmax, qmin, args) result(rst)
         !! Solves the inverse kinematics problem for a linkage.  An iterative
         !! solution procedure is utilized.
         procedure(vecfcn), intent(in), pointer :: mdl
@@ -629,9 +596,6 @@ contains
             !! the 'huge' intrinsic function.
         class(*), intent(inout), optional, target :: args
             !! An optional argument that can be used to communicate with mdl.
-        class(errors), intent(inout), optional, target :: err
-            !! An errors-based object that if provided can be used to retrieve 
-            !! information relating to any errors encountered during execution.
         real(real64), allocatable, dimension(:) :: rst
             !! An M-element array containing the computed joint variables.
 
@@ -643,16 +607,9 @@ contains
         class(constrained_equation_solver), pointer :: solver
         type(constrained_least_squares_solver), target :: default_solver
         procedure(vecfcn), pointer :: fcn
-        class(errors), pointer :: errmgr
-        type(errors), target :: deferr
         type(inverse_kinematics_container) :: obj
         
         ! Initialization
-        if (present(err)) then
-            errmgr => err
-        else
-            errmgr => deferr
-        end if
         nvar = size(qo)
         neqn = size(constraints)
         if (present(slvr)) then
@@ -665,17 +622,9 @@ contains
         if (present(args)) obj%user_args => args
 
         ! Input Check
-        if (neqn < nvar) then
-            call report_constraint_count_error("solve_inverse_kinematics", &
-                nvar, neqn, errmgr)
-            return
-        end if
+        if (neqn < nvar) error stop DYN_CONSTRAINT_ERROR
         if (present(df)) then
-            if (size(df) /= neqn) then
-                call report_array_size_error("solve_inverse_kinematics", "df", &
-                    neqn, size(df), errmgr)
-                return
-            end if
+            if (size(df) /= neqn) error stop DYN_ARRAY_SIZE_ERROR
         end if
         if (present(qmax)) call solver%set_upper_limits(qmax)
         if (present(qmin)) call solver%set_lower_limits(qmin)
@@ -688,20 +637,16 @@ contains
         end if
 
         ! Local Memory Allocations
-        allocate(rst(nvar), source = qo, stat = flag)
+        allocate(rst(nvar), source = qo)
         if (present(df)) then
             resid => df
         else
-            if (flag == 0) allocate(dresid(neqn), stat = flag)
-            if (flag == 0) resid => dresid
-        end if
-        if (flag /= 0) then
-            call report_memory_error("solve_inverse_kinematics", flag, errmgr)
-            return
+            allocate(dresid(neqn))
+            resid => dresid
         end if
 
         ! Solve the problem
-        call solver%solve(helper, rst, resid, ib = ib, args = obj, err = errmgr)
+        call solver%solve(helper, rst, resid, ib = ib, args = obj)
     end function
 
 ! ----------
@@ -829,7 +774,7 @@ function dh_build_jacobian(alpha, a, theta, d, jtypes) result(rst)
 
     ! Initialization
     n = size(alpha)
-    T = identity_4()
+    T = identity(4)
     allocate(rst(6, n))
 
     ! Process

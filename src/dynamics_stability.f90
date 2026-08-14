@@ -1,6 +1,5 @@
 module dynamics_stability
     use iso_fortran_env
-    use ferror
     use dynamics_error_handling
     use linalg, only : eigen
     implicit none
@@ -39,7 +38,7 @@ module dynamics_stability
 
 contains
 ! ------------------------------------------------------------------------------
-function determine_local_stability(a, ev, err) result(rst)
+function determine_local_stability(a, ev) result(rst)
     !! Determines the nature of stability/unstability near the point at which
     !! the dynamics matrix was computed.
     real(real64), intent(in), dimension(:,:) :: a
@@ -48,46 +47,27 @@ function determine_local_stability(a, ev, err) result(rst)
     complex(real64), intent(out), optional, dimension(:) :: ev
         !! An optional N-element array that, if supplied, will be filled with 
         !! the eigenvalues of the matrix A.
-    class(errors), intent(inout), optional, target :: err
-        !! An error handler object.
     integer(int32) :: rst
         !! Describe the output constants
 
     ! Local Variables
     logical :: hyperbolic
-    integer(int32) :: i, n, flag, npositive, nnegative
+    integer(int32) :: i, n, npositive, nnegative
     real(real64) :: tol, rv
-    real(real64), allocatable, dimension(:,:) :: acpy
     complex(real64), allocatable, dimension(:) :: vals
-    class(errors), pointer :: errmgr
-    type(errors), target :: deferr
     
     ! Initialization
-    if (present(err)) then
-        errmgr => err
-    else
-        errmgr => deferr
-    end if
     n = size(a, 1)
     tol = 1.0d1 * epsilon(tol)  ! zero checking tolerance
 
     ! Input Checking
-    if (size(a, 2) /= n) then
-        call report_nonsquare_matrix_error("determine_local_stability", "a", &
-            size(a, 1), size(a, 2), errmgr)
-        return
-    end if
+    if (size(a, 2) /= n) error stop DYN_MATRIX_SIZE_ERROR
 
     ! Local Memory Allocation
-    allocate(acpy(n, n), source = a, stat = flag)
-    if (flag /= 0) go to 10
-
-    allocate(vals(n), stat = flag)
-    if (flag /= 0) go to 10
+    allocate(vals(n))
 
     ! Perform the eigen analysis on A
-    call eigen(acpy, vals, err = errmgr)
-    if (errmgr%has_error_occurred()) return
+    call eigen(a, vals)
 
     ! Cycle over each eigenvalue
     hyperbolic = .true.
@@ -128,30 +108,10 @@ function determine_local_stability(a, ev, err) result(rst)
 
     ! Optional Outputs
     if (present(ev)) then
-        if (size(ev) /= n) then
-            call report_array_size_error("determine_local_stability", "ev", &
-                n, size(ev), errmgr)
-            return
-        end if
+        if (size(ev) /= n) error stop DYN_ARRAY_SIZE_ERROR
         ev = vals
     end if
-
-    ! End
-    return
-
-    ! Memory Error Handling
-10  continue
-    call report_memory_error("determine_local_stability", flag, errmgr)
-    return
 end function
-
-! ------------------------------------------------------------------------------
-
-! ------------------------------------------------------------------------------
-
-! ------------------------------------------------------------------------------
-
-! ------------------------------------------------------------------------------
 
 ! ------------------------------------------------------------------------------
 end module

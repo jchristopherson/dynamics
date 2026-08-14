@@ -5,7 +5,6 @@
 module dynamics_structural
     use iso_fortran_env
     use linalg, only : csr_matrix, create_csr_matrix, sort
-    use ferror
     use dynamics_error_handling
     use dynamics_rotation
     implicit none
@@ -472,7 +471,7 @@ pure function find_global_dof(n, nodes) result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
-function create_connectivity_matrix(gdof, e, nodes, err) result(rst)
+function create_connectivity_matrix(gdof, e, nodes) result(rst)
     !! Creates a connectivity matrix for the element.
     integer(int32), intent(in) :: gdof
         !! The number of global degrees of freedom.
@@ -480,29 +479,16 @@ function create_connectivity_matrix(gdof, e, nodes, err) result(rst)
         !! The element.
     class(node), intent(in), dimension(:) :: nodes
         !! The global node list.
-    class(errors), intent(inout), optional, target :: err
-        !! An optional error handling object.
     real(real64), allocatable, dimension(:,:) :: rst
         !! The resulting matrix.
 
     ! Local Variables
-    integer(int32) :: i, j, col, nnodes, nnz, row, flag
-    class(errors), pointer :: errmgr
-    type(errors), target :: deferr
+    integer(int32) :: i, j, col, nnodes, nnz, row
     
     ! Initialization
-    if (present(err)) then
-        errmgr => err
-    else
-        errmgr => deferr
-    end if
     nnodes = e%get_node_count()
     nnz = e%get_dof_per_node() * nnodes
-    allocate(rst(nnz, gdof), source = 0.0d0, stat = flag)
-    if (flag /= 0) then
-        call report_memory_error("create_connectivity_matrix", flag, errmgr)
-        return
-    end if
+    allocate(rst(nnz, gdof), source = 0.0d0)
 
     ! Process
     row = 0
@@ -517,7 +503,7 @@ function create_connectivity_matrix(gdof, e, nodes, err) result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
-function apply_boundary_conditions_mtx(gdof, x, err) result(rst)
+function apply_boundary_conditions_mtx(gdof, x) result(rst)
     !! Applies boundary conditions to a matrix by removal of the appropriate
     !! rows and columns.
     integer(int32), intent(inout), dimension(:) :: gdof
@@ -525,65 +511,35 @@ function apply_boundary_conditions_mtx(gdof, x, err) result(rst)
         !! is sorted into ascending order on output.
     real(real64), intent(in), dimension(:,:) :: x
         !! The matrix to constrain.
-    class(errors), intent(inout), optional, target :: err
-        !! An optional error handling object.
     real(real64), allocatable, dimension(:,:) :: rst
         !! The altered matrix.
 
     ! Local Variables
-    integer(int32) :: i, j, ii, m, n, nbc, mnew, flag
+    integer(int32) :: i, j, ii, m, n, nbc, mnew
     integer(int32), allocatable, dimension(:) :: indices
-    class(errors), pointer :: errmgr
-    type(errors), target :: deferr
     
     ! Initialization
-    if (present(err)) then
-        errmgr => err
-    else
-        errmgr => deferr
-    end if
     m = size(x, 1)
     n = size(x, 2)
     nbc = size(gdof)
     mnew = m - nbc
 
     ! Input Checking
-    if (m /= n) then
-        call report_nonsquare_matrix_error("apply_boundary_conditions_mtx", &
-            "x", m, n, errmgr)
-        return
-    end if
-    if (mnew < 1) then
-        call report_overconstraint_error("apply_boundary_conditions_mtx", &
-            errmgr)
-        return
-    end if
+    if (m /= n) error stop DYN_MATRIX_SIZE_ERROR
+    if (mnew < 1) error stop DYN_CONSTRAINT_ERROR
     do i = 1, nbc
-        if (gdof(i) < 1 .or. gdof(i) > m) then
-            call report_array_index_out_of_bounds_error( &
-                "apply_boundary_conditions_mtx", "gdof", gdof(i), m, errmgr)
-            return
-        end if
+        if (gdof(i) < 1 .or. gdof(i) > m) error stop DYN_INDEX_OUT_OF_RANGE
     end do
 
     ! Memory Allocation
-    allocate(rst(mnew, mnew), stat = flag)
-    if (flag == 0) allocate(indices(m - nbc), stat = flag)
-    if (flag /= 0) then
-        call report_memory_error("apply_boundary_conditions_mtx", flag, errmgr)
-        return
-    end if
+    allocate(rst(mnew, mnew), indices(m - nbc))
 
     ! Sort gdof into ascending order
     call sort(gdof, .true.)
 
     ! Check for duplicate values in GDOF
     do i = 2, nbc
-        if (gdof(i) == gdof(i-1)) then
-            call report_nonmonotonic_array_error(&
-                "apply_boundary_conditions_mtx", "gdof", i, errmgr)
-            return
-        end if
+        if (gdof(i) == gdof(i-1)) error stop DYN_NONMONOTONIC_ARRAY_ERROR
     end do
 
     ! Process
@@ -604,7 +560,7 @@ function apply_boundary_conditions_mtx(gdof, x, err) result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
-function apply_boundary_conditions_vec(gdof, x, err) result(rst)
+function apply_boundary_conditions_vec(gdof, x) result(rst)
     !! Applies boundary conditions to a vector by removal of the appropriate
     !! items.
     integer(int32), intent(inout), dimension(:) :: gdof
@@ -612,59 +568,33 @@ function apply_boundary_conditions_vec(gdof, x, err) result(rst)
         !! is sorted into ascending order on output.
     real(real64), intent(in), dimension(:) :: x
         !! The vector to constrain.
-    class(errors), intent(inout), optional, target :: err
-        !! An optional error handling object.
     real(real64), allocatable, dimension(:) :: rst
         !! The altered vector.
 
     ! Local Variables
-    integer(int32) :: i, j, ii, n, nbc, nnew, flag
+    integer(int32) :: i, j, ii, n, nbc, nnew
     integer(int32), allocatable, dimension(:) :: indices
-    class(errors), pointer :: errmgr
-    type(errors), target :: deferr
     
     ! Initialization
-    if (present(err)) then
-        errmgr => err
-    else
-        errmgr => deferr
-    end if
     n = size(x)
     nbc = size(gdof)
     nnew = n - nbc
 
     ! Input Checking
-    if (nnew < 1) then
-        call report_overconstraint_error("apply_boundary_conditions_vec", &
-            errmgr)
-        return
-    end if
+    if (nnew < 1) error stop DYN_CONSTRAINT_ERROR
     do i = 1, nbc
-        if (gdof(i) < 1 .or. gdof(i) > n) then
-            call report_array_index_out_of_bounds_error( &
-                "apply_boundary_conditions_vec", "gdof", gdof(i), n, errmgr)
-            return
-        end if
+        if (gdof(i) < 1 .or. gdof(i) > n) error stop DYN_INDEX_OUT_OF_RANGE
     end do
 
     ! Memory Allocation
-    allocate(rst(nnew), stat = flag)
-    if (flag == 0) allocate(indices(n - nbc), stat = flag)
-    if (flag /= 0) then
-        call report_memory_error("apply_boundary_conditions_vec", flag, errmgr)
-        return
-    end if
+    allocate(rst(nnew), indices(n - nbc))
 
     ! Sort gdof into ascending order
     call sort(gdof, .true.)
 
     ! Check for duplicate values in GDOF
     do i = 2, nbc
-        if (gdof(i) == gdof(i-1)) then
-            call report_nonmonotonic_array_error( &
-                "apply_boundary_conditions_vec", "gdof", i, errmgr)
-            return
-        end if
+        if (gdof(i) == gdof(i-1)) error stop DYN_NONMONOTONIC_ARRAY_ERROR
     end do
 
     ! Process
@@ -685,7 +615,7 @@ function apply_boundary_conditions_vec(gdof, x, err) result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
-function restore_constrained_values(gdof, x, err) result(rst)
+function restore_constrained_values(gdof, x) result(rst)
     !! Restores the constrained degrees-of-freedom from the boundary conditions
     !! applied by apply_boundary_conditions.
     integer(int32), intent(inout), dimension(:) :: gdof
@@ -693,52 +623,31 @@ function restore_constrained_values(gdof, x, err) result(rst)
         !! is sorted into ascending order on output.
     real(real64), intent(in), dimension(:) :: x
         !! The constrained vector.
-    class(errors), intent(inout), optional, target :: err
-        !! An optional error handling object.
     real(real64), allocatable, dimension(:) :: rst
         !! The altered vector.
 
     ! Local Variables
-    integer(int32) ::i, j, ii, n, nbc, nnew, flag
-    class(errors), pointer :: errmgr
-    type(errors), target :: deferr
+    integer(int32) ::i, j, ii, n, nbc, nnew
     
     ! Initialization
-    if (present(err)) then
-        errmgr => err
-    else
-        errmgr => deferr
-    end if
     n = size(x)
     nbc = size(gdof)
     nnew = n + nbc
 
     ! Input Checking
     do i = 1, nbc
-        if (gdof(i) < 1 .or. gdof(i) > nnew) then
-            call report_array_index_out_of_bounds_error( &
-                "restore_constrained_values", "gdof", gdof(i), nnew, errmgr)
-            return
-        end if
+        if (gdof(i) < 1 .or. gdof(i) > nnew) error stop DYN_INDEX_OUT_OF_RANGE
     end do
 
     ! Memory Allocation
-    allocate(rst(nnew), source = 0.0d0, stat = flag)
-    if (flag /= 0) then
-        call report_memory_error("restore_constrained_values", flag, errmgr)
-        return
-    end if
+    allocate(rst(nnew), source = 0.0d0)
 
     ! Sort gdof into ascending order
     call sort(gdof, .true.)
 
     ! Check for duplicate values in GDOF
     do i = 2, nbc
-        if (gdof(i) == gdof(i-1)) then
-            call report_nonmonotonic_array_error( &
-                "restore_constrained_values", "gdof", i, errmgr)
-            return
-        end if
+        if (gdof(i) == gdof(i-1)) error stop DYN_NONMONOTONIC_ARRAY_ERROR
     end do
 
     ! Process
