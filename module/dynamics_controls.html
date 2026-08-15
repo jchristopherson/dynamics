@@ -88,7 +88,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 9.5% of total for modules and submodules.">505 statements</a>
+               title="10.1% of total for modules and submodules.">483 statements</a>
           </li>
 
             <li id="source-file">
@@ -189,13 +189,12 @@
       <ul class="list-group">
           <li class="list-group-item">
             <ul class="list-inline">
-                <li>ferror</li>
-                <li>linalg</li>
-                <li>lapack</li>
-                <li><a href="http://fortranwiki.org/fortran/show/ieee_arithmetic">ieee_arithmetic</a></li>
                 <li>diffeq</li>
-                <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
                 <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
+                <li>lapack</li>
+                <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
+                <li><a href="http://fortranwiki.org/fortran/show/ieee_arithmetic">ieee_arithmetic</a></li>
+                <li>linalg</li>
                 <li>nonlin_polynomials</li>
             </ul>
           </li>
@@ -285,7 +284,7 @@
     <ul class="list-group">
           <li class="list-group-item">
                 <h3>
-    private  function tf_tf_mult(x, y) result(rst)  
+    private pure function tf_tf_mult(x, y) result(rst)  
 
     </h3>
   <p>Multiplies two transfer functions.</p>
@@ -343,7 +342,7 @@
           </li>
           <li class="list-group-item">
                 <h3>
-    private  function poly_tf_mult(x, y) result(rst)  
+    private pure function poly_tf_mult(x, y) result(rst)  
 
     </h3>
   <p>Multiplies a polynomial and a transfer function to result in a new
@@ -402,7 +401,7 @@ transfer function.</p>
           </li>
           <li class="list-group-item">
                 <h3>
-    private  function tf_poly_mult(x, y) result(rst)  
+    private pure function tf_poly_mult(x, y) result(rst)  
 
     </h3>
   <p>Multiplies a transfer function and a polynomial to result in a new
@@ -461,7 +460,7 @@ transfer function.</p>
           </li>
           <li class="list-group-item">
                 <h3>
-    private  function tf_scalar_mult(x, y) result(rst)  
+    private pure function tf_scalar_mult(x, y) result(rst)  
 
     </h3>
   <p>Multiplies a transfer function by a scalar value.</p>
@@ -519,7 +518,7 @@ transfer function.</p>
           </li>
           <li class="list-group-item">
                 <h3>
-    private  function scalar_tf_mult(x, y) result(rst)  
+    private pure function scalar_tf_mult(x, y) result(rst)  
 
     </h3>
   <p>Multiplies a transfer function by a scalar value.</p>
@@ -1243,7 +1242,7 @@ x_{3} \right) </script>
     <ul class="list-group">
           <li class="list-group-item">
                 <h3>
-    private  function init_tf_array(y, x) result(rst)  
+    private pure function init_tf_array(y, x) result(rst)  
 
     </h3>
   <p>Initializes a new transfer function.</p>
@@ -1307,7 +1306,7 @@ are stored in acending order such that
           </li>
           <li class="list-group-item">
                 <h3>
-    private  function init_tf_poly(y, x) result(rst)  
+    private pure function init_tf_poly(y, x) result(rst)  
 
     </h3>
   <p>Initializes a new transfer function.</p>
@@ -1732,7 +1731,7 @@ are stored in acending order such that
                   <td>
                         private
 
-                    
+                    pure
                     function
                     <strong>init_tf_array</strong>
                     (y, x)
@@ -1743,7 +1742,7 @@ are stored in acending order such that
                   <td>
                         private
 
-                    
+                    pure
                     function
                     <strong>init_tf_poly</strong>
                     (y, x)
@@ -1819,7 +1818,7 @@ generic,
     <section>
     <h2>Functions</h2>
       <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="proc-lti_solve"></span><h3>public  function <a href='../proc/lti_solve.html'>lti_solve</a>(mdl, u, t, ic, solver, args, err) result(rst)  
+    <div class="panel-heading codesum"><span class="anchor" id="proc-lti_solve"></span><h3>public  function <a href='../proc/lti_solve.html'>lti_solve</a>(mdl, u, t, ic, solver, args) result(rst)  
 </h3></div>
     <div class="panel-body">
           
@@ -1935,21 +1934,6 @@ is a 4th/5th order Runge-Kutta integrator.</p>
 routine.</p>
             </td>
         </tr>
-        <tr>
-            <td>
-              <span class="anchor" ></span>
-              class(errors),
-            </td>
-<td>intent(inout),</td>
-              <td>optional,</td>            <td>
-              target
-            </td>
-            <td>::</td>
-            <td><strong>err</strong></td>
-            <td>
-<p>An error handling object.</p>
-            </td>
-        </tr>
     </tbody>
   </table>
 
@@ -1985,7 +1969,7 @@ remaining column(s).</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-07-17 17:21            </p>
+ on 2026-08-15 20:38            </p>
         </div>
       </div>
       <br>

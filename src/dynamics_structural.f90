@@ -4,12 +4,13 @@
 
 module dynamics_structural
     use iso_fortran_env
-    use linalg, only : csr_matrix, create_csr_matrix, sort
-    use ferror
+    use linalg, only : csr_matrix, create_csr_matrix, sort, size, assignment(=)
     use dynamics_error_handling
     use dynamics_rotation
     implicit none
     private
+    public :: csr_matrix
+    public :: assignment(=)
     public :: DYN_ONE_POINT_INTEGRATION_RULE
     public :: DYN_TWO_POINT_INTEGRATION_RULE
     public :: DYN_THREE_POINT_INTEGRATION_RULE
@@ -286,6 +287,7 @@ module dynamics_structural
     interface apply_boundary_conditions
         module procedure :: apply_boundary_conditions_mtx
         module procedure :: apply_boundary_conditions_vec
+        module procedure :: apply_boundary_conditions_csr
     end interface
 
 contains
@@ -472,37 +474,29 @@ pure function find_global_dof(n, nodes) result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
-function create_connectivity_matrix(gdof, e, nodes, err) result(rst)
-    !! Creates a connectivity matrix for the element.
+function create_connectivity_matrix(gdof, e, nodes) result(rst)
+    !! Creates a connectivity matrix for the element, stored in CSR format.
+    !! The matrix contains exactly one non-zero (unity) entry per row;
+    !! therefore, it is well-suited to a sparse representation.
     integer(int32), intent(in) :: gdof
         !! The number of global degrees of freedom.
     class(element), intent(in) :: e
         !! The element.
     class(node), intent(in), dimension(:) :: nodes
         !! The global node list.
-    class(errors), intent(inout), optional, target :: err
-        !! An optional error handling object.
-    real(real64), allocatable, dimension(:,:) :: rst
+    type(csr_matrix) :: rst
         !! The resulting matrix.
 
     ! Local Variables
-    integer(int32) :: i, j, col, nnodes, nnz, row, flag
-    class(errors), pointer :: errmgr
-    type(errors), target :: deferr
+    integer(int32) :: i, j, col, nnodes, nnz, row
+    integer(int32), allocatable, dimension(:) :: rows, cols
+    real(real64), allocatable, dimension(:) :: vals
     
     ! Initialization
-    if (present(err)) then
-        errmgr => err
-    else
-        errmgr => deferr
-    end if
     nnodes = e%get_node_count()
     nnz = e%get_dof_per_node() * nnodes
-    allocate(rst(nnz, gdof), source = 0.0d0, stat = flag)
-    if (flag /= 0) then
-        call report_memory_error("create_connectivity_matrix", flag, errmgr)
-        return
-    end if
+    allocate(rows(nnz), cols(nnz))
+    allocate(vals(nnz), source = 1.0d0)
 
     ! Process
     row = 0
@@ -510,14 +504,16 @@ function create_connectivity_matrix(gdof, e, nodes, err) result(rst)
         col = find_global_dof(e%get_node(j), nodes)
         do i = 1, e%get_dof_per_node()
             row = row + 1
-            rst(row, col) = 1.0d0
+            rows(row) = row
+            cols(row) = col
             col = col + 1
         end do
     end do
+    rst = create_csr_matrix(nnz, gdof, rows, cols, vals)
 end function
 
 ! ------------------------------------------------------------------------------
-function apply_boundary_conditions_mtx(gdof, x, err) result(rst)
+function apply_boundary_conditions_mtx(gdof, x) result(rst)
     !! Applies boundary conditions to a matrix by removal of the appropriate
     !! rows and columns.
     integer(int32), intent(inout), dimension(:) :: gdof
@@ -525,65 +521,35 @@ function apply_boundary_conditions_mtx(gdof, x, err) result(rst)
         !! is sorted into ascending order on output.
     real(real64), intent(in), dimension(:,:) :: x
         !! The matrix to constrain.
-    class(errors), intent(inout), optional, target :: err
-        !! An optional error handling object.
     real(real64), allocatable, dimension(:,:) :: rst
         !! The altered matrix.
 
     ! Local Variables
-    integer(int32) :: i, j, ii, m, n, nbc, mnew, flag
+    integer(int32) :: i, j, ii, m, n, nbc, mnew
     integer(int32), allocatable, dimension(:) :: indices
-    class(errors), pointer :: errmgr
-    type(errors), target :: deferr
     
     ! Initialization
-    if (present(err)) then
-        errmgr => err
-    else
-        errmgr => deferr
-    end if
     m = size(x, 1)
     n = size(x, 2)
     nbc = size(gdof)
     mnew = m - nbc
 
     ! Input Checking
-    if (m /= n) then
-        call report_nonsquare_matrix_error("apply_boundary_conditions_mtx", &
-            "x", m, n, errmgr)
-        return
-    end if
-    if (mnew < 1) then
-        call report_overconstraint_error("apply_boundary_conditions_mtx", &
-            errmgr)
-        return
-    end if
+    if (m /= n) error stop DYN_MATRIX_SIZE_ERROR
+    if (mnew < 1) error stop DYN_CONSTRAINT_ERROR
     do i = 1, nbc
-        if (gdof(i) < 1 .or. gdof(i) > m) then
-            call report_array_index_out_of_bounds_error( &
-                "apply_boundary_conditions_mtx", "gdof", gdof(i), m, errmgr)
-            return
-        end if
+        if (gdof(i) < 1 .or. gdof(i) > m) error stop DYN_INDEX_OUT_OF_RANGE
     end do
 
     ! Memory Allocation
-    allocate(rst(mnew, mnew), stat = flag)
-    if (flag == 0) allocate(indices(m - nbc), stat = flag)
-    if (flag /= 0) then
-        call report_memory_error("apply_boundary_conditions_mtx", flag, errmgr)
-        return
-    end if
+    allocate(rst(mnew, mnew), indices(m - nbc))
 
     ! Sort gdof into ascending order
     call sort(gdof, .true.)
 
     ! Check for duplicate values in GDOF
     do i = 2, nbc
-        if (gdof(i) == gdof(i-1)) then
-            call report_nonmonotonic_array_error(&
-                "apply_boundary_conditions_mtx", "gdof", i, errmgr)
-            return
-        end if
+        if (gdof(i) == gdof(i-1)) error stop DYN_NONMONOTONIC_ARRAY_ERROR
     end do
 
     ! Process
@@ -604,7 +570,89 @@ function apply_boundary_conditions_mtx(gdof, x, err) result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
-function apply_boundary_conditions_vec(gdof, x, err) result(rst)
+function apply_boundary_conditions_csr(gdof, x) result(rst)
+    !! Applies boundary conditions to a CSR-format sparse matrix by removal of
+    !! the appropriate rows and columns.
+    integer(int32), intent(inout), dimension(:) :: gdof
+        !! An array of the global degrees of freedom to restrain.  The array
+        !! is sorted into ascending order on output.
+    type(csr_matrix), intent(in) :: x
+        !! The matrix to constrain.
+    type(csr_matrix) :: rst
+        !! The altered matrix.
+
+    ! Local Variables
+    integer(int32) :: i, ii, j, k, m, n, nbc, mnew, nnz
+    integer(int32), allocatable, dimension(:) :: map, rows, cols
+    real(real64), allocatable, dimension(:) :: vals
+    
+    ! Initialization
+    m = size(x, 1)
+    n = size(x, 2)
+    nbc = size(gdof)
+    mnew = m - nbc
+
+    ! Input Checking
+    if (m /= n) error stop DYN_MATRIX_SIZE_ERROR
+    if (mnew < 1) error stop DYN_CONSTRAINT_ERROR
+    do i = 1, nbc
+        if (gdof(i) < 1 .or. gdof(i) > m) error stop DYN_INDEX_OUT_OF_RANGE
+    end do
+
+    ! Sort gdof into ascending order
+    call sort(gdof, .true.)
+
+    ! Check for duplicate values in GDOF
+    do i = 2, nbc
+        if (gdof(i) == gdof(i-1)) error stop DYN_NONMONOTONIC_ARRAY_ERROR
+    end do
+
+    ! Build a map from the old row/column index to the new, constrained index;
+    ! a value of zero denotes a row/column that is to be removed
+    allocate(map(m))
+    ii = 1
+    j = 0
+    do i = 1, m
+        if (ii <= nbc) then
+            if (gdof(ii) == i) then
+                map(i) = 0
+                ii = ii + 1
+                cycle
+            end if
+        end if
+        j = j + 1
+        map(i) = j
+    end do
+
+    ! Count the number of retained non-zero entries
+    nnz = 0
+    do i = 1, m
+        if (map(i) == 0) cycle
+        do k = x%row_indices(i), x%row_indices(i+1) - 1
+            if (map(x%column_indices(k)) == 0) cycle
+            nnz = nnz + 1
+        end do
+    end do
+
+    ! Populate the retained entries, remapped to the new index set
+    allocate(rows(nnz), cols(nnz), vals(nnz))
+    nnz = 0
+    do i = 1, m
+        if (map(i) == 0) cycle
+        do k = x%row_indices(i), x%row_indices(i+1) - 1
+            j = x%column_indices(k)
+            if (map(j) == 0) cycle
+            nnz = nnz + 1
+            rows(nnz) = map(i)
+            cols(nnz) = map(j)
+            vals(nnz) = x%values(k)
+        end do
+    end do
+    rst = create_csr_matrix(mnew, mnew, rows, cols, vals)
+end function
+
+! ------------------------------------------------------------------------------
+function apply_boundary_conditions_vec(gdof, x) result(rst)
     !! Applies boundary conditions to a vector by removal of the appropriate
     !! items.
     integer(int32), intent(inout), dimension(:) :: gdof
@@ -612,59 +660,33 @@ function apply_boundary_conditions_vec(gdof, x, err) result(rst)
         !! is sorted into ascending order on output.
     real(real64), intent(in), dimension(:) :: x
         !! The vector to constrain.
-    class(errors), intent(inout), optional, target :: err
-        !! An optional error handling object.
     real(real64), allocatable, dimension(:) :: rst
         !! The altered vector.
 
     ! Local Variables
-    integer(int32) :: i, j, ii, n, nbc, nnew, flag
+    integer(int32) :: i, j, ii, n, nbc, nnew
     integer(int32), allocatable, dimension(:) :: indices
-    class(errors), pointer :: errmgr
-    type(errors), target :: deferr
     
     ! Initialization
-    if (present(err)) then
-        errmgr => err
-    else
-        errmgr => deferr
-    end if
     n = size(x)
     nbc = size(gdof)
     nnew = n - nbc
 
     ! Input Checking
-    if (nnew < 1) then
-        call report_overconstraint_error("apply_boundary_conditions_vec", &
-            errmgr)
-        return
-    end if
+    if (nnew < 1) error stop DYN_CONSTRAINT_ERROR
     do i = 1, nbc
-        if (gdof(i) < 1 .or. gdof(i) > n) then
-            call report_array_index_out_of_bounds_error( &
-                "apply_boundary_conditions_vec", "gdof", gdof(i), n, errmgr)
-            return
-        end if
+        if (gdof(i) < 1 .or. gdof(i) > n) error stop DYN_INDEX_OUT_OF_RANGE
     end do
 
     ! Memory Allocation
-    allocate(rst(nnew), stat = flag)
-    if (flag == 0) allocate(indices(n - nbc), stat = flag)
-    if (flag /= 0) then
-        call report_memory_error("apply_boundary_conditions_vec", flag, errmgr)
-        return
-    end if
+    allocate(rst(nnew), indices(n - nbc))
 
     ! Sort gdof into ascending order
     call sort(gdof, .true.)
 
     ! Check for duplicate values in GDOF
     do i = 2, nbc
-        if (gdof(i) == gdof(i-1)) then
-            call report_nonmonotonic_array_error( &
-                "apply_boundary_conditions_vec", "gdof", i, errmgr)
-            return
-        end if
+        if (gdof(i) == gdof(i-1)) error stop DYN_NONMONOTONIC_ARRAY_ERROR
     end do
 
     ! Process
@@ -685,7 +707,7 @@ function apply_boundary_conditions_vec(gdof, x, err) result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
-function restore_constrained_values(gdof, x, err) result(rst)
+function restore_constrained_values(gdof, x) result(rst)
     !! Restores the constrained degrees-of-freedom from the boundary conditions
     !! applied by apply_boundary_conditions.
     integer(int32), intent(inout), dimension(:) :: gdof
@@ -693,52 +715,31 @@ function restore_constrained_values(gdof, x, err) result(rst)
         !! is sorted into ascending order on output.
     real(real64), intent(in), dimension(:) :: x
         !! The constrained vector.
-    class(errors), intent(inout), optional, target :: err
-        !! An optional error handling object.
     real(real64), allocatable, dimension(:) :: rst
         !! The altered vector.
 
     ! Local Variables
-    integer(int32) ::i, j, ii, n, nbc, nnew, flag
-    class(errors), pointer :: errmgr
-    type(errors), target :: deferr
+    integer(int32) ::i, j, ii, n, nbc, nnew
     
     ! Initialization
-    if (present(err)) then
-        errmgr => err
-    else
-        errmgr => deferr
-    end if
     n = size(x)
     nbc = size(gdof)
     nnew = n + nbc
 
     ! Input Checking
     do i = 1, nbc
-        if (gdof(i) < 1 .or. gdof(i) > nnew) then
-            call report_array_index_out_of_bounds_error( &
-                "restore_constrained_values", "gdof", gdof(i), nnew, errmgr)
-            return
-        end if
+        if (gdof(i) < 1 .or. gdof(i) > nnew) error stop DYN_INDEX_OUT_OF_RANGE
     end do
 
     ! Memory Allocation
-    allocate(rst(nnew), source = 0.0d0, stat = flag)
-    if (flag /= 0) then
-        call report_memory_error("restore_constrained_values", flag, errmgr)
-        return
-    end if
+    allocate(rst(nnew), source = 0.0d0)
 
     ! Sort gdof into ascending order
     call sort(gdof, .true.)
 
     ! Check for duplicate values in GDOF
     do i = 2, nbc
-        if (gdof(i) == gdof(i-1)) then
-            call report_nonmonotonic_array_error( &
-                "restore_constrained_values", "gdof", i, errmgr)
-            return
-        end if
+        if (gdof(i) == gdof(i-1)) error stop DYN_NONMONOTONIC_ARRAY_ERROR
     end do
 
     ! Process
@@ -1221,26 +1222,24 @@ pure function b2d_strain_disp_matrix_2d(this, s) result(rst)
         !! The strain-displacement matrix.
 
     ! Local Variables
-    real(real64) :: l, dsdx, dn1ds, dn2ds, dn3ds, dn4ds, dn5ds, dn6ds
+    real(real64) :: l, sv
     
     ! Initialization
     allocate(rst(2, 6), source = 0.0d0)
 
-    ! Process
+    ! Process - use exact analytical formulas derived from the Hermite
+    ! shape functions for a 2D Euler-Bernoulli beam element.
+    ! For natural coordinate s in [-1, 1] and physical length l:
+    !   Axial strain:  epsilon = du/dx
+    !   Curvature:     kappa   = d2v/dx2
     l = this%length()
-    dsdx = 2.0d0 / l    ! s = 2 * x / L - 1, so ds/dx = 2 / L
-    dn1ds = shape_function_derivative(1, this, s, 1)
-    dn2ds = shape_function_second_derivative(2, this, s, 1)
-    dn3ds = shape_function_second_derivative(3, this, s, 1)
-    dn4ds = shape_function_derivative(4, this, s, 1)
-    dn5ds = shape_function_second_derivative(5, this, s, 1)
-    dn6ds = shape_function_second_derivative(6, this, s, 1)
-    rst(1,1) = dn1ds * dsdx
-    rst(2,2) = dn2ds * dsdx**2
-    rst(2,3) = 0.5d0 * l * dn3ds * dsdx**2
-    rst(1,4) = dn4ds * dsdx
-    rst(2,5) = dn5ds * dsdx**2
-    rst(2,6) = 0.5d0 * l * dn6ds * dsdx**2
+    sv = s(1)
+    rst(1,1) = -1.0d0 / l
+    rst(2,2) = 6.0d0 * sv / l**2
+    rst(2,3) = (3.0d0 * sv - 1.0d0) / l
+    rst(1,4) = 1.0d0 / l
+    rst(2,5) = -6.0d0 * sv / l**2
+    rst(2,6) = (3.0d0 * sv + 1.0d0) / l
 end function
 
 ! ------------------------------------------------------------------------------

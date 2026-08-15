@@ -88,7 +88,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title="<p> 0.3% of total for procedures.</p>Including implementation: 115 statements,  7.6% of total for procedures.">4 statements</a>
+               title="<p> 0.4% of total for procedures.</p>Including implementation: 126 statements, 10.5% of total for procedures.">5 statements</a>
           </li>
 
             <li id="source-file">
@@ -144,6 +144,7 @@
         <div class="list-group">
             <a class="list-group-item" href="../interface/apply_boundary_conditions.html#moduleprocedure-apply_boundary_conditions_mtx">apply_boundary_conditions_mtx</a>
             <a class="list-group-item" href="../interface/apply_boundary_conditions.html#moduleprocedure-apply_boundary_conditions_vec">apply_boundary_conditions_vec</a>
+            <a class="list-group-item" href="../interface/apply_boundary_conditions.html#moduleprocedure-apply_boundary_conditions_csr">apply_boundary_conditions_csr</a>
         </div>
       </div>
     </div>
@@ -188,6 +189,7 @@
         <div class="list-group">
             <a class="list-group-item" href="../interface/apply_boundary_conditions.html#moduleprocedure-apply_boundary_conditions_mtx">apply_boundary_conditions_mtx</a>
             <a class="list-group-item" href="../interface/apply_boundary_conditions.html#moduleprocedure-apply_boundary_conditions_vec">apply_boundary_conditions_vec</a>
+            <a class="list-group-item" href="../interface/apply_boundary_conditions.html#moduleprocedure-apply_boundary_conditions_csr">apply_boundary_conditions_csr</a>
         </div>
       </div>
     </div>
@@ -201,7 +203,7 @@
 
    <h2>Module Procedures</h2>
       <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="proc-apply_boundary_conditions_mtx"></span><h3>private  function apply_boundary_conditions_mtx(gdof, x, err) result(rst)  
+    <div class="panel-heading codesum"><span class="anchor" id="proc-apply_boundary_conditions_mtx"></span><h3>private  function apply_boundary_conditions_mtx(gdof, x) result(rst)  
 </h3></div>
     <div class="panel-body">
         <p>Applies boundary conditions to a matrix by removal of the appropriate
@@ -249,21 +251,6 @@ is sorted into ascending order on output.</p>
                 <p>The matrix to constrain.</p>
             </td>
         </tr>
-        <tr>
-            <td>
-              <span class="anchor" ></span>
-              class(errors),
-            </td>
-<td>intent(inout),</td>
-              <td>optional,</td>            <td>
-              target
-            </td>
-            <td>::</td>
-            <td><strong>err</strong></td>
-            <td>
-                <p>An optional error handling object.</p>
-            </td>
-        </tr>
     </tbody>
   </table>
 
@@ -277,7 +264,7 @@ is sorted into ascending order on output.</p>
   </div>
 
       <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="proc-apply_boundary_conditions_vec"></span><h3>private  function apply_boundary_conditions_vec(gdof, x, err) result(rst)  
+    <div class="panel-heading codesum"><span class="anchor" id="proc-apply_boundary_conditions_vec"></span><h3>private  function apply_boundary_conditions_vec(gdof, x) result(rst)  
 </h3></div>
     <div class="panel-body">
         <p>Applies boundary conditions to a vector by removal of the appropriate
@@ -325,21 +312,6 @@ is sorted into ascending order on output.</p>
                 <p>The vector to constrain.</p>
             </td>
         </tr>
-        <tr>
-            <td>
-              <span class="anchor" ></span>
-              class(errors),
-            </td>
-<td>intent(inout),</td>
-              <td>optional,</td>            <td>
-              target
-            </td>
-            <td>::</td>
-            <td><strong>err</strong></td>
-            <td>
-                <p>An optional error handling object.</p>
-            </td>
-        </tr>
     </tbody>
   </table>
 
@@ -348,6 +320,67 @@ is sorted into ascending order on output.</p>
     <small>real(kind=real64), allocatable, dimension(:)</small>
     </h4>
     <p>The altered vector.</p>
+
+    </div>
+  </div>
+
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-apply_boundary_conditions_csr"></span><h3>private  function apply_boundary_conditions_csr(gdof, x) result(rst)  
+</h3></div>
+    <div class="panel-body">
+        <p>Applies boundary conditions to a CSR-format sparse matrix by removal of
+the appropriate rows and columns.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(inout),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>gdof</strong></td>
+            <td>
+                <p>An array of the global degrees of freedom to restrain.  The array
+is sorted into ascending order on output.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(csr_matrix),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+                <p>The matrix to constrain.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(csr_matrix)</small>
+    </h4>
+    <p>The altered matrix.</p>
 
     </div>
   </div>
@@ -368,7 +401,7 @@ is sorted into ascending order on output.</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-07-17 17:21            </p>
+ on 2026-08-15 20:38            </p>
         </div>
       </div>
       <br>

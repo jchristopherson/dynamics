@@ -88,7 +88,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title="14.9% of total for modules and submodules.">790 statements</a>
+               title="13.0% of total for modules and submodules.">617 statements</a>
           </li>
 
             <li id="source-file">
@@ -220,12 +220,11 @@
       <ul class="list-group">
           <li class="list-group-item">
             <ul class="list-inline">
-                <li>ferror</li>
-                <li>fstats</li>
-                <li>spectrum</li>
                 <li>diffeq</li>
-                <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
                 <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
+                <li>spectrum</li>
+                <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
+                <li>fstats</li>
             </ul>
           </li>
       </ul>
@@ -679,7 +678,7 @@ as <script type="math/tex; mode=display"> \left[ A_{1}, \omega_{n1}, \zeta_{1}, 
     <ul class="list-group">
           <li class="list-group-item">
                 <h3>
-    private  function frf_modal_prop_damp(mass, stiff, alpha, beta, freq, frc, modes, modeshapes, args, err) result(rst)  
+    private  function frf_modal_prop_damp(mass, stiff, alpha, beta, freq, frc, modes, modeshapes, args) result(rst)  
 
     </h3>
   <p>Computes the frequency response functions for a 
@@ -842,34 +841,6 @@ its own column.</p>
 the outside world.</p>
             </td>
         </tr>
-        <tr>
-            <td>
-              <span class="anchor" ></span>
-              class(errors),
-            </td>
-<td>intent(inout),</td>
-              <td>optional,</td>            <td>
-              target
-            </td>
-            <td>::</td>
-            <td><strong>err</strong></td>
-            <td>
-                <p>An optional errors-based object that if provided 
-can be used to retrieve information relating to any errors 
-encountered during execution. If not provided, a default 
-implementation of the errors class is used internally to provide 
-error handling. Possible errors and warning messages that may be 
-encountered are as follows.</p>
-<ul>
-<li>DYN_MEMORY_ERROR: Occurs if there are issues allocating memory.</li>
-<li>DYN_MATRIX_SIZE_ERROR: Occurs if the mass or stiffness matrices
-     are not square, or if the mass and stiffness matrices are
-     different sized.</li>
-<li>DYN_NULL_POINTER_ERROR: Occurs if the forcing function pointer
-     is undefined.</li>
-</ul>
-            </td>
-        </tr>
     </tbody>
   </table>
 
@@ -882,7 +853,7 @@ encountered are as follows.</p>
           </li>
           <li class="list-group-item">
                 <h3>
-    private  function frf_modal_prop_damp_2(mass, stiff, alpha, beta, nfreq, freq1, freq2, frc, modes, modeshapes, args, err) result(rst)  
+    private  function frf_modal_prop_damp_2(mass, stiff, alpha, beta, nfreq, freq1, freq2, frc, modes, modeshapes, args) result(rst)  
 
     </h3>
   <p>Computes the frequency response functions for a 
@@ -1075,34 +1046,6 @@ its own column.</p>
 the outside world.</p>
             </td>
         </tr>
-        <tr>
-            <td>
-              <span class="anchor" ></span>
-              class(errors),
-            </td>
-<td>intent(inout),</td>
-              <td>optional,</td>            <td>
-              target
-            </td>
-            <td>::</td>
-            <td><strong>err</strong></td>
-            <td>
-                <p>An optional errors-based object that if provided 
-can be used to retrieve information relating to any errors 
-encountered during execution. If not provided, a default 
-implementation of the errors class is used internally to provide 
-error handling. Possible errors and warning messages that may be 
-encountered are as follows.</p>
-<ul>
-<li>DYN_MEMORY_ERROR: Occurs if there are issues allocating memory.</li>
-<li>DYN_MATRIX_SIZE_ERROR: Occurs if the mass or stiffness matrices
-     are not square, or if the mass and stiffness matrices are
-     different sized.</li>
-<li>DYN_NULL_POINTER_ERROR: Occurs if the forcing function pointer
-     is undefined.</li>
-</ul>
-            </td>
-        </tr>
     </tbody>
   </table>
 
@@ -1115,7 +1058,7 @@ encountered are as follows.</p>
           </li>
           <li class="list-group-item">
                 <h3>
-    private  function siso_freqres(x, y, fs, win, method, err) result(rst)  
+    private  function siso_freqres(x, y, fs, win, method) result(rst)  
 
     </h3>
   <p>Estimates the frequency response of a single-input, single-output (SISO)
@@ -1220,34 +1163,6 @@ signals.</p>
 </p>
             </td>
         </tr>
-        <tr>
-            <td>
-              <span class="anchor" ></span>
-              class(errors),
-            </td>
-<td>intent(inout),</td>
-              <td>optional,</td>            <td>
-              target
-            </td>
-            <td>::</td>
-            <td><strong>err</strong></td>
-            <td>
-                <p>An optional errors-based object that if provided 
-can be used to retrieve information relating to any errors 
-encountered during execution. If not provided, a default 
-implementation of the errors class is used internally to provide 
-error handling. Possible errors and warning messages that may be 
-encountered are as follows.</p>
-<ul>
-<li>
-<p>DYN_MEMORY_ERROR: Occurs if there are issues allocating memory.</p>
-</li>
-<li>
-<p>DYN_ARRAY_SIZE_ERROR: Occurs if x and y are not the same size.</p>
-</li>
-</ul>
-            </td>
-        </tr>
     </tbody>
   </table>
 
@@ -1260,7 +1175,7 @@ encountered are as follows.</p>
           </li>
           <li class="list-group-item">
                 <h3>
-    private  function mimo_freqres(x, y, fs, win, method, err) result(rst)  
+    private  function mimo_freqres(x, y, fs, win, method) result(rst)  
 
     </h3>
   <p>Estimates the frequency responses of a multiple-input, multiple-output
@@ -1365,35 +1280,6 @@ signals.</p>
 </p>
             </td>
         </tr>
-        <tr>
-            <td>
-              <span class="anchor" ></span>
-              class(errors),
-            </td>
-<td>intent(inout),</td>
-              <td>optional,</td>            <td>
-              target
-            </td>
-            <td>::</td>
-            <td><strong>err</strong></td>
-            <td>
-                <p>An optional errors-based object that if provided 
-can be used to retrieve information relating to any errors 
-encountered during execution. If not provided, a default 
-implementation of the errors class is used internally to provide 
-error handling. Possible errors and warning messages that may be 
-encountered are as follows.</p>
-<ul>
-<li>
-<p>DYN_MEMORY_ERROR: Occurs if there are issues allocating memory.</p>
-</li>
-<li>
-<p>DYN_ARRAY_SIZE_ERROR: Occurs if x and y do not have the same number
-  of rows.</p>
-</li>
-</ul>
-            </td>
-        </tr>
     </tbody>
   </table>
 
@@ -1416,7 +1302,7 @@ encountered are as follows.</p>
     <ul class="list-group">
           <li class="list-group-item">
                 <h3>
-    private  function frf_sweep_1(fcn, freq, iv, solver, ncycles, ntransient, points, inHz, args, err) result(rst)  
+    private  function frf_sweep_1(fcn, freq, iv, solver, ncycles, ntransient, points, inHz, args) result(rst)  
 
     </h3>
   <p>Computes the frequency response of each equation of a system of
@@ -1594,34 +1480,6 @@ that the frequency units are assumed to be rad/s.</p>
 fcn subroutine.</p>
             </td>
         </tr>
-        <tr>
-            <td>
-              <span class="anchor" ></span>
-              class(errors),
-            </td>
-<td>intent(inout),</td>
-              <td>optional,</td>            <td>
-              target
-            </td>
-            <td>::</td>
-            <td><strong>err</strong></td>
-            <td>
-                <p>An optional errors-based object that if provided 
-can be used to retrieve information relating to any errors 
-encountered during execution. If not provided, a default 
-implementation of the errors class is used internally to provide 
-error handling. Possible errors and warning messages that may be 
-encountered are as follows.</p>
-<ul>
-<li>DYN_MEMORY_ERROR: Occurs if there are issues allocating memory.</li>
-<li>DYN_NULL_POINTER_ERROR: Occurs if a null pointer is supplied.</li>
-<li>DYN_INVALID_INPUT_ERROR: Occurs if an invalid parameter
-     is given.</li>
-<li>DYN_ZERO_VALUED_FREQUENCY_ERROR: Occurs if a zero-valued 
-     frequency was supplied.</li>
-</ul>
-            </td>
-        </tr>
     </tbody>
   </table>
 
@@ -1634,7 +1492,7 @@ encountered are as follows.</p>
           </li>
           <li class="list-group-item">
                 <h3>
-    private  function frf_sweep_2(fcn, nfreq, freq1, freq2, iv, solver, ncycles, ntransient, points, inHz, args, err) result(rst)  
+    private  function frf_sweep_2(fcn, nfreq, freq1, freq2, iv, solver, ncycles, ntransient, points, inHz, args) result(rst)  
 
     </h3>
   <p>Computes the frequency response of each equation of a system of
@@ -1836,34 +1694,6 @@ that the frequency units are assumed to be rad/s.</p>
             <td>
                 <p>An optional argument allowing for passing of data in/out of the
 fcn subroutine.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" ></span>
-              class(errors),
-            </td>
-<td>intent(inout),</td>
-              <td>optional,</td>            <td>
-              target
-            </td>
-            <td>::</td>
-            <td><strong>err</strong></td>
-            <td>
-                <p>An optional errors-based object that if provided 
-can be used to retrieve information relating to any errors 
-encountered during execution. If not provided, a default 
-implementation of the errors class is used internally to provide 
-error handling. Possible errors and warning messages that may be 
-encountered are as follows.</p>
-<ul>
-<li>DYN_MEMORY_ERROR: Occurs if there are issues allocating memory.</li>
-<li>DYN_NULL_POINTER_ERROR: Occurs if a null pointer is supplied.</li>
-<li>DYN_INVALID_INPUT_ERROR: Occurs if an invalid parameter
-     is given.</li>
-<li>DYN_ZERO_VALUED_FREQUENCY_ERROR: Occurs if a zero-valued 
-     frequency was supplied.</li>
-</ul>
             </td>
         </tr>
     </tbody>
@@ -2241,7 +2071,7 @@ inputs and multiple outputs (MIMO).</p>
                 <td></td>
                 <td></td>
             <td>
-<p>An N-element array containing the frequency values at which the 
+<p>A P-element array containing the frequency values at which the 
 FRF is provided.  The units of this array are the same as the
 units of the frequency values passed to the routine used to 
 compute the frequency response.</p>
@@ -2261,8 +2091,9 @@ compute the frequency response.</p>
                 <td></td>
                 <td></td>
             <td>
-<p>An N-by-M-by-P array containing the frequency response functions
-for each of the M outputs corresponding to each of the P inputs.</p>
+<p>An N-by-M-by-P array containing the N frequency response 
+functions for each of the M inputs corresponding to each of 
+the P frequency points.</p>
             </td>
         </tr>
     </tbody>
@@ -2467,7 +2298,7 @@ proportional damping terms <script type="math/tex"> \alpha </script> and <script
   </div>
 
       <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="proc-fit_frf"></span><h3>public  function <a href='../proc/fit_frf.html'>fit_frf</a>(mt, n, freq, rsp, maxp, minp, init, stats, alpha, controls, settings, info, err) result(rst)  
+    <div class="panel-heading codesum"><span class="anchor" id="proc-fit_frf"></span><h3>public  function <a href='../proc/fit_frf.html'>fit_frf</a>(mt, n, freq, rsp, maxp, minp, init, stats, alpha, controls, settings, info) result(rst)  
 </h3></div>
     <div class="panel-body">
           
@@ -2679,26 +2510,6 @@ calculated.</p>
 iterative solution and the nature of the convergence.</p>
             </td>
         </tr>
-        <tr>
-            <td>
-              <span class="anchor" ></span>
-              class(errors),
-            </td>
-<td>intent(inout),</td>
-              <td>optional,</td>            <td>
-              target
-            </td>
-            <td>::</td>
-            <td><strong>err</strong></td>
-            <td>
-<p>An optional errors-based object that if provided 
-can be used to retrieve information relating to any errors 
-encountered during execution. If not provided, a default 
-implementation of the errors class is used internally to provide 
-error handling. Possible errors and warning messages that may be 
-encountered are as follows.</p><a href="../proc/fit_frf.html#variable-err~40" class="pull-right"><emph>Read more&hellip;</emph></a>
-            </td>
-        </tr>
     </tbody>
   </table>
 
@@ -2718,7 +2529,7 @@ encountered are as follows.</p><a href="../proc/fit_frf.html#variable-err~40" cl
     <section>
     <h2>Subroutines</h2>
       <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="proc-modal_response"></span><h3>public  subroutine <a href='../proc/modal_response.html'>modal_response</a>(mass, stiff, freqs, modeshapes, err)  
+    <div class="panel-heading codesum"><span class="anchor" id="proc-modal_response"></span><h3>public pure subroutine <a href='../proc/modal_response.html'>modal_response</a>(mass, stiff, freqs, modeshapes)  
 </h3></div>
     <div class="panel-body">
           
@@ -2801,21 +2612,6 @@ for the system will be returned.  The mode shapes are stored in
 columns.</p>
             </td>
         </tr>
-        <tr>
-            <td>
-              <span class="anchor" ></span>
-              class(errors),
-            </td>
-<td>intent(inout),</td>
-              <td>optional,</td>            <td>
-              target
-            </td>
-            <td>::</td>
-            <td><strong>err</strong></td>
-            <td>
-
-            </td>
-        </tr>
     </tbody>
   </table>
 
@@ -2824,7 +2620,7 @@ columns.</p>
   </div>
 
       <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="proc-normalize_mode_shapes"></span><h3>public  subroutine <a href='../proc/normalize_mode_shapes.html'>normalize_mode_shapes</a>(x)  
+    <div class="panel-heading codesum"><span class="anchor" id="proc-normalize_mode_shapes"></span><h3>public pure subroutine <a href='../proc/normalize_mode_shapes.html'>normalize_mode_shapes</a>(x)  
 </h3></div>
     <div class="panel-body">
           
@@ -2884,7 +2680,7 @@ value in the vector is one.</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-07-17 17:21            </p>
+ on 2026-08-15 20:38            </p>
         </div>
       </div>
       <br>

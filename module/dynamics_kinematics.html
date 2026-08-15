@@ -88,7 +88,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title="11.0% of total for modules and submodules.">581 statements</a>
+               title="11.4% of total for modules and submodules.">541 statements</a>
           </li>
 
             <li id="source-file">
@@ -182,7 +182,6 @@
             <a class="list-group-item" href="../module/dynamics_kinematics.html#proc-dh_rotate_z">dh_rotate_z</a>
             <a class="list-group-item" href="../module/dynamics_kinematics.html#proc-dh_translate_x">dh_translate_x</a>
             <a class="list-group-item" href="../module/dynamics_kinematics.html#proc-dh_translate_z">dh_translate_z</a>
-            <a class="list-group-item" href="../module/dynamics_kinematics.html#proc-identity_4">identity_4</a>
             <a class="list-group-item" href="../module/dynamics_kinematics.html#proc-jacobian_generating_vector">jacobian_generating_vector</a>
             <a class="list-group-item" href="../module/dynamics_kinematics.html#proc-solve_inverse_kinematics">solve_inverse_kinematics</a>
         </div>
@@ -211,13 +210,13 @@
       <ul class="list-group">
           <li class="list-group-item">
             <ul class="list-inline">
-                <li>ferror</li>
-                <li><a href='../module/dynamics_helper.html'>dynamics_helper</a></li>
-                <li>nonlin</li>
-                <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
-                <li><a href='../module/dynamics_geometry.html'>dynamics_geometry</a></li>
                 <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
+                <li>linalg</li>
+                <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
+                <li>nonlin</li>
                 <li><a href='../module/dynamics_quaternions.html'>dynamics_quaternions</a></li>
+                <li><a href='../module/dynamics_helper.html'>dynamics_helper</a></li>
+                <li><a href='../module/dynamics_geometry.html'>dynamics_geometry</a></li>
             </ul>
           </li>
       </ul>
@@ -295,7 +294,6 @@
             <a class="list-group-item" href="../module/dynamics_kinematics.html#proc-dh_rotate_z">dh_rotate_z</a>
             <a class="list-group-item" href="../module/dynamics_kinematics.html#proc-dh_translate_x">dh_translate_x</a>
             <a class="list-group-item" href="../module/dynamics_kinematics.html#proc-dh_translate_z">dh_translate_z</a>
-            <a class="list-group-item" href="../module/dynamics_kinematics.html#proc-identity_4">identity_4</a>
             <a class="list-group-item" href="../module/dynamics_kinematics.html#proc-jacobian_generating_vector">jacobian_generating_vector</a>
             <a class="list-group-item" href="../module/dynamics_kinematics.html#proc-solve_inverse_kinematics">solve_inverse_kinematics</a>
         </div>
@@ -1822,7 +1820,7 @@ of the N links of the linkage.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-i~3"></span>
+              <span class="anchor" id="variable-i~11"></span>
               real(kind=real64),
             </td>
               <td>public</td>
@@ -1856,7 +1854,7 @@ of the N links of the linkage.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-k~5"></span>
+              <span class="anchor" id="variable-k~6"></span>
               real(kind=real64),
             </td>
               <td>public</td>
@@ -2404,24 +2402,6 @@ translation.</p>
   </div>
 
       <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="proc-identity_4"></span><h3>public pure function <a href='../proc/identity_4.html'>identity_4</a>() result(rst)  
-</h3></div>
-    <div class="panel-body">
-          
-  <p>Computes a 4-by-4 identity matrix.</p>
-
-  <h4>Arguments</h4>
-    <em>None</em>
-    <h4>
-    Return Value
-    <small>real(kind=real64), (4,4)</small>
-    </h4>
-    <p>The resulting identity matrix.</p>
-
-    </div>
-  </div>
-
-      <div class="panel panel-default">
     <div class="panel-heading codesum"><span class="anchor" id="proc-jacobian_generating_vector"></span><h3>public pure function <a href='../proc/jacobian_generating_vector.html'>jacobian_generating_vector</a>(d, k, R, jtype) result(rst)  
 </h3></div>
     <div class="panel-body">
@@ -2522,7 +2502,7 @@ If incorrectly specified, the code defaults to a REVOLUTE_JOINT type.</p>
   </div>
 
       <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="proc-solve_inverse_kinematics"></span><h3>public  function <a href='../proc/solve_inverse_kinematics.html'>solve_inverse_kinematics</a>(mdl, qo, constraints, df, slvr, ib, jfcn, qmax, qmin, args, err) result(rst)  
+    <div class="panel-heading codesum"><span class="anchor" id="proc-solve_inverse_kinematics"></span><h3>public  function <a href='../proc/solve_inverse_kinematics.html'>solve_inverse_kinematics</a>(mdl, qo, constraints, df, slvr, ib, jfcn, qmax, qmin, args) result(rst)  
 </h3></div>
     <div class="panel-body">
           
@@ -2702,22 +2682,6 @@ the 'huge' intrinsic function.</p>
 <p>An optional argument that can be used to communicate with mdl.</p>
             </td>
         </tr>
-        <tr>
-            <td>
-              <span class="anchor" ></span>
-              class(errors),
-            </td>
-<td>intent(inout),</td>
-              <td>optional,</td>            <td>
-              target
-            </td>
-            <td>::</td>
-            <td><strong>err</strong></td>
-            <td>
-<p>An errors-based object that if provided can be used to retrieve 
-information relating to any errors encountered during execution.</p>
-            </td>
-        </tr>
     </tbody>
   </table>
 
@@ -2751,7 +2715,7 @@ information relating to any errors encountered during execution.</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-07-17 17:21            </p>
+ on 2026-08-15 20:38            </p>
         </div>
       </div>
       <br>
