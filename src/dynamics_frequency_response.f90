@@ -877,6 +877,7 @@ subroutine frf_accel_fit_fcn(xdata, mdl, rst, stop, args)
     ! The amplitude portion of the response is stored in the first "N" locations
     ! in the output with the phase portion (in radians) is stored in the
     ! second "N" locations.
+    stop = .false.
     n = size(xdata) / 2
     do i = 1, n
         h = evaluate_accelerance_frf_model(mdl, xdata(i))
@@ -908,6 +909,7 @@ subroutine frf_force_fit_fcn(xdata, mdl, rst, stop, args)
     ! The amplitude portion of the response is stored in the first "N" locations
     ! in the output with the phase portion (in radians) is stored in the
     ! second "N" locations.
+    stop = .false.
     n = size(xdata) / 2
     do i = 1, n
         h = evaluate_receptance_frf_model(mdl, xdata(i))
