@@ -1057,10 +1057,13 @@ function fit_frf(mt, n, freq, rsp, maxp, minp, init, stats, alpha, controls, &
         if (size(maxvals) < n) then
             ! The peak detection did not find enough peaks.
             if (size(maxvals) == 0) then
-                ! No peaks found.  This is suspicious, but just use a random
-                ! estimate to get started.  Maybe the solver will be able
-                ! to sort it out.
-                call random_number(rst)
+                ! No peaks found.  This is suspicious, but use a deterministic
+                ! estimate to ensure predictable behavior.
+                do i = 1, n
+                    rst(3 * i - 2) = maxamp
+                    rst(3 * i - 1) = freq(max(1, min(npts, (i * npts) / (n + 1))))
+                    rst(3 * i) = zeta
+                end do
             else
                 ! Fill in the remaining parameters with the last set estimate
                 do i = size(maxvals) + 1, n
