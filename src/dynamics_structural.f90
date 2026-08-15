@@ -1130,26 +1130,24 @@ pure function b2d_strain_disp_matrix_2d(this, s) result(rst)
         !! The strain-displacement matrix.
 
     ! Local Variables
-    real(real64) :: l, dsdx, dn1ds, dn2ds, dn3ds, dn4ds, dn5ds, dn6ds
+    real(real64) :: l, sv
     
     ! Initialization
     allocate(rst(2, 6), source = 0.0d0)
 
-    ! Process
+    ! Process - use exact analytical formulas derived from the Hermite
+    ! shape functions for a 2D Euler-Bernoulli beam element.
+    ! For natural coordinate s in [-1, 1] and physical length l:
+    !   Axial strain:  epsilon = du/dx
+    !   Curvature:     kappa   = d2v/dx2
     l = this%length()
-    dsdx = 2.0d0 / l    ! s = 2 * x / L - 1, so ds/dx = 2 / L
-    dn1ds = shape_function_derivative(1, this, s, 1)
-    dn2ds = shape_function_second_derivative(2, this, s, 1)
-    dn3ds = shape_function_second_derivative(3, this, s, 1)
-    dn4ds = shape_function_derivative(4, this, s, 1)
-    dn5ds = shape_function_second_derivative(5, this, s, 1)
-    dn6ds = shape_function_second_derivative(6, this, s, 1)
-    rst(1,1) = dn1ds * dsdx
-    rst(2,2) = dn2ds * dsdx**2
-    rst(2,3) = 0.5d0 * l * dn3ds * dsdx**2
-    rst(1,4) = dn4ds * dsdx
-    rst(2,5) = dn5ds * dsdx**2
-    rst(2,6) = 0.5d0 * l * dn6ds * dsdx**2
+    sv = s(1)
+    rst(1,1) = -1.0d0 / l
+    rst(2,2) = 6.0d0 * sv / l**2
+    rst(2,3) = (3.0d0 * sv - 1.0d0) / l
+    rst(1,4) = 1.0d0 / l
+    rst(2,5) = -6.0d0 * sv / l**2
+    rst(2,6) = (3.0d0 * sv + 1.0d0) / l
 end function
 
 ! ------------------------------------------------------------------------------
