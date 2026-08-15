@@ -90,13 +90,14 @@ module dynamics_frequency_response
         !! A container for the frequency responses of a system of multiple 
         !! inputs and multiple outputs (MIMO).
         real(real64), allocatable, dimension(:) :: frequency
-            !! An N-element array containing the frequency values at which the 
+            !! A P-element array containing the frequency values at which the 
             !! FRF is provided.  The units of this array are the same as the
             !! units of the frequency values passed to the routine used to 
             !! compute the frequency response.
         complex(real64), allocatable, dimension(:,:,:) :: responses
-            !! An N-by-M-by-P array containing the frequency response functions
-            !! for each of the M outputs corresponding to each of the P inputs.
+            !! An N-by-M-by-P array containing the N frequency response 
+            !! functions for each of the M inputs corresponding to each of 
+            !! the P frequency points.
     end type
 
     interface frequency_response
