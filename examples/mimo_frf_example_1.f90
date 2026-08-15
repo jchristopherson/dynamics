@@ -60,7 +60,7 @@ program example
     ! Plot Variables
     type(multiplot) :: plt
     type(plot_2d) :: plt1, plt2, plt3, plt4
-    type(plot_data_2d) :: pd
+    type(plot_data_2d) :: pd1, pd2, pd3, pd4
     class(plot_axis), pointer :: x1, x2, x3, x4, y1, y2, y3, y4
     class(terminal), pointer :: term
     
@@ -82,14 +82,14 @@ program example
     rsp = frequency_response(x, y, sample_rate)
 
     ! Convert to amplitude
-    amp11 = 2.0d1 * log10(abs(rsp%responses(:,1,1) / rsp%responses(1,1,1)))
-    amp12 = 2.0d1 * log10(abs(rsp%responses(:,2,1) / rsp%responses(1,2,1)))
+    amp11 = 2.0d1 * log10(abs(rsp%responses(1,1,:) / rsp%responses(1,1,1)))
+    amp12 = 2.0d1 * log10(abs(rsp%responses(2,1,:) / rsp%responses(2,1,1)))
 
     ! Compute the phase terms
-    phase11 = 1.8d2 * atan2(aimag(rsp%responses(:,1,1)), &
-        real(rsp%responses(:,1,1))) / pi
-    phase12 = 1.8d2 * atan2(aimag(rsp%responses(:,2,1)), &
-        real(rsp%responses(:,2,1))) / pi
+    phase11 = 1.8d2 * atan2(aimag(rsp%responses(1,1,:)), &
+        real(rsp%responses(1,1,:))) / pi
+    phase12 = 1.8d2 * atan2(aimag(rsp%responses(2,1,:)), &
+        real(rsp%responses(2,1,:))) / pi
 
 ! ------------------------------------------------------------------------------
 ! PLOTTING
@@ -129,24 +129,24 @@ program example
     call plt2%set_title("Input 1, Output 2")
 
     ! Plot
-    call pd%define_data(rsp%frequency, amp11)
-    call pd%set_line_width(2.0)
-    call plt1%push(pd)
+    call pd1%define_data(rsp%frequency, amp11)
+    call pd1%set_line_width(2.0)
+    call plt1%push(pd1)
     call plt%set(1, 1, plt1)
 
-    call pd%clear_all()
-    call pd%define_data(rsp%frequency, amp12)
-    call plt2%push(pd)
+    call pd2%define_data(rsp%frequency, amp12)
+    call pd2%set_line_width(2.0)
+    call plt2%push(pd2)
     call plt%set(1, 2, plt2)
 
-    call pd%clear_all()
-    call pd%define_data(rsp%frequency, phase11)
-    call plt3%push(pd)
+    call pd3%define_data(rsp%frequency, phase11)
+    call pd3%set_line_width(2.0)
+    call plt3%push(pd3)
     call plt%set(2, 1, plt3)
 
-    call pd%clear_all()
-    call pd%define_data(rsp%frequency, phase12)
-    call plt4%push(pd)
+    call pd4%define_data(rsp%frequency, phase12)
+    call pd4%set_line_width(2.0)
+    call plt4%push(pd4)
     call plt%set(2, 2, plt4)
 
     call plt%draw()

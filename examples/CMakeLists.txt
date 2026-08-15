@@ -1,7 +1,7 @@
 # Get Dependencies
 include(FetchContent)
-find_package(fplot QUIET)
-find_package(diffeq QUIET)
+find_package(fplot 1.8.12 QUIET)
+find_package(diffeq 1.2.0 QUIET)
 
 if (NOT fplot_FOUND)
     FetchContent_Declare(
