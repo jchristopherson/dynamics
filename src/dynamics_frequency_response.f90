@@ -1,6 +1,5 @@
 module dynamics_frequency_response
     use iso_fortran_env
-    use ferror
     use diffeq, only : ode_container, ode_integrator
     use dynamics_error_handling
     use spectrum
@@ -91,13 +90,14 @@ module dynamics_frequency_response
         !! A container for the frequency responses of a system of multiple 
         !! inputs and multiple outputs (MIMO).
         real(real64), allocatable, dimension(:) :: frequency
-            !! An N-element array containing the frequency values at which the 
+            !! A P-element array containing the frequency values at which the 
             !! FRF is provided.  The units of this array are the same as the
             !! units of the frequency values passed to the routine used to 
             !! compute the frequency response.
         complex(real64), allocatable, dimension(:,:,:) :: responses
-            !! An N-by-M-by-P array containing the frequency response functions
-            !! for each of the M outputs corresponding to each of the P inputs.
+            !! An N-by-M-by-P array containing the N frequency response 
+            !! functions for each of the M inputs corresponding to each of 
+            !! the P frequency points.
     end type
 
     interface frequency_response
@@ -164,7 +164,7 @@ contains
 
 ! ------------------------------------------------------------------------------
     function frf_modal_prop_damp(mass, stiff, alpha, beta, freq, frc, &
-        modes, modeshapes, args, err) result(rst)
+        modes, modeshapes, args) result(rst)
         !! Computes the frequency response functions for a 
         !! multi-degree-of-freedom system that uses proportional damping such
         !! that the damping matrix \( C \) is related to the stiffness an mass
@@ -200,20 +200,6 @@ contains
         class(*), intent(inout), optional :: args
             !! An optional argument that can be used to communicate with
             !! the outside world.
-        class(errors), intent(inout), optional, target :: err
-            !! An optional errors-based object that if provided 
-            !! can be used to retrieve information relating to any errors 
-            !! encountered during execution. If not provided, a default 
-            !! implementation of the errors class is used internally to provide 
-            !! error handling. Possible errors and warning messages that may be 
-            !! encountered are as follows.
-            !!
-            !! - DYN_MEMORY_ERROR: Occurs if there are issues allocating memory.
-            !! - DYN_MATRIX_SIZE_ERROR: Occurs if the mass or stiffness matrices
-            !!      are not square, or if the mass and stiffness matrices are
-            !!      different sized.
-            !! - DYN_NULL_POINTER_ERROR: Occurs if the forcing function pointer
-            !!      is undefined.
         type(frf) :: rst
             !! The resulting frequency responses.
 
@@ -223,51 +209,37 @@ contains
         complex(real64), parameter :: one = (1.0d0, 0.0d0)
 
         ! Local Variables
-        integer(int32) :: i, m, n, flag
+        integer(int32) :: i, m, n
         complex(real64) :: s
         real(real64), allocatable, dimension(:) :: lambda, zeta
-        real(real64), allocatable, dimension(:,:) :: mmtx, kmtx
         complex(real64), allocatable, dimension(:) :: vals, q, f, u
         complex(real64), allocatable, dimension(:,:) :: vecs
-        class(errors), pointer :: errmgr
-        type(errors), target :: deferr
         
         ! Initialization
-        if (present(err)) then
-            errmgr => err
-        else
-            errmgr => deferr
-        end if
         m = size(freq)
         n = size(mass, 1)
 
         ! Input Checking
-        if (size(mass, 2) /= n) go to 20
-        if (size(stiff,1) /= size(stiff, 2)) go to 30
-        if (size(stiff, 1) /= n .or. size(stiff, 2) /= n) go to 40
-        if (.not.associated(frc)) go to 50
+        if (size(mass, 2) /= n) error stop DYN_MATRIX_SIZE_ERROR
+        if (size(stiff,1) /= size(stiff, 2)) error stop DYN_MATRIX_SIZE_ERROR
+        if (size(stiff, 1) /= n .or. size(stiff, 2) /= n) error stop DYN_MATRIX_SIZE_ERROR
+        if (.not.associated(frc)) error stop DYN_NULL_POINTER_ERROR
 
         ! TO DO: Check for symmetry
 
         ! Memory allocations
-        allocate(mmtx(n, n), source = mass, stat = flag)
-        if (flag == 0) allocate(kmtx(n, n), source = stiff, stat = flag)
-        if (flag == 0) allocate(zeta(n), stat = flag)
-        if (flag == 0) allocate(q(n), stat = flag)
-        if (flag == 0) allocate(vals(n), stat = flag)
-        if (flag == 0) allocate(f(n), stat = flag, source = zero)
-        if (flag == 0) allocate(u(n), stat = flag)
-        if (flag == 0) allocate(vecs(n, n), stat = flag)
-        if (flag == 0) allocate(rst%responses(m, n), stat = flag)
-        if (flag == 0) allocate(rst%frequency(m), source = freq, stat = flag)
-        if (flag /= 0) go to 10
+        allocate(zeta(n))
+        allocate(q(n))
+        allocate(vals(n))
+        allocate(f(n), source = zero)
+        allocate(u(n))
+        allocate(vecs(n, n))
+        allocate(rst%responses(m, n))
+        allocate(rst%frequency(m), source = freq)
 
         ! Compute the eigenvalues and eigenvectors
-        call eigen(kmtx, mmtx, vals, vecs = vecs, err = errmgr)
-        if (errmgr%has_error_occurred()) return
-
-        allocate(lambda(n), source = real(vals), stat = flag)
-        if (flag /= 0) go to 10
+        call eigen(stiff, mass, vals, rvecs = vecs)
+        allocate(lambda(n), source = real(vals))
 
         ! Compute the damping terms
         zeta = compute_modal_damping(lambda, alpha, beta)
@@ -288,53 +260,17 @@ contains
         end if
 
         if (present(modes)) then
-            allocate(modes(n), source = sqrt(real(vals)), &
-                stat = flag)
-            if (flag /= 0) go to 10
+            allocate(modes(n), source = sqrt(real(vals)))
         end if
 
         if (present(modeshapes)) then
-            allocate(modeshapes(n, n), source = real(vecs), stat = flag)
-            if (flag /= 0) go to 10
+            allocate(modeshapes(n, n), source = real(vecs))
         end if
-
-        ! End
-        return
-
-        ! Memory error
-    10  continue
-        call report_memory_error("frf_modal_prop_damp", flag, errmgr)
-        return
-
-        ! Error: Mass matrix is not square
-    20  continue
-        call report_nonsquare_mass_matrix_error("frf_modal_prop_damp", &
-            size(mass, 1), size(mass, 2), errmgr)
-        return
-
-        ! Error: Stiffness matrix is not square
-    30  continue
-        call report_nonsquare_stiffness_matrix_error("frf_modal_prop_damp", &
-            size(stiff, 1), size(stiff, 2), errmgr)
-        return
-
-        ! Error: Stiffness matrix is not sized correctly
-    40  continue
-        call report_matrix_size_mismatch_error("frf_modal_prop_damp", &
-            "mass", "stiffness", size(mass, 1), size(mass, 2), &
-            size(stiff, 1), size(stiff, 2), errmgr)
-        return
-
-        ! Null forcing term pointer
-    50  continue
-        call report_null_forcing_routine_error("frf_modal_prop_damp", &
-            errmgr)
-        return
     end function
 
 ! ------------------------------------------------------------------------------
     function frf_modal_prop_damp_2(mass, stiff, alpha, beta, nfreq, freq1, &
-        freq2, frc, modes, modeshapes, args, err) result(rst)
+        freq2, frc, modes, modeshapes, args) result(rst)
         !! Computes the frequency response functions for a 
         !! multi-degree-of-freedom system that uses proportional damping such
         !! that the damping matrix \( C \) is related to the stiffness an mass
@@ -374,20 +310,6 @@ contains
         class(*), intent(inout), optional :: args
             !! An optional argument that can be used to communicate with
             !! the outside world.
-        class(errors), intent(inout), optional, target :: err
-            !! An optional errors-based object that if provided 
-            !! can be used to retrieve information relating to any errors 
-            !! encountered during execution. If not provided, a default 
-            !! implementation of the errors class is used internally to provide 
-            !! error handling. Possible errors and warning messages that may be 
-            !! encountered are as follows.
-            !!
-            !! - DYN_MEMORY_ERROR: Occurs if there are issues allocating memory.
-            !! - DYN_MATRIX_SIZE_ERROR: Occurs if the mass or stiffness matrices
-            !!      are not square, or if the mass and stiffness matrices are
-            !!      different sized.
-            !! - DYN_NULL_POINTER_ERROR: Occurs if the forcing function pointer
-            !!      is undefined.
         type(frf) :: rst
             !! The resulting frequency responses.
 
@@ -395,41 +317,17 @@ contains
         integer(int32) :: i, flag
         real(real64) :: df
         real(real64), allocatable, dimension(:) :: freq
-        class(errors), pointer :: errmgr
-        type(errors), target :: deferr
-        
-        ! Initialization
-        if (present(err)) then
-            errmgr => err
-        else
-            errmgr => deferr
-        end if
 
         ! Input Checking
-        if (abs(freq1 - freq2) < sqrt(epsilon(freq1))) then
-            call report_zero_difference_error("frf_modal_prop_damp_2", &
-                "freq1", freq1, "freq2", freq2, DYN_INVALID_INPUT_ERROR, &
-                errmgr)
-            return
-        end if
-        if (nfreq < 2) then
-            call report_generic_counting_error("frf_modal_prop_damp_2", &
-                "The number of frequency points must be at least 2, " // &
-                "but was found to be ", nfreq, ".", DYN_INVALID_INPUT_ERROR, &
-                errmgr)
-            return
-        end if
+        if (abs(freq1 - freq2) < sqrt(epsilon(freq1))) error stop DYN_INVALID_INPUT_ERROR
+        if (nfreq < 2) error stop DYN_INVALID_INPUT_ERROR
 
         ! Process
         df = (freq2 - freq1) / (nfreq - 1.0d0)
-        allocate(freq(nfreq), stat = flag)
-        if (flag /= 0) then
-            call report_memory_error("frf_modal_prop_damp_2", flag, errmgr)
-            return
-        end if
+        allocate(freq(nfreq))
         freq = (/ (df * i + freq1, i = 0, nfreq - 1) /)
         rst = frequency_response(mass, stiff, alpha, beta, freq, frc, modes, &
-            modeshapes, args = args, err = err)
+            modeshapes, args = args)
     end function
 
 ! ------------------------------------------------------------------------------
@@ -457,7 +355,7 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
-    subroutine modal_response(mass, stiff, freqs, modeshapes, err)
+    pure subroutine modal_response(mass, stiff, freqs, modeshapes)
         !! Computes the modal frequencies and modes shapes for 
         !! multi-degree-of-freedom system.
         use dynamics_error_handling
@@ -476,88 +374,42 @@ contains
             !! An optional, allocatable N-by-N matrix where the N mode shapes
             !! for the system will be returned.  The mode shapes are stored in
             !! columns.
-        class(errors), intent(inout), optional, target :: err
 
         ! Local Variables
-        integer(int32) :: n, flag
-        real(real64), allocatable, dimension(:,:) :: mmtx, kmtx
+        integer(int32) :: n
         complex(real64), allocatable, dimension(:) :: vals
         complex(real64), allocatable, dimension(:,:) :: vecs
-        class(errors), pointer :: errmgr
-        type(errors), target :: deferr
         
         ! Initialization
-        if (present(err)) then
-            errmgr => err
-        else
-            errmgr => deferr
-        end if
         n = size(mass, 1)
 
         ! Input Checking
-        if (size(mass, 2) /= n) go to 10
-        if (size(stiff, 1) /= size(stiff, 2)) go to 20
-        if (size(stiff, 1) /= n .or. size(stiff, 2) /= n) go to 30
+        if (size(mass, 2) /= n) error stop DYN_MATRIX_SIZE_ERROR
+        if (size(stiff, 1) /= size(stiff, 2)) error stop DYN_MATRIX_SIZE_ERROR
+        if (size(stiff, 1) /= n .or. size(stiff, 2) /= n) error stop DYN_MATRIX_SIZE_ERROR
 
         ! TO DO: Check for symmetry
 
         ! Memory allocations
-        allocate(mmtx(n, n), source = mass, stat = flag)
-        if (flag == 0) allocate(kmtx(n, n), source = stiff, stat = flag)
-        if (flag == 0) allocate(vals(n), stat = flag)
-        if (flag == 0 .and. present(modeshapes)) &
-            allocate(vecs(n, n), stat = flag)
-        if (flag /= 0) go to 40
+        allocate(vals(n))
+        if (present(modeshapes)) allocate(vecs(n, n))
 
         ! Solve the eigen problem
         if (present(modeshapes)) then
-            call eigen(kmtx, mmtx, vals, vecs = vecs, err = errmgr)
-            if (errmgr%has_error_occurred()) return
-
+            call eigen(stiff, mass, vals, rvecs = vecs)
             call sort(vals, vecs)
-            allocate(modeshapes(n, n), source = real(vecs), stat = flag)
-            if (flag /= 0) go to 40
+            allocate(modeshapes(n, n), source = real(vecs))
         else
-            call eigen(kmtx, mmtx, vals, err = errmgr)
-            if (errmgr%has_error_occurred()) return
+            call eigen(stiff, mass, vals)
             call sort(vals)
         end if
 
         ! Convert the eigenvalues to frequency values
-        allocate(freqs(n), source = sqrt(abs(real(vals))), &
-            stat = flag)
-        if (flag /= 0) go to 40
-
-        ! End
-        return
-
-        ! Non-square mass matrix error handler
-    10  continue
-        call report_nonsquare_mass_matrix_error("modal_response", &
-            size(mass, 1), size(mass, 2), errmgr)
-        return
-
-        ! Non-square stiffness matrix error handler
-    20  continue
-        call report_nonsquare_stiffness_matrix_error("modal_response", &
-            size(stiff, 1), size(stiff, 2), errmgr)
-        return
-
-        ! Stiffness and mass matrix size mismatch error handler
-    30  continue
-        call report_matrix_size_mismatch_error("modal_response", &
-            "mass", "stiffness", size(mass, 1), size(mass, 2), &
-            size(stiff, 1), size(stiff, 2), errmgr)
-        return
-
-        ! Memory error handler
-    40  continue
-        call report_memory_error("modal_response", flag, errmgr)
-        return
+        allocate(freqs(n), source = sqrt(abs(real(vals))))
     end subroutine
 
 ! ------------------------------------------------------------------------------
-    subroutine normalize_mode_shapes(x)
+    pure subroutine normalize_mode_shapes(x)
         !! Normalizes mode shape vectors such that the largest magnitude
         !! value in the vector is one.
         real(real64), intent(inout), dimension(:,:) :: x
@@ -581,7 +433,7 @@ contains
 ! HARMONIC_ODE_CONTAINER ROUTINES
 ! ------------------------------------------------------------------------------
     function frf_sweep_1(fcn, freq, iv, solver, ncycles, ntransient, &
-        points, inHz, args, err) result(rst)
+        points, inHz, args) result(rst)
         !! Computes the frequency response of each equation of a system of
         !! harmonically excited ODE's by sweeping through frequency. 
         !!
@@ -630,20 +482,6 @@ contains
         class(*), intent(inout), optional :: args
             !! An optional argument allowing for passing of data in/out of the
             !! fcn subroutine.
-        class(errors), intent(inout), optional, target :: err
-            !! An optional errors-based object that if provided 
-            !! can be used to retrieve information relating to any errors 
-            !! encountered during execution. If not provided, a default 
-            !! implementation of the errors class is used internally to provide 
-            !! error handling. Possible errors and warning messages that may be 
-            !! encountered are as follows.
-            !!
-            !! - DYN_MEMORY_ERROR: Occurs if there are issues allocating memory.
-            !! - DYN_NULL_POINTER_ERROR: Occurs if a null pointer is supplied.
-            !! - DYN_INVALID_INPUT_ERROR: Occurs if an invalid parameter
-            !!      is given.
-            !! - DYN_ZERO_VALUED_FREQUENCY_ERROR: Occurs if a zero-valued 
-            !!      frequency was supplied.
         type(frf) :: rst
             !! The resulting frequency responses.
 
@@ -653,7 +491,7 @@ contains
 
         ! Local Variables
         logical :: hz
-        integer(int32) :: i, j, nfreq, neqn, nc, nt, ntotal, npts, ppc, flag, &
+        integer(int32) :: i, j, nfreq, neqn, nc, nt, ntotal, npts, ppc, &
             i1, ncpts
         real(real64) :: dt, tare, phase, amp, omega, f
         real(real64), allocatable, dimension(:) :: ic, t
@@ -661,16 +499,9 @@ contains
         type(ode_container) :: sys
         class(ode_integrator), pointer :: integrator
         type(runge_kutta_45), target :: default_integrator
-        class(errors), pointer :: errmgr
-        type(errors), target :: deferr
         type(frf_arg_container) :: container
         
         ! Initialization
-        if (present(err)) then
-            errmgr => err
-        else
-            errmgr => deferr
-        end if
         if (present(ncycles)) then
             nc = ncycles
         else
@@ -714,20 +545,18 @@ contains
         end if
 
         ! Input Checking
-        if (nc < 1) go to 20
-        if (nt < 1) go to 30
-        if (ppc < 2) go to 40
+        if (nc < 1) error stop DYN_INVALID_INPUT_ERROR
+        if (nt < 1) error stop DYN_INVALID_INPUT_ERROR
+        if (ppc < 2) error stop DYN_INVALID_INPUT_ERROR
         do i = 1, nfreq
-            if (abs(freq(i)) < zerotol) go to 50
+            if (abs(freq(i)) < zerotol) error stop DYN_ZERO_VALUED_FREQUENCY_ERROR
         end do
 
         ! Local Memory Allocation
-        allocate(rst%responses(nfreq, neqn), stat = flag)
-        if (flag == 0) allocate(rst%frequency(nfreq), source = freq, &
-            stat = flag)
-        if (flag == 0) allocate(ic(neqn), stat = flag, source = iv)
-        if (flag == 0) allocate(t(npts), stat = flag)
-        if (flag /= 0) go to 10
+        allocate(rst%responses(nfreq, neqn))
+        allocate(rst%frequency(nfreq), source = freq)
+        allocate(ic(neqn), source = iv)
+        allocate(t(npts))
 
         ! Cycle over each frequency point
         do i = 1, nfreq
@@ -746,8 +575,7 @@ contains
             container%frequency = freq(i)
 
             ! Compute the solution
-            call integrator%solve(sys, t, ic, args = container, err = errmgr)
-            if (errmgr%has_error_occurred()) return
+            call integrator%solve(sys, t, ic, args = container)
             sol = integrator%get_solution()
 
             ! Reset the initial conditions to the last solution point
@@ -763,43 +591,6 @@ contains
             ! Clear the solution buffer for the next time around
             call integrator%clear_buffer()
         end do
-
-        ! End
-        return
-
-        ! Memory Error
-    10  continue
-        call report_memory_error("frf_sweep_1", flag, errmgr)
-        return
-
-        ! Number of Cycles Error
-    20  continue
-        call report_generic_counting_error("frf_sweep_1", &
-            "The number of cycles to analyze must be at least 1; " // &
-            "however, a value of ", nc, " was found.", &
-            DYN_INVALID_INPUT_ERROR, errmgr)
-        return
-
-        ! Number of Transient Cycles Error
-    30  continue
-        call report_generic_counting_error("frf_sweep_1", &
-            "The number of transient cycles must be at least 1; " // &
-            "however, a value of ", nt, " was found.", &
-            DYN_INVALID_INPUT_ERROR, errmgr)
-        return
-
-        ! Points Per Cycle Error
-    40  continue
-        call report_generic_counting_error("frf_sweep_1", &
-            "The number of points per cycle must be at least 2; " // &
-            "however, a value of ", ppc, " was found.", &
-            DYN_INVALID_INPUT_ERROR, errmgr)
-        return
-
-        ! Zero-Valued Frequency Error
-    50  continue
-        call report_zero_valued_frequency_error("frf_sweep_1", i, errmgr)
-        return
     end function
 
 ! ----------
@@ -854,7 +645,7 @@ contains
 
 ! ------------------------------------------------------------------------------
     function frf_sweep_2(fcn, nfreq, freq1, freq2, iv, solver, ncycles, &
-        ntransient, points, inHz, args, err) result(rst)
+        ntransient, points, inHz, args) result(rst)
         !! Computes the frequency response of each equation of a system of
         !! harmonically excited ODE's by sweeping through frequency.
         !!
@@ -903,20 +694,6 @@ contains
         class(*), intent(inout), optional :: args
             !! An optional argument allowing for passing of data in/out of the
             !! fcn subroutine.
-        class(errors), intent(inout), optional, target :: err
-            !! An optional errors-based object that if provided 
-            !! can be used to retrieve information relating to any errors 
-            !! encountered during execution. If not provided, a default 
-            !! implementation of the errors class is used internally to provide 
-            !! error handling. Possible errors and warning messages that may be 
-            !! encountered are as follows.
-            !!
-            !! - DYN_MEMORY_ERROR: Occurs if there are issues allocating memory.
-            !! - DYN_NULL_POINTER_ERROR: Occurs if a null pointer is supplied.
-            !! - DYN_INVALID_INPUT_ERROR: Occurs if an invalid parameter
-            !!      is given.
-            !! - DYN_ZERO_VALUED_FREQUENCY_ERROR: Occurs if a zero-valued 
-            !!      frequency was supplied.
         type(frf) :: rst
             !! The resulting frequency responses.
 
@@ -924,47 +701,23 @@ contains
         integer(int32) :: i, flag
         real(real64) :: df
         real(real64), allocatable, dimension(:) :: freq
-        class(errors), pointer :: errmgr
-        type(errors), target :: deferr
-        
-        ! Initialization
-        if (present(err)) then
-            errmgr => err
-        else
-            errmgr => deferr
-        end if
 
         ! Input Checking
-        if (abs(freq1 - freq2) < sqrt(epsilon(freq1))) then
-            call report_zero_difference_error("hoc_frf_sweep_2", &
-                "freq1", freq1, "freq2", freq2, DYN_INVALID_INPUT_ERROR, &
-                errmgr)
-            return
-        end if
-        if (nfreq < 2) then
-            call report_generic_counting_error("hoc_frf_sweep_2", &
-                "The number of frequency points must be at least 2, " // &
-                "but was found to be ", nfreq, ".", DYN_INVALID_INPUT_ERROR, &
-                errmgr)
-            return
-        end if
+        if (abs(freq1 - freq2) < sqrt(epsilon(freq1))) error stop DYN_INVALID_INPUT_ERROR
+        if (nfreq < 2) error stop DYN_INVALID_INPUT_ERROR
 
         ! Process
         df = (freq2 - freq1) / (nfreq - 1.0d0)
-        allocate(freq(nfreq), stat = flag)
-        if (flag /= 0) then
-            call report_memory_error("hoc_frf_sweep_2", flag, errmgr)
-            return
-        end if
+        allocate(freq(nfreq))
         freq = (/ (df * i + freq1, i = 0, nfreq - 1) /)
         rst = frf_sweep_1(fcn, freq, iv, solver, ncycles, ntransient, &
-            points, inHz = inHz, args = args, err = err)
+            points, inHz = inHz, args = args)
     end function
 
 ! ******************************************************************************
 ! VERSION 1.0.5 ADDITIONS
 ! ------------------------------------------------------------------------------
-function siso_freqres(x, y, fs, win, method, err) result(rst)
+function siso_freqres(x, y, fs, win, method) result(rst)
     !! Estimates the frequency response of a single-input, single-output (SISO)
     !! system.
     real(real64), intent(in), dimension(:) :: x
@@ -989,34 +742,16 @@ function siso_freqres(x, y, fs, win, method, err) result(rst)
         !! $$ H_{1} = \frac{P_{xy}}{P_{xx}} $$
         !!
         !! $$ H_{2} = \frac{P_{yy}}{P_{xy}} $$
-    class(errors), intent(inout), optional, target :: err
-        !! An optional errors-based object that if provided 
-        !! can be used to retrieve information relating to any errors 
-        !! encountered during execution. If not provided, a default 
-        !! implementation of the errors class is used internally to provide 
-        !! error handling. Possible errors and warning messages that may be 
-        !! encountered are as follows.
-        !!
-        !! - DYN_MEMORY_ERROR: Occurs if there are issues allocating memory.
-        !!
-        !! - DYN_ARRAY_SIZE_ERROR: Occurs if x and y are not the same size.
     type(frf) :: rst
         !! The resulting frequency response function.
 
     ! Local Variables
-    integer(int32) :: i, npts, nfreq, meth, flag
+    integer(int32) :: i, npts, nfreq, meth
     real(real64) :: df
     class(window), pointer :: wptr
     type(rectangular_window), target :: defwin
-    class(errors), pointer :: errmgr
-    type(errors), target :: deferr
     
     ! Initialization
-    if (present(err)) then
-        errmgr => err
-    else
-        errmgr => deferr
-    end if
     npts = size(x)
     if (present(win)) then
         wptr => win
@@ -1034,18 +769,11 @@ function siso_freqres(x, y, fs, win, method, err) result(rst)
         meth = SPCTRM_H1_ESTIMATOR
     end if
     nfreq = compute_transform_length(wptr%size)
-    allocate(rst%frequency(nfreq), stat = flag)
-    if (flag == 0) allocate(rst%responses(nfreq, 1), stat = flag)
-    if (flag /= 0) then
-        call report_memory_error("siso_freqres", flag, errmgr)
-        return
-    end if
+    allocate(rst%frequency(nfreq))
+    allocate(rst%responses(nfreq, 1))
 
     ! Input Checking
-    if (size(y) /= npts) then
-        call report_array_size_error("siso_freqres", "y", npts, size(y), errmgr)
-        return
-    end if
+    if (size(y) /= npts) error stop DYN_ARRAY_SIZE_ERROR
 
     ! Compute the transfer function
     rst%responses(:,1) = siso_transfer_function(wptr, x, y, etype = meth)
@@ -1056,7 +784,7 @@ function siso_freqres(x, y, fs, win, method, err) result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
-function mimo_freqres(x, y, fs, win, method, err) result(rst)
+function mimo_freqres(x, y, fs, win, method) result(rst)
     !! Estimates the frequency responses of a multiple-input, multiple-output
     !! (MIMO) system.
     real(real64), intent(in), dimension(:,:) :: x
@@ -1081,35 +809,16 @@ function mimo_freqres(x, y, fs, win, method, err) result(rst)
         !! $$ H_{1} = \frac{P_{xy}}{P_{xx}} $$
         !!
         !! $$ H_{2} = \frac{P_{yy}}{P_{xy}} $$
-    class(errors), intent(inout), optional, target :: err
-        !! An optional errors-based object that if provided 
-        !! can be used to retrieve information relating to any errors 
-        !! encountered during execution. If not provided, a default 
-        !! implementation of the errors class is used internally to provide 
-        !! error handling. Possible errors and warning messages that may be 
-        !! encountered are as follows.
-        !!
-        !! - DYN_MEMORY_ERROR: Occurs if there are issues allocating memory.
-        !!
-        !! - DYN_ARRAY_SIZE_ERROR: Occurs if x and y do not have the same number
-        !!   of rows.
     type(mimo_frf) :: rst
         !! The resulting frequency response functions.
 
     ! Local Variables
-    integer(int32) :: i, j, npts, m, p, nfreq, meth, flag
+    integer(int32) :: i, j, npts, m, p, nfreq, meth
     real(real64) :: df
     class(window), pointer :: wptr
     type(rectangular_window), target :: defwin
-    class(errors), pointer :: errmgr
-    type(errors), target :: deferr
     
     ! Initialization
-    if (present(err)) then
-        errmgr => err
-    else
-        errmgr => deferr
-    end if
     npts = size(x, 1)
     m = size(y, 2)
     p = size(x, 2)
@@ -1129,27 +838,13 @@ function mimo_freqres(x, y, fs, win, method, err) result(rst)
         meth = SPCTRM_H1_ESTIMATOR
     end if
     nfreq = compute_transform_length(wptr%size)
-    allocate(rst%frequency(nfreq), stat = flag)
-    if (flag == 0) allocate(rst%responses(nfreq, m, p))
-    if (flag /= 0) then
-        call report_memory_error("mimo_freqres", flag, errmgr)
-        return
-    end if
+    allocate(rst%frequency(nfreq))
 
     ! Input Checking
-    if (size(y, 1) /= npts) then
-        call report_matrix_size_error("mimo_freqres", "y", npts, size(y, 2), &
-            size(y, 1), size(y, 2), errmgr)
-        return
-    end if
+    if (size(y, 1) /= npts) error stop DYN_MATRIX_SIZE_ERROR
 
     ! Compute the transfer functions for each possible combination
-    do j = 1, p
-        do i = 1, m
-            rst%responses(:,i,j) = siso_transfer_function(wptr, &
-                x(:,j), y(:,i), etype = meth)
-        end do
-    end do
+    rst%responses = mimo_transfer_function(wptr, x, y, meth)
 
     ! Compute the frequency vector
     df = frequency_bin_width(fs, wptr%size)
@@ -1182,6 +877,7 @@ subroutine frf_accel_fit_fcn(xdata, mdl, rst, stop, args)
     ! The amplitude portion of the response is stored in the first "N" locations
     ! in the output with the phase portion (in radians) is stored in the
     ! second "N" locations.
+    stop = .false.
     n = size(xdata) / 2
     do i = 1, n
         h = evaluate_accelerance_frf_model(mdl, xdata(i))
@@ -1213,6 +909,7 @@ subroutine frf_force_fit_fcn(xdata, mdl, rst, stop, args)
     ! The amplitude portion of the response is stored in the first "N" locations
     ! in the output with the phase portion (in radians) is stored in the
     ! second "N" locations.
+    stop = .false.
     n = size(xdata) / 2
     do i = 1, n
         h = evaluate_receptance_frf_model(mdl, xdata(i))
@@ -1223,7 +920,7 @@ end subroutine
 
 ! ------------------------------------------------------------------------------
 function fit_frf(mt, n, freq, rsp, maxp, minp, init, stats, alpha, controls, &
-    settings, info, err) result(rst)
+    settings, info) result(rst)
     use peaks
     !! Fits an experimentally obtained frequency response by model for either a
     !! receptance model:
@@ -1284,26 +981,6 @@ function fit_frf(mt, n, freq, rsp, maxp, minp, init, stats, alpha, controls, &
     type(convergence_info), intent(out), optional :: info
         !! An optional output that can be used to gain information about the 
         !! iterative solution and the nature of the convergence.
-    class(errors), intent(inout), optional, target :: err
-        !! An optional errors-based object that if provided 
-        !! can be used to retrieve information relating to any errors 
-        !! encountered during execution. If not provided, a default 
-        !! implementation of the errors class is used internally to provide 
-        !! error handling. Possible errors and warning messages that may be 
-        !! encountered are as follows.
-        !!
-        !! - DYN_MEMORY_ERROR: Occurs if there are issues allocating memory.
-        !!
-        !! - DYN_ARRAY_SIZE_ERROR: Occurs if freq and rsp are not the same size.
-        !!
-        !! - DYN_UNDERDEFINED_PROBLEM_EROR: Occurs if the requested model 
-        !!      order is too high for the number of data points available.
-        !!
-        !! - DYN_TOLERANCE_TOO_SMALL_ERROR: Occurs if the requested solver 
-        !!      tolerance is too small to be practical for this problem.
-        !!
-        !! - DYN_TOO_FEW_ITERATIONS_ERROR: Occurs if convergence cannot be 
-        !!      achieved in the allowed number of solver iterations.
     real(real64), allocatable, dimension(:) :: rst
         !! An array containing the model parameters stored as $$ \left[ A_{1}, 
         !! \omega_{n1}, \zeta_{1}, A_{2}, \omega_{n2}, \zeta_{2} ... \right] $$.
@@ -1312,53 +989,36 @@ function fit_frf(mt, n, freq, rsp, maxp, minp, init, stats, alpha, controls, &
     real(real64), parameter :: zeta = 0.1d0
 
     ! Local Variables
-    class(errors), pointer :: errmgr
-    type(errors), target :: deferr
     procedure(regression_function), pointer :: fcn
-    integer(int32) :: i, npts, nparam, flag
+    integer(int32) :: i, npts, nparam
     integer(int32), allocatable, dimension(:) :: maxinds, mininds
     real(real64) :: maxamp, minamp, amprange, delta
     real(real64), allocatable, dimension(:) :: x, y, maxvals, minvals, &
         ymod, resid
     
     ! Initialization
-    if (present(err)) then
-        errmgr => err
-    else
-        errmgr => deferr
-    end if
     select case (mt)
     case (FRF_ACCELERANCE_MODEL)
         fcn => frf_accel_fit_fcn
     case (FRF_RECEPTANCE_MODEL)
         fcn => frf_force_fit_fcn
     case default
-        call errmgr%report_error("fit_frf", "Invalid entry for the " // &
-            "variable mt.  Must be either FRF_ACCELERANCE_MODEL or " // &
-            "FRF_RECEPTANCE_MODEL.", DYN_INVALID_INPUT_ERROR)
-        return
+        error stop DYN_INVALID_INPUT_ERROR
     end select
     npts = size(freq)
     nparam = 3 * n
 
     ! Input Checking
-    if (size(rsp) /= npts) then
-        call report_array_size_error("fit_frf", "rsp", npts, size(rsp), errmgr)
-        return
-    end if
+    if (size(rsp) /= npts) error stop DYN_ARRAY_SIZE_ERROR
 
     ! Memory Allocations
-    allocate(rst(nparam), stat = flag)
-    if (flag == 0) allocate( &
+    allocate( &
+        rst(nparam), &
         x(2 * npts), &
         y(2 * npts), &
         ymod(2 * npts), &
-        resid(2 * npts), &
-        stat = flag)
-    if (flag /= 0) then
-        call report_memory_error("fit_frf", flag, errmgr)
-        return
-    end if
+        resid(2 * npts) &
+    )
 
     ! Determine phase and amplitude terms, and store frequency values
     do i = 1, npts
@@ -1383,11 +1043,7 @@ function fit_frf(mt, n, freq, rsp, maxp, minp, init, stats, alpha, controls, &
 
     if (present(init)) then
         ! Check the array size
-        if (size(init) /= nparam) then
-            call report_array_size_error("fit_frf", "init", nparam, &
-                size(init), errmgr)
-            return
-        end if
+        if (size(init) /= nparam) error stop DYN_ARRAY_SIZE_ERROR
 
         ! Copy init to rst
         rst = init
@@ -1403,10 +1059,13 @@ function fit_frf(mt, n, freq, rsp, maxp, minp, init, stats, alpha, controls, &
         if (size(maxvals) < n) then
             ! The peak detection did not find enough peaks.
             if (size(maxvals) == 0) then
-                ! No peaks found.  This is suspicious, but just use a random
-                ! estimate to get started.  Maybe the solver will be able
-                ! to sort it out.
-                call random_number(rst)
+                ! No peaks found.  This is suspicious, but use a deterministic
+                ! estimate to ensure predictable behavior.
+                do i = 1, n
+                    rst(3 * i - 2) = maxamp
+                    rst(3 * i - 1) = freq(max(1, min(npts, (i * npts) / (n + 1))))
+                    rst(3 * i) = zeta
+                end do
             else
                 ! Fill in the remaining parameters with the last set estimate
                 do i = size(maxvals) + 1, n
@@ -1421,7 +1080,7 @@ function fit_frf(mt, n, freq, rsp, maxp, minp, init, stats, alpha, controls, &
     ! Fit the model
     call nonlinear_least_squares(fcn, x, y, rst, ymod, resid, maxp = maxp, &
         minp = minp, stats = stats, alpha = alpha, controls = controls, &
-        settings = settings, info = info, err = errmgr)
+        settings = settings, info = info)
 end function
 
 ! ------------------------------------------------------------------------------

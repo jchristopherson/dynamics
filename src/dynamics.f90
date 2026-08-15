@@ -46,6 +46,7 @@ module dynamics
     public :: to_angle_axis
 
     ! DYNAMICS_STRUCTURAL
+    public :: csr_matrix
     public :: DYN_ONE_POINT_INTEGRATION_RULE
     public :: DYN_TWO_POINT_INTEGRATION_RULE
     public :: DYN_THREE_POINT_INTEGRATION_RULE
@@ -65,7 +66,6 @@ module dynamics
     public :: beam_element_3d
 
     ! DYNAMICS_KINEMATICS
-    public :: identity_4
     public :: dh_rotate_x
     public :: dh_rotate_z
     public :: dh_translate_x

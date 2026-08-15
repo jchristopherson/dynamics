@@ -1,6 +1,5 @@
 module dynamics_system_id
     use iso_fortran_env
-    use ferror
     use dynamics_error_handling
     use diffeq
     use fstats
@@ -100,8 +99,7 @@ contains
 ! ------------------------------------------------------------------------------
 subroutine siso_model_fit_least_squares_1(fcn, x, ic, p, integrator, ind, &
     maxp, minp, stats, alpha, controls, settings, info, status, cov, xc, yc, &
-    constraints, weights, args, &
-    err)
+    constraints, weights, args)
     !! Attempts to fit a model of a single-intput, single-output (SISO) dynamic 
     !! system by means of an iterative least-squares solver.  The algorithm
     !! computes the solution to the differential equations numerically, and
@@ -176,32 +174,19 @@ subroutine siso_model_fit_least_squares_1(fcn, x, ic, p, integrator, ind, &
         !! User-defined information to pass along to fcn.  These arguments,
         !! if supplied, will be passed through to fcn by means of the
         !! [[model_information]] type.
-    class(errors), intent(inout), optional, target :: err
-        !! An error handling object.
 
     ! Local Variables
-    integer(int32) :: i, i1, i2, n, ni, npts, nc, flag
+    integer(int32) :: i, i1, i2, n, ni, npts, nc
     real(real64), allocatable, dimension(:) :: t, f, ymod, resid
-    class(errors), pointer :: errmgr
-    type(errors), target :: deferr
     type(runge_kutta_45), target :: default_ode_solver
     type(regression_information) :: addinfo
     procedure(regression_function), pointer :: fcnptr
     type(iteration_controls) :: def_tol;
     
     ! Initialization
-    if (present(err)) then
-        errmgr => err
-    else
-        errmgr => deferr
-    end if
     if (present(xc) .and. present(yc) .and. present(constraints)) then
         nc = size(xc)
-        if (size(yc) /= nc) then
-            call report_array_size_error("siso_model_fit_least_squares_1", &
-                "yc", nc, size(yc), errmgr)
-            return
-        end if
+        if (size(yc) /= nc) error stop DYN_ARRAY_SIZE_ERROR
     else
         nc = 0
     end if
@@ -215,8 +200,7 @@ subroutine siso_model_fit_least_squares_1(fcn, x, ic, p, integrator, ind, &
         def_tol%residual_tolerance = sqrt(epsilon(1.0d0))
     end if
 
-    allocate(addinfo%start_stop(n, 2), stat = flag)
-    if (flag /= 0) go to 100
+    allocate(addinfo%start_stop(n, 2))
     i1 = 1
     i2 = 0
     npts = 0
@@ -230,8 +214,7 @@ subroutine siso_model_fit_least_squares_1(fcn, x, ic, p, integrator, ind, &
     end do
     npts = npts + nc
     allocate(t(npts), f(npts), addinfo%excitation_data(npts), ymod(npts), &
-        resid(npts), stat = flag)
-    if (flag /= 0) go to 100
+        resid(npts))
 
     do i = 1, n
         i1 = addinfo%start_stop(i, 1)
@@ -276,22 +259,13 @@ subroutine siso_model_fit_least_squares_1(fcn, x, ic, p, integrator, ind, &
     call nonlinear_least_squares(fcnptr, t, f, p, ymod, resid, maxp = maxp, &
         minp = minp, stats = stats, alpha = alpha, controls = def_tol, &
         settings = settings, info = info, status = status, cov = cov, &
-        args = addinfo, err = errmgr, weights = weights)
-    if (errmgr%has_error_occurred()) return
-
-    ! End
-    return
-
-    ! Memory Error
-100 continue
-    call report_memory_error("siso_model_fit_least_squares_1", flag, errmgr)
+        args = addinfo, weights = weights)
 end subroutine
 
 ! --------------------
 subroutine siso_model_fit_least_squares_2(fcn, x, ic, p, integrator, ind, &
     maxp, minp, stats, alpha, controls, settings, info, status, cov, xc, yc, &
-    constraints, weights, args, &
-    err)
+    constraints, weights, args)
     !! Attempts to fit a model of a single-intput, single-output (SISO) dynamic 
     !! system by means of an iterative least-squares solver.  The algorithm
     !! computes the solution to the differential equations numerically, and
@@ -367,32 +341,19 @@ subroutine siso_model_fit_least_squares_2(fcn, x, ic, p, integrator, ind, &
         !! User-defined information to pass along to fcn.  These arguments,
         !! if supplied, will be passed through to fcn by means of the
         !! [[model_information]] type.
-    class(errors), intent(inout), optional, target :: err
-        !! An error handling object.
 
     ! Local Variables
-    integer(int32) :: i, i1, i2, n, ni, npts, nc, flag
+    integer(int32) :: i, i1, i2, n, ni, npts, nc
     real(real64), allocatable, dimension(:) :: t, f, ymod, resid
-    class(errors), pointer :: errmgr
-    type(errors), target :: deferr
     type(runge_kutta_45), target :: default_ode_solver
     type(regression_information) :: addinfo
     procedure(regression_function), pointer :: fcnptr
     type(iteration_controls) :: def_tol
     
     ! Initialization & Error Checking
-    if (present(err)) then
-        errmgr => err
-    else
-        errmgr => deferr
-    end if
     if (present(xc) .and. present(yc) .and. present(constraints)) then
         nc = size(xc)
-        if (size(yc) /= nc) then
-            call report_array_size_error("siso_model_fit_least_squares_2", &
-                "yc", nc, size(yc), errmgr)
-            return
-        end if
+        if (size(yc) /= nc) error stop DYN_ARRAY_SIZE_ERROR
     else
         nc = 0
     end if
@@ -407,14 +368,9 @@ subroutine siso_model_fit_least_squares_2(fcn, x, ic, p, integrator, ind, &
         def_tol%residual_tolerance = sqrt(epsilon(1.0d0))
     end if
 
-    if (size(ic, 1) /= n) then
-        call report_matrix_size_error("siso_model_fit_least_squares_2", "ic", &
-            n, size(ic, 2), size(ic, 1), size(ic, 2), errmgr)
-        return
-    end if
+    if (size(ic, 1) /= n) error stop DYN_MATRIX_SIZE_ERROR
 
-    allocate(addinfo%start_stop(n, 2), stat = flag)
-    if (flag /= 0) go to 100
+    allocate(addinfo%start_stop(n, 2))
     i1 = 1
     i2 = 0
     npts = 0
@@ -428,8 +384,7 @@ subroutine siso_model_fit_least_squares_2(fcn, x, ic, p, integrator, ind, &
     end do
     npts = npts + nc
     allocate(t(npts), f(npts), addinfo%excitation_data(npts), ymod(npts), &
-        resid(npts), stat = flag)
-    if (flag /= 0) go to 100
+        resid(npts))
 
     do i = 1, n
         i1 = addinfo%start_stop(i, 1)
@@ -473,15 +428,7 @@ subroutine siso_model_fit_least_squares_2(fcn, x, ic, p, integrator, ind, &
     call nonlinear_least_squares(fcnptr, t, f, p, ymod, resid, maxp = maxp, &
         minp = minp, stats = stats, alpha = alpha, controls = def_tol, &
         settings = settings, info = info, status = status, cov = cov, &
-        args = addinfo, err = errmgr, weights = weights)
-    if (errmgr%has_error_occurred()) return
-
-    ! End
-    return
-
-    ! Memory Error
-100 continue
-    call report_memory_error("siso_model_fit_least_squares_2", flag, errmgr)
+        args = addinfo, weights = weights)
 end subroutine
 
 ! --------------------
@@ -513,7 +460,6 @@ subroutine nlsq_fun(t, p, f, check, args)
     class(ode_integrator), pointer :: integrator
     type(linear_interpolator), target :: forcing_function
     type(ode_container) :: mdl
-    type(errors) :: err
     logical :: uses_constraints
     procedure(constraint_equations), pointer :: constraints
     class(*), pointer :: user_info
@@ -548,8 +494,7 @@ subroutine nlsq_fun(t, p, f, check, args)
         i2 = limits(i, 2)
 
         ! Set up the interpolator for the forcing term
-        call forcing_function%initialize(t(i1:i2), excitation(i1:i2), err = err)
-        if (err%has_error_occurred()) go to 10
+        call forcing_function%initialize(t(i1:i2), excitation(i1:i2))
         ode_info%excitation => forcing_function
 
         ! Solve the ODE's
@@ -559,8 +504,7 @@ subroutine nlsq_fun(t, p, f, check, args)
             ici = ic(i,:)
         end if
         call integrator%clear_buffer()
-        call integrator%solve(mdl, t(i1:i2), ici, args = ode_info, err = err)
-        if (err%has_error_occurred()) go to 10
+        call integrator%solve(mdl, t(i1:i2), ici, args = ode_info)
         sol = integrator%get_solution()
         f(i1:i2) = sol(:,ind)
     end do
@@ -574,14 +518,6 @@ subroutine nlsq_fun(t, p, f, check, args)
             call constraints(t(1:i2), f(1:i2), t(i2+1:), p, f(i2+1:))
         end if
     end if
-
-    ! End
-    return
-
-    ! Error Handling
-10  continue
-    check = .true.  ! terminate iterations
-    return
 end subroutine
 
 ! ------------------------------------------------------------------------------

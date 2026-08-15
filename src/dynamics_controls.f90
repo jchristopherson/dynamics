@@ -1,7 +1,6 @@
 module dynamics_controls
     use iso_fortran_env
     use nonlin_polynomials
-    use ferror
     use ieee_arithmetic
     use dynamics_error_handling
     use diffeq
@@ -427,12 +426,10 @@ pure function ss_eval_output(this, u, x) result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
-function ss_poles(this, err) result(rst)
+pure function ss_poles(this) result(rst)
     !! Computes the poles of the state space model.
     class(state_space), intent(in) :: this
         !! The [[state_space]] object.
-    class(errors), intent(inout), optional, target :: err
-        !! An error handling object.
     complex(real64), allocatable, dimension(:) :: rst
         !! The poles of the model.
 
@@ -444,17 +441,14 @@ function ss_poles(this, err) result(rst)
     n = size(this%A, 1)
     allocate(rst(n))
     if (n == 0) return
-    allocate(ac(n, n), source = this%A)
-    call eigen(ac, rst, err = err)
+    call eigen(this%A, rst)
 end function
 
 ! ------------------------------------------------------------------------------
-function ss_zeros(this, err) result(rst)
+pure function ss_zeros(this) result(rst)
     !! Computes the zeros of the state space model.
     class(state_space), intent(in) :: this
         !! The [[state_space]] object.
-    class(errors), intent(inout), optional, target :: err
-        !! An error handling object.
     complex(real64), allocatable, dimension(:) :: rst
         !! The zeros of the model.
 
@@ -618,7 +612,7 @@ end function
 ! ******************************************************************************
 ! TRANSFER_FUNCTION
 ! ------------------------------------------------------------------------------
-function init_tf_poly(y, x) result(rst)
+pure function init_tf_poly(y, x) result(rst)
     !! Initializes a new transfer function.
     class(polynomial), intent(in) :: y
         !! The numerator polynomial \(Y(s)\) in 
@@ -635,7 +629,7 @@ function init_tf_poly(y, x) result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
-function init_tf_array(y, x) result(rst)
+pure function init_tf_array(y, x) result(rst)
     !! Initializes a new transfer function.
     real(real64), intent(in), dimension(:) :: y
         !! The numerator polynomial \(Y(s)\) in 
@@ -694,35 +688,31 @@ pure elemental function tf_eval_omega(this, omega) result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
-function tf_poles(this, err) result(rst)
+pure function tf_poles(this) result(rst)
     !! Computes the poles of the transfer function.
     class(transfer_function), intent(in) :: this
         !! The transfer_function object.
-    class(errors), intent(inout), optional, target :: err
-        !! An error handling object.
     complex(real64), allocatable, dimension(:) :: rst
         !! The poles of the transfer function.
 
     ! Process
-    rst = this%X%roots(err = err)
+    rst = this%X%roots()
 end function
 
 ! ------------------------------------------------------------------------------
-function tf_zeros(this, err) result(rst)
+pure function tf_zeros(this) result(rst)
     !! Computes the zeros of the transfer function.
     class(transfer_function), intent(in) :: this
         !! The transfer function object.
-    class(errors), intent(inout), optional, target :: err
-        !! An error handling object.
     complex(real64), allocatable, dimension(:) :: rst
         !! The zeros of the transfer function.
 
     ! Process
-    rst = this%Y%roots(err = err)
+    rst = this%Y%roots()
 end function
 
 ! ------------------------------------------------------------------------------
-function tf_to_ccf_statespace(this) result(rst)
+pure function tf_to_ccf_statespace(this) result(rst)
     !! Converts a transfer_function type into a controllable canonical form
     !! state_space type.  See 
     !! [this](https://en.wikipedia.org/wiki/State-space_representation) article
@@ -757,7 +747,7 @@ function tf_to_ccf_statespace(this) result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
-function tf_to_ocf_statespace(this) result(rst)
+pure function tf_to_ocf_statespace(this) result(rst)
     !! Converts a transfer_function type into an observable canonical form
     !! state_space type.  See 
     !! [this](https://en.wikipedia.org/wiki/State-space_representation) article
@@ -795,7 +785,7 @@ end function
 ! ******************************************************************************
 ! OPERATORS
 ! ------------------------------------------------------------------------------
-function tf_tf_mult(x, y) result(rst)
+pure function tf_tf_mult(x, y) result(rst)
     !! Multiplies two transfer functions.
     class(transfer_function), intent(in) :: x
         !! The left-hand-side argument.
@@ -810,7 +800,7 @@ function tf_tf_mult(x, y) result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
-function poly_tf_mult(x, y) result(rst)
+pure function poly_tf_mult(x, y) result(rst)
     !! Multiplies a polynomial and a transfer function to result in a new
     !! transfer function.
     class(polynomial), intent(in) :: x
@@ -826,7 +816,7 @@ function poly_tf_mult(x, y) result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
-function tf_poly_mult(x, y) result(rst)
+pure function tf_poly_mult(x, y) result(rst)
     !! Multiplies a transfer function and a polynomial to result in a new
     !! transfer function.
     class(transfer_function), intent(in) :: x
@@ -842,7 +832,7 @@ function tf_poly_mult(x, y) result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
-function tf_scalar_mult(x, y) result(rst)
+pure function tf_scalar_mult(x, y) result(rst)
     !! Multiplies a transfer function by a scalar value.
     class(transfer_function), intent(in) :: x
         !! The left-hand-side argument.
@@ -857,7 +847,7 @@ function tf_scalar_mult(x, y) result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
-function scalar_tf_mult(x, y) result(rst)
+pure function scalar_tf_mult(x, y) result(rst)
     !! Multiplies a transfer function by a scalar value.
     real(real64), intent(in) :: x
         !! The left-hand-side argument.
@@ -874,7 +864,7 @@ end function
 ! ******************************************************************************
 ! LTI SOLVERS
 ! ------------------------------------------------------------------------------
-function lti_solve(mdl, u, t, ic, solver, args, err) result(rst)
+function lti_solve(mdl, u, t, ic, solver, args) result(rst)
     !! Solves the LTI system given by the specified state space model.
     class(state_space), intent(in), target :: mdl
         !! The state_space model to solve.
@@ -897,30 +887,21 @@ function lti_solve(mdl, u, t, ic, solver, args, err) result(rst)
     class(*), intent(inout), optional :: args
         !! An optional container for arguments to pass to the excitation
         !! routine.
-    class(errors), intent(inout), optional, target :: err
-        !! An error handling object.
     real(real64), allocatable, dimension(:,:) :: rst
         !! The solution.  The time points at which the solution was evaluated
         !! are stored in the first column and the output(s) are stored in the
         !! remaining column(s).
 
     ! Local Variables
-    integer(int32) :: i, n, npts, flag, nInputs, nOutputs
+    integer(int32) :: i, n, npts, nInputs, nOutputs
     real(real64), allocatable, dimension(:) :: uv
     real(real64), allocatable, dimension(:,:) :: sol
     type(argument_container) :: container
-    class(errors), pointer :: errmgr
-    type(errors), target :: deferr
     class(ode_integrator), pointer :: integrator
     type(runge_kutta_45), target :: defaultIntegrator
     type(ode_container) :: odeMdl
     
     ! Initialization
-    if (present(err)) then
-        errmgr => err
-    else
-        errmgr => deferr
-    end if
     container%excitation => u
     container%model => mdl
     container%has_user_args = present(args)
@@ -930,11 +911,7 @@ function lti_solve(mdl, u, t, ic, solver, args, err) result(rst)
     nOutputs = size(mdl%C, 1)
 
     ! Input Checking
-    if (size(ic) /= n) then
-        call report_array_size_error("lti_solve_statespace", "ic", n, &
-            size(ic), errmgr)
-        return
-    end if
+    if (size(ic) /= n) error stop DYN_ARRAY_SIZE_ERROR
     
     ! Set up the integrator
     if (present(solver)) then
@@ -945,17 +922,12 @@ function lti_solve(mdl, u, t, ic, solver, args, err) result(rst)
     odeMdl%fcn => ode_solver_routine
 
     ! Call the solver
-    call integrator%solve(odeMdl, t, ic, args = container, err = errmgr)
-    if (errmgr%has_error_occurred()) return
+    call integrator%solve(odeMdl, t, ic, args = container)
 
     ! Get the output from the solver
     sol = integrator%get_solution()
     npts = size(sol, 1)
-    allocate(rst(npts, nOutputs + 1), uv(nInputs), stat = flag, source = 0.0d0)
-    if (flag /= 0) then
-        call report_memory_error("lti_solve_statespace", flag, errmgr)
-        return
-    end if
+    allocate(rst(npts, nOutputs + 1), uv(nInputs), source = 0.0d0)
 
     ! Compute: C * x + D * u
     do i = 1, npts

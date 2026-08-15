@@ -30,28 +30,13 @@ endif()
 # Dependencies
 include(FetchContent)
 find_package(OpenMP REQUIRED COMPONENTS Fortran)
-find_package(ferror QUIET)
-find_package(linalg 1.8.10 QUIET)
-find_package(nonlin 2.1.4 QUIET)
-find_package(fstats 1.5.6 QUIET)
-find_package(diffeq 1.1.5 QUIET)
+find_package(linalg 2.0.0 QUIET)
+find_package(nonlin 2.2.0 QUIET)
+find_package(fstats 1.6.0 QUIET)
+find_package(diffeq 1.2.0 QUIET)
 find_package(peaks QUIET)
-find_package(spectrum QUIET)
-find_package(collections 1.0.9 QUIET)
-
-if (NOT ferror_FOUND)
-    message(STATUS "FERROR could not be found.  A reference version will be employed.")
-    FetchContent_Declare(
-        ferror
-        GIT_REPOSITORY "https://github.com/jchristopherson/ferror"
-    )
-    FetchContent_MakeAvailable(ferror)
-    set(FERROR_LIBRARIES ferror)
-    set(BUILD_FERROR TRUE)
-else()
-    set(FERROR_LIBRARIES ferror::ferror)
-    set(BUILD_FERROR FALSE)
-endif()
+find_package(spectrum 1.3.0 QUIET)
+find_package(collections 1.1.0 QUIET)
 
 if (NOT linalg_FOUND)
     message(STATUS "LINALG could not be found.  A reference version will be employed.")
@@ -161,7 +146,6 @@ add_library(${PROJECT_NAME} ${DYNAMICS_SOURCES})
 target_link_libraries(
     ${PROJECT_NAME}
     PUBLIC
-    ${FERROR_LIBRARIES}
     ${NONLIN_LIBRARIES}
     ${FSTATS_LIBRARIES}
     ${LINALG_LIBRARIES}
@@ -219,12 +203,6 @@ install(
 install(DIRECTORY ${DYNAMICS_MOD_DIR} DESTINATION ${CMAKE_INSTALL_MODULEDIR})
 
 if (${BUILD_SHARED_LIBS})
-    if (${BUILD_FERROR})
-        install(TARGETS ${FERROR_LIBRARIES}
-            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        )
-    endif()
     if (${BUILD_LINALG})
         install(TARGETS ${LINALG_LIBRARIES}
             RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -268,12 +246,6 @@ if (${BUILD_SHARED_LIBS})
         )
     endif()
 else()
-    if (${BUILD_FERROR})
-        install(TARGETS ${FERROR_LIBRARIES}
-            RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        )
-    endif()
     if (${BUILD_LINALG})
         install(TARGETS ${LINALG_LIBRARIES}
             RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}

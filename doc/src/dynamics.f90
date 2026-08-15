@@ -65,7 +65,6 @@ module dynamics
     public :: beam_element_3d
 
     ! DYNAMICS_KINEMATICS
-    public :: identity_4
     public :: dh_rotate_x
     public :: dh_rotate_z
     public :: dh_translate_x

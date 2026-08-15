@@ -5,8 +5,9 @@ module dynamics_linkage
     use dynamics_geometry
     use dynamics_helper
     use dynamics_quaternions
+    use dynamics_error_handling
+    use linalg, only : identity
     use collections, only : list
-    use ferror, only : errors
     implicit none
     private
     public :: binary_link
@@ -191,8 +192,7 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
-    function sl_forward_kinematics(this, q, err) result(rst)
-        use dynamics_error_handling, only : report_array_size_error
+    function sl_forward_kinematics(this, q) result(rst)
         !! Computes the forward kinematics for the linkage resulting in a 
         !! transformation matrix between world and end-effector coordinate
         !! frames.
@@ -201,9 +201,6 @@ contains
         real(real64), intent(in), dimension(:) :: q
             !! The array of joint variables.  This array must be the same size
             !! as there are number of links in this linkage.
-        class(errors), intent(inout), optional, target :: err
-            !! An errors-based object providing error handling in the event the
-            !! array size is incorrect.
         real(real64) :: rst(4, 4)
             !! The resulting 4-by-4 transformation matrix.
 
@@ -211,24 +208,13 @@ contains
         integer(int32) :: i, n
         real(real64) :: qt, qd, T(4, 4)
         class(binary_link), pointer :: lnk
-        class(errors), pointer :: errmgr
-        type(errors), target :: deferr
         
         ! Initialization
-        if (present(err)) then
-            errmgr => err
-        else
-            errmgr => deferr
-        end if
         n = this%get_link_count()
-        rst = identity_4()
+        rst = identity(4)
 
         ! Input Checking
-        if (size(q) /= n) then
-            call report_array_size_error("sl_forward_kinematics", "q", n, &
-                size(q), errmgr)
-            return
-        end if
+        if (size(q) /= n) error stop DYN_ARRAY_SIZE_ERROR
 
         ! Process
         do i = 1, n
@@ -249,8 +235,7 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
-    function sl_jacobian(this, q, err) result(rst)
-        use dynamics_error_handling, only : report_array_size_error
+    function sl_jacobian(this, q) result(rst)
         !! Constructs the Jacobian matrix for the linkage.  The Jacobian matrix 
         !! relates the joint velocities \(\dot{\vec{q}}\) to the end-effector 
         !! velocity \(\dot{\vec{X}}\) by \(\dot{\vec{X}} = J \dot{\vec{q}}\).
@@ -259,9 +244,6 @@ contains
         real(real64), intent(in), dimension(:) :: q
             !! The array of joint variables.  This array must be the same size
             !! as there are number of links in this linkage.
-        class(errors), intent(inout), optional, target :: err
-            !! An errors-based object providing error handling in the event the
-            !! array size is incorrect.
         real(real64), allocatable, dimension(:,:) :: rst
             !! The resulting 6-by-N Jacobian matrix where N is the number of
             !! links in the linkage.
@@ -275,22 +257,12 @@ contains
         integer(int32), allocatable, dimension(:) :: jtypes
         real(real64), allocatable, dimension(:) :: a, alpha, theta, d
         class(binary_link), pointer :: lnk
-        class(errors), pointer :: errmgr
-        type(errors), target :: deferr
         
         ! Initialization
-        if (present(err)) then
-            errmgr => err
-        else
-            errmgr => deferr
-        end if
         n = this%get_link_count()
 
         ! Error Checking
-        if (size(q) /= n) then
-            call report_array_size_error("sl_jacobian", "q", n, size(q), errmgr)
-            return
-        end if
+        if (size(q) /= n) error stop DYN_ARRAY_SIZE_ERROR
 
         ! Format inputs for the Jacobian calculation
         allocate(a(n), alpha(n), theta(n), d(n), jtypes(n))
@@ -315,8 +287,7 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
-    function sl_inverse_kinematics_1(this, qo, trg, ib, err) result(rst)
-        use dynamics_error_handling, only : report_array_size_error
+    function sl_inverse_kinematics_1(this, qo, trg, ib) result(rst)
         !! Solves the inverse kinematics problem for the linkage.
         class(serial_linkage), intent(in), target :: this
             !! The serial_linkage object.
@@ -330,9 +301,6 @@ contains
         type(iteration_behavior), intent(out), optional :: ib
             !! An optional output that can be used to gather information on the
             !! solver.
-        class(errors), intent(inout), optional, target :: err
-            !! An optional error handling object used to retrieve any errors
-            !! regarding the solver.
         real(real64), allocatable, dimension(:) :: rst
             !! An M-element array containing the computed joint variables that
             !! satisfy the constraints.
@@ -341,15 +309,8 @@ contains
         procedure(vecfcn), pointer :: vfcn
         type(serial_linkage_solver_data) :: obj
         real(real64) :: constraints(6)
-        class(errors), pointer :: errmgr
-        type(errors), target :: deferr
         
         ! Initialization
-        if (present(err)) then
-            errmgr => err
-        else
-            errmgr => deferr
-        end if
         vfcn => sl_vecfcn
         obj%linkage => this
         obj%target = trg
@@ -358,15 +319,11 @@ contains
 
         ! Input Check
         ! Can update this limit after solver and constraint technology improve
-        if (size(qo) > 6) then
-            call report_array_size_error("sl_inverse_kinematics_1", "qo", 6, &
-                size(qo), errmgr)
-            return
-        end if
+        if (size(qo) > 6) error stop DYN_ARRAY_SIZE_ERROR
 
         ! Process
         rst = solve_inverse_kinematics(vfcn, qo, constraints, ib = ib, &
-            args = obj, err = err)
+            args = obj)
     end function
 
 ! ----------

@@ -3,7 +3,6 @@ project: DYNAMICS
 summary: DYNAMICS is a library of routines used for the analysis of dynamic systems.
 project_github: https://github.com/jchristopherson/dynamics
 author: Jason Christopherson
-author_email: jchristopherson@hotmail.com
 src_dir: ./src
 exclude_dir: ./src/c
 output_dir: ./doc

@@ -776,6 +776,39 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
+    function test_boundary_conditions_csr() result(rst)
+        ! Arguments
+        logical :: rst
+
+        ! Variables
+        integer(int32), parameter :: n = 20
+        integer(int32), parameter :: nbc = 3
+        real(real64) :: k(n,n)
+        real(real64), allocatable, dimension(:,:) :: knew_dense, knew_csr
+        type(csr_matrix) :: kcsr, knewcsr
+        integer(int32) :: gdofs_dense(nbc), gdofs_csr(nbc)
+
+        ! Initialization
+        rst = .true.
+        call random_number(k)
+        gdofs_dense = [3, 10, 17]
+        gdofs_csr = gdofs_dense
+        kcsr = k
+
+        ! Remove the rows and columns via the dense and CSR implementations
+        knew_dense = apply_boundary_conditions(gdofs_dense, k)
+        knewcsr = apply_boundary_conditions(gdofs_csr, kcsr)
+        allocate(knew_csr(n - nbc, n - nbc))
+        knew_csr = knewcsr
+
+        ! Test
+        if (.not.assert(knew_dense, knew_csr)) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_boundary_conditions_csr -1"
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
     function test_connectivity_matrix() result(rst)
         ! Arguments
         logical :: rst
@@ -783,8 +816,8 @@ contains
         ! Variables
         integer(int32), parameter :: gdof = 9 ! 3 dof per node, 3 nodes
         real(real64) :: x1, y1, x2, y2, x3, y3, a1, a2, i1, i2, &
-            L1ans(6,9), L2ans(6,9)
-        real(real64), allocatable, dimension(:,:) :: L1, L2
+            L1ans(6,9), L2ans(6,9), L1(6,9), L2(6,9)
+        type(csr_matrix) :: L1csr, L2csr
         type(beam_element_2d) :: b1, b2
         type(material) :: mat
         type(node) :: nodes(3)
@@ -860,8 +893,10 @@ contains
         nodes = [b1%node_1, b1%node_2, b2%node_2]
 
         ! Construct the matrices
-        L1 = create_connectivity_matrix(gdof, b1, nodes)
-        L2 = create_connectivity_matrix(gdof, b2, nodes)
+        L1csr = create_connectivity_matrix(gdof, b1, nodes)
+        L2csr = create_connectivity_matrix(gdof, b2, nodes)
+        L1 = L1csr
+        L2 = L2csr
 
         ! Tests
         if (.not.assert(L1, L1ans)) then

@@ -63,6 +63,9 @@ program main
     check = test_boundary_conditions_2()
     if (.not.check) flag = 14
 
+    check = test_boundary_conditions_csr()
+    if (.not.check) flag = 101
+
     check = test_beam3d_shape_function_matrix()
     if (.not.check) flag = 15
 
