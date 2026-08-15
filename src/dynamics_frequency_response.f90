@@ -354,7 +354,7 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
-    subroutine modal_response(mass, stiff, freqs, modeshapes)
+    pure subroutine modal_response(mass, stiff, freqs, modeshapes)
         !! Computes the modal frequencies and modes shapes for 
         !! multi-degree-of-freedom system.
         use dynamics_error_handling
@@ -408,7 +408,7 @@ contains
     end subroutine
 
 ! ------------------------------------------------------------------------------
-    subroutine normalize_mode_shapes(x)
+    pure subroutine normalize_mode_shapes(x)
         !! Normalizes mode shape vectors such that the largest magnitude
         !! value in the vector is one.
         real(real64), intent(inout), dimension(:,:) :: x
@@ -838,18 +838,12 @@ function mimo_freqres(x, y, fs, win, method) result(rst)
     end if
     nfreq = compute_transform_length(wptr%size)
     allocate(rst%frequency(nfreq))
-    allocate(rst%responses(nfreq, m, p))
 
     ! Input Checking
-    if (size(y, 1) /= npts) error stop DYN_ARRAY_SIZE_ERROR
+    if (size(y, 1) /= npts) error stop DYN_MATRIX_SIZE_ERROR
 
     ! Compute the transfer functions for each possible combination
-    do j = 1, p
-        do i = 1, m
-            rst%responses(:,i,j) = siso_transfer_function(wptr, &
-                x(:,j), y(:,i), etype = meth)
-        end do
-    end do
+    rst%responses = mimo_transfer_function(wptr, x, y, meth)
 
     ! Compute the frequency vector
     df = frequency_bin_width(fs, wptr%size)
