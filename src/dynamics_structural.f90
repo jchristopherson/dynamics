@@ -4,11 +4,13 @@
 
 module dynamics_structural
     use iso_fortran_env
-    use linalg, only : csr_matrix, create_csr_matrix, sort
+    use linalg, only : csr_matrix, create_csr_matrix, sort, size, assignment(=)
     use dynamics_error_handling
     use dynamics_rotation
     implicit none
     private
+    public :: csr_matrix
+    public :: assignment(=)
     public :: DYN_ONE_POINT_INTEGRATION_RULE
     public :: DYN_TWO_POINT_INTEGRATION_RULE
     public :: DYN_THREE_POINT_INTEGRATION_RULE
@@ -285,6 +287,7 @@ module dynamics_structural
     interface apply_boundary_conditions
         module procedure :: apply_boundary_conditions_mtx
         module procedure :: apply_boundary_conditions_vec
+        module procedure :: apply_boundary_conditions_csr
     end interface
 
 contains
@@ -472,23 +475,28 @@ end function
 
 ! ------------------------------------------------------------------------------
 function create_connectivity_matrix(gdof, e, nodes) result(rst)
-    !! Creates a connectivity matrix for the element.
+    !! Creates a connectivity matrix for the element, stored in CSR format.
+    !! The matrix contains exactly one non-zero (unity) entry per row;
+    !! therefore, it is well-suited to a sparse representation.
     integer(int32), intent(in) :: gdof
         !! The number of global degrees of freedom.
     class(element), intent(in) :: e
         !! The element.
     class(node), intent(in), dimension(:) :: nodes
         !! The global node list.
-    real(real64), allocatable, dimension(:,:) :: rst
+    type(csr_matrix) :: rst
         !! The resulting matrix.
 
     ! Local Variables
     integer(int32) :: i, j, col, nnodes, nnz, row
+    integer(int32), allocatable, dimension(:) :: rows, cols
+    real(real64), allocatable, dimension(:) :: vals
     
     ! Initialization
     nnodes = e%get_node_count()
     nnz = e%get_dof_per_node() * nnodes
-    allocate(rst(nnz, gdof), source = 0.0d0)
+    allocate(rows(nnz), cols(nnz))
+    allocate(vals(nnz), source = 1.0d0)
 
     ! Process
     row = 0
@@ -496,10 +504,12 @@ function create_connectivity_matrix(gdof, e, nodes) result(rst)
         col = find_global_dof(e%get_node(j), nodes)
         do i = 1, e%get_dof_per_node()
             row = row + 1
-            rst(row, col) = 1.0d0
+            rows(row) = row
+            cols(row) = col
             col = col + 1
         end do
     end do
+    rst = create_csr_matrix(nnz, gdof, rows, cols, vals)
 end function
 
 ! ------------------------------------------------------------------------------
@@ -557,6 +567,88 @@ function apply_boundary_conditions_mtx(gdof, x) result(rst)
 
     ! Now, we only need store the rows and columns stored in indices
     rst = x(indices,indices)
+end function
+
+! ------------------------------------------------------------------------------
+function apply_boundary_conditions_csr(gdof, x) result(rst)
+    !! Applies boundary conditions to a CSR-format sparse matrix by removal of
+    !! the appropriate rows and columns.
+    integer(int32), intent(inout), dimension(:) :: gdof
+        !! An array of the global degrees of freedom to restrain.  The array
+        !! is sorted into ascending order on output.
+    type(csr_matrix), intent(in) :: x
+        !! The matrix to constrain.
+    type(csr_matrix) :: rst
+        !! The altered matrix.
+
+    ! Local Variables
+    integer(int32) :: i, ii, j, k, m, n, nbc, mnew, nnz
+    integer(int32), allocatable, dimension(:) :: map, rows, cols
+    real(real64), allocatable, dimension(:) :: vals
+    
+    ! Initialization
+    m = size(x, 1)
+    n = size(x, 2)
+    nbc = size(gdof)
+    mnew = m - nbc
+
+    ! Input Checking
+    if (m /= n) error stop DYN_MATRIX_SIZE_ERROR
+    if (mnew < 1) error stop DYN_CONSTRAINT_ERROR
+    do i = 1, nbc
+        if (gdof(i) < 1 .or. gdof(i) > m) error stop DYN_INDEX_OUT_OF_RANGE
+    end do
+
+    ! Sort gdof into ascending order
+    call sort(gdof, .true.)
+
+    ! Check for duplicate values in GDOF
+    do i = 2, nbc
+        if (gdof(i) == gdof(i-1)) error stop DYN_NONMONOTONIC_ARRAY_ERROR
+    end do
+
+    ! Build a map from the old row/column index to the new, constrained index;
+    ! a value of zero denotes a row/column that is to be removed
+    allocate(map(m))
+    ii = 1
+    j = 0
+    do i = 1, m
+        if (ii <= nbc) then
+            if (gdof(ii) == i) then
+                map(i) = 0
+                ii = ii + 1
+                cycle
+            end if
+        end if
+        j = j + 1
+        map(i) = j
+    end do
+
+    ! Count the number of retained non-zero entries
+    nnz = 0
+    do i = 1, m
+        if (map(i) == 0) cycle
+        do k = x%row_indices(i), x%row_indices(i+1) - 1
+            if (map(x%column_indices(k)) == 0) cycle
+            nnz = nnz + 1
+        end do
+    end do
+
+    ! Populate the retained entries, remapped to the new index set
+    allocate(rows(nnz), cols(nnz), vals(nnz))
+    nnz = 0
+    do i = 1, m
+        if (map(i) == 0) cycle
+        do k = x%row_indices(i), x%row_indices(i+1) - 1
+            j = x%column_indices(k)
+            if (map(j) == 0) cycle
+            nnz = nnz + 1
+            rows(nnz) = map(i)
+            cols(nnz) = map(j)
+            vals(nnz) = x%values(k)
+        end do
+    end do
+    rst = create_csr_matrix(mnew, mnew, rows, cols, vals)
 end function
 
 ! ------------------------------------------------------------------------------
