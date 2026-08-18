@@ -139,6 +139,31 @@ module dynamics_frequency_response
 
 contains
 ! ------------------------------------------------------------------------------
+    pure logical function is_symmetric(a) result(rst)
+        real(real64), intent(in), dimension(:,:) :: a
+
+        real(real64), parameter :: tol = 10.0d0 * epsilon(0.0d0)
+        integer(int32) :: i, j, n
+        real(real64) :: scale
+
+        n = size(a, 1)
+        if (size(a, 2) /= n) then
+            rst = .false.
+            return
+        end if
+        scale = max(1.0d0, maxval(abs(a)))
+        rst = .true.
+        do j = 1, n
+            do i = j + 1, n
+                if (abs(a(i,j) - a(j,i)) > tol * scale) then
+                    rst = .false.
+                    return
+                end if
+            end do
+        end do
+    end function
+
+! ------------------------------------------------------------------------------
     pure elemental function chirp(t, amp, span, f1Hz, f2Hz) result(rst)
         !! Evaluates a linear chirp function.
         real(real64), intent(in) :: t
@@ -220,12 +245,15 @@ contains
         n = size(mass, 1)
 
         ! Input Checking
+        if (n < 1) error stop DYN_INVALID_INPUT_ERROR
         if (size(mass, 2) /= n) error stop DYN_MATRIX_SIZE_ERROR
         if (size(stiff,1) /= size(stiff, 2)) error stop DYN_MATRIX_SIZE_ERROR
         if (size(stiff, 1) /= n .or. size(stiff, 2) /= n) error stop DYN_MATRIX_SIZE_ERROR
+        if (.not.is_symmetric(mass) .or. .not.is_symmetric(stiff)) &
+            error stop DYN_INVALID_INPUT_ERROR
+        if (.not.(alpha >= 0.0d0) .or. .not.(beta >= 0.0d0)) &
+            error stop DYN_INVALID_INPUT_ERROR
         if (.not.associated(frc)) error stop DYN_NULL_POINTER_ERROR
-
-        ! TO DO: Check for symmetry
 
         ! Memory allocations
         allocate(zeta(n))
@@ -240,6 +268,7 @@ contains
         ! Compute the eigenvalues and eigenvectors
         call eigen(stiff, mass, vals, rvecs = vecs)
         allocate(lambda(n), source = real(vals))
+        if (any(lambda <= 0.0d0)) error stop DYN_INVALID_INPUT_ERROR
 
         ! Compute the damping terms
         zeta = compute_modal_damping(lambda, alpha, beta)
@@ -384,11 +413,12 @@ contains
         n = size(mass, 1)
 
         ! Input Checking
+        if (n < 1) error stop DYN_INVALID_INPUT_ERROR
         if (size(mass, 2) /= n) error stop DYN_MATRIX_SIZE_ERROR
         if (size(stiff, 1) /= size(stiff, 2)) error stop DYN_MATRIX_SIZE_ERROR
         if (size(stiff, 1) /= n .or. size(stiff, 2) /= n) error stop DYN_MATRIX_SIZE_ERROR
-
-        ! TO DO: Check for symmetry
+        if (.not.is_symmetric(mass) .or. .not.is_symmetric(stiff)) &
+            error stop DYN_INVALID_INPUT_ERROR
 
         ! Memory allocations
         allocate(vals(n))
@@ -405,7 +435,8 @@ contains
         end if
 
         ! Convert the eigenvalues to frequency values
-        allocate(freqs(n), source = sqrt(abs(real(vals))))
+        if (any(real(vals) <= 0.0d0)) error stop DYN_INVALID_INPUT_ERROR
+        allocate(freqs(n), source = sqrt(real(vals)))
     end subroutine
 
 ! ------------------------------------------------------------------------------
@@ -440,12 +471,13 @@ contains
         !! The amplitude and phase are determined by means of a harmonic 
         !! projection method.
         !!
-        !! $$ Y = \sqrt{a^{2} + b^{2}} $$
-        !! $$ \phi = \tan^{-1}{\left( \frac{a}{b} \right)} $$
+        !! For uniformly sampled data, the retained complex response is
+        !! $$ Y = b + j a, \qquad |Y| = \sqrt{a^{2} + b^{2}}, $$
+        !! with phase $$ \phi = \operatorname{atan2}(a,b). $$
         !!
         !! where
-        !! $$ a = \frac{2}{T} \int y(t) \cos{\left(\omega t \right)} \, dt $$
-        !! $$ b = \frac{2}{T} \int y(t) \sin{\left(\omega t \right)} \, dt $$
+        !! $$ a = \frac{2}{N} \sum_{k=0}^{N-1} y_k \cos(\omega t_k), \qquad
+        !! b = \frac{2}{N} \sum_{k=0}^{N-1} y_k \sin(\omega t_k). $$
         use diffeq, only : runge_kutta_45
         use dynamics_error_handling
         procedure(harmonic_ode), pointer, intent(in) :: fcn
@@ -545,6 +577,8 @@ contains
         end if
 
         ! Input Checking
+        if (.not.associated(fcn)) error stop DYN_NULL_POINTER_ERROR
+        if (nfreq < 1 .or. neqn < 1) error stop DYN_INVALID_INPUT_ERROR
         if (nc < 1) error stop DYN_INVALID_INPUT_ERROR
         if (nt < 1) error stop DYN_INVALID_INPUT_ERROR
         if (ppc < 2) error stop DYN_INVALID_INPUT_ERROR
@@ -652,12 +686,13 @@ contains
         !! The amplitude and phase are determined by means of a harmonic 
         !! projection method.
         !!
-        !! $$ Y = \sqrt{a^{2} + b^{2}} $$
-        !! $$ \phi = \tan^{-1}{\left( \frac{a}{b} \right)} $$
+        !! For uniformly sampled data, the retained complex response is
+        !! $$ Y = b + j a, \qquad |Y| = \sqrt{a^{2} + b^{2}}, $$
+        !! with phase $$ \phi = \operatorname{atan2}(a,b). $$
         !!
         !! where
-        !! $$ a = \frac{2}{T} \int y(t) \cos{\left(\omega t \right)} \, dt $$
-        !! $$ b = \frac{2}{T} \int y(t) \sin{\left(\omega t \right)} \, dt $$
+        !! $$ a = \frac{2}{N} \sum_{k=0}^{N-1} y_k \cos(\omega t_k), \qquad
+        !! b = \frac{2}{N} \sum_{k=0}^{N-1} y_k \sin(\omega t_k). $$
         use diffeq, only : runge_kutta_45
         use dynamics_error_handling
         procedure(harmonic_ode), pointer, intent(in) :: fcn
@@ -703,6 +738,7 @@ contains
         real(real64), allocatable, dimension(:) :: freq
 
         ! Input Checking
+        if (.not.associated(fcn)) error stop DYN_NULL_POINTER_ERROR
         if (abs(freq1 - freq2) < sqrt(epsilon(freq1))) error stop DYN_INVALID_INPUT_ERROR
         if (nfreq < 2) error stop DYN_INVALID_INPUT_ERROR
 
@@ -751,8 +787,10 @@ function siso_freqres(x, y, fs, win, method) result(rst)
     class(window), pointer :: wptr
     type(rectangular_window), target :: defwin
     
-    ! Initialization
+    ! Input Checking
     npts = size(x)
+    if (npts < 2 .or. .not.(fs > 0.0d0)) error stop DYN_INVALID_INPUT_ERROR
+    if (size(y) /= npts) error stop DYN_ARRAY_SIZE_ERROR
     if (present(win)) then
         wptr => win
     else
@@ -760,6 +798,7 @@ function siso_freqres(x, y, fs, win, method) result(rst)
         wptr => defwin
     end if
     if (present(method)) then
+        if (method /= 1 .and. method /= 2) error stop DYN_INVALID_INPUT_ERROR
         if (method == 2) then
             meth = SPCTRM_H2_ESTIMATOR
         else
@@ -768,12 +807,10 @@ function siso_freqres(x, y, fs, win, method) result(rst)
     else
         meth = SPCTRM_H1_ESTIMATOR
     end if
+    if (wptr%size /= npts .or. wptr%size < 2) error stop DYN_ARRAY_SIZE_ERROR
     nfreq = compute_transform_length(wptr%size)
     allocate(rst%frequency(nfreq))
     allocate(rst%responses(nfreq, 1))
-
-    ! Input Checking
-    if (size(y) /= npts) error stop DYN_ARRAY_SIZE_ERROR
 
     ! Compute the transfer function
     rst%responses(:,1) = siso_transfer_function(wptr, x, y, etype = meth)
@@ -818,10 +855,13 @@ function mimo_freqres(x, y, fs, win, method) result(rst)
     class(window), pointer :: wptr
     type(rectangular_window), target :: defwin
     
-    ! Initialization
+    ! Input Checking
     npts = size(x, 1)
     m = size(y, 2)
     p = size(x, 2)
+    if (npts < 2 .or. m < 1 .or. p < 1 .or. .not.(fs > 0.0d0)) &
+        error stop DYN_INVALID_INPUT_ERROR
+    if (size(y, 1) /= npts) error stop DYN_MATRIX_SIZE_ERROR
     if (present(win)) then
         wptr => win
     else
@@ -829,6 +869,7 @@ function mimo_freqres(x, y, fs, win, method) result(rst)
         wptr => defwin
     end if
     if (present(method)) then
+        if (method /= 1 .and. method /= 2) error stop DYN_INVALID_INPUT_ERROR
         if (method == 2) then
             meth = SPCTRM_H2_ESTIMATOR
         else
@@ -837,11 +878,9 @@ function mimo_freqres(x, y, fs, win, method) result(rst)
     else
         meth = SPCTRM_H1_ESTIMATOR
     end if
+    if (wptr%size /= npts .or. wptr%size < 2) error stop DYN_ARRAY_SIZE_ERROR
     nfreq = compute_transform_length(wptr%size)
     allocate(rst%frequency(nfreq))
-
-    ! Input Checking
-    if (size(y, 1) /= npts) error stop DYN_MATRIX_SIZE_ERROR
 
     ! Compute the transfer functions for each possible combination
     rst%responses = mimo_transfer_function(wptr, x, y, meth)
@@ -1009,7 +1048,23 @@ function fit_frf(mt, n, freq, rsp, maxp, minp, init, stats, alpha, controls, &
     nparam = 3 * n
 
     ! Input Checking
+    if (n < 1 .or. npts < 2) error stop DYN_INVALID_INPUT_ERROR
     if (size(rsp) /= npts) error stop DYN_ARRAY_SIZE_ERROR
+    if (present(maxp)) then
+        if (size(maxp) /= nparam) error stop DYN_ARRAY_SIZE_ERROR
+    end if
+    if (present(minp)) then
+        if (size(minp) /= nparam) error stop DYN_ARRAY_SIZE_ERROR
+    end if
+    if (present(init)) then
+        if (size(init) /= nparam) error stop DYN_ARRAY_SIZE_ERROR
+    end if
+    if (present(stats)) then
+        if (size(stats) /= nparam) error stop DYN_ARRAY_SIZE_ERROR
+    end if
+    if (present(maxp) .and. present(minp)) then
+        if (any(minp > maxp)) error stop DYN_INVALID_INPUT_ERROR
+    end if
 
     ! Memory Allocations
     allocate( &
@@ -1042,9 +1097,6 @@ function fit_frf(mt, n, freq, rsp, maxp, minp, init, stats, alpha, controls, &
     amprange = maxamp - minamp
 
     if (present(init)) then
-        ! Check the array size
-        if (size(init) /= nparam) error stop DYN_ARRAY_SIZE_ERROR
-
         ! Copy init to rst
         rst = init
     else
