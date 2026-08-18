@@ -105,6 +105,10 @@ subroutine siso_model_fit_least_squares_1(fcn, x, ic, p, integrator, ind, &
     !! computes the solution to the differential equations numerically, and
     !! compares the output to the known solution via a Levenberg-Marquardt
     !! least-squares solver.
+    !! The fitted parameters minimize the weighted residual norm
+    !! $$ \min_{p}\;\frac{1}{2}\sum_{i=1}^{N}w_i
+    !! \left[y_i-\hat{y}(t_i;p)\right]^2, $$
+    !! subject to any supplied parameter bounds and constraint equations.
     procedure(ode), pointer, intent(in) :: fcn
         !! The routine containing the ODE's being fit.  To communicate 
         !! model parameters and other relevant information, an instance of the
@@ -271,6 +275,9 @@ subroutine siso_model_fit_least_squares_2(fcn, x, ic, p, integrator, ind, &
     !! computes the solution to the differential equations numerically, and
     !! compares the output to the known solution via a Levenberg-Marquardt
     !! least-squares solver.
+    !! Each measurement record is integrated from its own initial condition,
+    !! then all residuals are assembled into the common objective
+    !! $$ \Phi(p)=\frac{1}{2}\boldsymbol{r}(p)^T W\boldsymbol{r}(p). $$
     procedure(ode), pointer, intent(in) :: fcn
         !! The routine containing the ODE's being fit.  To communicate 
         !! model parameters and other relevant information, an instance of the

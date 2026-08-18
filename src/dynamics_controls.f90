@@ -134,6 +134,10 @@ contains
 ! ------------------------------------------------------------------------------
 pure function state_space_init(m, b, k, n_out) result(rst)
     !! Initializes the state space model.
+    !! For the second-order mechanical system
+    !! $$ M\ddot{q}+B\dot{q}+Kq=u, $$
+    !! the state \(x=[q^T\ \dot{q}^T]^T\) satisfies
+    !! $$ \dot{x}=Ax+Bu,\qquad y=Cx+Du. $$
     !!
     !! The output matrix \(C\) is initialized to one, and the
     !! feedthrough matrix \(D\) is initialized to zero.
@@ -196,6 +200,10 @@ end function
 ! ------------------------------------------------------------------------------
 pure function state_space_init_scalar(m, b, k) result(rst)
     !! Initializes the state space model.
+    !! The scalar realization corresponds to
+    !! $$ m\ddot{q}+b\dot{q}+kq=u,\qquad
+    !! A=\begin{bmatrix}0&1\\-k/m&-b/m\end{bmatrix},\quad
+    !! B=\begin{bmatrix}0\\1/m\end{bmatrix}. $$
     !!
     !! The output matrix \(C\) is initialized to one, and the
     !! feedthrough matrix \(D\) is initialized to zero.
@@ -225,6 +233,8 @@ end function
 ! ------------------------------------------------------------------------------
 pure function state_space_init_matrices(a, b, c, d) result(rst)
     !! Initializes the state space model.
+    !! The stored realization uses the continuous-time equations
+    !! $$ \dot{x}=Ax+Bu,\qquad y=Cx+Du. $$
     real(real64), intent(in), dimension(:,:) :: a
         !! The N-by-N dynamics matrix.
     real(real64), intent(in), dimension(:,:) :: b
@@ -398,6 +408,7 @@ end function
 pure function ss_eval_deriv(this, u, x) result(rst)
     !! Evaluates the state time derivative \( \dot{x}(t) = A x(t) + 
     !! B u(t) \).
+    !! This is the vector field evaluated at one state and input sample.
     class(state_space), intent(in) :: this
         !! The [[state_space]] object.
     real(real64), intent(in), dimension(:) :: u
@@ -413,6 +424,7 @@ end function
 ! ------------------------------------------------------------------------------
 pure function ss_eval_output(this, u, x) result(rst)
     !! Evaluates the output vector \( y(t) = C x(t) + D u(t) \).
+    !! The \(D u\) term is the direct feedthrough contribution.
     class(state_space), intent(in) :: this
         !! The [[state_space]] object.
     real(real64), intent(in), dimension(:) :: u
@@ -428,6 +440,8 @@ end function
 ! ------------------------------------------------------------------------------
 pure function ss_poles(this) result(rst)
     !! Computes the poles of the state space model.
+    !! The poles are the eigenvalues of \(A\) and are the roots of
+    !! $$ \det(sI-A)=0. $$
     class(state_space), intent(in) :: this
         !! The [[state_space]] object.
     complex(real64), allocatable, dimension(:) :: rst
@@ -447,6 +461,9 @@ end function
 ! ------------------------------------------------------------------------------
 pure function ss_zeros(this) result(rst)
     !! Computes the zeros of the state space model.
+    !! Transmission zeros are obtained from the generalized eigenproblem of
+    !! the Rosenbrock system matrix
+    !! $$ \mathcal{R}(s)=\begin{bmatrix}sI-A&-B\\C&D\end{bmatrix}. $$
     class(state_space), intent(in) :: this
         !! The [[state_space]] object.
     complex(real64), allocatable, dimension(:) :: rst
@@ -494,6 +511,8 @@ end function
 ! ------------------------------------------------------------------------------
 pure function ss_transfer_fcn(this, s) result(rst)
     !! Evaluates the transfer functions for the model at the parameter \(s\).
+    !! In the Laplace domain,
+    !! $$ H(s)=C(sI-A)^{-1}B+D. $$
     class(state_space), intent(in) :: this
         !! The [[state_space]] object.
     complex(real64), intent(in) :: s
@@ -539,6 +558,7 @@ end function
 ! ------------------------------------------------------------------------------
 pure function ss_transfer_fcn_omega(this, omega) result(rst)
     !! Evaluates the transfer functions for the model at frequency \(\omega\).
+    !! This evaluates the transfer matrix on the imaginary axis, \(s=j\omega\).
     class(state_space), intent(in) :: this
         !! The [[state_space]] object.
     real(real64), intent(in) :: omega
@@ -715,7 +735,8 @@ end function
 pure function tf_to_ccf_statespace(this) result(rst)
     !! Converts a transfer_function type into a controllable canonical form
     !! state_space type.  See 
-    !! [this](https://en.wikipedia.org/wiki/State-space_representation) article
+    !! <a href="https://en.wikipedia.org/wiki/State-space_representation">this</a>
+    !! article
     !! for a description of this form.
     class(transfer_function), intent(in) :: this
         !! The transfer_function to convert.
@@ -750,7 +771,8 @@ end function
 pure function tf_to_ocf_statespace(this) result(rst)
     !! Converts a transfer_function type into an observable canonical form
     !! state_space type.  See 
-    !! [this](https://en.wikipedia.org/wiki/State-space_representation) article
+    !! <a href="https://en.wikipedia.org/wiki/State-space_representation">this</a>
+    !! article
     !! for a description of this form.
     class(transfer_function), intent(in) :: this
         !! The transfer_function to convert.

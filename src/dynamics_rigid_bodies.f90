@@ -6,7 +6,10 @@ module dynamics_rigid_bodies
     public :: initialize_rigid_body
 
     type rigid_body
-        !! Defines a rigid body.
+        !! Defines a rigid body with mass properties about its center of mass.
+        !! The translational and rotational kinetic energies are represented by
+        !! $$ T=\frac{1}{2}m\boldsymbol{v}_{cg}^{T}\boldsymbol{v}_{cg}
+        !! +\frac{1}{2}\boldsymbol{\omega}^{T}I_{cg}\boldsymbol{\omega}. $$
         real(real64), public :: mass
             !! The mass of the body.
         real(real64), public :: cg(3)
@@ -23,7 +26,8 @@ module dynamics_rigid_bodies
 contains
 ! ------------------------------------------------------------------------------
 pure function rb_init(m, inertia, cg) result(rst)
-    !! Initializes a rigid_body object.
+    !! Initializes a rigid_body object. The inertia tensor is interpreted about
+    !! the supplied center of gravity, not about the world origin.
     real(real64), intent(in), optional :: m
         !! The mass of the body.  If no mass is specified, a value of 1 is used.
     real(real64), intent(in), optional :: inertia(3, 3)

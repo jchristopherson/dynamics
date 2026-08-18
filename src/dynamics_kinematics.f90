@@ -267,7 +267,7 @@ contains
         !!
         !! With the standard DH convention, this transformation is
         !! $$ {}^{i-1}T_i = R_z(\theta_i)T_z(d_i)T_x(a_i)R_x(\alpha_i) $$
-        !! and maps coordinates from frame $i$ into frame $i-1$.
+        !! and maps coordinates from frame \(i\) into frame \(i-1\).
         real(real64), intent(in) :: alpha
             !! The link twist angle, in radians.  This angle is the required
             !! rotation of the z(i-1) axis about the link's x-axis to become
@@ -824,7 +824,7 @@ end function
     pure function define_link_csys(xim1, zim1, zi, rim1, ri) &
         result(rst)
         !! Defines the DH coordinate system for the specified link.
-        !! The axes are normalized and the $x$ axis is selected along the
+        !! The axes are normalized and the \(x\) axis is selected along the
         !! common normal of the two joint axes.  For intersecting axes,
         !! $$ \hat{x}_i = \frac{\hat{z}_{i-1} \times \hat{z}_i}
         !! {\left\lVert \hat{z}_{i-1} \times \hat{z}_i \right\rVert}. $$

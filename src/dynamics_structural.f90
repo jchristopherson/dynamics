@@ -297,6 +297,14 @@ contains
 pure function shape_function_derivative(index, elem, s, i) result(rst)
     !! Computes the derivative of the shape function with respect to the natural
     !! coordinate specified.
+    !! The derivative is approximated centrally as
+    !! $$ N_{,i}(\boldsymbol{s})\approx
+    !! \frac{N(\boldsymbol{s}+h\boldsymbol{e}_i)-
+    !! N(\boldsymbol{s}-h\boldsymbol{e}_i)}{2h}. $$
+    !! The second derivative uses the centered finite difference
+    !! $$ N_{,ii}(\boldsymbol{s})\approx
+    !! \frac{N(\boldsymbol{s}+h\boldsymbol{e}_i)-2N(\boldsymbol{s})+
+    !! N(\boldsymbol{s}-h\boldsymbol{e}_i)}{h^2}. $$
     integer(int32), intent(in) :: index
         !! The index of the shape function to evaluate.
     class(element), intent(in) :: elem
@@ -355,6 +363,9 @@ end function
 ! ------------------------------------------------------------------------------
 pure function get_model_parameters(rule) result(rst)
     !! Gets the requested integration model parameters.
+    !! Each returned row contains a Gauss point and weight \((s_i,w_i)\) for
+    !! approximating
+    !! $$ \int_{-1}^{1}f(s)\,ds\approx\sum_i w_i f(s_i). $$
     integer(int32), intent(in) :: rule
         !! The integration rule.
     real(real64), allocatable, dimension(:,:) :: rst
@@ -390,6 +401,8 @@ end function
 pure function integrate_1d(fcn, elem, rule) result(rst)
     !! Computes the integral of the specified integrand given an element and an
     !! integration rule.
+    !! The element integral is evaluated by the Gauss rule in the element's
+    !! natural coordinate \(s\in[-1,1]\).
     procedure(integrand) :: fcn
         !! The integrand.
     class(element), intent(in) :: elem
@@ -423,6 +436,9 @@ end function
 pure function integrate(fcn, elem, rule) result(rst)
     !! Computes the integral of the specified integrand given an element and an
     !! integration rule.
+    !! For an isoparametric element, the physical-coordinate integral includes
+    !! the Jacobian determinant,
+    !! \(\int_{\Omega_e}g\,d\Omega=\int_{-1}^{1}g(s)J(s)\,ds\).
     procedure(integrand) :: fcn
         !! The integrand.
     class(element), intent(in) :: elem

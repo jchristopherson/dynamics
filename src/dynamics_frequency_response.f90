@@ -166,6 +166,10 @@ contains
 ! ------------------------------------------------------------------------------
     pure elemental function chirp(t, amp, span, f1Hz, f2Hz) result(rst)
         !! Evaluates a linear chirp function.
+        !! The instantaneous frequency varies linearly,
+        !! $$ f(t)=f_1+\frac{f_2-f_1}{T}t, $$
+        !! giving phase \(\phi(t)=2\pi(f_1t+(f_2-f_1)t^2/(2T))\) and
+        !! response \(x(t)=A\sin(\phi(t))\).
         real(real64), intent(in) :: t
             !! The value of the independent variable at which to evaluate the 
             !! chirp.
@@ -304,6 +308,9 @@ contains
         !! multi-degree-of-freedom system that uses proportional damping such
         !! that the damping matrix \( C \) is related to the stiffness an mass
         !! matrices by proportional damping coefficients \( \alpha \) and
+            !! In modal coordinates, each mode has denominator
+            !! $$ s^2+2\zeta_i\omega_i s+\omega_i^2, $$
+            !! and the physical response is reconstructed from the mode shapes.
         !! \( \beta \) by \( C = \alpha M + \beta K \).
         use linalg, only : eigen, sort, mtx_mult, LA_NO_OPERATION, LA_TRANSPOSE
         use dynamics_error_handling
@@ -367,6 +374,7 @@ contains
         !! \( \alpha + \beta \omega_{i}^2 = 2 \zeta_{i} \omega_{i} \),
         !! \( \lambda_{i} = \omega_{i}^2 \), and \( \lambda_i \) is the
         !! \( i^{th} \) eigenvalue of the system.
+        !! Equivalently, \(\zeta_i=(\alpha+\beta\omega_i^2)/(2\omega_i)\).
         real(real64), intent(in) :: lambda
             !! The square of the modal frequency - the eigen value.
         real(real64), intent(in) :: alpha
@@ -387,6 +395,9 @@ contains
     pure subroutine modal_response(mass, stiff, freqs, modeshapes)
         !! Computes the modal frequencies and modes shapes for 
         !! multi-degree-of-freedom system.
+        !! The generalized eigenproblem is
+        !! $$ K\boldsymbol{\phi}_i=\lambda_iM\boldsymbol{\phi}_i,
+        !! \qquad \omega_i=\sqrt{\lambda_i}. $$
         use dynamics_error_handling
         use linalg, only : eigen, sort
         real(real64), intent(in), dimension(:,:) :: mass
@@ -443,6 +454,10 @@ contains
     pure subroutine normalize_mode_shapes(x)
         !! Normalizes mode shape vectors such that the largest magnitude
         !! value in the vector is one.
+        !! For each column \(\boldsymbol{\phi}_i\), the operation is
+        !! $$ \boldsymbol{\phi}_i\leftarrow
+        !! \frac{\boldsymbol{\phi}_i}{\phi_{i,k}},\qquad
+        !! k=\arg\max_j|\phi_{i,j}|. $$
         real(real64), intent(inout), dimension(:,:) :: x
             !! The matrix of mode shape vectors with one vector per column.
 
