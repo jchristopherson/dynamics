@@ -33,7 +33,7 @@ module dynamics_linkage
             !! The joint angle is the required rotation of the previous link's
             !! x-axis about the proximal joint's axis to become parallel to the
             !! current link's x-axis.
-        real(real64), public :: joint_type
+        integer(int32), public :: joint_type
             !! The proximal joint type.  This value must be either 
             !! REVOLUTE_JOINT or PRISMATIC_JOINT.
     end type
@@ -155,6 +155,7 @@ contains
         ! Initialization
         integer(int32) :: i, n
         n = size(lnks)
+        if (n < 1) error stop DYN_INVALID_INPUT_ERROR
         do i = 1, n
             call rst%m_links%push(lnks(i))
         end do
@@ -183,6 +184,7 @@ contains
 
         ! Process
         class(*), pointer :: ptr
+        if (i < 1 .or. i > this%get_link_count()) error stop DYN_INDEX_OUT_OF_RANGE
         ptr => this%m_links%get(i)
         rst => null()
         select type (ptr)
@@ -214,6 +216,7 @@ contains
         rst = identity(4)
 
         ! Input Checking
+        if (n < 1) error stop DYN_INVALID_INPUT_ERROR
         if (size(q) /= n) error stop DYN_ARRAY_SIZE_ERROR
 
         ! Process
@@ -262,6 +265,7 @@ contains
         n = this%get_link_count()
 
         ! Error Checking
+        if (n < 1) error stop DYN_INVALID_INPUT_ERROR
         if (size(q) /= n) error stop DYN_ARRAY_SIZE_ERROR
 
         ! Format inputs for the Jacobian calculation
@@ -319,7 +323,7 @@ contains
 
         ! Input Check
         ! Can update this limit after solver and constraint technology improve
-        if (size(qo) > 6) error stop DYN_ARRAY_SIZE_ERROR
+        if (size(qo) < 1 .or. size(qo) > 6) error stop DYN_ARRAY_SIZE_ERROR
 
         ! Process
         rst = solve_inverse_kinematics(vfcn, qo, constraints, ib = ib, &
