@@ -229,7 +229,7 @@ bool c_test_define_csys()
     rst = true;
     i[0] = 1.0;     i[1] = 0.0;     i[2] = 0.0;
     j[0] = 0.0;     j[1] = 1.0;     j[2] = 0.0;
-    k[0] = 0.0;     k[1] = 0.0;     k[2] = 0.0;
+    k[0] = 0.0;     k[1] = 0.0;     k[2] = 1.0;
     create_random_vector(3, o);
     c_define_csys(i, j, k, o, &csys);
 

@@ -822,7 +822,7 @@ function siso_freqres(x, y, fs, win, method) result(rst)
     else
         meth = SPCTRM_H1_ESTIMATOR
     end if
-    if (wptr%size /= npts .or. wptr%size < 2) error stop DYN_ARRAY_SIZE_ERROR
+    if (wptr%size < 2) error stop DYN_ARRAY_SIZE_ERROR
     nfreq = compute_transform_length(wptr%size)
     allocate(rst%frequency(nfreq))
     allocate(rst%responses(nfreq, 1))
@@ -893,7 +893,7 @@ function mimo_freqres(x, y, fs, win, method) result(rst)
     else
         meth = SPCTRM_H1_ESTIMATOR
     end if
-    if (wptr%size /= npts .or. wptr%size < 2) error stop DYN_ARRAY_SIZE_ERROR
+    if (wptr%size < 2) error stop DYN_ARRAY_SIZE_ERROR
     nfreq = compute_transform_length(wptr%size)
     allocate(rst%frequency(nfreq))
 
