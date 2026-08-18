@@ -383,7 +383,12 @@ variables.</p>
     private pure function state_space_init(m, b, k, n_out) result(rst)  
 
     </h3>
-  <p>Initializes the state space model.</p>
+  <p>Initializes the state space model.
+For the second-order mechanical system
+<script type="math/tex; mode=display"> M\ddot{q}+B\dot{q}+Kq=u, </script>
+the state <script type="math/tex">x=[q^T\ \dot{q}^T]^T</script> satisfies
+<script type="math/tex; mode=display"> \dot{x}=Ax+Bu,\qquad y=Cx+Du. </script>
+</p>
 <p>The output matrix <script type="math/tex">C</script> is initialized to one, and the
 feedthrough matrix <script type="math/tex">D</script> is initialized to zero.</p>
 
@@ -473,7 +478,12 @@ feedthrough matrix <script type="math/tex">D</script> is initialized to zero.</p
     private pure function state_space_init_scalar(m, b, k) result(rst)  
 
     </h3>
-  <p>Initializes the state space model.</p>
+  <p>Initializes the state space model.
+The scalar realization corresponds to
+<script type="math/tex; mode=display"> m\ddot{q}+b\dot{q}+kq=u,\qquad
+A=\begin{bmatrix}0&1\\-k/m&-b/m\end{bmatrix},\quad
+B=\begin{bmatrix}0\\1/m\end{bmatrix}. </script>
+</p>
 <p>The output matrix <script type="math/tex">C</script> is initialized to one, and the
 feedthrough matrix <script type="math/tex">D</script> is initialized to zero.</p>
 
@@ -548,7 +558,10 @@ feedthrough matrix <script type="math/tex">D</script> is initialized to zero.</p
     private pure function state_space_init_matrices(a, b, c, d) result(rst)  
 
     </h3>
-  <p>Initializes the state space model.</p>
+  <p>Initializes the state space model.
+The stored realization uses the continuous-time equations
+<script type="math/tex; mode=display"> \dot{x}=Ax+Bu,\qquad y=Cx+Du. </script>
+</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -962,7 +975,8 @@ x_{3} \right) </script>
     private pure function ss_eval_deriv(this, u, x) result(rst)  
 </h3>
   <p>Evaluates the state time derivative <script type="math/tex"> \dot{x}(t) = A x(t) + 
-B u(t) </script>.</p>
+B u(t) </script>.
+This is the vector field evaluated at one state and input sample.</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -1041,7 +1055,8 @@ B u(t) </script>.</p>
                   <h3>
     private pure function ss_eval_output(this, u, x) result(rst)  
 </h3>
-  <p>Evaluates the output vector <script type="math/tex"> y(t) = C x(t) + D u(t) </script>.</p>
+  <p>Evaluates the output vector <script type="math/tex"> y(t) = C x(t) + D u(t) </script>.
+The <script type="math/tex">D u</script> term is the direct feedthrough contribution.</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -1120,7 +1135,10 @@ B u(t) </script>.</p>
                   <h3>
     private pure function ss_poles(this) result(rst)  
 </h3>
-  <p>Computes the poles of the state space model.</p>
+  <p>Computes the poles of the state space model.
+The poles are the eigenvalues of <script type="math/tex">A</script> and are the roots of
+<script type="math/tex; mode=display"> \det(sI-A)=0. </script>
+</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -1169,7 +1187,10 @@ B u(t) </script>.</p>
                   <h3>
     private pure function ss_transfer_fcn(this, s) result(rst)  
 </h3>
-  <p>Evaluates the transfer functions for the model at the parameter <script type="math/tex">s</script>.</p>
+  <p>Evaluates the transfer functions for the model at the parameter <script type="math/tex">s</script>.
+In the Laplace domain,
+<script type="math/tex; mode=display"> H(s)=C(sI-A)^{-1}B+D. </script>
+</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -1226,7 +1247,8 @@ B u(t) </script>.</p>
                   <h3>
     private pure function ss_transfer_fcn_omega(this, omega) result(rst)  
 </h3>
-  <p>Evaluates the transfer functions for the model at frequency <script type="math/tex">\omega</script>.</p>
+  <p>Evaluates the transfer functions for the model at frequency <script type="math/tex">\omega</script>.
+This evaluates the transfer matrix on the imaginary axis, <script type="math/tex">s=j\omega</script>.</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -1408,7 +1430,11 @@ containing the transfer functions for a specific frequency.</p>
                   <h3>
     private pure function ss_zeros(this) result(rst)  
 </h3>
-  <p>Computes the zeros of the state space model.</p>
+  <p>Computes the zeros of the state space model.
+Transmission zeros are obtained from the generalized eigenproblem of
+the Rosenbrock system matrix
+<script type="math/tex; mode=display"> \mathcal{R}(s)=\begin{bmatrix}sI-A&-B\\C&D\end{bmatrix}. </script>
+</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -1467,7 +1493,7 @@ containing the transfer functions for a specific frequency.</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-08-15 20:40            </p>
+ on 2026-08-18 20:28            </p>
         </div>
       </div>
       <br>

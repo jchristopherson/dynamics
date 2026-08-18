@@ -41,6 +41,13 @@ contains
 function determine_local_stability(a, ev) result(rst)
     !! Determines the nature of stability/unstability near the point at which
     !! the dynamics matrix was computed.
+    !!
+    !! For the linearized system
+    !! $$ \dot{\boldsymbol{x}} = A\boldsymbol{x}, $$
+    !! a mode associated with eigenvalue \(\lambda_i\) behaves as
+    !! \(e^{\lambda_i t}\). Therefore, the sign of
+    !! \(\operatorname{Re}(\lambda_i)\) determines exponential growth or decay.
+    !! A fixed point is hyperbolic when no eigenvalue has zero real part.
     real(real64), intent(in), dimension(:,:) :: a
         !! An N-by-N matrix containing the 'A' matrix, also known as the
         !! dynamics matrix.
@@ -48,7 +55,7 @@ function determine_local_stability(a, ev) result(rst)
         !! An optional N-element array that, if supplied, will be filled with 
         !! the eigenvalues of the matrix A.
     integer(int32) :: rst
-        !! Describe the output constants
+        !! One of the fixed-point classification constants defined above.
 
     ! Local Variables
     logical :: hyperbolic

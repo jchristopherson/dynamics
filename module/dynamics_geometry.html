@@ -88,7 +88,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title="11.1% of total for modules and submodules.">530 statements</a>
+               title="11.0% of total for modules and submodules.">530 statements</a>
           </li>
 
             <li id="source-file">
@@ -216,8 +216,8 @@
                 <li><a href="http://fortranwiki.org/fortran/show/ieee_arithmetic">ieee_arithmetic</a></li>
                 <li>lapack</li>
                 <li>fstats</li>
-                <li><a href='../module/dynamics_helper.html'>dynamics_helper</a></li>
                 <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
+                <li><a href='../module/dynamics_helper.html'>dynamics_helper</a></li>
             </ul>
           </li>
       </ul>
@@ -898,7 +898,11 @@ equation of the line <script type="math/tex"> \vec{r} = \vec{r_o} + t \vec{v} </
     <small>type(<a href='../type/line.html'>line</a>)</small>
     </h4>
     <p>The resulting line.  NaN's are returned in the event that the
-two planes are parallel.</p>
+two planes are parallel.
+For plane normals <script type="math/tex">\boldsymbol{n}_1</script> and <script type="math/tex">\boldsymbol{n}_2</script>, the
+intersection direction is
+<script type="math/tex; mode=display"> \boldsymbol{v}=\boldsymbol{n}_1\times\boldsymbol{n}_2. </script>
+</p>
 
           </li>
           <li class="list-group-item">
@@ -933,7 +937,9 @@ least-squares sense.</p>
             <td><strong>pts</strong></td>
             <td>
                 <p>An N-by-3 matrix where N is at least 2, but typically much
-larger.</p>
+larger.
+The fitted direction is the dominant right singular vector of the
+centered point matrix, i.e. the principal component of the cloud.</p>
             </td>
         </tr>
     </tbody>
@@ -1104,7 +1110,10 @@ Plücker line coordinate vector with a matrix.</p>
 
     </h3>
   <p>Constructs a plane from a point which lies on the plane, and a 
-unit vector normal to the plane.</p>
+unit vector normal to the plane.
+The plane equation is obtained from
+<script type="math/tex; mode=display"> \hat{n}\cdot(\boldsymbol{x}-\boldsymbol{p})=0. </script>
+</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -1189,7 +1198,10 @@ least-squares sense.</p>
             <td><strong>pts</strong></td>
             <td>
                 <p>The N-by-3 matrix containing the N points to fit.  N must be
-at least 3, but is typically much larger.</p>
+at least 3, but is typically much larger.
+After centering the points at <script type="math/tex">\bar{\boldsymbol{p}}</script>, the fitted
+normal is the right singular vector associated with the smallest
+singular value of the centered data matrix.</p>
             </td>
         </tr>
     </tbody>
@@ -1452,7 +1464,8 @@ two planes are parallel.</p>
     </div>
     <div class="panel-body">
       <p>Defines the parametric form of a line 
-<script type="math/tex"> \vec{r} = \vec{r_o} + t \vec{v} </script>.</p>
+<script type="math/tex; mode=display"> \boldsymbol{r}(t)=\boldsymbol{r}_0+t\boldsymbol{v}. </script>
+</p>
 
         <h4>Components</h4>
           <table class="table table-striped varlist">
@@ -1573,7 +1586,9 @@ least-squares sense.</p></td>
       </h3>
     </div>
     <div class="panel-body">
-      <p>Defines a plane as <script type="math/tex"> a x + b y + c z + d = 0 </script>.</p>
+      <p>Defines a plane as
+<script type="math/tex; mode=display"> ax+by+cz+d=0,\qquad \hat{n}=\frac{(a,b,c)}{\sqrt{a^2+b^2+c^2}}. </script>
+</p>
 
         <h4>Components</h4>
           <table class="table table-striped varlist">
@@ -1683,7 +1698,10 @@ least-squares sense.</p></td>
                     (pt, nrm)
                   </td>
                   <td><p>Constructs a plane from a point which lies on the plane, and a 
-unit vector normal to the plane.</p></td>
+unit vector normal to the plane.
+The plane equation is obtained from
+<script type="math/tex; mode=display"> \hat{n}\cdot(\boldsymbol{x}-\boldsymbol{p})=0. </script>
+</p></td>
                 </tr>
                 <tr>
                   <td>
@@ -1729,7 +1747,11 @@ least-squares sense.</p></td>
       </h3>
     </div>
     <div class="panel-body">
-      <p>Defines a line in 3D Euclidean space using Plücker coordinates.</p>
+      <p>Defines a line in 3D Euclidean space using Plücker coordinates.
+For a point <script type="math/tex">\boldsymbol{r}_0</script> and direction <script type="math/tex">\boldsymbol{v}</script>,
+the coordinates are <script type="math/tex">L=(\boldsymbol{v},\boldsymbol{m})</script> with
+<script type="math/tex">\boldsymbol{m}=\boldsymbol{r}_0\times\boldsymbol{v}</script> and
+<script type="math/tex">\boldsymbol{v}\cdot\boldsymbol{m}=0</script>.</p>
 
         <h4>Components</h4>
           <table class="table table-striped varlist">
@@ -2649,7 +2671,7 @@ is 10x machine epsilon.</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-08-15 20:40            </p>
+ on 2026-08-18 20:28            </p>
         </div>
       </div>
       <br>

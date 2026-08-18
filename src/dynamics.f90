@@ -46,6 +46,7 @@ module dynamics
     public :: to_angle_axis
 
     ! DYNAMICS_STRUCTURAL
+    public :: csr_matrix
     public :: DYN_ONE_POINT_INTEGRATION_RULE
     public :: DYN_TWO_POINT_INTEGRATION_RULE
     public :: DYN_THREE_POINT_INTEGRATION_RULE

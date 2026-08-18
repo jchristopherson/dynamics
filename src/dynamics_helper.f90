@@ -11,7 +11,10 @@ module dynamics_helper
 contains
 ! ------------------------------------------------------------------------------
 pure function cross_product(x, y) result(rst)
-    !! Computes the cross-product of a vector.
+    !! Computes the cross-product of two three-dimensional vectors.
+    !! The result is orthogonal to both inputs and is defined by
+    !! $$ \boldsymbol{x}\times\boldsymbol{y} =
+    !! \begin{bmatrix}x_2y_3-x_3y_2\\x_3y_1-x_1y_3\\x_1y_2-x_2y_1\end{bmatrix}. $$
     real(real64), intent(in) :: x(3)
         !! The left-hand-side argument.
     real(real64), intent(in) :: y(3)
@@ -46,7 +49,9 @@ end function
 
 ! ------------------------------------------------------------------------------
 pure function vector_angle(x, y) result(rst)
-    !! Computes the angle between two vectors.
+    !! Computes the unsigned angle between two nonzero vectors.
+    !! $$ \theta = \cos^{-1}\left(\frac{\boldsymbol{x}\cdot\boldsymbol{y}}
+    !! {\|\boldsymbol{x}\|\,\|\boldsymbol{y}\|}\right),\qquad 0\leq\theta\leq\pi. $$
     real(real64), intent(in), dimension(:) :: x
         !! The first vector.
     real(real64), intent(in), dimension(size(x)) :: y
@@ -67,7 +72,8 @@ end function
 ! ------------------------------------------------------------------------------
 pure function scalar_projection(x, y) result(rst)
     !! Computes the projection of vector x onto vector y.  The scalar projection
-    !! is defined such that \( s = \frac{\vec{x} \cdot \vec{y}}{||\vec{y}||} \).
+    !! is defined such that
+    !! $$ s = \frac{\boldsymbol{x}\cdot\boldsymbol{y}}{\|\boldsymbol{y}\|}. $$
     real(real64), intent(in), dimension(:) :: x
         !! The vector to project.
     real(real64), intent(in), dimension(size(x)) :: y
@@ -81,9 +87,11 @@ end function
 
 ! ------------------------------------------------------------------------------
 pure function vector_projection(x, y) result(rst)
-    !! Computes the vector pojection of vector x onto vector y.  The vector
+    !! Computes the vector projection of vector x onto vector y.  The vector
     !! projection is defined such that \( proj_{y} \vec{x} =  
-    !! \frac{\vec{x} \cdot \vec{y}}{||\vec{y}||^{2}} \vec{y}\)
+    !! $$ \operatorname{proj}_{\boldsymbol{y}}\boldsymbol{x} =
+    !! \frac{\boldsymbol{x}\cdot\boldsymbol{y}}{\|\boldsymbol{y}\|^{2}}
+    !! \boldsymbol{y}. $$
     real(real64), intent(in), dimension(:) :: x
         !! The vector to project.
     real(real64), intent(in), dimension(size(x)) :: y

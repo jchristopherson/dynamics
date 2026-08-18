@@ -25,7 +25,8 @@ module dynamics_geometry
     public :: do_lines_intersect
 
     type :: plane
-        !! Defines a plane as \( a x + b y + c z + d = 0 \).
+        !! Defines a plane as
+        !! $$ ax+by+cz+d=0,\qquad \hat{n}=\frac{(a,b,c)}{\sqrt{a^2+b^2+c^2}}. $$
         real(real64) :: a
             !! The x-component of the plane normal vector.
         real(real64) :: b
@@ -46,7 +47,7 @@ module dynamics_geometry
 
     type :: line
         !! Defines the parametric form of a line 
-        !! \( \vec{r} = \vec{r_o} + t \vec{v} \).
+        !! $$ \boldsymbol{r}(t)=\boldsymbol{r}_0+t\boldsymbol{v}. $$
         real(real64) :: r0(3)
             !! The coordinates of the initial point \(\vec{r_o}\).
         real(real64) :: v(3)
@@ -76,6 +77,10 @@ module dynamics_geometry
 
     type :: plucker_line
         !! Defines a line in 3D Euclidean space using Plücker coordinates.
+        !! For a point \(\boldsymbol{r}_0\) and direction \(\boldsymbol{v}\),
+        !! the coordinates are \(L=(\boldsymbol{v},\boldsymbol{m})\) with
+        !! \(\boldsymbol{m}=\boldsymbol{r}_0\times\boldsymbol{v}\) and
+        !! \(\boldsymbol{v}\cdot\boldsymbol{m}=0\).
         real(real64), public :: v(6)
             !! The 6-element array containing the Plücker coordinates.  The
             !! first 3 elements contain the unit vector and the last 3 elements
@@ -136,6 +141,8 @@ contains
     pure function plane_from_point_and_normal(pt, nrm) result(rst)
         !! Constructs a plane from a point which lies on the plane, and a 
         !! unit vector normal to the plane.
+        !! The plane equation is obtained from
+        !! $$ \hat{n}\cdot(\boldsymbol{x}-\boldsymbol{p})=0. $$
         real(real64), intent(in) :: pt(3)
             !! The point that lies on the plane.
         real(real64), intent(in) :: nrm(3)
@@ -158,6 +165,9 @@ contains
         real(real64), intent(in), dimension(:,:) :: pts
             !! The N-by-3 matrix containing the N points to fit.  N must be
             !! at least 3, but is typically much larger.
+            !! After centering the points at \(\bar{\boldsymbol{p}}\), the fitted
+            !! normal is the right singular vector associated with the smallest
+            !! singular value of the centered data matrix.
         type(plane) :: rst
             !! The resulting plane.
 
@@ -275,6 +285,9 @@ contains
         type(line) :: rst
             !! The resulting line.  NaN's are returned in the event that the
             !! two planes are parallel.
+            !! For plane normals \(\boldsymbol{n}_1\) and \(\boldsymbol{n}_2\), the
+            !! intersection direction is
+            !! $$ \boldsymbol{v}=\boldsymbol{n}_1\times\boldsymbol{n}_2. $$
 
         ! Local Variables
         integer(int32) :: ind
@@ -348,6 +361,8 @@ contains
         real(real64), intent(in), dimension(:,:) :: pts
             !! An N-by-3 matrix where N is at least 2, but typically much
             !! larger.
+            !! The fitted direction is the dominant right singular vector of the
+            !! centered point matrix, i.e. the principal component of the cloud.
         type(line) :: rst
             !! The resulting line.
 
@@ -438,7 +453,8 @@ contains
         real(real64), intent(in) :: t
             !! The parameter.
         real(real64) :: rst(3)
-            !! The location along the line defined by the parameter \(t\).
+            !! The location along the line defined by the parameter \(t\),
+            !! $$ \boldsymbol{r}(t)=\boldsymbol{r}_0+t\boldsymbol{v}. $$
 
         rst = this%r0 + t * this%v
     end function
