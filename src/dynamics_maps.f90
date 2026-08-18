@@ -28,6 +28,11 @@ contains
     pure function poincare_map(x, y, z, pln, side) result(rst)
         !! Generates a Poincare map by determining the intersections of the
         !! supplied trajectory with the specified plane.
+        !! For consecutive samples \(\boldsymbol{p}_1\) and \(\boldsymbol{p}_2\),
+        !! the segment is interpolated as
+        !! $$ \boldsymbol{p}(t)=\boldsymbol{p}_1+t(\boldsymbol{p}_2-\boldsymbol{p}_1),
+        !! \quad 0\leq t\leq1, $$
+        !! and the section point satisfies \(a x(t)+b y(t)+c z(t)+d=0\).
         real(real64), intent(in), dimension(:) :: x
             !! The x-coordinates of the trajectory.
         real(real64), intent(in), dimension(size(x)) :: y
@@ -146,6 +151,10 @@ contains
         logical :: rst
             !! Returns true if the trajectory approaches the plane from behind;
             !! else, false if the trajectory approaches the plane from in front.
+            !! The signed plane function
+            !! $$ \sigma(\boldsymbol{x})=\boldsymbol{n}\cdot\boldsymbol{x}+d $$
+            !! determines the side of the section because \(\sigma<0\) is behind
+            !! the plane normal.
 
         ! Local Variables
         real(real64) :: val, tol

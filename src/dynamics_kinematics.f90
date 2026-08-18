@@ -264,6 +264,10 @@ contains
     pure function dh_matrix(alpha, a, theta, d) result(rst)
         !! Computes the Denavit-Hartenberg transformation matrix for the 
         !! specified DH parameters.
+        !!
+        !! With the standard DH convention, this transformation is
+        !! $$ {}^{i-1}T_i = R_z(\theta_i)T_z(d_i)T_x(a_i)R_x(\alpha_i) $$
+        !! and maps coordinates from frame \(i\) into frame \(i-1\).
         real(real64), intent(in) :: alpha
             !! The link twist angle, in radians.  This angle is the required
             !! rotation of the z(i-1) axis about the link's x-axis to become
@@ -622,9 +626,14 @@ contains
         if (present(args)) obj%user_args => args
 
         ! Input Check
+        if (.not.associated(mdl)) error stop DYN_NULL_POINTER_ERROR
+        if (nvar < 1) error stop DYN_INVALID_INPUT_ERROR
         if (neqn < nvar) error stop DYN_CONSTRAINT_ERROR
         if (present(df)) then
             if (size(df) /= neqn) error stop DYN_ARRAY_SIZE_ERROR
+        end if
+        if (present(qmax) .and. present(qmin)) then
+            if (any(qmin > qmax)) error stop DYN_INVALID_INPUT_ERROR
         end if
         if (present(qmax)) call solver%set_upper_limits(qmax)
         if (present(qmin)) call solver%set_lower_limits(qmin)
@@ -682,13 +691,13 @@ pure function jacobian_generating_vector(d, k, R, jtype) result(rst)
     !!
     !! For a revolute joint:
     !!
-    !! $$ \vec{c_{i}} = \left( \begin{matrix}
+    !! $$ \vec{c}_{i} = \left( \begin{matrix}
     !! R \left( \hat{k} \times \vec{d_{i-1}} \right) \\
     !! \vec{k_{i-1}} \end{matrix} \right) $$
     !!
     !! For a prismatic joint:
     !!
-    !! $$ \vec{c_{i}} = \left( \begin{matrix} \vec{k_{i-1}} \\ 0 \end{matrix} 
+    !! $$ \vec{c}_{i} = \left( \begin{matrix} \vec{k}_{i-1} \\ 0 \end{matrix}
     !! \right) $$
     !!
     !! The Jacobian matrix is then constructed from the Jacobian generating
@@ -723,6 +732,7 @@ pure function jacobian_generating_vector(d, k, R, jtype) result(rst)
 
     ! Ensure k is a unit vector
     kmag = norm2(k)
+    if (kmag <= sqrt(epsilon(kmag))) error stop DYN_INVALID_INPUT_ERROR
     kunit = k / kmag
 
     ! Process
@@ -774,6 +784,9 @@ function dh_build_jacobian(alpha, a, theta, d, jtypes) result(rst)
 
     ! Initialization
     n = size(alpha)
+    if (n < 1) error stop DYN_INVALID_INPUT_ERROR
+    if (any(jtypes /= REVOLUTE_JOINT .and. jtypes /= PRISMATIC_JOINT)) &
+        error stop DYN_INVALID_INPUT_ERROR
     T = identity(4)
     allocate(rst(6, n))
 
@@ -811,6 +824,10 @@ end function
     pure function define_link_csys(xim1, zim1, zi, rim1, ri) &
         result(rst)
         !! Defines the DH coordinate system for the specified link.
+        !! The axes are normalized and the \(x\) axis is selected along the
+        !! common normal of the two joint axes.  For intersecting axes,
+        !! $$ \hat{x}_i = \frac{\hat{z}_{i-1} \times \hat{z}_i}
+        !! {\left\lVert \hat{z}_{i-1} \times \hat{z}_i \right\rVert}. $$
         real(real64), intent(in) :: xim1(3)
             !! The x-axis of the previous link.
         real(real64), intent(in) :: zim1(3)
@@ -832,17 +849,26 @@ end function
 
         ! Initialization
         tol = 1.0d1 * epsilon(tol)  ! zero tolerance
+        if (norm2(zim1) <= tol .or. norm2(zi) <= tol) &
+            error stop DYN_INVALID_INPUT_ERROR
         lzim1 = line_from_point_and_vector(rim1, zim1)
         lzi = line_from_point_and_vector(ri, zi)
 
         ! Process
         call do_lines_intersect(lzim1, lzi, intersect)
         if (intersect) then
-            ! The two joint axes intersect.  The x-axis as follows.
-            rst%i = cross_product(zim1, zi)
-
-            ! Define the origin
-            rst%origin = ri
+            if (norm2(cross_product(zim1, zi)) <= tol) then
+                ! Colinear joint axes have no unique common normal.  Preserve
+                ! the previous x-axis so that theta = 0 remains well defined.
+                if (norm2(xim1) <= tol) error stop DYN_INVALID_INPUT_ERROR
+                rst%i = xim1
+                rst%origin = ri
+            else
+                ! The two joint axes intersect; their cross product defines
+                ! the x-axis.
+                rst%i = cross_product(zim1, zi)
+                rst%origin = ri
+            end if
         else
             ! Define the common normal between the two axes
             cn = line_common_normal(lzim1, lzi)
@@ -862,6 +888,7 @@ end function
             ! the distal joint axis
             rst%origin = pt0
         end if
+        if (norm2(rst%i) <= tol) error stop DYN_INVALID_INPUT_ERROR
         rst%i = rst%i / norm2(rst%i)    ! ensure i is a unit vector
 
         ! Store z, and normalize to a unit vector
@@ -889,6 +916,9 @@ end function
         type(coordinate_system) :: rst
             !! The new coordinate_system object.
 
+        if (norm2(i) <= sqrt(epsilon(0.0d0)) .or. &
+            norm2(j) <= sqrt(epsilon(0.0d0)) .or. &
+            norm2(k) <= sqrt(epsilon(0.0d0))) error stop DYN_INVALID_INPUT_ERROR
         rst%i = i / norm2(i)
         rst%j = j / norm2(j)
         rst%k = k / norm2(k)
@@ -938,6 +968,7 @@ end function
 
         ! Initialization
         n = size(c)
+        if (n < 2) error stop DYN_INVALID_INPUT_ERROR
         allocate(rst%parameters(n - 1))
 
         ! Process

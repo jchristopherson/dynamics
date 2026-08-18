@@ -99,6 +99,8 @@ pure function rotate_x(angle) result(rst)
         !! \vec{J_p} \cdot \vec{j} & \vec{J_p} \cdot \vec{k} \\ 
         !! \vec{K_p} \cdot \vec{i} & \vec{K_p} \cdot \vec{j} &
         !! \vec{K_p} \cdot \vec{k} \\ \end{matrix} \right] $$
+        !! For orthonormal frames this is a proper rotation, so
+        !! \(R^T R=I\) and \(\det(R)=1\).
         !!
         !! This routine does not check for orthogonallity or unit vector length;
         !! therefore, to ensure correct results it is the callers responsibility
@@ -175,6 +177,10 @@ pure function rotate_x(angle) result(rst)
     pure subroutine to_angle_axis(r, angle, axis)
         !! Extracts the equivalent rotation angle and axis of rotation given a
         !! 3-by-3 rotation matrix.
+        !! For a proper rotation, the angle is recovered from
+        !! $$ \theta = \cos^{-1}\left(\frac{\operatorname{tr}(R)-1}{2}\right), $$
+        !! while the skew-symmetric part satisfies
+        !! $$ R-R^T = 2\sin(\theta)[\hat{u}]_\times. $$
         real(real64), intent(in) :: r(3,3)
             !! The 3-by-3 rotation matrix.
         real(real64), intent(out) :: angle
@@ -219,6 +225,10 @@ pure function rotate_x(angle) result(rst)
         !! Given a vector describing the location on a moving body, 
         !! \(\vec{r_p}\), the matrix is used to report its acceleration 
         !! \(\vec{a_p} = A \vec{r_p}\).
+        !! In vector form this is
+        !! $$ \boldsymbol{a}_p = \boldsymbol{a} +
+        !! \boldsymbol{\alpha}\times\boldsymbol{x} +
+        !! \boldsymbol{\omega}\times(\boldsymbol{\omega}\times\boldsymbol{x}). $$
         real(real64), intent(in) :: alpha(3)
             !! The angular acceleration vector.
         real(real64), intent(in) :: omega(3)
@@ -272,6 +282,9 @@ pure function rotate_x(angle) result(rst)
         !! Given a vector describing the location on a moving body, 
         !! \(\vec{r_p}\), the matrix is used to report its velocity 
         !! \(\vec{v_p} = V \vec{r_p}\).
+        !! In vector form this is
+        !! $$ \boldsymbol{v}_p = \boldsymbol{v} +
+        !! \boldsymbol{\omega}\times\boldsymbol{x}. $$
         real(real64), intent(in) :: omega(3)
             !! The angular velocity vector.
         real(real64), intent(in) :: v(3)

@@ -86,7 +86,7 @@ int main()
     if (!c_test_plucker_line_matmul()) flag = 59;
 
     if (!c_test_define_link_csys()) flag = 60;
-    if (!c_test_define_link_csys()) flag = 61;
+    if (!c_test_define_csys()) flag = 61;
     if (!c_test_build_dh_table()) flag = 62;
     
     if (!c_test_line_common_normal()) flag = 63;

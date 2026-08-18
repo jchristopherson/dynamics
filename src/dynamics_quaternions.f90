@@ -19,7 +19,10 @@ module dynamics_quaternions
     public :: dot_product
 
     type quaternion
-        !! Defines a quaternion of the form: 
+        !! Defines a quaternion of the form
+        !! $$ q=w+x\,\mathbf{i}+y\,\mathbf{j}+z\,\mathbf{k}. $$
+        !! Its norm is \(\lVert q\rVert=\sqrt{w^2+x^2+y^2+z^2}\); unit
+        !! quaternions represent three-dimensional rotations.
         real(real64) :: w
             !! The real component of the quaternion.
         real(real64) :: x
@@ -122,6 +125,9 @@ contains
     pure function quat_init_angle_axis(angle, axis) result(rst)
         !! Constructs a quaternion given an axis and the angle of rotation about
         !! the axis.
+        !! For a unit axis \(\hat{u}\), the rotation quaternion is
+        !! $$ q=\cos\left(\frac{\theta}{2}\right)+
+        !! \hat{u}\sin\left(\frac{\theta}{2}\right). $$
         real(real64), intent(in) :: angle
             !! The rotation angle, in radians.
         real(real64), intent(in), dimension(3) :: axis
@@ -144,6 +150,11 @@ contains
     pure function quat_init_mtx(r) result(rst)
         !! Constructs a quaternion from a 3-by-3 rotation matrix using the 
         !! Stanley method.
+        !! The diagonal candidates satisfy
+        !! $$ w^2=\frac{1+\operatorname{tr}(R)}{4},\quad
+        !! x^2=\frac{1+R_{11}-R_{22}-R_{33}}{4}, $$
+        !! with analogous expressions for \(y^2\) and \(z^2\); the largest
+        !! candidate is selected for numerical robustness.
         real(real64), intent(in), dimension(3, 3) :: r
             !! The rotation matrix.
         type(quaternion) :: rst
@@ -255,6 +266,9 @@ contains
 ! ------------------------------------------------------------------------------
     pure elemental function quat_multiply(x, y) result(rst)
         !! Multiplies two quaternions.
+        !! Writing \(x=(x_0,\boldsymbol{x})\) and \(y=(y_0,\boldsymbol{y})\),
+        !! $$ xy=(x_0y_0-\boldsymbol{x}\cdot\boldsymbol{y},\;
+        !! x_0\boldsymbol{y}+y_0\boldsymbol{x}+\boldsymbol{x}\times\boldsymbol{y}). $$
         type(quaternion), intent(in) :: x
             !! The left-hand-side argument.
         type(quaternion), intent(in) :: y
@@ -369,6 +383,7 @@ contains
 ! ------------------------------------------------------------------------------
     pure elemental function quat_abs(q) result(rst)
         !! Computes the magnitude of a quaternion.
+        !! $$ |q|=\sqrt{q\,\overline{q}}. $$
         type(quaternion), intent(in) :: q
             !! The quaternion.
         real(real64) :: rst
@@ -419,6 +434,8 @@ contains
 ! ------------------------------------------------------------------------------
     pure elemental function inverse(q) result(rst)
         !! Computes the inverse of a quaternion.
+        !! For a nonzero quaternion,
+        !! $$ q^{-1}=\frac{\overline{q}}{|q|^2}. $$
         type(quaternion), intent(in) :: q
             !! The quaternion.
         type(quaternion) :: rst

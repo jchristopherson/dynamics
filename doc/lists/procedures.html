@@ -13,14 +13,29 @@
     <title>All Procedures &ndash; DYNAMICS
 </title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
-    <link href="../css/pygments.css" rel="stylesheet">
-    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <!-- Font Awesome -->
+    <link href="../css/fontawesome.min.css" rel="stylesheet">
+    <link href="../css/brands.min.css" rel="stylesheet">
+    <link href="../css/regular.min.css" rel="stylesheet">
+    <link href="../css/solid.min.css" rel="stylesheet">
+    <link href="../css/v4-font-face.min.css" rel="stylesheet">
+    <link href="../css/v4-shims.min.css" rel="stylesheet">
+    <!-- MathJax -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { equationNumbers: { autoNumber: "AMS" } }
+      });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.9/MathJax.js?config=TeX-AMS-MML_HTMLorMML" async
+            integrity="sha256-DViIOMYdwlM/axqoGDPeUyf0urLoHMN4QACBKyB58Uw=" crossorigin="anonymous"></script>
+    <!-- Other scripts and stylesheets -->
     <link href="../css/local.css" rel="stylesheet">
-      <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
-
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <link href="../css/pygments.css" rel="stylesheet">
     <script src="../js/svg-pan-zoom.min.js"></script>
   </head>
 
@@ -102,13 +117,13 @@ relative to its parent frame.</p><a href="../proc/acceleration_transform.html" c
                </tr>
 			   <tr>
                  <td><a href='..\interface\assignment(=).html'>assignment(=)</a></td>
-                 <td><a href='..\module\dynamics_quaternions.html'>dynamics_quaternions</a></td>
+                 <td><a href='..\module\dynamics_geometry.html'>dynamics_geometry</a></td>
                  <td>Interface</td>
                  <td></td>
                </tr>
 			   <tr>
                  <td><a href='..\interface\assignment(=)~2.html'>assignment(=)</a></td>
-                 <td><a href='..\module\dynamics_geometry.html'>dynamics_geometry</a></td>
+                 <td><a href='..\module\dynamics_quaternions.html'>dynamics_quaternions</a></td>
                  <td>Interface</td>
                  <td></td>
                </tr>
@@ -122,7 +137,11 @@ relative to its parent frame.</p><a href="../proc/acceleration_transform.html" c
                  <td><a href='..\proc\chirp.html'>chirp</a></td>
                  <td><a href='..\module\dynamics_frequency_response.html'>dynamics_frequency_response</a></td>
                  <td>Function</td>
-                 <td><p>Evaluates a linear chirp function.</p></td>
+                 <td><p>Evaluates a linear chirp function.
+The instantaneous frequency varies linearly,
+<script type="math/tex; mode=display"> f(t)=f_1+\frac{f_2-f_1}{T}t, </script>
+giving phase <script type="math/tex">\phi(t)=2\pi(f_1t+(f_2-f_1)t^2/(2T))</script> and
+response <script type="math/tex">x(t)=A\sin(\phi(t))</script>.</p></td>
                </tr>
 			   <tr>
                  <td><a href='..\proc\compute_modal_damping.html'>compute_modal_damping</a></td>
@@ -132,7 +151,8 @@ relative to its parent frame.</p><a href="../proc/acceleration_transform.html" c
 proportional damping terms <script type="math/tex"> \alpha </script> and <script type="math/tex"> \beta </script> where
 <script type="math/tex"> \alpha + \beta \omega_{i}^2 = 2 \zeta_{i} \omega_{i} </script>,
 <script type="math/tex"> \lambda_{i} = \omega_{i}^2 </script>, and <script type="math/tex"> \lambda_i </script> is the
-<script type="math/tex"> i^{th} </script> eigenvalue of the system.</p></td>
+<script type="math/tex"> i^{th} </script> eigenvalue of the system.
+Equivalently, <script type="math/tex">\zeta_i=(\alpha+\beta\omega_i^2)/(2\omega_i)</script>.</p></td>
                </tr>
 			   <tr>
                  <td><a href='..\interface\conjg.html'>conjg</a></td>
@@ -156,13 +176,19 @@ proportional damping terms <script type="math/tex"> \alpha </script> and <script
                  <td><a href='..\proc\create_connectivity_matrix.html'>create_connectivity_matrix</a></td>
                  <td><a href='..\module\dynamics_structural.html'>dynamics_structural</a></td>
                  <td>Function</td>
-                 <td><p>Creates a connectivity matrix for the element.</p></td>
+                 <td><p>Creates a connectivity matrix for the element, stored in CSR format.
+The matrix contains exactly one non-zero (unity) entry per row;
+therefore, it is well-suited to a sparse representation.</p></td>
                </tr>
 			   <tr>
                  <td><a href='..\proc\cross_product.html'>cross_product</a></td>
                  <td><a href='..\module\dynamics_helper.html'>dynamics_helper</a></td>
                  <td>Function</td>
-                 <td><p>Computes the cross-product of a vector.</p></td>
+                 <td><p>Computes the cross-product of two three-dimensional vectors.
+The result is orthogonal to both inputs and is defined by
+<script type="math/tex; mode=display"> \boldsymbol{x}\times\boldsymbol{y} =
+\begin{bmatrix}x_2y_3-x_3y_2\\x_3y_1-x_1y_3\\x_1y_2-x_2y_1\end{bmatrix}. </script>
+</p></td>
                </tr>
 			   <tr>
                  <td><a href='..\proc\damping_from_fractional_overshoot.html'>damping_from_fractional_overshoot</a></td>
@@ -186,7 +212,7 @@ following relationship.</p><a href="../proc/damping_from_log_decrement.html" cla
                  <td><a href='..\module\dynamics_stability.html'>dynamics_stability</a></td>
                  <td>Function</td>
                  <td><p>Determines the nature of stability/unstability near the point at which
-the dynamics matrix was computed.</p></td>
+the dynamics matrix was computed.</p><a href="../proc/determine_local_stability.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
 			   <tr>
                  <td><a href='..\interface\dh_forward_kinematics.html'>dh_forward_kinematics</a></td>
@@ -205,7 +231,7 @@ the dynamics matrix was computed.</p></td>
                  <td><a href='..\module\dynamics_kinematics.html'>dynamics_kinematics</a></td>
                  <td>Function</td>
                  <td><p>Computes the Denavit-Hartenberg transformation matrix for the 
-specified DH parameters.</p></td>
+specified DH parameters.</p><a href="../proc/dh_matrix.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
 			   <tr>
                  <td><a href='..\interface\dh_parameter_set.html'>dh_parameter_set</a></td>
@@ -264,7 +290,10 @@ translation.</p></td>
                  <td><p>Estimates the bandwidth of the resonant mode of a vibratory system.
 The bandwidth is the width of the range of frequencies for which the
 energy is at least half its peak value and is computed as 
-<script type="math/tex">\Delta f = \frac{f_n}{Q}</script>.</p></td>
+<script type="math/tex">\Delta f = \frac{f_n}{Q}</script>.
+Combining this relation with <script type="math/tex">Q = 1/(2\zeta)</script> gives
+<script type="math/tex; mode=display"> \Delta f = 2\zeta f_n. </script>
+</p></td>
                </tr>
 			   <tr>
                  <td><a href='..\interface\evaluate_accelerance_frf_model.html'>evaluate_accelerance_frf_model</a></td>
@@ -298,13 +327,19 @@ linear system to a step function of amplitude <script type="math/tex">X_s</scrip
                  <td><p>Given a free-response time history, this routine attempts to find the 
 logarithmic decrement and resonant frequency of a vibratory system. The
 logarithmic decrement is estimated by finding successive peaks by
-means of peak detection.</p></td>
+means of peak detection.
+If peaks are separated by <script type="math/tex">N</script> cycles, the damped frequency estimate is
+<script type="math/tex; mode=display"> f_d = \frac{N}{t_2-t_1}. </script>
+</p></td>
                </tr>
 			   <tr>
                  <td><a href='..\proc\find_settling_amplitude.html'>find_settling_amplitude</a></td>
                  <td><a href='..\module\dynamics_vibrations.html'>dynamics_vibrations</a></td>
                  <td>Function</td>
-                 <td><p>Estimates the settling amplitude for a step response.</p></td>
+                 <td><p>Estimates the settling amplitude for a step response.
+The final-value estimate is the zero-frequency Fourier coefficient,
+<script type="math/tex; mode=display"> x_f \approx \frac{1}{N}\sum_{k=0}^{N-1}x_k. </script>
+</p></td>
                </tr>
 			   <tr>
                  <td><a href='..\proc\fit_frf.html'>fit_frf</a></td>
@@ -341,7 +376,10 @@ receptance model:</p><a href="../proc/fit_frf.html" class="pull-right"><emph>Rea
                  <td><a href='..\proc\inverse.html'>inverse</a></td>
                  <td><a href='..\module\dynamics_quaternions.html'>dynamics_quaternions</a></td>
                  <td>Function</td>
-                 <td><p>Computes the inverse of a quaternion.</p></td>
+                 <td><p>Computes the inverse of a quaternion.
+For a nonzero quaternion,
+<script type="math/tex; mode=display"> q^{-1}=\frac{\overline{q}}{|q|^2}. </script>
+</p></td>
                </tr>
 			   <tr>
                  <td><a href='..\interface\is_parallel.html'>is_parallel</a></td>
@@ -429,7 +467,11 @@ The logarithmic decrement is calculated as follows.</p><a href="../proc/logarith
                  <td><a href='..\module\dynamics_frequency_response.html'>dynamics_frequency_response</a></td>
                  <td>Subroutine</td>
                  <td><p>Computes the modal frequencies and modes shapes for 
-multi-degree-of-freedom system.</p></td>
+multi-degree-of-freedom system.
+The generalized eigenproblem is
+<script type="math/tex; mode=display"> K\boldsymbol{\phi}_i=\lambda_iM\boldsymbol{\phi}_i,
+\qquad \omega_i=\sqrt{\lambda_i}. </script>
+</p></td>
                </tr>
 			   <tr>
                  <td><a href='..\proc\nearest_point_on_line.html'>nearest_point_on_line</a></td>
@@ -443,7 +485,12 @@ specified point.</p></td>
                  <td><a href='..\module\dynamics_frequency_response.html'>dynamics_frequency_response</a></td>
                  <td>Subroutine</td>
                  <td><p>Normalizes mode shape vectors such that the largest magnitude
-value in the vector is one.</p></td>
+value in the vector is one.
+For each column <script type="math/tex">\boldsymbol{\phi}_i</script>, the operation is
+<script type="math/tex; mode=display"> \boldsymbol{\phi}_i\leftarrow
+\frac{\boldsymbol{\phi}_i}{\phi_{i,k}},\qquad
+k=\arg\max_j|\phi_{i,j}|. </script>
+</p></td>
                </tr>
 			   <tr>
                  <td><a href='..\interface\ode_excite.html'>ode_excite</a></td>
@@ -510,7 +557,12 @@ value in the vector is one.</p></td>
                  <td><a href='..\module\dynamics_maps.html'>dynamics_maps</a></td>
                  <td>Function</td>
                  <td><p>Generates a Poincare map by determining the intersections of the
-supplied trajectory with the specified plane.</p></td>
+supplied trajectory with the specified plane.
+For consecutive samples <script type="math/tex">\boldsymbol{p}_1</script> and <script type="math/tex">\boldsymbol{p}_2</script>,
+the segment is interpolated as
+<script type="math/tex; mode=display"> \boldsymbol{p}(t)=\boldsymbol{p}_1+t(\boldsymbol{p}_2-\boldsymbol{p}_1),
+\quad 0\leq t\leq1, </script>
+and the section point satisfies <script type="math/tex">a x(t)+b y(t)+c z(t)+d=0</script>.</p></td>
                </tr>
 			   <tr>
                  <td><a href='..\proc\point_plane_projection.html'>point_plane_projection</a></td>
@@ -535,7 +587,9 @@ supplied trajectory with the specified plane.</p></td>
                  <td><a href='..\module\dynamics_vibrations.html'>dynamics_vibrations</a></td>
                  <td>Function</td>
                  <td><p>Estimates the Q-factor for a vibratory system.  The Q-factor is computed
-<script type="math/tex">Q = \frac{1}{2 \zeta}</script>.</p></td>
+<script type="math/tex">Q = \frac{1}{2 \zeta}</script>.
+For a lightly damped mode, <script type="math/tex">Q</script> is also approximately the ratio of the
+resonant frequency to its half-power bandwidth.</p></td>
                </tr>
 			   <tr>
                  <td><a href='..\interface\quaternion.html'>quaternion</a></td>
@@ -605,7 +659,9 @@ such that
                  <td><a href='..\module\dynamics_helper.html'>dynamics_helper</a></td>
                  <td>Function</td>
                  <td><p>Computes the projection of vector x onto vector y.  The scalar projection
-is defined such that <script type="math/tex"> s = \frac{\vec{x} \cdot \vec{y}}{||\vec{y}||} </script>.</p></td>
+is defined such that
+<script type="math/tex; mode=display"> s = \frac{\boldsymbol{x}\cdot\boldsymbol{y}}{|\boldsymbol{y}\|}. </script>
+</p></td>
                </tr>
 			   <tr>
                  <td><a href='..\interface\serial_linkage.html'>serial_linkage</a></td>
@@ -618,7 +674,16 @@ is defined such that <script type="math/tex"> s = \frac{\vec{x} \cdot \vec{y}}{|
                  <td><a href='..\module\dynamics_structural.html'>dynamics_structural</a></td>
                  <td>Function</td>
                  <td><p>Computes the derivative of the shape function with respect to the natural
-coordinate specified.</p></td>
+coordinate specified.
+The derivative is approximated centrally as
+<script type="math/tex; mode=display"> N_{,i}(\boldsymbol{s})\approx
+\frac{N(\boldsymbol{s}+h\boldsymbol{e}_i)-
+N(\boldsymbol{s}-h\boldsymbol{e}_i)}{2h}. </script>
+The second derivative uses the centered finite difference
+<script type="math/tex; mode=display"> N_{,ii}(\boldsymbol{s})\approx
+\frac{N(\boldsymbol{s}+h\boldsymbol{e}_i)-2N(\boldsymbol{s})+
+N(\boldsymbol{s}-h\boldsymbol{e}_i)}{h^2}. </script>
+</p></td>
                </tr>
 			   <tr>
                  <td><a href='..\proc\shape_function_second_derivative.html'>shape_function_second_derivative</a></td>
@@ -657,7 +722,12 @@ solution procedure is utilized.</p></td>
                  <td><a href='..\module\dynamics_rotation.html'>dynamics_rotation</a></td>
                  <td>Subroutine</td>
                  <td><p>Extracts the equivalent rotation angle and axis of rotation given a
-3-by-3 rotation matrix.</p></td>
+3-by-3 rotation matrix.
+For a proper rotation, the angle is recovered from
+<script type="math/tex; mode=display"> \theta = \cos^{-1}\left(\frac{\operatorname{tr}(R)-1}{2}\right), </script>
+while the skew-symmetric part satisfies
+<script type="math/tex; mode=display"> R-R^T = 2\sin(\theta)[\hat{u}]_\times. </script>
+</p></td>
                </tr>
 			   <tr>
                  <td><a href='..\proc\to_skew_symmetric.html'>to_skew_symmetric</a></td>
@@ -676,7 +746,10 @@ skew-symmetric matrix is defined as follows.</p><a href="../proc/to_skew_symmetr
                  <td><a href='..\proc\vector_angle.html'>vector_angle</a></td>
                  <td><a href='..\module\dynamics_helper.html'>dynamics_helper</a></td>
                  <td>Function</td>
-                 <td><p>Computes the angle between two vectors.</p></td>
+                 <td><p>Computes the unsigned angle between two nonzero vectors.
+<script type="math/tex; mode=display"> \theta = \cos^{-1}\left(\frac{\boldsymbol{x}\cdot\boldsymbol{y}}
+{|\boldsymbol{x}\|\,|\boldsymbol{y}\|}\right),\qquad 0\leq\theta\leq\pi. </script>
+</p></td>
                </tr>
 			   <tr>
                  <td><a href='..\proc\vector_plane_projection.html'>vector_plane_projection</a></td>
@@ -688,9 +761,11 @@ skew-symmetric matrix is defined as follows.</p><a href="../proc/to_skew_symmetr
                  <td><a href='..\proc\vector_projection.html'>vector_projection</a></td>
                  <td><a href='..\module\dynamics_helper.html'>dynamics_helper</a></td>
                  <td>Function</td>
-                 <td><p>Computes the vector pojection of vector x onto vector y.  The vector
-projection is defined such that <script type="math/tex"> proj_{y} \vec{x} =  
-\frac{\vec{x} \cdot \vec{y}}{||\vec{y}||^{2}} \vec{y}</script>
+                 <td><p>Computes the vector projection of vector x onto vector y.  The vector
+projection is defined such that ( proj_{y} \vec{x} =<br>
+<script type="math/tex; mode=display"> \operatorname{proj}_{\boldsymbol{y}}\boldsymbol{x} =
+\frac{\boldsymbol{x}\cdot\boldsymbol{y}}{|\boldsymbol{y}\|^{2}}
+\boldsymbol{y}. </script>
 </p></td>
                </tr>
 			   <tr>
@@ -710,40 +785,21 @@ its parent frame.</p><a href="../proc/velocity_transform.html" class="pull-right
     <footer>
       <div class="container">
         <div class="row justify-content-between">
-          <div class="col"><p>DYNAMICS was developed by Jason Christopherson<br>&copy; 2026 
+          <div class="col">
+            <p>
+              DYNAMICS
+ was developed by Jason Christopherson<br>              &copy; 2026 
 </p>
           </div>
           <div class="col">
             <p class="text-end">
               Documentation generated by
               <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-08-15 08:55              </p>
+ on 2026-08-18 13:18 -0500             </p>
           </div>
         </div>
         <br>
       </div> <!-- /container -->
     </footer>
-
-    <!-- Bootstrap core JavaScript -->
-    <!-- Placed at the end of the document so the pages load faster -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>    
-
-    <!-- MathJax JavaScript
-             ================================================== -->
-             <!-- Placed at the end of the document so the pages load faster -->
-        <script type="text/x-mathjax-config">
-          MathJax.Hub.Config({
-          TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
-          jax: ['input/TeX','input/MathML','output/HTML-CSS'],
-          extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
-          });
-        </script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-          <script src="../tipuesearch/tipuesearch_content.js"></script>
-          <script src="../tipuesearch/tipuesearch_set.js"></script>
-          <script src="../tipuesearch/tipuesearch.js"></script>
-
   </body>
 </html>

@@ -19,6 +19,8 @@ contains
 pure elemental function q_factor(zeta) result(rst)
     !! Estimates the Q-factor for a vibratory system.  The Q-factor is computed
     !! \(Q = \frac{1}{2 \zeta}\).
+    !! For a lightly damped mode, \(Q\) is also approximately the ratio of the
+    !! resonant frequency to its half-power bandwidth.
     real(real64), intent(in) :: zeta
         !! The damping ratio.
     real(real64) :: rst
@@ -34,6 +36,8 @@ pure elemental function estimate_bandwidth(fn, zeta) result(rst)
     !! The bandwidth is the width of the range of frequencies for which the
     !! energy is at least half its peak value and is computed as 
     !! \(\Delta f = \frac{f_n}{Q}\).
+    !! Combining this relation with \(Q = 1/(2\zeta)\) gives
+    !! $$ \Delta f = 2\zeta f_n. $$
     real(real64), intent(in) :: fn
         !! The resonant frequency.  The units are not important; however, 
         !! the units of the output will be the same as the units of this
@@ -55,6 +59,8 @@ pure elemental function logarithmic_decrement(x1, x2, n) result(rst)
     !!
     !! $$ \delta = \frac{1}{N} \ln \left( \frac{x(t)}{x(t + N T)} \right) =  
     !! \frac{1}{N} \ln \left( \frac{x_1}{x_2} \right) $$
+    !! For an underdamped SDOF response,
+    !! $$ \delta = \frac{2\pi\zeta}{\sqrt{1-\zeta^2}}. $$
     real(real64), intent(in) :: x1
         !! The amplitude of the first peak.
     real(real64), intent(in) :: x2
@@ -92,6 +98,8 @@ subroutine find_free_response_properties(t, x, delta, fn, x1, x2, t1, t2, s, n)
     !! logarithmic decrement and resonant frequency of a vibratory system. The
     !! logarithmic decrement is estimated by finding successive peaks by
     !! means of peak detection.
+    !! If peaks are separated by \(N\) cycles, the damped frequency estimate is
+    !! $$ f_d = \frac{N}{t_2-t_1}. $$
     real(real64), intent(in), dimension(:) :: t
         !! An N-element array containing the values in time
     real(real64), intent(in), dimension(:) :: x
@@ -195,6 +203,8 @@ pure elemental function rise_time(wn, zeta) result(rst)
     !!
     !! $$ t_r = \frac{1}{\omega_d} \left( \pi - 
     !! \arctan \frac{\sqrt{1 - zeta^2}}{\zeta} \right) $$
+    !! where \(\omega_d = \omega_n\sqrt{1-\zeta^2}\) and the formula assumes
+    !! \(\omega_n>0\) and \(0<\zeta<1\).
     real(real64), intent(in) :: wn
         !! The resonant frequency of the system, in rad/s.
     real(real64), intent(in) :: zeta
@@ -218,6 +228,8 @@ end function
 pure function find_settling_amplitude(x) result(rst)
     use fftpack, only : rfft
     !! Estimates the settling amplitude for a step response.
+    !! The final-value estimate is the zero-frequency Fourier coefficient,
+    !! $$ x_f \approx \frac{1}{N}\sum_{k=0}^{N-1}x_k. $$
     real(real64), intent(in), dimension(:) :: x
         !! The step response of the system.
     real(real64) :: rst
@@ -247,6 +259,8 @@ pure function damping_from_fractional_overshoot(x) result(rst)
     !! $$ s = \frac{x_p - x_f}{x_f} $$
     !!
     !! $$ \zeta = \frac{1}{\sqrt{1 + \left( \frac{\pi}{\ln{s}} \right)^2}} $$
+    !! This follows from \(s=e^{-\zeta\pi/\sqrt{1-\zeta^2}}\) for an
+    !! underdamped step response.
     real(real64), intent(in), dimension(:) :: x
         !! The step response of the system.
     real(real64) :: rst
@@ -288,6 +302,8 @@ pure elemental function evaluate_step_response(wn, zeta, xs, t) result(rst)
     !! and
     !!
     !! $$ X_s = \frac{F}{k} $$
+    !! Thus the response is the static displacement multiplied by a transient
+    !! term whose envelope decays as \(e^{-\zeta\omega_n t}\).
     real(real64), intent(in) :: wn
         !! The resonant frequency, in rad/s.
     real(real64), intent(in) :: zeta
