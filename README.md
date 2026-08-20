@@ -9,16 +9,127 @@ A library of routines used for the analysis of dynamic systems.
 The documentation can be found [here](https://jchristopherson.github.io/dynamics/).
 
 ## Capabilities
-Here is a high-level list of the capabilities of this library.
-- Compute frequency response functions for LTI systems.
-- Perform modal analysis of an LTI system.
-- Compute the frequency response of nonlinear systems in such a manner as to expose nonlinear behaviors such as jump phenomenon.
-- Fit transfer functions to experimental data.
-- Describe rigid body rotation and translation.
-- Perform forward and inverse kinematic analysis for linkages.
-- Analyze structural vibrations problems via linear 2D and 3D beam FEM.
-- Determine properties of vibrating systems from experimental data such as resonant frequency, damping ratio, Q-factor, rise time, settling amplitudes, etc.
-- Evaluate the step response behavior of SDOF systems.
+The `dynamics` module aggregates tools for analysis, modeling, and identification of dynamic systems.
+
+- Frequency response and modal analysis
+    - SISO and MIMO FRF computation for linear systems.
+    - Modal response and proportional/modal damping support.
+    - Nonlinear frequency sweep workflows (ascending/descending) to expose effects such as jump behavior.
+    - FRF model fitting (for example, accelerance and receptance models).
+- Vibrations and response characterization
+    - Q-factor and bandwidth estimation.
+    - Damping estimation (for example, logarithmic decrement and overshoot-based methods).
+    - Free-response property extraction (resonant frequency, damping ratio, settling amplitude, etc.).
+    - Step-response metrics such as rise time and settling behavior.
+- Controls and system representations
+    - State-space and transfer-function representations.
+    - LTI simulation utilities and polynomial helpers.
+- System identification
+    - Least-squares parameter estimation of dynamic models from measured input/output data.
+    - Regression statistics and solver controls for fit quality and convergence behavior.
+- Kinematics, rigid-body motion, and robotics utilities
+    - Denavit-Hartenberg tools and forward/inverse kinematics.
+    - Jacobian-related helpers for mechanism analysis.
+    - Serial-link linkage modeling (including revolute/prismatic joint handling).
+    - Rotation transforms, angle-axis conversion, and quaternion algebra.
+- Geometry and vector utilities
+    - Plane/line/plucker-line utilities.
+    - Point/line/plane projection and distance calculations.
+    - Intersection/parallelism checks and common-normal calculations.
+    - Vector helper routines such as cross products and skew-symmetric forms.
+- Structural dynamics
+    - 2D/3D beam element utilities and material/node/element abstractions.
+    - Connectivity matrix construction and boundary-condition application.
+    - Sparse/CSR-oriented structural assembly helpers.
+- Stability analysis
+    - Local fixed-point stability classification helpers.
+
+## Building
+
+### Prerequisites
+- A Fortran compiler with Fortran 2018 support.
+- CMake 3.24+ for the CMake workflow.
+- fpm for the FPM workflow.
+- BLAS and LAPACK available to the linker (required by the FPM build configuration).
+
+### Build With CMake
+Configure and build from the repository root:
+
+```sh
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --config Release
+```
+
+Useful CMake options:
+- `-DBUILD_TESTING=ON` to build test targets.
+- `-DBUILD_DYNAMICS_EXAMPLES=ON` to build example programs.
+- `-DBUILD_DYNAMICS_C_INTERFACE=ON` to include the C interface.
+- `-DBUILD_SHARED_LIBS=ON` to build shared libraries.
+
+Run tests (if enabled):
+
+```sh
+ctest --test-dir build --output-on-failure
+```
+
+Install the library:
+
+```sh
+cmake --install build --prefix <install-prefix>
+```
+
+### Build With FPM
+From the repository root:
+
+```sh
+fpm build --profile release
+```
+
+Run tests:
+
+```sh
+fpm test
+```
+
+Install:
+
+```sh
+fpm install --prefix <install-prefix>
+```
+
+FPM resolves the package dependencies declared in `fpm.toml` automatically.
+
+## Quick Start
+
+### Use From FPM
+Add `dynamics` to your `fpm.toml` dependencies:
+
+```toml
+[dependencies]
+dynamics = { git = "https://github.com/jchristopherson/dynamics.git", tag = "v1.4.2" }
+```
+
+Then build and run your project:
+
+```sh
+fpm build
+fpm run
+```
+
+### Use From CMake
+If `dynamics` is installed and discoverable via `CMAKE_PREFIX_PATH`, link it as a package:
+
+```cmake
+find_package(dynamics REQUIRED)
+target_link_libraries(your_target PRIVATE dynamics::dynamics)
+```
+
+If you prefer vendoring it directly, add it as a subdirectory and link the target:
+
+```cmake
+add_subdirectory(path/to/dynamics)
+target_link_libraries(your_target PRIVATE dynamics)
+```
 
 ## Kinematics Example
 The following example illustrates the forward and inverse kinematic models of the illustrated 3R mechanism.  This example is Example 127 from Jazar's text "Theory of Applied Robotics, Kinematics, Dynamics, & Control."
@@ -372,22 +483,22 @@ program example
 
     ! Compare the solution and the actual values
     print "(A)", "NATURAL FREQUENCY TERM:"
-    print "(AAF8.3A)", achar(9), "Actual: ", wn, " rad/s"
-    print "(AAF8.3A)", achar(9), "Computed: ", p(1), " rad/s"
-    print "(AAF8.3A)", achar(9), "Difference: ", p(1) - wn, " rad/s"
-    print "(AAF8.3A)", achar(9), "Std. Error: ", stats(1)%standard_error, " rad/s"
-    print "(AAF8.3A)", achar(9), "Conf. Int.: +/-", stats(1)%confidence_interval, " rad/s"
-    print "(AAEN10.3)", achar(9), "P-Value: ", stats(1)%probability
-    print "(AAEN12.3)", achar(9), "T-Statistic: ", stats(1)%t_statistic
+    print "(A,A,F8.3,A)", achar(9), "Actual: ", wn, " rad/s"
+    print "(A,A,F8.3,A)", achar(9), "Computed: ", p(1), " rad/s"
+    print "(A,A,F8.3,A)", achar(9), "Difference: ", p(1) - wn, " rad/s"
+    print "(A,A,F8.3,A)", achar(9), "Std. Error: ", stats(1)%standard_error, " rad/s"
+    print "(A,A,F8.3,A)", achar(9), "Conf. Int.: +/-", stats(1)%confidence_interval, " rad/s"
+    print "(A,A,EN10.3)", achar(9), "P-Value: ", stats(1)%probability
+    print "(A,A,EN12.3)", achar(9), "T-Statistic: ", stats(1)%t_statistic
     
     print "(A)", "DAMPING TERM:"
-    print "(AAF6.3)", achar(9), "Actual: ", zeta
-    print "(AAF6.3)", achar(9), "Computed: ", p(2)
-    print "(AAF6.3)", achar(9), "Difference: ", p(2) - zeta
-    print "(AAF6.3)", achar(9), "Std. Error: ", stats(2)%standard_error
-    print "(AAF6.3)", achar(9), "Conf. Int.: +/-", stats(2)%confidence_interval
-    print "(AAEN10.3)", achar(9), "P-Value: ", stats(2)%probability
-    print "(AAEN12.3)", achar(9), "T-Statistic: ", stats(2)%t_statistic
+    print "(A,A,F6.3)", achar(9), "Actual: ", zeta
+    print "(A,A,F6.3)", achar(9), "Computed: ", p(2)
+    print "(A,A,F6.3)", achar(9), "Difference: ", p(2) - zeta
+    print "(A,A,F6.3)", achar(9), "Std. Error: ", stats(2)%standard_error
+    print "(A,A,F6.3)", achar(9), "Conf. Int.: +/-", stats(2)%confidence_interval
+    print "(A,A,EN10.3)", achar(9), "P-Value: ", stats(2)%probability
+    print "(A,A,EN12.3)", achar(9), "T-Statistic: ", stats(2)%t_statistic
 end program
 ```
 The results are as follows.
