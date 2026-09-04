@@ -11,7 +11,7 @@ module dynamics_parallel_linkage
     use dynamics_graph
     use dynamics_joints
     use dynamics_linkage, only : link
-    use linalg, only : identity
+    use linalg, only : identity, lu_factor, solve_least_squares
     implicit none
     private
     public :: link_container
@@ -926,7 +926,7 @@ contains
         rst = x
     end function
 
-! ----------
+! ------------------------------------------------------------------------------
     subroutine solve_mechanism(x, neqn, obj, ib)
         ! Solves the nonlinear system describing the configuration of the
         ! mechanism.  A Jacobian matrix is supplied to the solver as the default
@@ -952,7 +952,7 @@ contains
         call solver%solve(helper, x, resid, ib = ib, args = obj)
     end subroutine
 
-! ----------
+! ------------------------------------------------------------------------------
     subroutine mechanism_equations(x, f, args)
         ! The loop-closure equations along with either the actuation equations
         ! or the end-effector equations.
@@ -1077,75 +1077,14 @@ contains
 
         ! Partition the constraint Jacobian and solve for the passive velocities
         Cq = this%constraint_jacobian(x)
-        Cp = Cq(:,this%m_passive)
-        Ca = -Cq(:,this%m_actuated)
-        call solve_square_system(Cp, Ca)
+        Ca = solve_least_squares(Cq(:,this%m_passive), -Cq(:,this%m_actuated))
 
         ! Combine with the end-effector Jacobian
         Je = end_effector_jacobian(this, x)
         rst = Je(:,this%m_actuated) + matmul(Je(:,this%m_passive), Ca)
     end function
 
-! ----------
-    subroutine solve_square_system(a, b)
-        ! Solves the system A X = B by means of an LU factorization employing
-        ! partial pivoting.  Both matrices are overwritten, with the solution
-        ! being returned in B.
-        real(real64), intent(inout), dimension(:,:) :: a
-        real(real64), intent(inout), dimension(:,:) :: b
-
-        integer(int32) :: i, j, k, n, ipiv
-        real(real64) :: f, amax
-        real(real64), allocatable, dimension(:) :: temp
-
-        n = size(a, 1)
-        if (size(a, 2) /= n .or. size(b, 1) /= n) then
-            error stop DYN_MATRIX_SIZE_ERROR
-        end if
-        allocate(temp(max(n, size(b, 2))))
-
-        do k = 1, n
-            ! Locate and apply the pivot
-            ipiv = k
-            amax = abs(a(k,k))
-            do i = k + 1, n
-                if (abs(a(i,k)) > amax) then
-                    amax = abs(a(i,k))
-                    ipiv = i
-                end if
-            end do
-            ! A singular partition indicates the mechanism is at a singularity
-            if (amax < epsilon(amax)) error stop DYN_CONSTRAINT_ERROR
-            if (ipiv /= k) then
-                temp(1:n) = a(k,:)
-                a(k,:) = a(ipiv,:)
-                a(ipiv,:) = temp(1:n)
-                temp(1:size(b,2)) = b(k,:)
-                b(k,:) = b(ipiv,:)
-                b(ipiv,:) = temp(1:size(b,2))
-            end if
-
-            ! Eliminate
-            do i = k + 1, n
-                f = a(i,k) / a(k,k)
-                a(i,k) = 0.0d0
-                do j = k + 1, n
-                    a(i,j) = a(i,j) - f * a(k,j)
-                end do
-                b(i,:) = b(i,:) - f * b(k,:)
-            end do
-        end do
-
-        ! Back substitution
-        do k = n, 1, -1
-            do j = k + 1, n
-                b(k,:) = b(k,:) - a(k,j) * b(j,:)
-            end do
-            b(k,:) = b(k,:) / a(k,k)
-        end do
-    end subroutine
-
-! ----------
+! ------------------------------------------------------------------------------
     function end_effector_jacobian(this, q) result(rst)
         ! Computes the derivative of the end-effector pose with respect to each
         ! of the mechanism's joint variables.
