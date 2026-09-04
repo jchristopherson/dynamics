@@ -156,6 +156,9 @@ module dynamics_c_api
     integer(c_int), parameter :: DYN_ROSENBROCK = 13
     integer(c_int), parameter :: DYN_BDF = 14
     integer(c_int), parameter :: DYN_ADAMS = 15
+    integer(c_int), parameter :: DYN_KENNEDY_CARPENTER_4 = 16
+    integer(c_int), parameter :: DYN_KENNEDY_CARPENTER_5 = 17
+    integer(c_int), parameter :: DYN_TSITOURAS_5 = 18
 
     type, bind(C) :: c_quaternion
         real(c_double) :: w
@@ -992,6 +995,9 @@ subroutine c_frf_sweep(n, nfreq, fcn, freq, iv, solver, rsp, ldr, opts) &
     type(rosenbrock), target :: rbrk
     type(bdf), target :: bdiff
     type(adams), target :: pece
+    type(kennedy_carpenter_4), target :: kc4
+    type(kennedy_carpenter_5), target :: kc5
+    type(tsitouras_54), target :: t54
     class(ode_integrator), pointer :: integrator_obj
 
     type(frf) :: frsp
@@ -1016,6 +1022,12 @@ subroutine c_frf_sweep(n, nfreq, fcn, freq, iv, solver, rsp, ldr, opts) &
         integrator_obj => rk45
     case (DYN_RUNGE_KUTTA_853)
         integrator_obj => rk853
+    case (DYN_KENNEDY_CARPENTER_4)
+        integrator_obj => kc4
+    case (DYN_KENNEDY_CARPENTER_5)
+        integrator_obj => kc5
+    case (DYN_TSITOURAS_5)
+        integrator_obj => t54
     case default
         integrator_obj => rk45
     end select
@@ -1286,6 +1298,9 @@ subroutine c_siso_model_fit_least_squares(nsets, nparams, neqns, fcn, x, ic, &
     type(rosenbrock), target :: rbrk
     type(bdf), target :: bdiff
     type(adams), target :: pece
+    type(kennedy_carpenter_4), target :: kc4
+    type(kennedy_carpenter_5), target :: kc5
+    type(tsitouras_54), target :: t54
     class(ode_integrator), pointer :: integrator_obj
     type(lm_solver_options) :: f_opt
 
@@ -1346,6 +1361,12 @@ subroutine c_siso_model_fit_least_squares(nsets, nparams, neqns, fcn, x, ic, &
         integrator_obj => rk45
     case (DYN_RUNGE_KUTTA_853)
         integrator_obj => rk853
+    case (DYN_KENNEDY_CARPENTER_4)
+        integrator_obj => kc4
+    case (DYN_KENNEDY_CARPENTER_5)
+        integrator_obj => kc5
+    case (DYN_TSITOURAS_5)
+        integrator_obj => t54
     case default
         integrator_obj => rk45
     end select
@@ -2567,6 +2588,9 @@ subroutine c_lti_solve(mdl, u, n, t, ndof, ic, solver, nout, y, ldy) &
     type(rosenbrock), target :: rbk
     type(adams), target :: adms
     type(bdf), target :: bdiff
+    type(kennedy_carpenter_4), target :: kc4
+    type(kennedy_carpenter_5), target :: kc5
+    type(tsitouras_54), target :: t54
     type(state_space) :: fmdl
 
     if (n <= 2) error stop DYN_INVALID_INPUT_ERROR
@@ -2591,6 +2615,12 @@ subroutine c_lti_solve(mdl, u, n, t, ndof, ic, solver, nout, y, ldy) &
         integrator => bdiff
     case (DYN_ADAMS)
         integrator => adms
+    case (DYN_KENNEDY_CARPENTER_4)
+        integrator => kc4
+    case (DYN_KENNEDY_CARPENTER_5)
+        integrator => kc5
+    case (DYN_TSITOURAS_5)
+        integrator => t54
     case default
         integrator => rk45
     end select
