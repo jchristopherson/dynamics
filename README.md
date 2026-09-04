@@ -31,6 +31,8 @@ The `dynamics` module aggregates tools for analysis, modeling, and identificatio
     - Denavit-Hartenberg tools and forward/inverse kinematics.
     - Jacobian-related helpers for mechanism analysis.
     - Serial-link linkage modeling (including revolute/prismatic joint handling).
+    - Closed-loop (parallel) mechanism modeling with loop-closure constraints, mobility calculations, and constraint-partitioned Jacobians.
+    - Graph-based mechanism topology utilities (spanning trees, independent loop identification).
     - Rotation transforms, angle-axis conversion, and quaternion algebra.
 - Geometry and vector utilities
     - Plane/line/plucker-line utilities.
@@ -213,6 +215,69 @@ The inverse model computed these joint variables, starting from a zero condition
 ```math
 \theta_{inv} = \begin{Bmatrix} 0.35130804065430021 \\ 0.66020922397550375 \\ 0.16335289838907677 \end{Bmatrix}
 ```
+
+## Parallel Linkage Example
+A closed-loop, or parallel, mechanism is described by the `parallel_linkage` type for spatial mechanisms and by the `planar_linkage` type for mechanisms restricted to planar motion.  The topology is supplied as a collection of `link` objects connected by `joint` objects; internally the mechanism is stored as a graph whose vertices are the links and whose edges are the joints.  A spanning tree of that graph provides the transformation path to each link, and the edges excluded from the tree define the loop-closure constraints.
+
+Unlike a serial linkage, the forward kinematics of a closed-loop mechanism require the solution of these constraints.  As a mechanism admits more than one assembly mode, the starting estimate supplied by `set_configuration` selects the branch of interest.
+
+The following example analyzes a planar four-bar linkage driven at the crank.
+
+```fortran
+program example
+    use iso_fortran_env
+    use dynamics
+    implicit none
+
+    real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
+    real(real64), parameter :: crank = 1.0d0
+    real(real64), parameter :: coupler = 3.5d0
+    real(real64), parameter :: rocker = 3.0d0
+    real(real64), parameter :: ground = 4.0d0
+
+    type(link_container) :: links(4)
+    type(joint) :: joints(4)
+    type(planar_linkage) :: linkage
+    real(real64) :: p(3)
+
+    ! Each link carries a joint frame at each end
+    allocate(links(1)%item, source = planar_link(ground))
+    allocate(links(2)%item, source = planar_link(crank))
+    allocate(links(3)%item, source = planar_link(coupler))
+    allocate(links(4)%item, source = planar_link(rocker))
+
+    ! Connect the links; the crank is the driven member
+    joints(1) = joint(REVOLUTE_JOINT, 1, 2, 1, 1, actuated = .true.)
+    joints(2) = joint(REVOLUTE_JOINT, 2, 3, 2, 1)
+    joints(3) = joint(REVOLUTE_JOINT, 3, 4, 2, 2)
+    joints(4) = joint(REVOLUTE_JOINT, 4, 1, 1, 2)
+
+    ! The end-effector is the distal end of the coupler
+    linkage = planar_linkage(links, joints, base = 1, effector = 3, &
+        tool = translation(coupler))
+
+    ! Select the assembly mode of interest
+    call linkage%set_configuration([0.0d0, 0.5d0 * pi, -0.5d0 * pi, 0.0d0])
+
+    ! Locate the coupler point for a crank angle of 90 degrees
+    p = linkage%end_effector_pose([0.5d0 * pi])
+    print *, p
+end program
+```
+
+The mobility of the mechanism follows from the number of joint variables and the number of loop-closure constraints.
+
+```math
+\text{dof} = 4 - 3 = 1
+```
+
+The Jacobian matrix is formed by partitioning the constraint Jacobian into its actuated and passive terms.  The passive joint velocities follow from
+
+```math
+\dot{q}_{p} = -C_{p}^{-1} C_{a} \dot{q}_{a},
+```
+
+which is then combined with the end-effector Jacobian.  The partition becomes singular when the mechanism reaches a configuration in which it loses control of one or more of its degrees of freedom.
 
 ## Frequency Response Example
 Consider the following 3 DOF system.  The following example illustrates how to use this library to compute the frequency response functions for this system.  
