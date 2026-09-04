@@ -13,29 +13,14 @@
     <title>All Procedures &ndash; DYNAMICS
 </title>
 
-    <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    <!-- Font Awesome -->
-    <link href="../css/fontawesome.min.css" rel="stylesheet">
-    <link href="../css/brands.min.css" rel="stylesheet">
-    <link href="../css/regular.min.css" rel="stylesheet">
-    <link href="../css/solid.min.css" rel="stylesheet">
-    <link href="../css/v4-font-face.min.css" rel="stylesheet">
-    <link href="../css/v4-shims.min.css" rel="stylesheet">
-    <!-- MathJax -->
-    <script type="text/x-mathjax-config">
-      MathJax.Hub.Config({
-        TeX: { equationNumbers: { autoNumber: "AMS" } }
-      });
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.9/MathJax.js?config=TeX-AMS-MML_HTMLorMML" async
-            integrity="sha256-DViIOMYdwlM/axqoGDPeUyf0urLoHMN4QACBKyB58Uw=" crossorigin="anonymous"></script>
-    <!-- Other scripts and stylesheets -->
-    <link href="../css/local.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
     <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+      <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="../js/svg-pan-zoom.min.js"></script>
   </head>
 
@@ -408,6 +393,19 @@ of the link origin, <script type="math/tex">\vec{d}</script>, and the joint axis
 <script type="math/tex">\vec{k}</script>.</p><a href="../proc/jacobian_generating_vector.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
 			   <tr>
+                 <td><a href='..\interface\joint.html'>joint</a></td>
+                 <td><a href='..\module\dynamics_joints.html'>dynamics_joints</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\proc\joint_degrees_of_freedom.html'>joint_degrees_of_freedom</a></td>
+                 <td><a href='..\module\dynamics_joints.html'>dynamics_joints</a></td>
+                 <td>Function</td>
+                 <td><p>Gets the number of degrees of freedom permitted by the requested
+joint type.</p></td>
+               </tr>
+			   <tr>
                  <td><a href='..\interface\line.html'>line</a></td>
                  <td><a href='..\module\dynamics_geometry.html'>dynamics_geometry</a></td>
                  <td>Interface</td>
@@ -474,6 +472,12 @@ The generalized eigenproblem is
 </p></td>
                </tr>
 			   <tr>
+                 <td><a href='..\interface\multi_joint_link.html'>multi_joint_link</a></td>
+                 <td><a href='..\module\dynamics_linkage.html'>dynamics_linkage</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
                  <td><a href='..\proc\nearest_point_on_line.html'>nearest_point_on_line</a></td>
                  <td><a href='..\module\dynamics_geometry.html'>dynamics_geometry</a></td>
                  <td>Function</td>
@@ -531,6 +535,18 @@ k=\arg\max_j|\phi_{i,j}|. </script>
 			   <tr>
                  <td><a href='..\interface\operator(SLASH).html'>operator(/)</a></td>
                  <td><a href='..\module\dynamics_quaternions.html'>dynamics_quaternions</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\interface\parallel_linkage.html'>parallel_linkage</a></td>
+                 <td><a href='..\module\dynamics_parallel_linkage.html'>dynamics_parallel_linkage</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\interface\planar_linkage.html'>planar_linkage</a></td>
+                 <td><a href='..\module\dynamics_parallel_linkage.html'>dynamics_parallel_linkage</a></td>
                  <td>Interface</td>
                  <td></td>
                </tr>
@@ -660,7 +676,7 @@ such that
                  <td>Function</td>
                  <td><p>Computes the projection of vector x onto vector y.  The scalar projection
 is defined such that
-<script type="math/tex; mode=display"> s = \frac{\boldsymbol{x}\cdot\boldsymbol{y}}{|\boldsymbol{y}\|}. </script>
+<script type="math/tex; mode=display"> s = \frac{\boldsymbol{x}\cdot\boldsymbol{y}}{\|\boldsymbol{y}\|}. </script>
 </p></td>
                </tr>
 			   <tr>
@@ -743,12 +759,18 @@ skew-symmetric matrix is defined as follows.</p><a href="../proc/to_skew_symmetr
                  <td></td>
                </tr>
 			   <tr>
+                 <td><a href='..\proc\transform_inverse.html'>transform_inverse</a></td>
+                 <td><a href='..\module\dynamics_kinematics.html'>dynamics_kinematics</a></td>
+                 <td>Function</td>
+                 <td><p>Computes the inverse of a 4-by-4 homogeneous transformation matrix.</p><a href="../proc/transform_inverse.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+               </tr>
+			   <tr>
                  <td><a href='..\proc\vector_angle.html'>vector_angle</a></td>
                  <td><a href='..\module\dynamics_helper.html'>dynamics_helper</a></td>
                  <td>Function</td>
                  <td><p>Computes the unsigned angle between two nonzero vectors.
 <script type="math/tex; mode=display"> \theta = \cos^{-1}\left(\frac{\boldsymbol{x}\cdot\boldsymbol{y}}
-{|\boldsymbol{x}\|\,|\boldsymbol{y}\|}\right),\qquad 0\leq\theta\leq\pi. </script>
+{\|\boldsymbol{x}\|\,\|\boldsymbol{y}\|}\right),\qquad 0\leq\theta\leq\pi. </script>
 </p></td>
                </tr>
 			   <tr>
@@ -764,7 +786,7 @@ skew-symmetric matrix is defined as follows.</p><a href="../proc/to_skew_symmetr
                  <td><p>Computes the vector projection of vector x onto vector y.  The vector
 projection is defined such that ( proj_{y} \vec{x} =<br>
 <script type="math/tex; mode=display"> \operatorname{proj}_{\boldsymbol{y}}\boldsymbol{x} =
-\frac{\boldsymbol{x}\cdot\boldsymbol{y}}{|\boldsymbol{y}\|^{2}}
+\frac{\boldsymbol{x}\cdot\boldsymbol{y}}{\|\boldsymbol{y}\|^{2}}
 \boldsymbol{y}. </script>
 </p></td>
                </tr>
@@ -785,21 +807,40 @@ its parent frame.</p><a href="../proc/velocity_transform.html" class="pull-right
     <footer>
       <div class="container">
         <div class="row justify-content-between">
-          <div class="col">
-            <p>
-              DYNAMICS
- was developed by Jason Christopherson<br>              &copy; 2026 
+          <div class="col"><p>DYNAMICS was developed by Jason Christopherson<br>&copy; 2026 
 </p>
           </div>
           <div class="col">
             <p class="text-end">
               Documentation generated by
               <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-08-18 13:18 -0500             </p>
+ on 2026-09-04 16:45              </p>
           </div>
         </div>
         <br>
       </div> <!-- /container -->
     </footer>
+
+    <!-- Bootstrap core JavaScript -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>    
+
+    <!-- MathJax JavaScript
+             ================================================== -->
+             <!-- Placed at the end of the document so the pages load faster -->
+        <script type="text/x-mathjax-config">
+          MathJax.Hub.Config({
+          TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+          jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+          extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+          });
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+          <script src="../tipuesearch/tipuesearch_content.js"></script>
+          <script src="../tipuesearch/tipuesearch_set.js"></script>
+          <script src="../tipuesearch/tipuesearch.js"></script>
+
   </body>
 </html>
