@@ -143,6 +143,7 @@ program example
     call yAxis%set_title("X({/Symbol w})")
     call lgnd%set_is_visible(.true.)
     call lgnd%set_horizontal_position(LEGEND_LEFT)
+    call lgnd%set_draw_border(.false.)
     call xAxis%set_autoscale(.false.)
     call xAxis%set_limits(0.0d0, 2.0d0)
 
@@ -150,6 +151,7 @@ program example
     call pd1%set_name("Ascending")
     call pd1%set_draw_markers(.true.)
     call pd1%set_marker_style(MARKER_EMPTY_CIRCLE)
+    call pd1%set_marker_scaling(1.0)
     call pd1%set_line_style(LINE_DOTTED)
     call plt1%push(pd1)
 
@@ -157,6 +159,7 @@ program example
     call pd2%set_name("Descending")
     call pd2%set_draw_markers(.true.)
     call pd2%set_marker_style(MARKER_EMPTY_SQUARE)
+    call pd2%set_marker_scaling(1.0)
     call pd2%set_line_style(LINE_DOTTED)
     call plt1%push(pd2)
 

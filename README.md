@@ -515,6 +515,7 @@ end program
 ```
 
 The computed frequency response functions.
+
 ![](images/frf_proportional_example_1.png?raw=true)
 
 ## Nonlinear FRF Example
