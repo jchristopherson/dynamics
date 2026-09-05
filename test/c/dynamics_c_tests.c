@@ -5,6 +5,7 @@
 #include "dynamics_frf_tests.h"
 #include "dynamics_geometry_tests.h"
 #include "dynamics_linkage_tests.h"
+#include "dynamics_parallel_linkage_tests.h"
 #include "dynamics_transfer_function_tests.h"
 #include "dynamics_state_space_tests.h"
 #include <stdbool.h>
@@ -96,15 +97,18 @@ int main()
     if (!c_test_serial_linkage_jacobian()) flag = 66;
     if (!c_test_serial_linkage_inverse_kinematics()) flag = 67;
 
-    if (!c_test_tf_evaluate()) flag = 68;
-    if (!c_test_ccf_form()) flag = 69;
-    if (!c_test_ocf_form()) flag = 70;
-    if (!c_test_poles_zeros()) flag = 71;
-    if (!c_test_tf_multiply()) flag = 72;
+    if (!c_test_parallel_linkage_topology()) flag = 68;
+    if (!c_test_planar_linkage_kinematics()) flag = 69;
+
+    if (!c_test_tf_evaluate()) flag = 70;
+    if (!c_test_ccf_form()) flag = 71;
+    if (!c_test_ocf_form()) flag = 72;
+    if (!c_test_poles_zeros()) flag = 73;
+    if (!c_test_tf_multiply()) flag = 74;
     
-    if (!c_test_state_space_initialize()) flag = 73;
-    if (!c_test_state_space_poles_zeros()) flag = 74;
-    if (!c_test_state_space_to_transfer_function()) flag = 75;
+    if (!c_test_state_space_initialize()) flag = 75;
+    if (!c_test_state_space_poles_zeros()) flag = 76;
+    if (!c_test_state_space_to_transfer_function()) flag = 77;
 
     return flag;
 }

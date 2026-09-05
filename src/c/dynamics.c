@@ -100,6 +100,38 @@ void c_free_serial_linkage(c_serial_linkage *lnk)
     lnk->links = NULL;
 }
 
+int c_alloc_mechanism_link(int nframes, c_mechanism_link *lnk)
+{
+    int i;
+    size_t sz;
+    sz = (size_t)(16 * nframes * sizeof(double));
+    lnk->frame_count = nframes;
+    lnk->frames = (double*)malloc(sz);
+    if (!lnk->frames) return -1;
+    for (i = 0; i < 16 * nframes; ++i) lnk->frames[i] = 0.0;
+    for (i = 0; i < nframes; ++i)
+    {
+        lnk->frames[16*i] = 1.0;
+        lnk->frames[16*i + 5] = 1.0;
+        lnk->frames[16*i + 10] = 1.0;
+        lnk->frames[16*i + 15] = 1.0;
+    }
+    lnk->mass = 1.0;
+    for (i = 0; i < 3; ++i) lnk->cg[i] = 0.0;
+    for (i = 0; i < 9; ++i) lnk->inertia[i] = 0.0;
+    lnk->inertia[0] = 1.0;
+    lnk->inertia[4] = 1.0;
+    lnk->inertia[8] = 1.0;
+    return 0;
+}
+
+void c_free_mechanism_link(c_mechanism_link *lnk)
+{
+    lnk->frame_count = 0;
+    if (lnk->frames) free(lnk->frames);
+    lnk->frames = NULL;
+}
+
 int c_alloc_polynomial(int order, c_polynomial *p)
 {
     p->order = order;

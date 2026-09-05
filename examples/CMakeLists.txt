@@ -208,6 +208,23 @@ if (${BUILD_DYNAMICS_C_INTERFACE})
     )
 endif()
 
+# C Four-Bar Linkage Example 1
+if (${BUILD_DYNAMICS_C_INTERFACE})
+    add_executable(
+        c_four_bar_example_1
+        c_four_bar_example_1.c
+    )
+    target_link_libraries(
+        c_four_bar_example_1
+        ${PROJECT_NAME}
+    )
+    target_include_directories(
+        c_four_bar_example_1
+        PUBLIC
+        ${CMAKE_SOURCE_DIR}/src/c
+    )
+endif()
+
 if (${BUILD_SHARED_LIBS} AND WIN32)
     add_custom_command(
         TARGET frf_sweep_example_1

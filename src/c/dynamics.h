@@ -13,6 +13,10 @@
 
 #define DYN_REVOLUTE_JOINT 0
 #define DYN_PRISMATIC_JOINT 1
+#define DYN_FIXED_JOINT 2
+#define DYN_CYLINDRICAL_JOINT 3
+#define DYN_UNIVERSAL_JOINT 4
+#define DYN_SPHERICAL_JOINT 5
 
 #define DYN_FRF_ACCELERANCE_MODEL 1
 #define DYN_FRF_RECEPTANCE_MODEL 2
@@ -170,6 +174,30 @@ typedef struct
     int link_count;
     c_binary_link *links;
 } c_serial_linkage;
+
+typedef struct
+{
+    int frame_count;
+    double *frames;     // 4-by-4-by-frame_count array in column-major format
+    double mass;
+    double cg[3];
+    double inertia[9];  // 3-by-3 matrix in column-major format
+} c_mechanism_link;
+
+typedef struct
+{
+    int joint_type;     // DYN_REVOLUTE_JOINT, DYN_PRISMATIC_JOINT, etc.
+    int parent_link;    // one-based index of the parent link
+    int parent_frame;   // one-based index of the frame on the parent link
+    int child_link;     // one-based index of the child link
+    int child_frame;    // one-based index of the frame on the child link
+    bool actuated;
+} c_joint;
+
+// An opaque handle to a closed-loop mechanism.  The handle is created by
+// c_create_parallel_linkage or c_create_planar_linkage, and must be released
+// by c_free_mechanism.
+typedef void* c_mechanism;
 
 typedef struct
 {
@@ -406,6 +434,44 @@ void c_serial_linkage_jacobian(int n, const c_serial_linkage *lnk,
 void c_serial_linkage_inverse_kinematics(int n, const c_serial_linkage *lnk,
     const double *qo, const double *trg, int ldt, double *q, 
     c_iteration_behavior *ib);
+
+int c_alloc_mechanism_link(int nframes, c_mechanism_link *lnk);
+void c_free_mechanism_link(c_mechanism_link *lnk);
+c_mechanism c_create_parallel_linkage(int nlinks, const c_mechanism_link *links,
+    int njoints, const c_joint *joints, int base, int effector,
+    const double *tool, int ldt);
+c_mechanism c_create_planar_linkage(int nlinks, const c_mechanism_link *links,
+    int njoints, const c_joint *joints, int base, int effector,
+    const double *tool, int ldt);
+void c_free_mechanism(c_mechanism obj);
+int c_mechanism_link_count(c_mechanism obj);
+int c_mechanism_joint_count(c_mechanism obj);
+int c_mechanism_variable_count(c_mechanism obj);
+int c_mechanism_loop_count(c_mechanism obj);
+int c_mechanism_constraint_count(c_mechanism obj);
+int c_mechanism_degrees_of_freedom(c_mechanism obj);
+int c_mechanism_actuated_variable_count(c_mechanism obj);
+int c_mechanism_space_dimension(c_mechanism obj);
+int c_mechanism_link_frame_count(c_mechanism obj, int i);
+void c_mechanism_link_frame(c_mechanism obj, int i, int k, double *T, int ldt);
+void c_mechanism_get_configuration(c_mechanism obj, int n, double *q);
+void c_mechanism_set_configuration(c_mechanism obj, int n, const double *q);
+void c_mechanism_body_transform(c_mechanism obj, int i, int n, const double *q,
+    double *T, int ldt);
+void c_mechanism_end_effector_transform(c_mechanism obj, int n, 
+    const double *q, double *T, int ldt);
+void c_mechanism_constraints(c_mechanism obj, int n, const double *q, int nc,
+    double *f);
+void c_mechanism_constraint_jacobian(c_mechanism obj, int n, const double *q,
+    double *jac, int ldj);
+void c_mechanism_solve_configuration(c_mechanism obj, int na, const double *qa,
+    int n, double *q, c_iteration_behavior *ib);
+void c_mechanism_forward_kinematics(c_mechanism obj, int na, const double *qa,
+    double *T, int ldt, c_iteration_behavior *ib);
+void c_mechanism_jacobian(c_mechanism obj, int na, const double *qa, 
+    double *jac, int ldj);
+void c_mechanism_inverse_kinematics(c_mechanism obj, const double *trg, int ldt,
+    int na, double *qa, c_iteration_behavior *ib);
 
 int c_alloc_polynomial(int order, c_polynomial *p);
 void c_free_polynomial(c_polynomial *p);
