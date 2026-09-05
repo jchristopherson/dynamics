@@ -73,14 +73,14 @@ add_executable(
     linkage_example_1
     linkage_example_1.f90
 )
-target_link_libraries(linkage_example_1 ${PROJECT_NAME} ${COLLECTIONS_LIBRARIES})
+target_link_libraries(linkage_example_1 ${PROJECT_NAME})
 
 # Four-Bar Linkage Example 1
 add_executable(
     four_bar_example_1
     four_bar_example_1.f90
 )
-target_link_libraries(four_bar_example_1 ${PROJECT_NAME} ${COLLECTIONS_LIBRARIES})
+target_link_libraries(four_bar_example_1 ${PROJECT_NAME} ${FPLOT_LIBRARIES})
 
 # SISO FRF Example 1
 add_executable(
