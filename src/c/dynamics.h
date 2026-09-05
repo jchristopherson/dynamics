@@ -1,9 +1,26 @@
 #ifndef DYNAMICS_H_
 #define DYNAMICS_H_
 
+/**
+ * @file dynamics.h
+ * @brief Public C interface to the DYNAMICS library.
+ *
+ * Matrices use column-major storage to match the Fortran implementation.  A
+ * matrix with `m` rows and `n` columns has leading dimension `ld` and stores
+ * element `(i, j)` at `j * ld + i`, using zero-based C indices.  Link, joint,
+ * and frame indices passed to the mechanism API are one-based.
+ *
+ * Objects returned by an allocation or creation routine remain owned by the
+ * caller and must be released with the corresponding `c_free_*` routine.
+ * Unless documented otherwise, pointer arguments must refer to storage large
+ * enough for the dimensions supplied to the routine.
+ */
+
 #include <complex.h>
 #include <stdbool.h>
 
+/** @defgroup dynamics_constants Public constants */
+/**@{*/
 #define DYN_HYPERBOLIC_FIXED_POINT_SINK 100
 #define DYN_HYPERBOLIC_FIXED_POINT_SOURCE 101
 #define DYN_HYPERBOLIC_FIXED_POINT_SADDLE 102
@@ -44,20 +61,29 @@
 #define DYN_POINCARE_TWO_SIDED 0
 #define DYN_POINCARE_ONE_SIDED_FROM_FRONT 1
 #define DYN_POINCARE_ONE_SIDED_FROM_BACK 2
+/**@}*/
 
+/** @brief Nonlinear vector function callback. */
 typedef void (*c_vecfcn)(int nvar, int neqn, const double *x, double *f);
+/** @brief Modal force callback used by frequency-response routines. */
 typedef void (*c_modal_excite)(int n, double freq, double complex *f);
+/** @brief Harmonic ordinary-differential-equation callback. */
 typedef void (*c_harmonic_ode)(int n, double freq, double t, const double *x,
     double *dxdt);
+/** @brief Window function callback used by SISO frequency analysis. */
 typedef double (*c_window_function)(int n, int bin);
+/** @brief Constraint callback used by least-squares system identification. */
 typedef void (*c_constraint_equations)(int n, int neqn, int nparam, 
     const double *xg, const double *fg, const double *xc, const double *p,
     double *fc);
+/** @brief ODE model callback used by system identification. */
 typedef void (*c_ode_fit)(int n, int nparam, const double *mdl, double t, 
     const double *x, double F, double *dxdt);
 
+/** @brief State-space input callback used by `c_lti_solve`. */
 typedef void (*c_ss_excitation)(int n, double t, double *u);
 
+/** @brief Iteration statistics returned by nonlinear solver routines. */
 typedef struct {
     bool converge_on_chng;
     bool converge_on_fcn;
@@ -68,6 +94,7 @@ typedef struct {
     int jacobian_count;
 } c_iteration_behavior;
 
+/** @brief Controls for a frequency sweep. */
 typedef struct {
     int cycle_count;
     int transient_cycles;
@@ -75,6 +102,7 @@ typedef struct {
     bool frequency_in_hz;
 } c_frequency_sweep_controls;
 
+/** @brief Controls for nonlinear iteration routines. */
 typedef struct {
     double change_in_solution_tolerance;
     double gradient_tolerance;
@@ -85,6 +113,7 @@ typedef struct {
     int max_iteration_count;
 } c_iteration_controls;
 
+/** @brief Regression statistics returned by fitting routines. */
 typedef struct {
     double confidence_interval;
     double probability;
@@ -92,6 +121,7 @@ typedef struct {
     double t_statistic;
 } c_regression_statistics;
 
+/** @brief A single dynamic-system input/output measurement record. */
 typedef struct {
     int npts;
     double *input;
@@ -99,6 +129,7 @@ typedef struct {
     double *t;
 } c_dynamic_system_measurement;
 
+/** @brief Options for the Levenberg-Marquardt solver. */
 typedef struct 
 {
     double damping_decrease_factor;
@@ -107,6 +138,7 @@ typedef struct
     int method;
 } c_lm_solver_options;
 
+/** @brief A quaternion stored as scalar component followed by vector terms. */
 typedef struct
 {
     double w;
@@ -115,6 +147,7 @@ typedef struct
     double z;
 } c_quaternion;
 
+/** @brief Plane coefficients satisfying `a*x + b*y + c*z + d = 0`. */
 typedef struct
 {
     double a;
@@ -123,18 +156,21 @@ typedef struct
     double d;
 } c_plane;
 
+/** @brief A line represented by a point and direction vector. */
 typedef struct
 {
     double r0[3];
     double v[3];
 } c_line;
 
+/** @brief A Pluecker line represented by direction and moment vectors. */
 typedef struct
 {
     double u[3];
     double m[3];
 } c_plucker_line;
 
+/** @brief An orthonormal coordinate system. */
 typedef struct 
 {
     double origin[3];
@@ -143,6 +179,7 @@ typedef struct
     double k[3];
 } c_coordinate_system;
 
+/** @brief One Denavit-Hartenberg parameter set. */
 typedef struct
 {
     double link_length;
@@ -151,12 +188,14 @@ typedef struct
     double joint_angle;
 } c_dh_parameter_set;
 
+/** @brief A dynamically allocated Denavit-Hartenberg table. */
 typedef struct
 {
     int count;
     c_dh_parameter_set *parameters;
 } c_dh_table;
 
+/** @brief One link in a serial Denavit-Hartenberg linkage. */
 typedef struct
 {
     double link_length;
@@ -169,12 +208,14 @@ typedef struct
     double inertia[9];  // 3-by-3 matrix in column-major format
 } c_binary_link;
 
+/** @brief A serial linkage and its link array. */
 typedef struct
 {
     int link_count;
     c_binary_link *links;
 } c_serial_linkage;
 
+/** @brief A multi-frame link used by a closed-loop mechanism. */
 typedef struct
 {
     int frame_count;
@@ -184,6 +225,7 @@ typedef struct
     double inertia[9];  // 3-by-3 matrix in column-major format
 } c_mechanism_link;
 
+/** @brief A joint connecting two mechanism link frames. */
 typedef struct
 {
     int joint_type;     // DYN_REVOLUTE_JOINT, DYN_PRISMATIC_JOINT, etc.
@@ -194,23 +236,29 @@ typedef struct
     bool actuated;
 } c_joint;
 
-// An opaque handle to a closed-loop mechanism.  The handle is created by
-// c_create_parallel_linkage or c_create_planar_linkage, and must be released
-// by c_free_mechanism.
+/**
+ * @brief Opaque handle to a closed-loop mechanism.
+ *
+ * Create handles with `c_create_parallel_linkage` or
+ * `c_create_planar_linkage`, and release them with `c_free_mechanism`.
+ */
 typedef void* c_mechanism;
 
+/** @brief A polynomial with dynamically allocated coefficients. */
 typedef struct
 {
     int order;
     double *coefficients;
 } c_polynomial;
 
+/** @brief A numerator/denominator transfer-function pair. */
 typedef struct
 {
     c_polynomial numerator;
     c_polynomial denominator;
 } c_transfer_function;
 
+/** @brief A continuous state-space model with column-major matrices. */
 typedef struct
 {
     int dimension;
@@ -227,6 +275,8 @@ typedef struct
 extern "C" {
 #endif
 
+/** @defgroup dynamics_matrix Matrix and general kinematics */
+/**@{*/
 void c_matmul(int m, int n, int k, double alpha, const double *a, int lda,
     const double *b, int ldb, double beta, double *c, int ldc);
 
@@ -295,7 +345,10 @@ void c_solve_inverse_kinematics(int njoints, int neqn, const c_vecfcn mdl,
     const double *qmin, double *jvar, double *resid,
     c_iteration_behavior *ib);
 void c_to_angle_axis(const double *r, int ldr, double *angle, double axis[3]);
+/**@}*/
 
+/** @defgroup dynamics_frequency Frequency response and system identification */
+/**@{*/
 void c_frequency_response(int n, int nfreq, const double *mass, int ldm,
     const double *stiff, int ldk, double alpha, double beta, const double *freq,
     const c_modal_excite frc, double *modes, double *modeshapes, int ldms,
@@ -346,7 +399,10 @@ c_dynamic_system_measurement* c_alloc_dynamic_system_measurement_array(int n,
     const int *ptsper);
 void c_free_dynamic_system_measurement_array(int n, 
     c_dynamic_system_measurement *x);
+/**@}*/
 
+/** @defgroup dynamics_quaternion Quaternion operations */
+/**@{*/
 void c_quaternion_from_array(const double x[4], c_quaternion *q);
 void c_quaternion_from_matrix(const double *x, int ldx, c_quaternion *q);
 void c_quaternion_from_angle_axis(double angle, const double axis[3], 
@@ -373,7 +429,10 @@ void c_quaternion_pow(const c_quaternion *q, double exponent, c_quaternion *rst)
 double c_quaternion_dot_product(const c_quaternion *x, const c_quaternion *y);
 void c_quaternion_to_roll_pitch_yaw(const c_quaternion *q, double *roll, 
     double *pitch, double *yaw);
+/**@}*/
 
+/** @defgroup dynamics_geometry Geometry operations */
+/**@{*/
 void c_plane_normal(const c_plane* pln, double nrm[3]);
 void c_plane_from_3_points(const double pt1[3], const double pt2[3], 
     const double pt3[3], c_plane *pln);
@@ -413,7 +472,10 @@ void c_line_from_point_and_vector(const double pt[3], const double v[3],
 void c_poincare_map(int n, const double *x, const double *y, const double *z,
     const c_plane *pln, int side, int nbuffer, double *xbuffer, double *ybuffer,
     double *zbuffer, int *nactual);
+/**@}*/
 
+/** @defgroup dynamics_serial Serial linkage operations */
+/**@{*/
 int c_alloc_dh_table(int n, c_dh_table *tbl);
 void c_free_dh_table(c_dh_table *tbl);
 void c_define_link_csys(const double xim1[3], const double zim1[3], 
@@ -434,7 +496,10 @@ void c_serial_linkage_jacobian(int n, const c_serial_linkage *lnk,
 void c_serial_linkage_inverse_kinematics(int n, const c_serial_linkage *lnk,
     const double *qo, const double *trg, int ldt, double *q, 
     c_iteration_behavior *ib);
+/**@}*/
 
+/** @defgroup dynamics_parallel Parallel and planar linkage operations */
+/**@{*/
 int c_alloc_mechanism_link(int nframes, c_mechanism_link *lnk);
 void c_free_mechanism_link(c_mechanism_link *lnk);
 c_mechanism c_create_parallel_linkage(int nlinks, const c_mechanism_link *links,
@@ -472,7 +537,10 @@ void c_mechanism_jacobian(c_mechanism obj, int na, const double *qa,
     double *jac, int ldj);
 void c_mechanism_inverse_kinematics(c_mechanism obj, const double *trg, int ldt,
     int na, double *qa, c_iteration_behavior *ib);
+/**@}*/
 
+/** @defgroup dynamics_state Transfer functions and state-space models */
+/**@{*/
 int c_alloc_polynomial(int order, c_polynomial *p);
 void c_free_polynomial(c_polynomial *p);
 int c_alloc_transfer_function(int numer_order, int denom_order, 
@@ -507,6 +575,7 @@ void c_state_space_zeros(const c_state_space_model *mdl, int n,
     double complex *z, int *nz);
 void c_state_space_transfer_function(const c_state_space_model *mdl, int nin,
     int nout, int n, const double complex *s, double complex *z, int ldz);
+/**@}*/
 
 #ifdef __cplusplus
 }

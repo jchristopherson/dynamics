@@ -6,7 +6,8 @@ A library of routines used for the analysis of dynamic systems.
 [![Actions Status](https://github.com/jchristopherson/dynamics/workflows/fpm/badge.svg)](https://github.com/jchristopherson/dynamics/actions)
 
 ## Documentation
-The documentation can be found [here](https://jchristopherson.github.io/dynamics/).
+- [Fortran API documentation](https://jchristopherson.github.io/dynamics/)
+- [C API documentation](https://jchristopherson.github.io/dynamics/c-api/)
 
 ## Capabilities
 The `dynamics` module aggregates tools for analysis, modeling, and identification of dynamic systems.
