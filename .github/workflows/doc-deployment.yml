@@ -21,7 +21,7 @@ jobs:
       run: ford docs.md
 
     - name: Build C documentation
-      run: doxygen docs/c-api.doxyfile
+      run: doxygen c_docs/c-api.doxyfile
 
     - name: Validate documentation output
       run: |

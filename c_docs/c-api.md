@@ -46,3 +46,8 @@ The generated reference is organized by API area:
 - [Transfer functions and state-space models](./group__dynamics__state.html)
 
 The complete declaration reference is also available from the generated [Data Structures](annotated.html) and [Files](files.html) pages.
+
+Routine-level documentation, including the purpose of every public routine, its
+arguments, output arguments, and return value, is maintained in the [C API
+routine reference](c-api-reference.md). The declarations in `dynamics.h` remain
+the authoritative source for types, array dimensions, and calling conventions.

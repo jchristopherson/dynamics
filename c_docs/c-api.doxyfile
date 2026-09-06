@@ -2,8 +2,8 @@
 PROJECT_NAME           = "DYNAMICS C API"
 PROJECT_BRIEF          = "C-compatible interface to the DYNAMICS library"
 OUTPUT_DIRECTORY       = doc/c-api
-INPUT                  = src/c/dynamics.h docs/c-api.md
-USE_MDFILE_AS_MAINPAGE = docs/c-api.md
+INPUT                  = src/c/dynamics.h c_docs/c-api.md c_docs/c-api-reference.md
+USE_MDFILE_AS_MAINPAGE = c_docs/c-api.md
 FILE_PATTERNS          = *.h *.md
 RECURSIVE              = NO
 EXTRACT_ALL            = YES
