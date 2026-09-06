@@ -73,7 +73,14 @@ add_executable(
     linkage_example_1
     linkage_example_1.f90
 )
-target_link_libraries(linkage_example_1 ${PROJECT_NAME} ${COLLECTIONS_LIBRARIES})
+target_link_libraries(linkage_example_1 ${PROJECT_NAME})
+
+# Four-Bar Linkage Example 1
+add_executable(
+    four_bar_example_1
+    four_bar_example_1.f90
+)
+target_link_libraries(four_bar_example_1 ${PROJECT_NAME} ${FPLOT_LIBRARIES})
 
 # SISO FRF Example 1
 add_executable(
@@ -196,6 +203,23 @@ if (${BUILD_DYNAMICS_C_INTERFACE})
     )
     target_include_directories(
         c_lti_example_1
+        PUBLIC
+        ${CMAKE_SOURCE_DIR}/src/c
+    )
+endif()
+
+# C Four-Bar Linkage Example 1
+if (${BUILD_DYNAMICS_C_INTERFACE})
+    add_executable(
+        c_four_bar_example_1
+        c_four_bar_example_1.c
+    )
+    target_link_libraries(
+        c_four_bar_example_1
+        ${PROJECT_NAME}
+    )
+    target_include_directories(
+        c_four_bar_example_1
         PUBLIC
         ${CMAKE_SOURCE_DIR}/src/c
     )

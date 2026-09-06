@@ -132,6 +132,7 @@ program example
     call plt%initialize()
     lgnd => plt%get_legend()
     call lgnd%set_is_visible(.true.)
+    call lgnd%set_draw_border(.false.)
     call pd1%define_data(measurements(1)%t, measurements(1)%output)
     call pd1%set_name("Data")
     call plt%push(pd1)

@@ -11,6 +11,7 @@ program main
     use dynamics_rotation_tests
     use dynamics_geometry_tests
     use dynamics_linkage_tests
+    use dynamics_parallel_linkage_tests
     implicit none
 
     ! Variables
@@ -323,6 +324,27 @@ program main
 
     check = test_state_space_to_transfer_function()
     if (.not.check) flag = 100
+
+    check = test_graph_topology()
+    if (.not.check) flag = 101
+
+    check = test_four_bar_topology()
+    if (.not.check) flag = 102
+
+    check = test_four_bar_constraints()
+    if (.not.check) flag = 103
+
+    check = test_four_bar_forward_kinematics()
+    if (.not.check) flag = 104
+
+    check = test_four_bar_jacobian()
+    if (.not.check) flag = 105
+
+    check = test_four_bar_inverse_kinematics()
+    if (.not.check) flag = 106
+
+    check = test_open_chain_equivalence()
+    if (.not.check) flag = 107
 
     ! End
     if (flag /= 0) stop flag

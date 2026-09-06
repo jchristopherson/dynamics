@@ -10,10 +10,47 @@ module dynamics_linkage
     use collections, only : list
     implicit none
     private
+    public :: link
     public :: binary_link
+    public :: multi_joint_link
     public :: serial_linkage
 
-    type, extends(rigid_body) :: binary_link
+    type, abstract, extends(rigid_body) :: link
+        !! Defines the base class for a link within a mechanism.  A link is a
+        !! rigid body that carries one coordinate frame for each joint that may
+        !! attach to it.
+    contains
+        procedure(link_joint_count), deferred, public :: get_joint_count
+        procedure(link_joint_frame), deferred, public :: get_joint_frame
+    end type
+
+    interface
+        pure function link_joint_count(this) result(rst)
+            !! Gets the number of joint coordinate frames carried by the link.
+            use iso_fortran_env, only : int32
+            import link
+            class(link), intent(in) :: this
+                !! The link object.
+            integer(int32) :: rst
+                !! The number of joint coordinate frames.
+        end function
+
+        pure function link_joint_frame(this, i) result(rst)
+            !! Gets the transformation matrix relating the requested joint
+            !! coordinate frame to the link's body coordinate frame.  The matrix
+            !! maps coordinates from the joint frame into the body frame.
+            use iso_fortran_env, only : int32, real64
+            import link
+            class(link), intent(in) :: this
+                !! The link object.
+            integer(int32), intent(in) :: i
+                !! The index of the joint coordinate frame (1 = first frame).
+            real(real64) :: rst(4, 4)
+                !! The resulting 4-by-4 transformation matrix.
+        end function
+    end interface
+
+    type, extends(link) :: binary_link
         !! Defines a link consisting of only two joints.  The coordinate system
         !! of this link is situated at the distal joint with it's z-axis 
         !! coincident with the axis of the joint.  The link utilizes a
@@ -36,10 +73,28 @@ module dynamics_linkage
         integer(int32), public :: joint_type
             !! The proximal joint type.  This value must be either 
             !! REVOLUTE_JOINT or PRISMATIC_JOINT.
+    contains
+        procedure, public :: get_joint_count => bl_get_joint_count
+        procedure, public :: get_joint_frame => bl_get_joint_frame
     end type
 
     interface binary_link
         module procedure :: bl_init
+    end interface
+
+    type, extends(link) :: multi_joint_link
+        !! Defines a link carrying an arbitrary number of joint coordinate
+        !! frames.  This type is suitable for the ternary and higher-order links
+        !! found in closed-loop mechanisms.
+        real(real64), allocatable, private, dimension(:,:,:) :: m_frames
+    contains
+        procedure, public :: get_joint_count => mjl_get_joint_count
+        procedure, public :: get_joint_frame => mjl_get_joint_frame
+        procedure, public :: set_joint_frame => mjl_set_joint_frame
+    end type
+
+    interface multi_joint_link
+        module procedure :: mjl_init
     end interface
 
     type serial_linkage
@@ -139,6 +194,123 @@ contains
             rst%joint_angle = 0.0d0
         end if
     end function
+
+! ------------------------------------------------------------------------------
+    pure function bl_get_joint_count(this) result(rst)
+        !! Gets the number of joint coordinate frames carried by the link.  A
+        !! binary link always carries two frames.
+        class(binary_link), intent(in) :: this
+            !! The binary_link object.
+        integer(int32) :: rst
+            !! The number of joint coordinate frames.
+
+        rst = 2
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function bl_get_joint_frame(this, i) result(rst)
+        !! Gets the transformation matrix relating the requested joint
+        !! coordinate frame to the link's body coordinate frame.  The first
+        !! frame is the proximal joint, and the second frame is the distal
+        !! joint.  As the body coordinate frame of a binary link is situated at
+        !! the distal joint, the second frame is the identity matrix.  The
+        !! frames are established with the joint variable set to zero.
+        class(binary_link), intent(in) :: this
+            !! The binary_link object.
+        integer(int32), intent(in) :: i
+            !! The index of the joint coordinate frame (1 = proximal joint).
+        real(real64) :: rst(4, 4)
+            !! The resulting 4-by-4 transformation matrix.
+
+        if (i == 1) then
+            rst = transform_inverse(dh_matrix(this%link_twist, &
+                this%link_length, this%joint_angle, this%link_offset))
+        else
+            rst = identity(4)
+        end if
+    end function
+
+! ******************************************************************************
+! MULTI_JOINT_LINK MEMBERS
+! ------------------------------------------------------------------------------
+    function mjl_init(frames, mass, inertia, cg) result(rst)
+        !! Initializes a new multi_joint_link instance.
+        real(real64), intent(in), dimension(:,:,:) :: frames
+            !! A 4-by-4-by-N array containing the transformation matrix for each
+            !! of the N joint coordinate frames.  Each matrix maps coordinates
+            !! from the corresponding joint frame into the link's body frame.
+        real(real64), intent(in), optional :: mass
+            !! The mass of the link.  If no value is specified, a value of 1 is
+            !! used.
+        real(real64), intent(in), optional :: inertia(3, 3)
+            !! The 3-by-3 inertia tensor.  If not specified, an identity matrix
+            !! is used.
+        real(real64), intent(in), optional :: cg(3)
+            !! The x-y-z location of the CG relative to the link's body
+            !! coordinate frame.  If not supplied, the CG is set to (0, 0, 0).
+        type(multi_joint_link) :: rst
+            !! The resulting multi_joint_link object.
+
+        ! Input Checking
+        if (size(frames, 1) /= 4 .or. size(frames, 2) /= 4) then
+            error stop DYN_MATRIX_SIZE_ERROR
+        end if
+        if (size(frames, 3) < 1) error stop DYN_INVALID_INPUT_ERROR
+
+        ! Process
+        call initialize_rigid_body(rst, mass, inertia, cg)
+        rst%m_frames = frames
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function mjl_get_joint_count(this) result(rst)
+        !! Gets the number of joint coordinate frames carried by the link.
+        class(multi_joint_link), intent(in) :: this
+            !! The multi_joint_link object.
+        integer(int32) :: rst
+            !! The number of joint coordinate frames.
+
+        if (allocated(this%m_frames)) then
+            rst = size(this%m_frames, 3)
+        else
+            rst = 0
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function mjl_get_joint_frame(this, i) result(rst)
+        !! Gets the transformation matrix relating the requested joint
+        !! coordinate frame to the link's body coordinate frame.
+        class(multi_joint_link), intent(in) :: this
+            !! The multi_joint_link object.
+        integer(int32), intent(in) :: i
+            !! The index of the joint coordinate frame (1 = first frame).
+        real(real64) :: rst(4, 4)
+            !! The resulting 4-by-4 transformation matrix.
+
+        if (i < 1 .or. i > this%get_joint_count()) then
+            rst = identity(4)
+        else
+            rst = this%m_frames(:,:,i)
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
+    subroutine mjl_set_joint_frame(this, i, x)
+        !! Sets the transformation matrix relating the requested joint
+        !! coordinate frame to the link's body coordinate frame.
+        class(multi_joint_link), intent(inout) :: this
+            !! The multi_joint_link object.
+        integer(int32), intent(in) :: i
+            !! The index of the joint coordinate frame (1 = first frame).
+        real(real64), intent(in) :: x(4, 4)
+            !! The 4-by-4 transformation matrix.
+
+        if (i < 1 .or. i > this%get_joint_count()) then
+            error stop DYN_INDEX_OUT_OF_RANGE
+        end if
+        this%m_frames(:,:,i) = x
+    end subroutine
 
 ! ******************************************************************************
 ! SERIAL_LINKAGE MEMBERS

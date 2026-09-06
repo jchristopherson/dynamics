@@ -12,6 +12,7 @@ set(dynamics_test_sources
     dynamics_rotation_tests.f90
     dynamics_geometry_tests.f90
     dynamics_linkage_tests.f90
+    dynamics_parallel_linkage_tests.f90
 )
 
 # Dependencies

@@ -1,0 +1,27 @@
+# Doxygen configuration for the public C interface.
+PROJECT_NAME           = "DYNAMICS C API"
+PROJECT_BRIEF          = "C-compatible interface to the DYNAMICS library"
+OUTPUT_DIRECTORY       = doc/c-api
+INPUT                  = src/c/dynamics.h c_docs/c-api.md c_docs/c-api-reference.md
+USE_MDFILE_AS_MAINPAGE = c_docs/c-api.md
+FILE_PATTERNS          = *.h *.md
+RECURSIVE              = NO
+EXTRACT_ALL            = YES
+EXTRACT_STATIC         = YES
+JAVADOC_AUTOBRIEF      = YES
+WARN_IF_UNDOCUMENTED   = NO
+WARN_AS_ERROR          = YES
+QUIET                  = YES
+FULL_PATH_NAMES        = NO
+STRIP_FROM_PATH        = src/c
+SORT_MEMBER_DOCS       = NO
+GENERATE_HTML          = YES
+HTML_OUTPUT            = .
+HTML_TIMESTAMP         = NO
+GENERATE_TREEVIEW      = YES
+DISABLE_INDEX          = NO
+SEARCHENGINE           = YES
+GENERATE_LATEX         = NO
+GENERATE_MAN           = NO
+GENERATE_XML           = NO
+HAVE_DOT               = NO
