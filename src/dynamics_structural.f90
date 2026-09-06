@@ -320,6 +320,21 @@ module dynamics_structural
         module procedure :: restore_constrained_values_dense
         module procedure :: restore_constrained_values_csr
     end interface
+
+    interface apply_displacement_constraint
+        module procedure :: apply_displacement_constraint_dense
+        module procedure :: apply_displacement_constraint_csr
+    end interface
+
+    interface assemble_static_system
+        module procedure :: assemble_static_system_dense
+        module procedure :: assemble_static_system_csr
+    end interface
+
+    interface assemble_dynamic_system
+        module procedure :: assemble_dynamic_system_dense
+        module procedure :: assemble_dynamic_system_csr
+    end interface
 contains
 ! ******************************************************************************
 ! DIFFERENTIATION ROUTINES
@@ -559,7 +574,7 @@ function create_connectivity_matrix(gdof, e, nodes) result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
-subroutine assemble_static_system(gdof, elements, nodes, q, k, f, rule)
+subroutine assemble_static_system_csr(gdof, elements, nodes, q, k, f, rule)
     !! Assembles the global stiffness matrix and external force vector.
     integer(int32), intent(in) :: gdof
         !! The total number of global degrees of freedom.
@@ -617,7 +632,7 @@ subroutine assemble_static_system(gdof, elements, nodes, q, k, f, rule)
 end subroutine
 
 ! ------------------------------------------------------------------------------
-subroutine assemble_dynamic_system(gdof, elements, nodes, q, m, k, f, rule)
+subroutine assemble_dynamic_system_csr(gdof, elements, nodes, q, m, k, f, rule)
     !! Assembles global mass and stiffness matrices and an external force vector.
     integer(int32), intent(in) :: gdof
         !! The total number of global degrees of freedom.
@@ -689,6 +704,125 @@ subroutine assemble_dynamic_system(gdof, elements, nodes, q, m, k, f, rule)
     end do
     m = dense_to_csr(mdense)
     k = dense_to_csr(kdense)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine assemble_static_system_dense(gdof, elements, nodes, q, k, f, rule)
+    !! Assembles dense global stiffness and external force arrays.
+    integer(int32), intent(in) :: gdof
+        !! The total number of global degrees of freedom.
+    class(element), intent(in) :: elements(:)
+        !! The finite elements to assemble.
+    class(node), intent(in), dimension(:) :: nodes
+        !! The global node list.
+    real(real64), intent(in), dimension(:) :: q
+        !! The distributed surface or body force vector supplied to each
+        !! element.
+    real(real64), allocatable, intent(out) :: k(:,:)
+        !! The assembled global stiffness matrix.
+    real(real64), allocatable, intent(out) :: f(:)
+        !! The assembled global external force vector.
+    integer(int32), intent(in), optional :: rule
+        !! The numerical integration rule.
+
+    ! Local Variables
+    integer(int32) :: i, j, eidx, row, col, ndof
+    real(real64), allocatable :: ke(:,:), fe(:)
+
+    ! Initialization
+    allocate(k(gdof, gdof), f(gdof), source = 0.0d0)
+
+    ! Accumulate element contributions in global dense storage.
+    do eidx = 1, size(elements)
+        if (present(rule)) then
+            ke = elements(eidx)%stiffness_matrix(rule)
+            fe = elements(eidx)%external_force_vector(q, rule)
+        else
+            ke = elements(eidx)%stiffness_matrix()
+            fe = elements(eidx)%external_force_vector(q)
+        end if
+        ndof = size(ke, 1)
+        do i = 1, elements(eidx)%get_node_count()
+            row = find_global_dof(elements(eidx)%get_node(i), nodes)
+            do j = 1, elements(eidx)%get_dof_per_node()
+                f(row + j - 1) = f(row + j - 1) + fe((i - 1) * &
+                    elements(eidx)%get_dof_per_node() + j)
+            end do
+        end do
+        do i = 1, ndof
+            row = find_global_dof(elements(eidx)%get_node( &
+                (i - 1) / elements(eidx)%get_dof_per_node() + 1), nodes) + &
+                mod(i - 1, elements(eidx)%get_dof_per_node())
+            do j = 1, ndof
+                col = find_global_dof(elements(eidx)%get_node( &
+                    (j - 1) / elements(eidx)%get_dof_per_node() + 1), nodes) + &
+                    mod(j - 1, elements(eidx)%get_dof_per_node())
+                k(row, col) = k(row, col) + ke(i, j)
+            end do
+        end do
+    end do
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine assemble_dynamic_system_dense(gdof, elements, nodes, q, m, k, f, rule)
+    !! Assembles dense global mass and stiffness arrays and external forces.
+    integer(int32), intent(in) :: gdof
+        !! The total number of global degrees of freedom.
+    class(element), intent(in) :: elements(:)
+        !! The finite elements to assemble.
+    class(node), intent(in), dimension(:) :: nodes
+        !! The global node list.
+    real(real64), intent(in), dimension(:) :: q
+        !! The distributed surface or body force vector supplied to each
+        !! element.
+    real(real64), allocatable, intent(out) :: m(:,:)
+        !! The assembled global mass matrix.
+    real(real64), allocatable, intent(out) :: k(:,:)
+        !! The assembled global stiffness matrix.
+    real(real64), allocatable, intent(out) :: f(:)
+        !! The assembled global external force vector.
+    integer(int32), intent(in), optional :: rule
+        !! The numerical integration rule.
+
+    ! Local Variables
+    integer(int32) :: i, j, eidx, row, col, ndof
+    real(real64), allocatable :: km(:,:), ke(:,:), fe(:)
+
+    ! Initialization
+    allocate(m(gdof, gdof), k(gdof, gdof), f(gdof), source = 0.0d0)
+
+    ! Accumulate element contributions in global dense storage.
+    do eidx = 1, size(elements)
+        if (present(rule)) then
+            km = elements(eidx)%mass_matrix(rule)
+            ke = elements(eidx)%stiffness_matrix(rule)
+            fe = elements(eidx)%external_force_vector(q, rule)
+        else
+            km = elements(eidx)%mass_matrix()
+            ke = elements(eidx)%stiffness_matrix()
+            fe = elements(eidx)%external_force_vector(q)
+        end if
+        ndof = size(ke, 1)
+        do i = 1, elements(eidx)%get_node_count()
+            row = find_global_dof(elements(eidx)%get_node(i), nodes)
+            do j = 1, elements(eidx)%get_dof_per_node()
+                f(row + j - 1) = f(row + j - 1) + fe((i - 1) * &
+                    elements(eidx)%get_dof_per_node() + j)
+            end do
+        end do
+        do i = 1, ndof
+            row = find_global_dof(elements(eidx)%get_node( &
+                (i - 1) / elements(eidx)%get_dof_per_node() + 1), nodes) + &
+                mod(i - 1, elements(eidx)%get_dof_per_node())
+            do j = 1, ndof
+                col = find_global_dof(elements(eidx)%get_node( &
+                    (j - 1) / elements(eidx)%get_dof_per_node() + 1), nodes) + &
+                    mod(j - 1, elements(eidx)%get_dof_per_node())
+                m(row, col) = m(row, col) + km(i, j)
+                k(row, col) = k(row, col) + ke(i, j)
+            end do
+        end do
+    end do
 end subroutine
 
 ! ******************************************************************************
@@ -1006,7 +1140,7 @@ end function
 
 ! ------------------------------------------------------------------------------
 ! REF: https://www.sciencedirect.com/topics/engineering/prescribed-displacement-boundary-condition
-subroutine apply_displacement_constraint(dof, val, k, f)
+subroutine apply_displacement_constraint_dense(dof, val, k, f)
     !! Applies a displacement constraint to the specified degree of freedom.
     integer(int32), intent(in) :: dof
         !! The global degree-of-freedom to which the constraint should be
@@ -1023,6 +1157,55 @@ subroutine apply_displacement_constraint(dof, val, k, f)
     k(dof,dof) = 1.0d0
 
     ! Update the external force vector
+    f(dof) = val
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine apply_displacement_constraint_csr(dof, val, k, f)
+    !! Applies a displacement constraint to a CSR-format sparse matrix.
+    integer(int32), intent(in) :: dof
+        !! The global degree-of-freedom to which the constraint should be
+        !! applied.
+    real(real64), intent(in) :: val
+        !! The value of the displacement constraint.
+    type(csr_matrix), intent(inout) :: k
+        !! The stiffness matrix to which the constraint should be applied.
+    real(real64), intent(inout), dimension(:) :: f
+        !! The external force vector to which the constraint should be applied.
+
+    ! Local Variables
+    integer(int32) :: i, j, m, n, nnz, pos
+    integer(int32), allocatable :: rows(:), cols(:)
+    real(real64), allocatable :: vals(:)
+
+    ! Initialization
+    m = size(k, 1)
+    n = size(k, 2)
+    nnz = size(k%values)
+
+    ! Input Checking
+    if (m /= n) error stop DYN_MATRIX_SIZE_ERROR
+    if (dof < 1 .or. dof > m) error stop DYN_INDEX_OUT_OF_RANGE
+    if (size(f) /= m) error stop DYN_ARRAY_SIZE_ERROR
+
+    ! Rebuild the sparse matrix, omitting the constrained row and inserting its
+    ! unit diagonal entry.
+    allocate(rows(nnz + 1), cols(nnz + 1), vals(nnz + 1))
+    pos = 0
+    do i = 1, m
+        if (i == dof) cycle
+        do j = k%row_indices(i), k%row_indices(i + 1) - 1
+            pos = pos + 1
+            rows(pos) = i
+            cols(pos) = k%column_indices(j)
+            vals(pos) = k%values(j)
+        end do
+    end do
+    pos = pos + 1
+    rows(pos) = dof
+    cols(pos) = dof
+    vals(pos) = 1.0d0
+    k = create_csr_matrix(m, n, rows(1:pos), cols(1:pos), vals(1:pos))
     f(dof) = val
 end subroutine
 

@@ -782,7 +782,7 @@ contains
         ! Variables
         integer(int32), parameter :: n = 20
         integer(int32), parameter :: nbc = 3
-        real(real64) :: k(n,n)
+        real(real64) :: k(n,n), f(n), fcsr(n)
         real(real64), allocatable, dimension(:,:) :: knew_dense, knew_csr, &
             restored_dense, restored_csr
         type(csr_matrix) :: kcsr, knewcsr, restoredcsr
@@ -793,6 +793,7 @@ contains
         ! Initialization
         rst = .true.
         call random_number(k)
+        call random_number(f)
         gdofs_dense = [3, 10, 17]
         gdofs_csr = gdofs_dense
         kcsr = k
@@ -826,6 +827,18 @@ contains
         if (.not.assert(restored_dense, restored_csr)) then
             rst = .false.
             print "(A)", "TEST FAILED: test_boundary_conditions_csr -2"
+        end if
+
+        ! Compare dense and CSR displacement constraints.
+        fcsr = f
+        kcsr = k
+        call apply_displacement_constraint(gdofs_dense(2), 0.25d0, k, f)
+        call apply_displacement_constraint(gdofs_csr(2), 0.25d0, kcsr, fcsr)
+        restored_csr = kcsr
+        if (.not.assert(k, restored_csr) .or. &
+            .not.assert(f, fcsr)) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_boundary_conditions_csr -3"
         end if
     end function
 
@@ -939,7 +952,8 @@ function test_global_assembly() result(rst)
     integer(int32) :: i, j, eidx, offset
     real(real64) :: q(2), local_k(6,6), local_m(6,6), local_f(6)
     real(real64) :: expected_k(9,9), expected_m(9,9), expected_f(9)
-    real(real64), allocatable :: actual_k(:,:), actual_m(:,:), actual_f(:)
+    real(real64), allocatable :: actual_k(:,:), actual_m(:,:), actual_f(:), &
+        actual_f_dense(:)
     type(beam_element_2d) :: elements(2)
     type(material) :: mat
     type(node) :: nodes(3)
@@ -987,8 +1001,13 @@ function test_global_assembly() result(rst)
         rst = .false.
     end if
     if (.not.assert(actual_f, expected_f)) then
-        print *, "assembly F error", maxval(abs(actual_f - expected_f))
         rst = .false.
+    end if
+    call assemble_static_system(9, elements, nodes, q, actual_k, actual_f_dense)
+    if (.not.assert(actual_k, expected_k) .or. &
+        .not.assert(actual_f_dense, expected_f)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_global_assembly -3"
     end if
     if (.not.rst) print "(A)", "TEST FAILED: test_global_assembly -1"
 
@@ -1002,6 +1021,14 @@ function test_global_assembly() result(rst)
         .not.assert(actual_f, expected_f)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_global_assembly -2"
+    end if
+    call assemble_dynamic_system(9, elements, nodes, q, actual_m, actual_k, &
+        actual_f_dense)
+    if (.not.assert(actual_m, expected_m) .or. &
+        .not.assert(actual_k, expected_k) .or. &
+        .not.assert(actual_f_dense, expected_f)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_global_assembly -4"
     end if
 end function
 
