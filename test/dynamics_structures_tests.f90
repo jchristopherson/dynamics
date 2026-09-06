@@ -1069,7 +1069,7 @@ function test_beam3d_stiffness_matrix() result(rst)
 
     ! Local Variables
     real(real64) :: x1, y1, z1, x2, y2, z2, x3, y3, z3, A, rho, E, nu, Ixx, &
-        Iyy, Izz, L, G, s
+        Iyy, Izz, Iyz, L, G, s
     real(real64), allocatable, dimension(:,:) :: T, K, ans
     type(beam_element_3d) :: b
     type(material) :: mat
@@ -1093,10 +1093,12 @@ function test_beam3d_stiffness_matrix() result(rst)
     call random_number(Ixx)
     call random_number(Iyy)
     call random_number(Izz)
+    call random_number(Iyz)
     b%area = A
     b%Ixx = Ixx
     b%Iyy = Iyy
     b%Izz = Izz
+    b%Iyz = Iyz
     b%material%density = rho
     b%material%modulus = E
     b%material%poissons_ratio = nu
@@ -1128,9 +1130,28 @@ function test_beam3d_stiffness_matrix() result(rst)
     ans(5,3) = -6.0d0 * E * Iyy / L**2
     ans(9,3) = -ans(3,3)
     ans(11,3) = ans(5,3)
+    ans(2,3) = 1.2d1 * E * Iyz / L**3
+    ans(5,2) = -6.0d0 * E * Iyz / L**2
+    ans(8,3) = -ans(2,3)
+    ans(11,2) = 6.0d0 * E * Iyz / L**2
+    ans(6,3) = 6.0d0 * E * Iyz / L**2
+    ans(8,5) = 6.0d0 * E * Iyz / L**2
+    ans(12,3) = -6.0d0 * E * Iyz / L**2
+    ans(5,9) = 6.0d0 * E * Iyz / L**2
+    ans(11,9) = -6.0d0 * E * Iyz / L**2
+    ans(6,5) = -4.0d0 * E * Iyz / L
+    ans(12,5) = -2.0d0 * E * Iyz / L
+    ans(6,11) = -2.0d0 * E * Iyz / L
+    ans(12,11) = -4.0d0 * E * Iyz / L
     ans(4,4) = G * Ixx / L
     ans(10,4) = -ans(4,4)
     ans(3,5) = ans(5,3)
+    ans(2,5) = ans(5,2)
+    ans(2,9) = -ans(2,3)
+    ans(2,11) = ans(11,2)
+    ans(3,6) = ans(6,3)
+    ans(3,8) = ans(8,3)
+    ans(3,12) = ans(12,3)
     ans(5,5) = 4.0d0 * E * Iyy / L
     ans(9,5) = -ans(11,3)
     ans(11,5) = 2.0d0 * E * Iyy / L
@@ -1141,20 +1162,35 @@ function test_beam3d_stiffness_matrix() result(rst)
     ans(1,7) = ans(7,1)
     ans(7,7) = ans(1,1)
     ans(2,8) = ans(8,2)
+    ans(5,6) = ans(6,5)
+    ans(5,8) = ans(8,5)
+    ans(5,12) = ans(12,5)
     ans(6,8) = ans(8,6)
     ans(8,8) = ans(2,2)
     ans(12,8) = -ans(6,2)
     ans(3,9) = ans(9,3)
+    ans(6,9) = -6.0d0 * E * Iyz / L**2
+    ans(8,9) = -ans(2,9)
+    ans(9,2) = ans(2,9)
+    ans(9,6) = ans(6,9)
+    ans(9,8) = ans(8,9)
     ans(5,9) = ans(9,5)
     ans(9,9) = ans(3,3)
     ans(11,9) = -ans(5,3)
     ans(4,10) = ans(10,4)
     ans(10,10) = ans(4,4)
     ans(3,11) = ans(11,3)
+    ans(8,11) = -6.0d0 * E * Iyz / L**2
+    ans(9,11) = ans(11,9)
+    ans(11,6) = ans(6,11)
+    ans(11,8) = ans(8,11)
     ans(5,11) = ans(11,5)
     ans(9,11) = ans(11,9)
     ans(11,11) = ans(5,5)
     ans(2,12) = ans(12,2)
+    ans(9,12) = -6.0d0 * E * Iyz / L**2
+    ans(12,9) = ans(9,12)
+    ans(11,12) = ans(12,11)
     ans(6,12) = ans(12,6)
     ans(8,12) = ans(12,8)
     ans(12,12) = ans(6,6)
@@ -1167,6 +1203,54 @@ function test_beam3d_stiffness_matrix() result(rst)
     if (.not.assert(K, ans, tol * maxval(abs(ans)))) then
         rst = .false.
         print "(A)", "TEST FAILED: test_beam3d_stiffness_matrix -1"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_beam3d_constitutive_matrix() result(rst)
+    ! Arguments
+    logical :: rst
+
+    ! Parameters
+    real(real64), parameter :: tol = 1.0d-12
+
+    ! Local Variables
+    real(real64) :: area, E, nu, Ixx, Iyy, Izz, Iyz, G
+    real(real64), allocatable, dimension(:,:) :: D, ans
+    type(beam_element_3d) :: b
+
+    ! Initialization
+    rst = .true.
+    area = 2.5d0
+    E = 2.0d7
+    nu = 0.25d0
+    Ixx = 0.8d0
+    Iyy = 1.2d0
+    Izz = 1.6d0
+    Iyz = -0.3d0
+    G = E / (2.0d0 * (1.0d0 + nu))
+    b%area = area
+    b%Ixx = Ixx
+    b%Iyy = Iyy
+    b%Izz = Izz
+    b%Iyz = Iyz
+    b%material%modulus = E
+    b%material%poissons_ratio = nu
+
+    ! Define the expected constitutive matrix, including bending coupling.
+    allocate(ans(4,4), source = 0.0d0)
+    ans(1,1) = area * E
+    ans(2,2) = Izz * E
+    ans(2,3) = Iyz * E
+    ans(3,2) = ans(2,3)
+    ans(3,3) = Iyy * E
+    ans(4,4) = Ixx * G
+
+    ! Test
+    D = b%constitutive_matrix()
+    if (.not.assert(D, ans, tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_beam3d_constitutive_matrix -1"
     end if
 end function
 

@@ -73,6 +73,9 @@ program main
     check = test_beam3d_strain_displacement()
     if (.not.check) flag = 16
 
+    check = test_beam3d_constitutive_matrix()
+    if (.not.check) flag = 117
+
     check = test_beam3d_stiffness_matrix()
     if (.not.check) flag = 17
 

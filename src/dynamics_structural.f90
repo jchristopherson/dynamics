@@ -54,6 +54,10 @@ module dynamics_structural
             !! The z-coordinate.
     end type
 
+    interface point
+        module procedure :: pt_init
+    end interface
+
 ! ------------------------------------------------------------------------------
     type, extends(point) :: node
         !! Defines a node.
@@ -62,6 +66,11 @@ module dynamics_structural
         integer(int32) :: dof
             !! The number of degrees of freeedom associated with this node.
     end type
+
+    interface node
+        module procedure :: nd_init_1
+        module procedure :: nd_init_2
+    end interface
 
 ! ------------------------------------------------------------------------------
     type :: material
@@ -73,6 +82,10 @@ module dynamics_structural
         real(real64) :: poissons_ratio
             !! The Poisson's ratio of the material.
     end type
+
+    interface material
+        module procedure :: mat_init
+    end interface
 
 ! ------------------------------------------------------------------------------
     type, abstract :: element
@@ -140,6 +153,10 @@ module dynamics_structural
         procedure, public :: mass_matrix => b2d_mass_matrix
     end type
 
+    interface beam_element_2d
+        module procedure :: b2d_init
+    end interface
+
 ! ------------------------------------------------------------------------------
     type, extends(line_element) :: beam_element_3d
         !! Defines a three-dimensional Bernoulli-Euler beam element.
@@ -149,6 +166,8 @@ module dynamics_structural
             !! The beam moment of inertia about the element y-axis.
         real(real64) :: Izz
             !! The beam moment of inertia about the element z-axis.
+        real(real64) :: Iyz
+            !! The cross-sectional product of inertia.
         type(node) :: node_1
             !! The first node of the element (s = -1).
         type(node) :: node_2
@@ -174,6 +193,10 @@ module dynamics_structural
         procedure, public :: stiffness_matrix => b3d_stiffness_matrix
         procedure, public :: mass_matrix => b3d_mass_matrix
     end type
+
+    interface beam_element_3d
+        module procedure :: b3d_init
+    end interface
 
 ! ******************************************************************************
 ! INTERFACES
@@ -973,6 +996,80 @@ pure function element_ext_force_integrand(elem, s) result(rst)
 end function
 
 ! ******************************************************************************
+! POINT MEMBERS
+! ------------------------------------------------------------------------------
+pure function pt_init(x, y, z) result(rst)
+    !! Constructs a new [[point]].
+    real(real64), intent(in) :: x
+        !! The x-coordinate.
+    real(real64), intent(in) :: y
+        !! The y-coordinate.
+    real(real64), intent(in) :: z
+        !! The z-coordinate.
+    type(point) :: rst
+        !! The new [[point]].
+    rst%x = x
+    rst%y = y
+    rst%z = z
+end function
+
+! ******************************************************************************
+! NODE MEMBERS
+! ------------------------------------------------------------------------------
+pure function nd_init_1(index, dof, x, y, z) result(rst)
+    !! Constructs a new [[node]].
+    integer(int32), intent(in) :: index
+        !! The global index of the node.
+    integer(int32), intent(in) :: dof
+        !! The number of degrees of freedom of the node.
+    real(real64), intent(in) :: x
+        !! The x-coordinate.
+    real(real64), intent(in) :: y
+        !! The y-coordinate.
+    real(real64), intent(in) :: z
+        !! The z-coordinate.
+    type(node) :: rst
+        !! The new [[node]].
+    rst%index = index
+    rst%dof = dof
+    rst%x = x
+    rst%y = y
+    rst%z = z
+end function
+
+! ------------------------------------------------------------------------------
+pure function nd_init_2(index, dof, pt) result(rst)
+    !! Constructs a new [[node]].
+    integer(int32), intent(in) :: index
+        !! The global index of the node.
+    integer(int32), intent(in) :: dof
+        !! The number of degrees of freedom of the node.
+    class(point), intent(in) :: pt
+        !! The location of the node.
+    type(node) :: rst
+        !! The new [[node]].
+    rst = nd_init_1(index, dof, pt%x, pt%y, pt%z)
+end function
+
+! ******************************************************************************
+! MATERIAL MEMBERS
+! ------------------------------------------------------------------------------
+pure function mat_init(modulus, pratio, density) result(rst)
+    !! Constructs a new [[material]].
+    real(real64), intent(in) :: modulus
+        !! The modulus of elasticity.
+    real(real64), intent(in) :: pratio
+        !! The Poisson's ratio.
+    real(real64), intent(in) :: density
+        !! The density.
+    type(material) :: rst
+        !! The new [[material]].
+    rst%modulus = modulus
+    rst%poissons_ratio = pratio
+    rst%density = density
+end function
+
+! ******************************************************************************
 ! LINE_ELEMENT MEMBERS
 ! ------------------------------------------------------------------------------
 pure function le_length(this) result(rst)
@@ -996,7 +1093,6 @@ pure function le_length(this) result(rst)
     dz = n2%z - n1%z
     rst = sqrt(dx**2 + dy**2 + dz**2)
 end function
-
 
 ! ------------------------------------------------------------------------------
 pure function le_stiffness_matrix(this, rule) result(rst)
@@ -1098,6 +1194,28 @@ end function
 
 ! ******************************************************************************
 ! BEAM_2D ROUTINES
+! ------------------------------------------------------------------------------
+pure function b2d_init(mat, area, moi, nd1, nd2) result(rst)
+    !! Initializes a new [[beam_element_2d]].
+    class(material), intent(in) :: mat
+        !! The material.
+    real(real64), intent(in) :: area
+        !! The cross-sectional area.
+    real(real64), intent(in) :: moi
+        !! The moment-of-inertia.
+    class(node), intent(in) :: nd1
+        !! Node 1 of the element.
+    class(node), intent(in) :: nd2
+        !! Node 2 of the element.
+    type(beam_element_2d) :: rst
+        !! The new [[beam_element_2d]].
+    rst%material = mat
+    rst%area = area
+    rst%moment_of_inertia = moi
+    rst%node_1 = nd1
+    rst%node_2 = nd2
+end function
+
 ! ------------------------------------------------------------------------------
 pure function b2d_dimensionality(this) result(rst)
     !! Gets the dimensionality of the element.
@@ -1516,6 +1634,45 @@ end function
 ! ******************************************************************************
 ! BEAM_3D ROUTINES
 ! ------------------------------------------------------------------------------
+pure function b3d_init(mat, area, ixx, iyy, izz, iyz, nd1, nd2, orient) result(rst)
+    !! Constructs a new [[beam_element_3d]] object.
+    class(material), intent(in) :: mat
+        !! The material.
+    real(real64), intent(in) :: area
+        !! The cross-sectional area.
+    real(real64), intent(in) :: ixx
+        !! The moment of inertia about the element's x-axis (torsional).
+    real(real64), intent(in) :: iyy
+        !! The moment of inertia about the element's y-axis.
+    real(real64), intent(in) :: izz
+        !! The moment of inertia about the element's z-axis.
+    real(real64), intent(in) :: iyz
+        !! The cross-sectional product of inertia.
+    class(node), intent(in) :: nd1
+        !! The first node.
+    class(node), intent(in) :: nd2
+        !! The second node.
+    class(point), intent(in) :: orient
+        !! An orientation node that locates the direction of the element
+        !! z-axis.  The orientation point is measured relative to the first
+        !! node in the element.  Specifically, the element z-axis is assumed
+        !! to be defined by the location of this point relative to the
+        !! location of node 1.
+    type(beam_element_3d) :: rst
+        !! The new [[beam_element_3d]] object.
+
+    rst%material = mat
+    rst%area = area
+    rst%Ixx = ixx
+    rst%Iyy = iyy
+    rst%Izz = izz
+    rst%Iyz = iyz
+    rst%node_1 = nd1
+    rst%node_2 = nd2
+    rst%orientation_point = orient
+end function
+
+! ------------------------------------------------------------------------------
 pure function b3d_dimensionality(this) result(rst)
     !! Gets the dimensionality of the element.
     class(beam_element_3d), intent(in) :: this
@@ -1728,7 +1885,9 @@ pure function b3d_constitutive_matrix(this) result(rst)
     allocate(rst(4,4), source = 0.0d0)
     rst(1,1) = this%area * this%material%modulus
     rst(2,2) = this%Izz * this%material%modulus
+    rst(2,3) = this%Iyz * this%material%modulus
     rst(3,3) = this%Iyy * this%material%modulus
+    rst(3,2) = rst(2,3)
     rst(4,4) = this%Ixx * this%material%modulus / &
         (2.0d0 * (1.0d0 + this%material%poissons_ratio))
 end function
@@ -1805,7 +1964,7 @@ pure function b3d_stiffness_matrix(this, rule) result(rst)
         !! The resulting matrix.
 
     ! Local Variables
-    real(real64) :: A, E, Iyy, Izz, Jxx, G, L
+    real(real64) :: A, E, Iyy, Izz, Iyz, Jxx, G, L
     real(real64), allocatable, dimension(:,:) :: T, Tt
 
     ! Initialization
@@ -1813,6 +1972,7 @@ pure function b3d_stiffness_matrix(this, rule) result(rst)
     Jxx = this%Ixx
     Iyy = this%Iyy
     Izz = this%Izz
+    Iyz = this%Iyz
     E = this%material%modulus
     G = E / (2.0d0 * (1.0d0 + this%material%poissons_ratio))
     L = this%length()
@@ -1833,9 +1993,28 @@ pure function b3d_stiffness_matrix(this, rule) result(rst)
     rst(5,3) = -6.0d0 * E * Iyy / L**2
     rst(9,3) = -rst(3,3)
     rst(11,3) = rst(5,3)
+    rst(2,3) = 1.2d1 * E * Iyz / L**3
+    rst(5,2) = -6.0d0 * E * Iyz / L**2
+    rst(8,3) = -rst(2,3)
+    rst(11,2) = 6.0d0 * E * Iyz / L**2
+    rst(6,3) = 6.0d0 * E * Iyz / L**2
+    rst(8,5) = 6.0d0 * E * Iyz / L**2
+    rst(12,3) = -6.0d0 * E * Iyz / L**2
+    rst(5,9) = 6.0d0 * E * Iyz / L**2
+    rst(11,9) = -6.0d0 * E * Iyz / L**2
+    rst(6,5) = -4.0d0 * E * Iyz / L
+    rst(12,5) = -2.0d0 * E * Iyz / L
+    rst(6,11) = -2.0d0 * E * Iyz / L
+    rst(12,11) = -4.0d0 * E * Iyz / L
     rst(4,4) = G * Jxx / L
     rst(10,4) = -rst(4,4)
     rst(3,5) = rst(5,3)
+    rst(2,5) = rst(5,2)
+    rst(2,9) = -rst(2,3)
+    rst(2,11) = rst(11,2)
+    rst(3,6) = rst(6,3)
+    rst(3,8) = rst(8,3)
+    rst(3,12) = rst(12,3)
     rst(5,5) = 4.0d0 * E * Iyy / L
     rst(9,5) = -rst(11,3)
     rst(11,5) = 2.0d0 * E * Iyy / L
@@ -1846,20 +2025,35 @@ pure function b3d_stiffness_matrix(this, rule) result(rst)
     rst(1,7) = rst(7,1)
     rst(7,7) = rst(1,1)
     rst(2,8) = rst(8,2)
+    rst(5,6) = rst(6,5)
+    rst(5,8) = rst(8,5)
+    rst(5,12) = rst(12,5)
     rst(6,8) = rst(8,6)
     rst(8,8) = rst(2,2)
     rst(12,8) = -rst(6,2)
     rst(3,9) = rst(9,3)
+    rst(6,9) = -6.0d0 * E * Iyz / L**2
+    rst(8,9) = -rst(2,9)
+    rst(9,2) = rst(2,9)
+    rst(9,6) = rst(6,9)
+    rst(9,8) = rst(8,9)
     rst(5,9) = rst(9,5)
     rst(9,9) = rst(3,3)
     rst(11,9) = -rst(5,3)
     rst(4,10) = rst(10,4)
     rst(10,10) = rst(4,4)
     rst(3,11) = rst(11,3)
+    rst(8,11) = -6.0d0 * E * Iyz / L**2
+    rst(9,11) = rst(11,9)
+    rst(11,6) = rst(6,11)
+    rst(11,8) = rst(8,11)
     rst(5,11) = rst(11,5)
     rst(9,11) = rst(11,9)
     rst(11,11) = rst(5,5)
     rst(2,12) = rst(12,2)
+    rst(9,12) = -6.0d0 * E * Iyz / L**2
+    rst(12,9) = rst(9,12)
+    rst(11,12) = rst(12,11)
     rst(6,12) = rst(12,6)
     rst(8,12) = rst(12,8)
     rst(12,12) = rst(6,6)
