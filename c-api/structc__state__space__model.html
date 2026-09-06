@@ -105,18 +105,25 @@ $(document).ready(function(){initNavTree('structc__state__space__model.html','')
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a576a5d445fedefe89f2e5fc95c1450c9" id="r_a576a5d445fedefe89f2e5fc95c1450c9"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structc__state__space__model.html#a576a5d445fedefe89f2e5fc95c1450c9">dimension</a></td></tr>
+<tr class="memdesc:a576a5d445fedefe89f2e5fc95c1450c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of state variables.  <br /></td></tr>
 <tr class="separator:a576a5d445fedefe89f2e5fc95c1450c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab21ccb9ee3c51229650cd9559f26b5b8" id="r_ab21ccb9ee3c51229650cd9559f26b5b8"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structc__state__space__model.html#ab21ccb9ee3c51229650cd9559f26b5b8">n_inputs</a></td></tr>
+<tr class="memdesc:ab21ccb9ee3c51229650cd9559f26b5b8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of inputs.  <br /></td></tr>
 <tr class="separator:ab21ccb9ee3c51229650cd9559f26b5b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a283d59c64c635db771d364a1fc235bc2" id="r_a283d59c64c635db771d364a1fc235bc2"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structc__state__space__model.html#a283d59c64c635db771d364a1fc235bc2">n_outputs</a></td></tr>
+<tr class="memdesc:a283d59c64c635db771d364a1fc235bc2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of outputs.  <br /></td></tr>
 <tr class="separator:a283d59c64c635db771d364a1fc235bc2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0a7fee2f8c3b0df0a15b240a5963860f" id="r_a0a7fee2f8c3b0df0a15b240a5963860f"><td class="memItemLeft" align="right" valign="top">double *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structc__state__space__model.html#a0a7fee2f8c3b0df0a15b240a5963860f">A</a></td></tr>
+<tr class="memdesc:a0a7fee2f8c3b0df0a15b240a5963860f"><td class="mdescLeft">&#160;</td><td class="mdescRight">State matrix, dimension by dimension.  <br /></td></tr>
 <tr class="separator:a0a7fee2f8c3b0df0a15b240a5963860f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7e891d27e45dede0854e9ae189637651" id="r_a7e891d27e45dede0854e9ae189637651"><td class="memItemLeft" align="right" valign="top">double *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structc__state__space__model.html#a7e891d27e45dede0854e9ae189637651">B</a></td></tr>
+<tr class="memdesc:a7e891d27e45dede0854e9ae189637651"><td class="mdescLeft">&#160;</td><td class="mdescRight">Input matrix, dimension by n_inputs.  <br /></td></tr>
 <tr class="separator:a7e891d27e45dede0854e9ae189637651"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ace6f951c7cbef90ea65e8fa0796a2e1e" id="r_ace6f951c7cbef90ea65e8fa0796a2e1e"><td class="memItemLeft" align="right" valign="top">double *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structc__state__space__model.html#ace6f951c7cbef90ea65e8fa0796a2e1e">C</a></td></tr>
+<tr class="memdesc:ace6f951c7cbef90ea65e8fa0796a2e1e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Output matrix, n_outputs by dimension.  <br /></td></tr>
 <tr class="separator:ace6f951c7cbef90ea65e8fa0796a2e1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a744742dba31dfb5d2e4dfc0372d75b4a" id="r_a744742dba31dfb5d2e4dfc0372d75b4a"><td class="memItemLeft" align="right" valign="top">double *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structc__state__space__model.html#a744742dba31dfb5d2e4dfc0372d75b4a">D</a></td></tr>
+<tr class="memdesc:a744742dba31dfb5d2e4dfc0372d75b4a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Feedthrough matrix, n_outputs by n_inputs.  <br /></td></tr>
 <tr class="separator:a744742dba31dfb5d2e4dfc0372d75b4a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
@@ -134,6 +141,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Number of state variables. </p>
+
 </div>
 </div>
 <a id="ab21ccb9ee3c51229650cd9559f26b5b8" name="ab21ccb9ee3c51229650cd9559f26b5b8"></a>
@@ -147,6 +156,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Number of inputs. </p>
 
 </div>
 </div>
@@ -162,6 +173,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Number of outputs. </p>
+
 </div>
 </div>
 <a id="a0a7fee2f8c3b0df0a15b240a5963860f" name="a0a7fee2f8c3b0df0a15b240a5963860f"></a>
@@ -175,6 +188,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>State matrix, dimension by dimension. </p>
 
 </div>
 </div>
@@ -190,6 +205,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Input matrix, dimension by n_inputs. </p>
+
 </div>
 </div>
 <a id="ace6f951c7cbef90ea65e8fa0796a2e1e" name="ace6f951c7cbef90ea65e8fa0796a2e1e"></a>
@@ -204,6 +221,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Output matrix, n_outputs by dimension. </p>
+
 </div>
 </div>
 <a id="a744742dba31dfb5d2e4dfc0372d75b4a" name="a744742dba31dfb5d2e4dfc0372d75b4a"></a>
@@ -217,6 +236,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Feedthrough matrix, n_outputs by n_inputs. </p>
 
 </div>
 </div>

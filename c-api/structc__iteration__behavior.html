@@ -105,18 +105,25 @@ $(document).ready(function(){initNavTree('structc__iteration__behavior.html','')
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a9d0dc56cfd4ed8193b7dee823caae82a" id="r_a9d0dc56cfd4ed8193b7dee823caae82a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structc__iteration__behavior.html#a9d0dc56cfd4ed8193b7dee823caae82a">converge_on_chng</a></td></tr>
+<tr class="memdesc:a9d0dc56cfd4ed8193b7dee823caae82a"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when convergence was detected from solution changes.  <br /></td></tr>
 <tr class="separator:a9d0dc56cfd4ed8193b7dee823caae82a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa37ba73ccac82a44b9a63595add04d37" id="r_aa37ba73ccac82a44b9a63595add04d37"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structc__iteration__behavior.html#aa37ba73ccac82a44b9a63595add04d37">converge_on_fcn</a></td></tr>
+<tr class="memdesc:aa37ba73ccac82a44b9a63595add04d37"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when convergence was detected from the function value.  <br /></td></tr>
 <tr class="separator:aa37ba73ccac82a44b9a63595add04d37"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aba81137a4708846874d9e26339f93d3c" id="r_aba81137a4708846874d9e26339f93d3c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structc__iteration__behavior.html#aba81137a4708846874d9e26339f93d3c">converge_on_zero_diff</a></td></tr>
+<tr class="memdesc:aba81137a4708846874d9e26339f93d3c"><td class="mdescLeft">&#160;</td><td class="mdescRight">True when convergence was detected from a zero difference.  <br /></td></tr>
 <tr class="separator:aba81137a4708846874d9e26339f93d3c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad2e747073957274e8e4c0ea36506ff62" id="r_ad2e747073957274e8e4c0ea36506ff62"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structc__iteration__behavior.html#ad2e747073957274e8e4c0ea36506ff62">fcn_count</a></td></tr>
+<tr class="memdesc:ad2e747073957274e8e4c0ea36506ff62"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of function evaluations.  <br /></td></tr>
 <tr class="separator:ad2e747073957274e8e4c0ea36506ff62"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab8f69070833968fe2ef73f6c706a4a27" id="r_ab8f69070833968fe2ef73f6c706a4a27"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structc__iteration__behavior.html#ab8f69070833968fe2ef73f6c706a4a27">gradient_count</a></td></tr>
+<tr class="memdesc:ab8f69070833968fe2ef73f6c706a4a27"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of gradient evaluations.  <br /></td></tr>
 <tr class="separator:ab8f69070833968fe2ef73f6c706a4a27"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a685bd5f4ff52670c3b2bcb992958286a" id="r_a685bd5f4ff52670c3b2bcb992958286a"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structc__iteration__behavior.html#a685bd5f4ff52670c3b2bcb992958286a">iter_count</a></td></tr>
+<tr class="memdesc:a685bd5f4ff52670c3b2bcb992958286a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of nonlinear iterations.  <br /></td></tr>
 <tr class="separator:a685bd5f4ff52670c3b2bcb992958286a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a27d217c4b64bd9245b0f20e45ecbc245" id="r_a27d217c4b64bd9245b0f20e45ecbc245"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structc__iteration__behavior.html#a27d217c4b64bd9245b0f20e45ecbc245">jacobian_count</a></td></tr>
+<tr class="memdesc:a27d217c4b64bd9245b0f20e45ecbc245"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of Jacobian evaluations.  <br /></td></tr>
 <tr class="separator:a27d217c4b64bd9245b0f20e45ecbc245"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
@@ -134,6 +141,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>True when convergence was detected from solution changes. </p>
+
 </div>
 </div>
 <a id="aa37ba73ccac82a44b9a63595add04d37" name="aa37ba73ccac82a44b9a63595add04d37"></a>
@@ -147,6 +156,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>True when convergence was detected from the function value. </p>
 
 </div>
 </div>
@@ -162,6 +173,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>True when convergence was detected from a zero difference. </p>
+
 </div>
 </div>
 <a id="ad2e747073957274e8e4c0ea36506ff62" name="ad2e747073957274e8e4c0ea36506ff62"></a>
@@ -175,6 +188,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Number of function evaluations. </p>
 
 </div>
 </div>
@@ -190,6 +205,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Number of gradient evaluations. </p>
+
 </div>
 </div>
 <a id="a685bd5f4ff52670c3b2bcb992958286a" name="a685bd5f4ff52670c3b2bcb992958286a"></a>
@@ -204,6 +221,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Number of nonlinear iterations. </p>
+
 </div>
 </div>
 <a id="a27d217c4b64bd9245b0f20e45ecbc245" name="a27d217c4b64bd9245b0f20e45ecbc245"></a>
@@ -217,6 +236,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Number of Jacobian evaluations. </p>
 
 </div>
 </div>
