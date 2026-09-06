@@ -13,29 +13,14 @@
     <title>All Modules &ndash; DYNAMICS
 </title>
 
-    <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    <!-- Font Awesome -->
-    <link href="../css/fontawesome.min.css" rel="stylesheet">
-    <link href="../css/brands.min.css" rel="stylesheet">
-    <link href="../css/regular.min.css" rel="stylesheet">
-    <link href="../css/solid.min.css" rel="stylesheet">
-    <link href="../css/v4-font-face.min.css" rel="stylesheet">
-    <link href="../css/v4-shims.min.css" rel="stylesheet">
-    <!-- MathJax -->
-    <script type="text/x-mathjax-config">
-      MathJax.Hub.Config({
-        TeX: { equationNumbers: { autoNumber: "AMS" } }
-      });
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.9/MathJax.js?config=TeX-AMS-MML_HTMLorMML" async
-            integrity="sha256-DViIOMYdwlM/axqoGDPeUyf0urLoHMN4QACBKyB58Uw=" crossorigin="anonymous"></script>
-    <!-- Other scripts and stylesheets -->
-    <link href="../css/local.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
     <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+      <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="../js/svg-pan-zoom.min.js"></script>
   </head>
 
@@ -109,9 +94,23 @@
                  <td></td>
                </tr>
 <!--active-->			   <tr class="">
+                 <td><a href='..\module\dynamics_graph.html'>dynamics_graph</a></td>
+                 <td><a href='..\sourcefile\dynamics_graph.f90.html'>dynamics_graph.f90</a></td>
+                 <td><p>Provides a lightweight, undirected multigraph container along with the
+traversal utilities required to analyze the topology of closed-loop
+mechanisms.  Vertices are represented by integer indices, and edges are
+stored in a simple allocatable array.</p></td>
+               </tr>
+<!---->			   <tr class="active">
                  <td><a href='..\module\dynamics_helper.html'>dynamics_helper</a></td>
                  <td><a href='..\sourcefile\dynamics_helper.f90.html'>dynamics_helper.f90</a></td>
                  <td></td>
+               </tr>
+<!--active-->			   <tr class="">
+                 <td><a href='..\module\dynamics_joints.html'>dynamics_joints</a></td>
+                 <td><a href='..\sourcefile\dynamics_joints.f90.html'>dynamics_joints.f90</a></td>
+                 <td><p>Provides types and routines describing the kinematic joints that connect
+the links of a mechanism.</p></td>
                </tr>
 <!---->			   <tr class="active">
                  <td><a href='..\module\dynamics_kinematics.html'>dynamics_kinematics</a></td>
@@ -129,41 +128,51 @@
                  <td></td>
                </tr>
 <!--active-->			   <tr class="">
+                 <td><a href='..\module\dynamics_parallel_linkage.html'>dynamics_parallel_linkage</a></td>
+                 <td><a href='..\sourcefile\dynamics_parallel_linkage.f90.html'>dynamics_parallel_linkage.f90</a></td>
+                 <td><p>Provides types supporting the kinematic analysis of closed-loop, or
+parallel, linkages.  The topology of the mechanism is described by a
+graph whose vertices are the links and whose edges are the joints.  A
+spanning tree of that graph supplies the transformation path to each
+link, and the edges excluded from the tree define the loop-closure
+constraints that must be satisfied by any valid configuration.</p></td>
+               </tr>
+<!---->			   <tr class="active">
                  <td><a href='..\module\dynamics_quaternions.html'>dynamics_quaternions</a></td>
                  <td><a href='..\sourcefile\dynamics_quaternions.f90.html'>dynamics_quaternions.f90</a></td>
                  <td></td>
                </tr>
-<!---->			   <tr class="active">
+<!--active-->			   <tr class="">
                  <td><a href='..\module\dynamics_rigid_bodies.html'>dynamics_rigid_bodies</a></td>
                  <td><a href='..\sourcefile\dynamics_rigid_bodies.f90.html'>dynamics_rigid_bodies.f90</a></td>
                  <td></td>
                </tr>
-<!--active-->			   <tr class="">
+<!---->			   <tr class="active">
                  <td><a href='..\module\dynamics_rotation.html'>dynamics_rotation</a></td>
                  <td><a href='..\sourcefile\dynamics_rotation.f90.html'>dynamics_rotation.f90</a></td>
                  <td></td>
                </tr>
-<!---->			   <tr class="active">
+<!--active-->			   <tr class="">
                  <td><a href='..\module\dynamics_stability.html'>dynamics_stability</a></td>
                  <td><a href='..\sourcefile\dynamics_stability.f90.html'>dynamics_stability.f90</a></td>
                  <td></td>
                </tr>
-<!--active-->			   <tr class="">
+<!---->			   <tr class="active">
                  <td><a href='..\module\dynamics_structural.html'>dynamics_structural</a></td>
                  <td><a href='..\sourcefile\dynamics_structural.f90.html'>dynamics_structural.f90</a></td>
                  <td></td>
                </tr>
-<!---->			   <tr class="active">
+<!--active-->			   <tr class="">
                  <td><a href='..\module\dynamics_system_id.html'>dynamics_system_id</a></td>
                  <td><a href='..\sourcefile\dynamics_system_id.f90.html'>dynamics_system_id.f90</a></td>
                  <td></td>
                </tr>
-<!--active-->			   <tr class="">
+<!---->			   <tr class="active">
                  <td><a href='..\module\dynamics_vibrations.html'>dynamics_vibrations</a></td>
                  <td><a href='..\sourcefile\dynamics_vibrations.f90.html'>dynamics_vibrations.f90</a></td>
                  <td></td>
                </tr>
-<!---->			 </tbody></table>
+<!--active-->			 </tbody></table>
              
         </div>
       </div>
@@ -172,21 +181,40 @@
     <footer>
       <div class="container">
         <div class="row justify-content-between">
-          <div class="col">
-            <p>
-              DYNAMICS
- was developed by Jason Christopherson<br>              &copy; 2026 
+          <div class="col"><p>DYNAMICS was developed by Jason Christopherson<br>&copy; 2026 
 </p>
           </div>
           <div class="col">
             <p class="text-end">
               Documentation generated by
               <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-08-18 13:18 -0500             </p>
+ on 2026-09-04 16:45              </p>
           </div>
         </div>
         <br>
       </div> <!-- /container -->
     </footer>
+
+    <!-- Bootstrap core JavaScript -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>    
+
+    <!-- MathJax JavaScript
+             ================================================== -->
+             <!-- Placed at the end of the document so the pages load faster -->
+        <script type="text/x-mathjax-config">
+          MathJax.Hub.Config({
+          TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+          jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+          extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+          });
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+          <script src="../tipuesearch/tipuesearch_content.js"></script>
+          <script src="../tipuesearch/tipuesearch_set.js"></script>
+          <script src="../tipuesearch/tipuesearch.js"></script>
+
   </body>
 </html>

@@ -88,7 +88,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 4.1% of total for modules and submodules.">199 statements</a>
+               title=" 4.9% of total for modules and submodules.">290 statements</a>
           </li>
 
             <li id="source-file">
@@ -132,6 +132,7 @@
       <div id="inters-0" class="panel-collapse collapse">
         <div class="list-group">
             <a class="list-group-item" href="../module/dynamics_linkage.html#interface-binary_link">binary_link</a>
+            <a class="list-group-item" href="../module/dynamics_linkage.html#interface-multi_joint_link">multi_joint_link</a>
             <a class="list-group-item" href="../module/dynamics_linkage.html#interface-serial_linkage">serial_linkage</a>
         </div>
       </div>
@@ -147,6 +148,8 @@
       <div id="types-0" class="panel-collapse collapse">
         <div class="list-group">
             <a class="list-group-item" href="../module/dynamics_linkage.html#type-binary_link">binary_link</a>
+            <a class="list-group-item" href="../module/dynamics_linkage.html#type-link">link</a>
+            <a class="list-group-item" href="../module/dynamics_linkage.html#type-multi_joint_link">multi_joint_link</a>
             <a class="list-group-item" href="../module/dynamics_linkage.html#type-serial_linkage">serial_linkage</a>
         </div>
       </div>
@@ -175,15 +178,15 @@
       <ul class="list-group">
           <li class="list-group-item">
             <ul class="list-inline">
-                <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
+                <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
+                <li><a href='../module/dynamics_rigid_bodies.html'>dynamics_rigid_bodies</a></li>
                 <li>linalg</li>
                 <li><a href='../module/dynamics_helper.html'>dynamics_helper</a></li>
                 <li><a href='../module/dynamics_kinematics.html'>dynamics_kinematics</a></li>
-                <li><a href='../module/dynamics_rigid_bodies.html'>dynamics_rigid_bodies</a></li>
-                <li><a href='../module/dynamics_quaternions.html'>dynamics_quaternions</a></li>
-                <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
-                <li><a href='../module/dynamics_geometry.html'>dynamics_geometry</a></li>
                 <li>collections</li>
+                <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
+                <li><a href='../module/dynamics_quaternions.html'>dynamics_quaternions</a></li>
+                <li><a href='../module/dynamics_geometry.html'>dynamics_geometry</a></li>
             </ul>
           </li>
       </ul>
@@ -211,6 +214,7 @@
       <div id="inters-1" class="panel-collapse collapse">
         <div class="list-group">
             <a class="list-group-item" href="../module/dynamics_linkage.html#interface-binary_link">binary_link</a>
+            <a class="list-group-item" href="../module/dynamics_linkage.html#interface-multi_joint_link">multi_joint_link</a>
             <a class="list-group-item" href="../module/dynamics_linkage.html#interface-serial_linkage">serial_linkage</a>
         </div>
       </div>
@@ -226,6 +230,8 @@
       <div id="types-1" class="panel-collapse collapse">
         <div class="list-group">
             <a class="list-group-item" href="../module/dynamics_linkage.html#type-binary_link">binary_link</a>
+            <a class="list-group-item" href="../module/dynamics_linkage.html#type-link">link</a>
+            <a class="list-group-item" href="../module/dynamics_linkage.html#type-multi_joint_link">multi_joint_link</a>
             <a class="list-group-item" href="../module/dynamics_linkage.html#type-serial_linkage">serial_linkage</a>
         </div>
       </div>
@@ -418,6 +424,109 @@ of the distal joint.</p>
 
        <div class="panel panel-default">
     <div class="panel-heading codesum">
+      <span class="anchor" id="interface-multi_joint_link"></span>
+      <h3>public        interface <a href='../interface/multi_joint_link.html'>multi_joint_link</a> 
+      </h3>
+    </div>
+    <ul class="list-group">
+          <li class="list-group-item">
+                <h3>
+    private  function mjl_init(frames, mass, inertia, cg) result(rst)  
+
+    </h3>
+  <p>Initializes a new multi_joint_link instance.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>frames</strong></td>
+            <td>
+                <p>A 4-by-4-by-N array containing the transformation matrix for each
+of the N joint coordinate frames.  Each matrix maps coordinates
+from the corresponding joint frame into the link's body frame.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>mass</strong></td>
+            <td>
+                <p>The mass of the link.  If no value is specified, a value of 1 is
+used.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>inertia</strong>(3,3)</td>
+            <td>
+                <p>The 3-by-3 inertia tensor.  If not specified, an identity matrix
+is used.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>cg</strong>(3)</td>
+            <td>
+                <p>The x-y-z location of the CG relative to the link's body
+coordinate frame.  If not supplied, the CG is set to (0, 0, 0).</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/multi_joint_link.html'>multi_joint_link</a>)</small>
+    </h4>
+    <p>The resulting multi_joint_link object.</p>
+
+          </li>
+    </ul>
+  </div>
+
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
       <span class="anchor" id="interface-serial_linkage"></span>
       <h3>public        interface <a href='../interface/serial_linkage.html'>serial_linkage</a> 
       </h3>
@@ -481,7 +590,7 @@ sequential manner.</p>
     <div class="panel-heading codesum">
       <span class="anchor" id="type-binary_link"></span>
       <h3>
-        type, public, extends(<a href='../type/rigid_body.html'>rigid_body</a>)&nbsp;::&nbsp;
+        type, public, extends(<a href='../type/link.html'>link</a>)&nbsp;::&nbsp;
         <a href='../type/binary_link.html'>binary_link</a>
         
       </h3>
@@ -505,7 +614,7 @@ Denavit-Hartenberg convention in order to express its geometry.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-cg~4"></span>
+              <span class="anchor" id="variable-cg~5"></span>
               real(kind=real64),
             </td>
               <td>public</td>
@@ -523,7 +632,7 @@ frame.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-inertia~4"></span>
+              <span class="anchor" id="variable-inertia~5"></span>
               real(kind=real64),
             </td>
               <td>public</td>
@@ -633,7 +742,7 @@ joint's axis.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-mass~2"></span>
+              <span class="anchor" id="variable-mass~3"></span>
               real(kind=real64),
             </td>
               <td>public</td>
@@ -671,6 +780,276 @@ joint's axis.</p>
         </table>
 
 
+        <h4>Type-Bound Procedures</h4>
+        <table class="table table-striped varlist">
+          <tbody>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/binary_link.html#boundprocedure-get_joint_count~2'>get_joint_count</a></strong>
+ =>
+                    bl_get_joint_count
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/binary_link.html#boundprocedure-get_joint_frame'>get_joint_frame</a></strong>
+ =>
+                    bl_get_joint_frame
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+          </tbody>
+        </table>
+    </div>
+  </div>
+
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="type-link"></span>
+      <h3>
+        type, public, extends(<a href='../type/rigid_body.html'>rigid_body</a>)&nbsp;::&nbsp;
+        <a href='../type/link.html'>link</a>
+        
+      </h3>
+    </div>
+    <div class="panel-body">
+      <p>Defines the base class for a link within a mechanism.  A link is a
+rigid body that carries one coordinate frame for each joint that may
+attach to it.</p>
+
+        <h4>Components</h4>
+          <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Visibility</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+<th></th><th>Initial</th>        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-cg~5"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>cg</strong>(3)</td>
+                <td></td>
+                <td></td>
+            <td>
+<p>The x-y-z location of the CG relative to the body coordinate 
+frame.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-inertia~5"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>inertia</strong>(3,3)</td>
+                <td></td>
+                <td></td>
+            <td>
+<p>The 3-by-3 inertia tensor as measured about the CG of the body.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-mass~3"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>mass</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>The mass of the body.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+
+        <h4>Type-Bound Procedures</h4>
+        <table class="table table-striped varlist">
+          <tbody>
+              <tr>
+                <td>
+                    procedure
+(link_joint_count)                    ,                  public
+                  :: <strong><a href='../type/link.html#boundprocedure-get_joint_count~3'>get_joint_count</a></strong>
+<small></small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+(link_joint_frame)                    ,                  public
+                  :: <strong><a href='../type/link.html#boundprocedure-get_joint_frame~2'>get_joint_frame</a></strong>
+<small></small>                </td>
+                <td></td>
+              </tr>
+          </tbody>
+        </table>
+    </div>
+  </div>
+
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="type-multi_joint_link"></span>
+      <h3>
+        type, public, extends(<a href='../type/link.html'>link</a>)&nbsp;::&nbsp;
+        <a href='../type/multi_joint_link.html'>multi_joint_link</a>
+        
+      </h3>
+    </div>
+    <div class="panel-body">
+      <p>Defines a link carrying an arbitrary number of joint coordinate
+frames.  This type is suitable for the ternary and higher-order links
+found in closed-loop mechanisms.</p>
+
+        <h4>Components</h4>
+          <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Visibility</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+<th></th><th>Initial</th>        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-cg~5"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>cg</strong>(3)</td>
+                <td></td>
+                <td></td>
+            <td>
+<p>The x-y-z location of the CG relative to the body coordinate 
+frame.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-inertia~5"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>inertia</strong>(3,3)</td>
+                <td></td>
+                <td></td>
+            <td>
+<p>The 3-by-3 inertia tensor as measured about the CG of the body.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-mass~3"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>mass</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>The mass of the body.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+        <h4>Constructor</h4>
+          
+        <table class="table table-striped varlist">
+          <tbody>
+                <tr>
+                  <td>
+                        private
+
+                    
+                    function
+                    <strong>mjl_init</strong>
+                    (frames, mass, inertia, cg)
+                  </td>
+                  <td><p>Initializes a new multi_joint_link instance.</p></td>
+                </tr>
+          </tbody>
+        </table>
+
+
+        <h4>Type-Bound Procedures</h4>
+        <table class="table table-striped varlist">
+          <tbody>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/multi_joint_link.html#boundprocedure-get_joint_count~4'>get_joint_count</a></strong>
+ =>
+                    mjl_get_joint_count
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/multi_joint_link.html#boundprocedure-get_joint_frame~3'>get_joint_frame</a></strong>
+ =>
+                    mjl_get_joint_frame
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/multi_joint_link.html#boundprocedure-set_joint_frame'>set_joint_frame</a></strong>
+ =>
+                    mjl_set_joint_frame
+<small>Subroutine</small>                </td>
+                <td></td>
+              </tr>
+          </tbody>
+        </table>
     </div>
   </div>
 
@@ -713,7 +1092,7 @@ joint's axis.</p>
                 <td>
                     procedure
                     ,                  public
-                  :: <strong><a href='../type/serial_linkage.html#boundprocedure-forward_kinematics'>forward_kinematics</a></strong>
+                  :: <strong><a href='../type/serial_linkage.html#boundprocedure-forward_kinematics~2'>forward_kinematics</a></strong>
  =>
                     sl_forward_kinematics
 <small>Function</small>                </td>
@@ -723,7 +1102,7 @@ joint's axis.</p>
                 <td>
                     procedure
                     ,                  public
-                  :: <strong><a href='../type/serial_linkage.html#boundprocedure-get_link'>get_link</a></strong>
+                  :: <strong><a href='../type/serial_linkage.html#boundprocedure-get_link~2'>get_link</a></strong>
  =>
                     sl_get_link
 <small>Function</small>                </td>
@@ -733,7 +1112,7 @@ joint's axis.</p>
                 <td>
                     procedure
                     ,                  public
-                  :: <strong><a href='../type/serial_linkage.html#boundprocedure-get_link_count'>get_link_count</a></strong>
+                  :: <strong><a href='../type/serial_linkage.html#boundprocedure-get_link_count~2'>get_link_count</a></strong>
  =>
                     sl_get_link_count
 <small>Function</small>                </td>
@@ -743,7 +1122,7 @@ joint's axis.</p>
                 <td>
                     procedure
                     ,                  public
-                  :: <strong><a href='../type/serial_linkage.html#boundprocedure-inverse_kinematics'>inverse_kinematics</a></strong>
+                  :: <strong><a href='../type/serial_linkage.html#boundprocedure-inverse_kinematics~2'>inverse_kinematics</a></strong>
  =>
                     sl_inverse_kinematics_1
 <small>Function</small>                </td>
@@ -753,7 +1132,7 @@ joint's axis.</p>
                 <td>
                     procedure
                     ,                  public
-                  :: <strong><a href='../type/serial_linkage.html#boundprocedure-jacobian'>jacobian</a></strong>
+                  :: <strong><a href='../type/serial_linkage.html#boundprocedure-jacobian~2'>jacobian</a></strong>
  =>
                     sl_jacobian
 <small>Function</small>                </td>
@@ -786,7 +1165,7 @@ joint's axis.</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-09-04 20:56            </p>
+ on 2026-09-06 00:43            </p>
         </div>
       </div>
       <br>

@@ -13,6 +13,7 @@ module dynamics_kinematics
     public :: dh_translate_x
     public :: dh_translate_z
     public :: dh_matrix
+    public :: transform_inverse
     public :: dh_forward_kinematics
     public :: solve_inverse_kinematics
     public :: vecfcn
@@ -297,6 +298,30 @@ contains
         DxRx = matmul(Dx, Rx)
         RzDxRx = matmul(Rz, DxRx)
         rst = matmul(Dz, RzDxRx)
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function transform_inverse(x) result(rst)
+        !! Computes the inverse of a 4-by-4 homogeneous transformation matrix.
+        !!
+        !! Given \(T = \left( \begin{matrix} R & \vec{p} \\ 0 & 1 
+        !! \end{matrix} \right)\), the inverse is
+        !! $$ T^{-1} = \left( \begin{matrix} R^{T} & -R^{T} \vec{p} \\ 
+        !! 0 & 1 \end{matrix} \right). $$
+        real(real64), intent(in) :: x(4, 4)
+            !! The 4-by-4 transformation matrix.
+        real(real64) :: rst(4, 4)
+            !! The inverted 4-by-4 transformation matrix.
+
+        ! Local Variables
+        real(real64) :: R(3, 3)
+
+        ! Process
+        R = transpose(x(1:3,1:3))
+        rst = 0.0d0
+        rst(1:3,1:3) = R
+        rst(1:3,4) = -matmul(R, x(1:3,4))
+        rst(4,4) = 1.0d0
     end function
 
 ! ------------------------------------------------------------------------------

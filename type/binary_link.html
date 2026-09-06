@@ -88,7 +88,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title="<p> 4.0% of total for derived types.</p>Including implementation: 7 statements,  0.6% of total for derived types.">7 statements</a>
+               title="<p> 3.3% of total for derived types.</p>Including implementation: 25 statements,  1.0% of total for derived types.">10 statements</a>
           </li>
 
             <li id="source-file">
@@ -125,14 +125,14 @@
       </div>
       <div id="vars-0" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../type/binary_link.html#variable-cg~4">cg</a>
-            <a class="list-group-item" href="../type/binary_link.html#variable-inertia~4">inertia</a>
+            <a class="list-group-item" href="../type/binary_link.html#variable-cg~5">cg</a>
+            <a class="list-group-item" href="../type/binary_link.html#variable-inertia~5">inertia</a>
             <a class="list-group-item" href="../type/binary_link.html#variable-joint_angle~2">joint_angle</a>
             <a class="list-group-item" href="../type/binary_link.html#variable-joint_type">joint_type</a>
             <a class="list-group-item" href="../type/binary_link.html#variable-link_length~2">link_length</a>
             <a class="list-group-item" href="../type/binary_link.html#variable-link_offset~2">link_offset</a>
             <a class="list-group-item" href="../type/binary_link.html#variable-link_twist~2">link_twist</a>
-            <a class="list-group-item" href="../type/binary_link.html#variable-mass~2">mass</a>
+            <a class="list-group-item" href="../type/binary_link.html#variable-mass~3">mass</a>
         </div>
       </div>
     </div>
@@ -164,7 +164,20 @@
   
   
   
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#boundprocs-0">Type-Bound Procedures</a>
+        </h3>
+      </div>
+      <div id="boundprocs-0" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../type/binary_link.html#boundprocedure-get_joint_count~2">get_joint_count</a>
+            <a class="list-group-item" href="../type/binary_link.html#boundprocedure-get_joint_frame">get_joint_frame</a>
+        </div>
+      </div>
+    </div>
+
   
 
 
@@ -173,7 +186,7 @@
     </div>
     
     <div class="col-md-9" id='text'>
-      <h2>type, public, extends(<a href='../type/rigid_body.html'>rigid_body</a>) :: binary_link</h2>
+      <h2>type, public, extends(<a href='../type/link.html'>link</a>) :: binary_link</h2>
     <p>Defines a link consisting of only two joints.  The coordinate system
 of this link is situated at the distal joint with it's z-axis 
 coincident with the axis of the joint.  The link utilizes a
@@ -191,14 +204,14 @@ Denavit-Hartenberg convention in order to express its geometry.</p>
       </div>
       <div id="vars-1" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../type/binary_link.html#variable-cg~4">cg</a>
-            <a class="list-group-item" href="../type/binary_link.html#variable-inertia~4">inertia</a>
+            <a class="list-group-item" href="../type/binary_link.html#variable-cg~5">cg</a>
+            <a class="list-group-item" href="../type/binary_link.html#variable-inertia~5">inertia</a>
             <a class="list-group-item" href="../type/binary_link.html#variable-joint_angle~2">joint_angle</a>
             <a class="list-group-item" href="../type/binary_link.html#variable-joint_type">joint_type</a>
             <a class="list-group-item" href="../type/binary_link.html#variable-link_length~2">link_length</a>
             <a class="list-group-item" href="../type/binary_link.html#variable-link_offset~2">link_offset</a>
             <a class="list-group-item" href="../type/binary_link.html#variable-link_twist~2">link_twist</a>
-            <a class="list-group-item" href="../type/binary_link.html#variable-mass~2">mass</a>
+            <a class="list-group-item" href="../type/binary_link.html#variable-mass~3">mass</a>
         </div>
       </div>
     </div>
@@ -230,7 +243,20 @@ Denavit-Hartenberg convention in order to express its geometry.</p>
   
   
   
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#boundprocs-1">Type-Bound Procedures</a>
+        </h3>
+      </div>
+      <div id="boundprocs-1" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../type/binary_link.html#boundprocedure-get_joint_count~2">get_joint_count</a>
+            <a class="list-group-item" href="../type/binary_link.html#boundprocedure-get_joint_frame">get_joint_frame</a>
+        </div>
+      </div>
+    </div>
+
   
 
 
@@ -251,7 +277,7 @@ Denavit-Hartenberg convention in order to express its geometry.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-cg~4"></span>
+              <span class="anchor" id="variable-cg~5"></span>
               real(kind=real64),
             </td>
               <td>public</td>
@@ -269,7 +295,7 @@ frame.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-inertia~4"></span>
+              <span class="anchor" id="variable-inertia~5"></span>
               real(kind=real64),
             </td>
               <td>public</td>
@@ -379,7 +405,7 @@ joint's axis.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-mass~2"></span>
+              <span class="anchor" id="variable-mass~3"></span>
               real(kind=real64),
             </td>
               <td>public</td>
@@ -573,6 +599,128 @@ of the distal joint.</p>
       <br>
 
 
+      <section>
+        <h2>Type-Bound Procedures</h2>
+            <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-get_joint_count~2"></span><h3>procedure, public :: <strong>get_joint_count</strong>  => bl_get_joint_count         
+    </h3></div>
+    <ul class="list-group">
+        <li class="list-group-item">
+                  <h3>
+    private pure function bl_get_joint_count(this) result(rst)  
+</h3>
+  <p>Gets the number of joint coordinate frames carried by the link.  A
+binary link always carries two frames.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/binary_link.html'>binary_link</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>this</strong></td>
+            <td>
+                <p>The binary_link object.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>integer(kind=int32)</small>
+    </h4>
+    <p>The number of joint coordinate frames.</p>
+
+        </li>
+    </ul>
+  </div>
+
+            <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-get_joint_frame"></span><h3>procedure, public :: <strong>get_joint_frame</strong>  => bl_get_joint_frame         
+    </h3></div>
+    <ul class="list-group">
+        <li class="list-group-item">
+                  <h3>
+    private pure function bl_get_joint_frame(this, i) result(rst)  
+</h3>
+  <p>Gets the transformation matrix relating the requested joint
+coordinate frame to the link's body coordinate frame.  The first
+frame is the proximal joint, and the second frame is the distal
+joint.  As the body coordinate frame of a binary link is situated at
+the distal joint, the second frame is the identity matrix.  The
+frames are established with the joint variable set to zero.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/binary_link.html'>binary_link</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>this</strong></td>
+            <td>
+                <p>The binary_link object.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>i</strong></td>
+            <td>
+                <p>The index of the joint coordinate frame (1 = proximal joint).</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), (4,4)</small>
+    </h4>
+    <p>The resulting 4-by-4 transformation matrix.</p>
+
+        </li>
+    </ul>
+  </div>
+
+      </section>
 
     
     </div>
@@ -590,7 +738,7 @@ of the distal joint.</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-09-04 20:56            </p>
+ on 2026-09-06 00:43            </p>
         </div>
       </div>
       <br>
