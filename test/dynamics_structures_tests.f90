@@ -497,20 +497,20 @@ contains
             print "(A)", "TEST FAILED: test_beam2d_stiffness_matrix -1"
         end if
     end function
-    
-    ! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
     function test_beam2d_mass_matrix() result(rst)
         ! Arguments
         logical :: rst
 
         ! Parameters
         real(real64), parameter :: tol = 1.0d-6
-    
+
         ! Local Variables
         real(real64) :: l, x1, y1, x2, y2, w, h, f
         real(real64), allocatable, dimension(:,:) :: m, ans, T
         type(beam_element_2d) :: e
-    
+
         ! Initialization
         rst = .true.
         call random_number(x1)
@@ -529,18 +529,18 @@ contains
         e%node_2%dof = 3
         l = sqrt((x2 - x1)**2 + (y2 - y1)**2)
         T = e%rotation_matrix()
-    
+
         ! Define the cross-sectional properties
         call random_number(w)
         call random_number(h)
         e%area = w * h
         e%moment_of_inertia = w * h**3 / 12.0d0
-    
+
         ! Define the material properties
         e%material%density = 0.101d0 / 3.86d2
         e%material%modulus = 10.0d6
         e%material%poissons_ratio = 0.33d0
-    
+
         ! Define the solution
         f = e%material%density * e%area * l / 4.2d2
         allocate(ans(6, 6), source = 0.0d0)
@@ -564,9 +564,8 @@ contains
         ans(3,6) = ans(6,3)
         ans(5,6) = ans(6,5)
         ans(6,6) = ans(3,3)
-
         ans = matmul(transpose(T), matmul(ans, T))
-    
+
         ! Test
         m = e%mass_matrix()
         if (.not.assert(ans, m, tol * maxval(abs(ans)))) then
@@ -784,9 +783,12 @@ contains
         integer(int32), parameter :: n = 20
         integer(int32), parameter :: nbc = 3
         real(real64) :: k(n,n)
-        real(real64), allocatable, dimension(:,:) :: knew_dense, knew_csr
-        type(csr_matrix) :: kcsr, knewcsr
+        real(real64), allocatable, dimension(:,:) :: knew_dense, knew_csr, &
+            restored_dense, restored_csr
+        type(csr_matrix) :: kcsr, knewcsr, restoredcsr
         integer(int32) :: gdofs_dense(nbc), gdofs_csr(nbc)
+        integer(int32) :: free_dofs(n - nbc)
+        integer(int32) :: i, j
 
         ! Initialization
         rst = .true.
@@ -805,6 +807,25 @@ contains
         if (.not.assert(knew_dense, knew_csr)) then
             rst = .false.
             print "(A)", "TEST FAILED: test_boundary_conditions_csr -1"
+        end if
+
+        ! Restore the reduced matrices and compare the dense and CSR paths.
+        allocate(restored_dense(n,n), restored_csr(n,n))
+        restored_dense = 0.0d0
+        j = 0
+        do i = 1, n
+            if (i /= gdofs_dense(1) .and. i /= gdofs_dense(2) .and. &
+                i /= gdofs_dense(3)) then
+                j = j + 1
+                free_dofs(j) = i
+            end if
+        end do
+        restored_dense(free_dofs, free_dofs) = knew_dense
+        restoredcsr = restore_constrained_values(gdofs_csr, knewcsr)
+        restored_csr = restoredcsr
+        if (.not.assert(restored_dense, restored_csr)) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_boundary_conditions_csr -2"
         end if
     end function
 
@@ -910,12 +931,88 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
+function test_global_assembly() result(rst)
+    ! Arguments
+    logical :: rst
+
+    ! Local Variables
+    integer(int32) :: i, j, eidx, offset
+    real(real64) :: q(2), local_k(6,6), local_m(6,6), local_f(6)
+    real(real64) :: expected_k(9,9), expected_m(9,9), expected_f(9)
+    real(real64), allocatable :: actual_k(:,:), actual_m(:,:), actual_f(:)
+    type(beam_element_2d) :: elements(2)
+    type(material) :: mat
+    type(node) :: nodes(3)
+    type(csr_matrix) :: kcsr, mcsr
+
+    ! Initialization
+    rst = .true.
+    q = [1.0d0, 2.0d0]
+    mat = material(2.0d0, 10.0d0, 0.25d0)
+    nodes = [ &
+        node(1, 3, 0.0d0, 0.0d0, 0.0d0), &
+        node(2, 3, 1.0d0, 0.0d0, 0.0d0), &
+        node(3, 3, 2.0d0, 0.0d0, 0.0d0) &
+    ]
+    elements(1) = beam_element_2d(mat, 1.0d0, 0.5d0, nodes(1), nodes(2))
+    elements(2) = beam_element_2d(mat, 1.0d0, 0.5d0, nodes(2), nodes(3))
+    expected_k = 0.0d0
+    expected_m = 0.0d0
+    expected_f = 0.0d0
+
+    do eidx = 1, 2
+        if (eidx == 1) then
+            offset = 1
+        else
+            offset = 4
+        end if
+        local_k = elements(eidx)%stiffness_matrix()
+        local_m = elements(eidx)%mass_matrix()
+        local_f = elements(eidx)%external_force_vector(q)
+        expected_f(offset:offset + 5) = expected_f(offset:offset + 5) + local_f
+        do i = 1, 6
+            do j = 1, 6
+                expected_k(offset + i - 1, offset + j - 1) = &
+                    expected_k(offset + i - 1, offset + j - 1) + local_k(i,j)
+                expected_m(offset + i - 1, offset + j - 1) = &
+                    expected_m(offset + i - 1, offset + j - 1) + local_m(i,j)
+            end do
+        end do
+    end do
+
+    call assemble_static_system(9, elements, nodes, q, kcsr, actual_f)
+    allocate(actual_k(9,9))
+    actual_k = kcsr
+    if (.not.assert(actual_k, expected_k)) then
+        rst = .false.
+    end if
+    if (.not.assert(actual_f, expected_f)) then
+        print *, "assembly F error", maxval(abs(actual_f - expected_f))
+        rst = .false.
+    end if
+    if (.not.rst) print "(A)", "TEST FAILED: test_global_assembly -1"
+
+    call assemble_dynamic_system(9, elements, nodes, q, mcsr, kcsr, actual_f)
+    deallocate(actual_k)
+    allocate(actual_m(9,9), actual_k(9,9))
+    actual_m = mcsr
+    actual_k = kcsr
+    if (.not.assert(actual_m, expected_m) .or. &
+        .not.assert(actual_k, expected_k) .or. &
+        .not.assert(actual_f, expected_f)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_global_assembly -2"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
 function test_beam3d_shape_function_matrix() result(rst)
     ! Arguments
     logical :: rst
 
     ! Parameters
     real(real64), parameter :: tol = 1.0d-6
+
 
     ! Local Variables
     real(real64) :: x1, y1, z1, x2, y2, z2, A, rho, E, nu, Ixx, Iyy, Izz, L, G, s

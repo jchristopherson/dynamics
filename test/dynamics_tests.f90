@@ -55,6 +55,9 @@ program main
     check = test_connectivity_matrix()
     if (.not.check) flag = 11
 
+    check = test_global_assembly()
+    if (.not.check) flag = 118
+
     check = test_forward_kinematics()
     if (.not.check) flag = 12
 

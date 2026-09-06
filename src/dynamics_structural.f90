@@ -4,7 +4,8 @@
 
 module dynamics_structural
     use iso_fortran_env
-    use linalg, only : csr_matrix, create_csr_matrix, sort, size, assignment(=)
+    use linalg, only : csr_matrix, create_csr_matrix, dense_to_csr, sort, &
+        size, assignment(=)
     use dynamics_error_handling
     use dynamics_rotation
     implicit none
@@ -23,6 +24,8 @@ module dynamics_structural
     public :: shape_function_derivative
     public :: shape_function_second_derivative
     public :: create_connectivity_matrix
+    public :: assemble_static_system
+    public :: assemble_dynamic_system
     public :: apply_boundary_conditions
     public :: apply_displacement_constraint
     public :: restore_constrained_values
@@ -313,6 +316,10 @@ module dynamics_structural
         module procedure :: apply_boundary_conditions_csr
     end interface
 
+    interface restore_constrained_values
+        module procedure :: restore_constrained_values_dense
+        module procedure :: restore_constrained_values_csr
+    end interface
 contains
 ! ******************************************************************************
 ! DIFFERENTIATION ROUTINES
@@ -552,6 +559,141 @@ function create_connectivity_matrix(gdof, e, nodes) result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+subroutine assemble_static_system(gdof, elements, nodes, q, k, f, rule)
+    !! Assembles the global stiffness matrix and external force vector.
+    integer(int32), intent(in) :: gdof
+        !! The total number of global degrees of freedom.
+    class(element), intent(in) :: elements(:)
+        !! The finite elements to assemble.
+    class(node), intent(in), dimension(:) :: nodes
+        !! The global node list.
+    real(real64), intent(in), dimension(:) :: q
+        !! The distributed surface or body force vector supplied to each
+        !! element.
+    type(csr_matrix), intent(out) :: k
+        !! The assembled global stiffness matrix in CSR format.
+    real(real64), allocatable, intent(out) :: f(:)
+        !! The assembled global external force vector.
+    integer(int32), intent(in), optional :: rule
+        !! The numerical integration rule.
+
+    ! Local Variables
+    integer(int32) :: i, j, eidx, row, col, ndof
+    real(real64), allocatable :: kdense(:,:), ke(:,:), fe(:)
+
+    ! Initialization
+    allocate(f(gdof), kdense(gdof,gdof), source = 0.0d0)
+
+    ! Accumulate element contributions in global work storage.
+    do eidx = 1, size(elements)
+        if (present(rule)) then
+            ke = elements(eidx)%stiffness_matrix(rule)
+            fe = elements(eidx)%external_force_vector(q, rule)
+        else
+            ke = elements(eidx)%stiffness_matrix()
+            fe = elements(eidx)%external_force_vector(q)
+        end if
+        ndof = size(ke, 1)
+        do i = 1, elements(eidx)%get_node_count()
+            row = find_global_dof(elements(eidx)%get_node(i), nodes)
+            do j = 1, elements(eidx)%get_dof_per_node()
+                f(row + j - 1) = f(row + j - 1) + fe((i - 1) * &
+                    elements(eidx)%get_dof_per_node() + j)
+            end do
+        end do
+        do i = 1, ndof
+            row = find_global_dof(elements(eidx)%get_node( &
+                (i - 1) / elements(eidx)%get_dof_per_node() + 1), nodes) + &
+                mod(i - 1, elements(eidx)%get_dof_per_node())
+            do j = 1, ndof
+                col = find_global_dof(elements(eidx)%get_node( &
+                    (j - 1) / elements(eidx)%get_dof_per_node() + 1), nodes) + &
+                    mod(j - 1, elements(eidx)%get_dof_per_node())
+                kdense(row, col) = kdense(row, col) + ke(i, j)
+            end do
+        end do
+    end do
+    k = dense_to_csr(kdense)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine assemble_dynamic_system(gdof, elements, nodes, q, m, k, f, rule)
+    !! Assembles global mass and stiffness matrices and an external force vector.
+    integer(int32), intent(in) :: gdof
+        !! The total number of global degrees of freedom.
+    class(element), intent(in) :: elements(:)
+        !! The finite elements to assemble.
+    class(node), intent(in), dimension(:) :: nodes
+        !! The global node list.
+    real(real64), intent(in), dimension(:) :: q
+        !! The distributed surface or body force vector supplied to each
+        !! element.
+    type(csr_matrix), intent(out) :: m
+        !! The assembled global mass matrix in CSR format.
+    type(csr_matrix), intent(out) :: k
+        !! The assembled global stiffness matrix in CSR format.
+    real(real64), allocatable, intent(out) :: f(:)
+        !! The assembled global external force vector.
+    integer(int32), intent(in), optional :: rule
+        !! The numerical integration rule.
+
+    ! Local Variables
+    integer(int32) :: i, j, eidx, row, col, ndof
+    real(real64), allocatable :: mdense(:,:), kdense(:,:), km(:,:), ke(:,:), &
+        fe(:)
+
+    ! Initialization
+    allocate(f(gdof), mdense(gdof,gdof), kdense(gdof,gdof), source = 0.0d0)
+
+    ! Accumulate element contributions in global work storage.
+    do eidx = 1, size(elements)
+        if (present(rule)) then
+            km = elements(eidx)%mass_matrix(rule)
+            ke = elements(eidx)%stiffness_matrix(rule)
+            fe = elements(eidx)%external_force_vector(q, rule)
+        else
+            km = elements(eidx)%mass_matrix()
+            ke = elements(eidx)%stiffness_matrix()
+            fe = elements(eidx)%external_force_vector(q)
+        end if
+        ndof = size(ke, 1)
+        do i = 1, elements(eidx)%get_node_count()
+            row = find_global_dof(elements(eidx)%get_node(i), nodes)
+            do j = 1, elements(eidx)%get_dof_per_node()
+                f(row + j - 1) = f(row + j - 1) + fe((i - 1) * &
+                    elements(eidx)%get_dof_per_node() + j)
+            end do
+        end do
+        do i = 1, ndof
+            row = find_global_dof(elements(eidx)%get_node( &
+                (i - 1) / elements(eidx)%get_dof_per_node() + 1), nodes) + &
+                mod(i - 1, elements(eidx)%get_dof_per_node())
+            do j = 1, ndof
+                col = find_global_dof(elements(eidx)%get_node( &
+                    (j - 1) / elements(eidx)%get_dof_per_node() + 1), nodes) + &
+                    mod(j - 1, elements(eidx)%get_dof_per_node())
+                mdense(row, col) = mdense(row, col) + km(i, j)
+            end do
+        end do
+        do i = 1, ndof
+            row = find_global_dof(elements(eidx)%get_node( &
+                (i - 1) / elements(eidx)%get_dof_per_node() + 1), nodes) + &
+                mod(i - 1, elements(eidx)%get_dof_per_node())
+            do j = 1, ndof
+                col = find_global_dof(elements(eidx)%get_node( &
+                    (j - 1) / elements(eidx)%get_dof_per_node() + 1), nodes) + &
+                    mod(j - 1, elements(eidx)%get_dof_per_node())
+                kdense(row, col) = kdense(row, col) + ke(i, j)
+            end do
+        end do
+    end do
+    m = dense_to_csr(mdense)
+    k = dense_to_csr(kdense)
+end subroutine
+
+! ******************************************************************************
+! BOUNDARY CONDITIONS ROUTINES
+! ------------------------------------------------------------------------------
 function apply_boundary_conditions_mtx(gdof, x) result(rst)
     !! Applies boundary conditions to a matrix by removal of the appropriate
     !! rows and columns.
@@ -746,7 +888,7 @@ function apply_boundary_conditions_vec(gdof, x) result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
-function restore_constrained_values(gdof, x) result(rst)
+function restore_constrained_values_dense(gdof, x) result(rst)
     !! Restores the constrained degrees-of-freedom from the boundary conditions
     !! applied by apply_boundary_conditions.
     integer(int32), intent(inout), dimension(:) :: gdof
@@ -793,6 +935,73 @@ function restore_constrained_values(gdof, x) result(rst)
             rst(i) = x(j)
         end if
     end do
+end function
+
+! ------------------------------------------------------------------------------
+function restore_constrained_values_csr(gdof, x) result(rst)
+    !! Restores constrained rows and columns to a reduced CSR matrix.
+    integer(int32), intent(inout), dimension(:) :: gdof
+        !! An array of the global degrees of freedom to restrain.  The array
+        !! is sorted into ascending order on output.
+    type(csr_matrix), intent(in) :: x
+        !! The reduced CSR matrix.
+    type(csr_matrix) :: rst
+        !! The expanded CSR matrix with zero constrained rows and columns.
+
+    ! Local Variables
+    integer(int32) :: i, j, ii, n, nbc, nnew, nnz, pos, nout
+    integer(int32), allocatable :: indices(:), rows(:), cols(:)
+    real(real64), allocatable :: vals(:)
+
+    ! Initialization
+    n = size(x, 1)
+    nbc = size(gdof)
+    nnew = n + nbc
+    nnz = size(x%values)
+
+    ! Input Checking
+    if (size(x, 2) /= n) error stop DYN_MATRIX_SIZE_ERROR
+    do i = 1, nbc
+        if (gdof(i) < 1 .or. gdof(i) > nnew) error stop DYN_INDEX_OUT_OF_RANGE
+    end do
+
+    ! Build the map from reduced indices to unconstrained global indices.
+    allocate(indices(n))
+    nout = 0
+    if (nbc == 0) then
+        do i = 1, n
+            nout = nout + 1
+            indices(nout) = i
+        end do
+    else
+        call sort(gdof, .true.)
+        do i = 2, nbc
+            if (gdof(i) == gdof(i-1)) &
+                error stop DYN_NONMONOTONIC_ARRAY_ERROR
+        end do
+        ii = 1
+        do i = 1, nnew
+            if (i /= gdof(ii)) then
+                nout = nout + 1
+                indices(nout) = i
+            else
+                ii = min(ii + 1, nbc)
+            end if
+        end do
+    end if
+
+    ! Remap the existing nonzeros without creating entries in constrained rows.
+    allocate(rows(nnz), cols(nnz), vals(nnz))
+    pos = 0
+    do i = 1, n
+        do j = x%row_indices(i), x%row_indices(i + 1) - 1
+            pos = pos + 1
+            rows(pos) = indices(i)
+            cols(pos) = indices(x%column_indices(j))
+            vals(pos) = x%values(j)
+        end do
+    end do
+    rst = create_csr_matrix(nnew, nnew, rows, cols, vals)
 end function
 
 ! ------------------------------------------------------------------------------
