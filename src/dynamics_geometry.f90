@@ -10,6 +10,7 @@ module dynamics_geometry
     public :: plane_normal
     public :: line
     public :: plucker_line
+    public :: point
     public :: assignment(=)
     public :: is_parallel
     public :: is_point_on_plane
@@ -23,6 +24,7 @@ module dynamics_geometry
     public :: line_from_point_and_vector
     public :: line_common_normal
     public :: do_lines_intersect
+    public :: normal_vector_to_line
 
     type :: plane
         !! Defines a plane as
@@ -55,6 +57,20 @@ module dynamics_geometry
     contains
         procedure, public :: evaluate => line_eval
     end type
+
+    type :: point
+        !! Defines a point in 3D, Cartesian space.
+        real(real64) :: x
+            !! The x-coordinate.
+        real(real64) :: y
+            !! The y-coordinate.
+        real(real64) :: z
+            !! The z-coordinate.
+    end type
+
+    interface point
+        module procedure :: pt_init
+    end interface
 
     interface line
         module procedure :: line_from_2pts
@@ -472,6 +488,24 @@ contains
         x%r0 = y%r0
         x%v = y%v
     end subroutine
+
+! ******************************************************************************
+! POINT MEMBERS
+! ------------------------------------------------------------------------------
+    pure function pt_init(x, y, z) result(rst)
+        !! Constructs a new [[point]].
+        real(real64), intent(in) :: x
+            !! The x-coordinate.
+        real(real64), intent(in) :: y
+            !! The y-coordinate.
+        real(real64), intent(in) :: z
+            !! The z-coordinate.
+        type(point) :: rst
+            !! The new [[point]].
+        rst%x = x
+        rst%y = y
+        rst%z = z
+    end function
 
 ! ******************************************************************************
 ! GEOMETRY CALCULATIONS
@@ -970,6 +1004,32 @@ contains
         if (present(t1)) t1 = t
         if (present(t2)) t2 = s
     end subroutine
+
+! ------------------------------------------------------------------------------
+    ! REF: https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
+    pure function normal_vector_to_line(pt1, pt2, pt) result(rst)
+        !! Computes the normal vector to a line defined by pt1 and pt2 assuming
+        !! some point (pt) not on the line.
+        class(point), intent(in) :: pt1
+            !! The origin point of the line segment.
+        class(point), intent(in) :: pt2
+            !! The termination point of the line segment.
+        class(point), intent(in) :: pt
+            !! A point, not on the line.
+        real(real64) :: rst(3)
+            !! The resulting normal vector (unit length).
+
+        ! Local Variables
+        real(real64) :: a(3), p(3), n(3), amp(3)
+
+        ! Initialization
+        a = [pt1%x, pt1%y, pt1%z]
+        n = [pt2%x, pt2%y, pt2%z] - a
+        p = [pt%x, pt%y, pt%z]
+        amp = a - p
+        rst = amp - dot_product(amp, n) * n
+        rst = rst / norm2(rst)
+    end function
 
 ! ------------------------------------------------------------------------------
 end module
