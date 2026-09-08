@@ -950,10 +950,9 @@ function test_global_assembly() result(rst)
 
     ! Local Variables
     integer(int32) :: i, j, eidx, offset
-    real(real64) :: q(2), local_k(6,6), local_m(6,6), local_f(6)
-    real(real64) :: expected_k(9,9), expected_m(9,9), expected_f(9)
-    real(real64), allocatable :: actual_k(:,:), actual_m(:,:), actual_f(:), &
-        actual_f_dense(:)
+    real(real64) :: local_k(6,6), local_m(6,6)
+    real(real64) :: expected_k(9,9), expected_m(9,9)
+    real(real64), allocatable :: actual_k(:,:), actual_m(:,:)
     type(beam_element_2d) :: elements(2)
     type(material) :: mat
     type(node) :: nodes(3)
@@ -961,7 +960,6 @@ function test_global_assembly() result(rst)
 
     ! Initialization
     rst = .true.
-    q = [1.0d0, 2.0d0]
     mat = material(2.0d0, 10.0d0, 0.25d0)
     nodes = [ &
         node(1, 3, 0.0d0, 0.0d0, 0.0d0), &
@@ -972,7 +970,6 @@ function test_global_assembly() result(rst)
     elements(2) = beam_element_2d(mat, 1.0d0, 0.5d0, nodes(2), nodes(3))
     expected_k = 0.0d0
     expected_m = 0.0d0
-    expected_f = 0.0d0
 
     do eidx = 1, 2
         if (eidx == 1) then
@@ -982,8 +979,6 @@ function test_global_assembly() result(rst)
         end if
         local_k = elements(eidx)%stiffness_matrix()
         local_m = elements(eidx)%mass_matrix()
-        local_f = elements(eidx)%external_force_vector(q)
-        expected_f(offset:offset + 5) = expected_f(offset:offset + 5) + local_f
         do i = 1, 6
             do j = 1, 6
                 expected_k(offset + i - 1, offset + j - 1) = &
@@ -994,39 +989,32 @@ function test_global_assembly() result(rst)
         end do
     end do
 
-    call assemble_static_system(9, elements, nodes, q, kcsr, actual_f)
+    call assemble_static_system(9, elements, nodes, kcsr)
     allocate(actual_k(9,9))
     actual_k = kcsr
     if (.not.assert(actual_k, expected_k)) then
         rst = .false.
     end if
-    if (.not.assert(actual_f, expected_f)) then
-        rst = .false.
-    end if
-    call assemble_static_system(9, elements, nodes, q, actual_k, actual_f_dense)
-    if (.not.assert(actual_k, expected_k) .or. &
-        .not.assert(actual_f_dense, expected_f)) then
+    call assemble_static_system(9, elements, nodes, actual_k)
+    if (.not.assert(actual_k, expected_k)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_global_assembly -3"
     end if
     if (.not.rst) print "(A)", "TEST FAILED: test_global_assembly -1"
 
-    call assemble_dynamic_system(9, elements, nodes, q, mcsr, kcsr, actual_f)
+    call assemble_dynamic_system(9, elements, nodes, mcsr, kcsr)
     deallocate(actual_k)
     allocate(actual_m(9,9), actual_k(9,9))
     actual_m = mcsr
     actual_k = kcsr
     if (.not.assert(actual_m, expected_m) .or. &
-        .not.assert(actual_k, expected_k) .or. &
-        .not.assert(actual_f, expected_f)) then
+        .not.assert(actual_k, expected_k)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_global_assembly -2"
     end if
-    call assemble_dynamic_system(9, elements, nodes, q, actual_m, actual_k, &
-        actual_f_dense)
+    call assemble_dynamic_system(9, elements, nodes, actual_m, actual_k)
     if (.not.assert(actual_m, expected_m) .or. &
-        .not.assert(actual_k, expected_k) .or. &
-        .not.assert(actual_f_dense, expected_f)) then
+        .not.assert(actual_k, expected_k)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_global_assembly -4"
     end if

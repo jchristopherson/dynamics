@@ -5,7 +5,7 @@
 module dynamics_structural
     use iso_fortran_env
     use linalg, only : csr_matrix, create_csr_matrix, dense_to_csr, sort, &
-        size, assignment(=)
+        size, assignment(=), lu_factor, solve_lu
     use dynamics_error_handling
     use dynamics_rotation
     implicit none
@@ -31,6 +31,7 @@ module dynamics_structural
     public :: restore_constrained_values
     public :: point
     public :: beam_element_3d
+    public :: solve_static_system
 
 ! ******************************************************************************
 ! CONSTANTS
@@ -335,6 +336,10 @@ module dynamics_structural
         module procedure :: assemble_dynamic_system_dense
         module procedure :: assemble_dynamic_system_csr
     end interface
+
+    interface solve_static_system
+        module procedure :: solve_static_system_dense
+    end interface
 contains
 ! ******************************************************************************
 ! DIFFERENTIATION ROUTINES
@@ -574,48 +579,34 @@ function create_connectivity_matrix(gdof, e, nodes) result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
-subroutine assemble_static_system_csr(gdof, elements, nodes, q, k, f, rule)
-    !! Assembles the global stiffness matrix and external force vector.
+subroutine assemble_static_system_csr(gdof, elements, nodes, k, rule)
+    !! Assembles the global stiffness matrix in CSR format.
     integer(int32), intent(in) :: gdof
         !! The total number of global degrees of freedom.
     class(element), intent(in) :: elements(:)
         !! The finite elements to assemble.
     class(node), intent(in), dimension(:) :: nodes
         !! The global node list.
-    real(real64), intent(in), dimension(:) :: q
-        !! The distributed surface or body force vector supplied to each
-        !! element.
     type(csr_matrix), intent(out) :: k
         !! The assembled global stiffness matrix in CSR format.
-    real(real64), allocatable, intent(out) :: f(:)
-        !! The assembled global external force vector.
     integer(int32), intent(in), optional :: rule
         !! The numerical integration rule.
 
     ! Local Variables
     integer(int32) :: i, j, eidx, row, col, ndof
-    real(real64), allocatable :: kdense(:,:), ke(:,:), fe(:)
+    real(real64), allocatable :: kdense(:,:), ke(:,:)
 
     ! Initialization
-    allocate(f(gdof), kdense(gdof,gdof), source = 0.0d0)
+    allocate(kdense(gdof,gdof), source = 0.0d0)
 
     ! Accumulate element contributions in global work storage.
     do eidx = 1, size(elements)
         if (present(rule)) then
             ke = elements(eidx)%stiffness_matrix(rule)
-            fe = elements(eidx)%external_force_vector(q, rule)
         else
             ke = elements(eidx)%stiffness_matrix()
-            fe = elements(eidx)%external_force_vector(q)
         end if
         ndof = size(ke, 1)
-        do i = 1, elements(eidx)%get_node_count()
-            row = find_global_dof(elements(eidx)%get_node(i), nodes)
-            do j = 1, elements(eidx)%get_dof_per_node()
-                f(row + j - 1) = f(row + j - 1) + fe((i - 1) * &
-                    elements(eidx)%get_dof_per_node() + j)
-            end do
-        end do
         do i = 1, ndof
             row = find_global_dof(elements(eidx)%get_node( &
                 (i - 1) / elements(eidx)%get_dof_per_node() + 1), nodes) + &
@@ -632,53 +623,38 @@ subroutine assemble_static_system_csr(gdof, elements, nodes, q, k, f, rule)
 end subroutine
 
 ! ------------------------------------------------------------------------------
-subroutine assemble_dynamic_system_csr(gdof, elements, nodes, q, m, k, f, rule)
-    !! Assembles global mass and stiffness matrices and an external force vector.
+subroutine assemble_dynamic_system_csr(gdof, elements, nodes, m, k, rule)
+    !! Assembles global mass and stiffness matrices in CSR format.
     integer(int32), intent(in) :: gdof
         !! The total number of global degrees of freedom.
     class(element), intent(in) :: elements(:)
         !! The finite elements to assemble.
     class(node), intent(in), dimension(:) :: nodes
         !! The global node list.
-    real(real64), intent(in), dimension(:) :: q
-        !! The distributed surface or body force vector supplied to each
-        !! element.
     type(csr_matrix), intent(out) :: m
         !! The assembled global mass matrix in CSR format.
     type(csr_matrix), intent(out) :: k
         !! The assembled global stiffness matrix in CSR format.
-    real(real64), allocatable, intent(out) :: f(:)
-        !! The assembled global external force vector.
     integer(int32), intent(in), optional :: rule
         !! The numerical integration rule.
 
     ! Local Variables
     integer(int32) :: i, j, eidx, row, col, ndof
-    real(real64), allocatable :: mdense(:,:), kdense(:,:), km(:,:), ke(:,:), &
-        fe(:)
+    real(real64), allocatable :: mdense(:,:), kdense(:,:), km(:,:), ke(:,:)
 
     ! Initialization
-    allocate(f(gdof), mdense(gdof,gdof), kdense(gdof,gdof), source = 0.0d0)
+    allocate(mdense(gdof,gdof), kdense(gdof,gdof), source = 0.0d0)
 
     ! Accumulate element contributions in global work storage.
     do eidx = 1, size(elements)
         if (present(rule)) then
             km = elements(eidx)%mass_matrix(rule)
             ke = elements(eidx)%stiffness_matrix(rule)
-            fe = elements(eidx)%external_force_vector(q, rule)
         else
             km = elements(eidx)%mass_matrix()
             ke = elements(eidx)%stiffness_matrix()
-            fe = elements(eidx)%external_force_vector(q)
         end if
         ndof = size(ke, 1)
-        do i = 1, elements(eidx)%get_node_count()
-            row = find_global_dof(elements(eidx)%get_node(i), nodes)
-            do j = 1, elements(eidx)%get_dof_per_node()
-                f(row + j - 1) = f(row + j - 1) + fe((i - 1) * &
-                    elements(eidx)%get_dof_per_node() + j)
-            end do
-        end do
         do i = 1, ndof
             row = find_global_dof(elements(eidx)%get_node( &
                 (i - 1) / elements(eidx)%get_dof_per_node() + 1), nodes) + &
@@ -707,48 +683,34 @@ subroutine assemble_dynamic_system_csr(gdof, elements, nodes, q, m, k, f, rule)
 end subroutine
 
 ! ------------------------------------------------------------------------------
-subroutine assemble_static_system_dense(gdof, elements, nodes, q, k, f, rule)
-    !! Assembles dense global stiffness and external force arrays.
+subroutine assemble_static_system_dense(gdof, elements, nodes, k, rule)
+    !! Assembles a dense global stiffness matrix.
     integer(int32), intent(in) :: gdof
         !! The total number of global degrees of freedom.
     class(element), intent(in) :: elements(:)
         !! The finite elements to assemble.
     class(node), intent(in), dimension(:) :: nodes
         !! The global node list.
-    real(real64), intent(in), dimension(:) :: q
-        !! The distributed surface or body force vector supplied to each
-        !! element.
     real(real64), allocatable, intent(out) :: k(:,:)
         !! The assembled global stiffness matrix.
-    real(real64), allocatable, intent(out) :: f(:)
-        !! The assembled global external force vector.
     integer(int32), intent(in), optional :: rule
         !! The numerical integration rule.
 
     ! Local Variables
     integer(int32) :: i, j, eidx, row, col, ndof
-    real(real64), allocatable :: ke(:,:), fe(:)
+    real(real64), allocatable :: ke(:,:)
 
     ! Initialization
-    allocate(k(gdof, gdof), f(gdof), source = 0.0d0)
+    allocate(k(gdof, gdof), source = 0.0d0)
 
     ! Accumulate element contributions in global dense storage.
     do eidx = 1, size(elements)
         if (present(rule)) then
             ke = elements(eidx)%stiffness_matrix(rule)
-            fe = elements(eidx)%external_force_vector(q, rule)
         else
             ke = elements(eidx)%stiffness_matrix()
-            fe = elements(eidx)%external_force_vector(q)
         end if
         ndof = size(ke, 1)
-        do i = 1, elements(eidx)%get_node_count()
-            row = find_global_dof(elements(eidx)%get_node(i), nodes)
-            do j = 1, elements(eidx)%get_dof_per_node()
-                f(row + j - 1) = f(row + j - 1) + fe((i - 1) * &
-                    elements(eidx)%get_dof_per_node() + j)
-            end do
-        end do
         do i = 1, ndof
             row = find_global_dof(elements(eidx)%get_node( &
                 (i - 1) / elements(eidx)%get_dof_per_node() + 1), nodes) + &
@@ -764,52 +726,38 @@ subroutine assemble_static_system_dense(gdof, elements, nodes, q, k, f, rule)
 end subroutine
 
 ! ------------------------------------------------------------------------------
-subroutine assemble_dynamic_system_dense(gdof, elements, nodes, q, m, k, f, rule)
-    !! Assembles dense global mass and stiffness arrays and external forces.
+subroutine assemble_dynamic_system_dense(gdof, elements, nodes, m, k, rule)
+    !! Assembles dense global mass and stiffness matrices.
     integer(int32), intent(in) :: gdof
         !! The total number of global degrees of freedom.
     class(element), intent(in) :: elements(:)
         !! The finite elements to assemble.
     class(node), intent(in), dimension(:) :: nodes
         !! The global node list.
-    real(real64), intent(in), dimension(:) :: q
-        !! The distributed surface or body force vector supplied to each
-        !! element.
     real(real64), allocatable, intent(out) :: m(:,:)
         !! The assembled global mass matrix.
     real(real64), allocatable, intent(out) :: k(:,:)
         !! The assembled global stiffness matrix.
-    real(real64), allocatable, intent(out) :: f(:)
-        !! The assembled global external force vector.
     integer(int32), intent(in), optional :: rule
         !! The numerical integration rule.
 
     ! Local Variables
     integer(int32) :: i, j, eidx, row, col, ndof
-    real(real64), allocatable :: km(:,:), ke(:,:), fe(:)
+    real(real64), allocatable :: km(:,:), ke(:,:)
 
     ! Initialization
-    allocate(m(gdof, gdof), k(gdof, gdof), f(gdof), source = 0.0d0)
+    allocate(m(gdof, gdof), k(gdof, gdof), source = 0.0d0)
 
     ! Accumulate element contributions in global dense storage.
     do eidx = 1, size(elements)
         if (present(rule)) then
             km = elements(eidx)%mass_matrix(rule)
             ke = elements(eidx)%stiffness_matrix(rule)
-            fe = elements(eidx)%external_force_vector(q, rule)
         else
             km = elements(eidx)%mass_matrix()
             ke = elements(eidx)%stiffness_matrix()
-            fe = elements(eidx)%external_force_vector(q)
         end if
         ndof = size(ke, 1)
-        do i = 1, elements(eidx)%get_node_count()
-            row = find_global_dof(elements(eidx)%get_node(i), nodes)
-            do j = 1, elements(eidx)%get_dof_per_node()
-                f(row + j - 1) = f(row + j - 1) + fe((i - 1) * &
-                    elements(eidx)%get_dof_per_node() + j)
-            end do
-        end do
         do i = 1, ndof
             row = find_global_dof(elements(eidx)%get_node( &
                 (i - 1) / elements(eidx)%get_dof_per_node() + 1), nodes) + &
@@ -2531,6 +2479,37 @@ pure function b3d_mass_matrix(this, rule) result(rst)
     ! Apply the transformation
     rst = matmul(Tt, matmul(rst, T))
 end function
+
+! ******************************************************************************
+! SOLVERS
+! ------------------------------------------------------------------------------
+pure function solve_static_system_dense(K, F) result(rst)
+    !! Solves the static system.
+    real(real64), intent(in), dimension(:,:) :: K
+        !! The N-by-N stiffness matrix.
+    real(real64), intent(in), dimension(:) :: F
+        !! The N-element external forcing vector.
+    real(real64), allocatable, dimension(:) :: rst
+        !! The N-element solution vector.
+
+    ! Local Variables
+    integer(int32) :: n
+    integer(int32), allocatable, dimension(:) :: pvt
+    real(real64), allocatable, dimension(:,:) :: lu
+
+    ! Input Check
+    n = size(K, 1)
+    if (size(K, 2) /= n) error stop DYN_MATRIX_SIZE_ERROR
+    if (size(F) /= n) error stop DYN_ARRAY_SIZE_ERROR
+
+    ! Factor the system
+    call lu_factor(K, ipvt = pvt, lu = lu)
+
+    ! Solve the system
+    rst = solve_lu(lu, pvt, F)
+end function
+
+! ------------------------------------------------------------------------------
 
 ! ------------------------------------------------------------------------------
 end module
