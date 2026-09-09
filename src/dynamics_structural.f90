@@ -1,11 +1,7 @@
-! Shape Functions:
-! 2D Line: https://www.mm.bme.hu/~gyebro/files/ans_help_v182/ans_thry/thy_shp1.html#shp2dlinerdof
-! 3D Line: https://www.mm.bme.hu/~gyebro/files/ans_help_v182/ans_thry/thy_shp2.html#shp3d2node
-
 module dynamics_structural
     use iso_fortran_env
     use linalg, only : csr_matrix, create_csr_matrix, dense_to_csr, sort, &
-        size, assignment(=), lu_factor, solve_lu
+        size, assignment(=), lu_factor, solve_lu, sparse_direct_solve
     use dynamics_error_handling
     use dynamics_geometry
     implicit none
@@ -252,6 +248,7 @@ module dynamics_structural
 
     interface solve_static_system
         module procedure :: solve_static_system_dense
+        module procedure :: solve_static_system_csr
     end interface
 contains
 ! ******************************************************************************
@@ -1482,7 +1479,7 @@ end function
 ! SOLVERS
 ! ------------------------------------------------------------------------------
 pure function solve_static_system_dense(K, F) result(rst)
-    !! Solves the static system.
+    !! Solves the static system \(K u = f\).
     real(real64), intent(in), dimension(:,:) :: K
         !! The N-by-N stiffness matrix.
     real(real64), intent(in), dimension(:) :: F
@@ -1508,6 +1505,26 @@ pure function solve_static_system_dense(K, F) result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+pure function solve_static_system_csr(K, F) result(rst)
+    !! Solves the static system \(K u = f\).
+    type(csr_matrix), intent(in) :: K
+        !! The N-by-N stiffness matrix.
+    real(real64), intent(in), dimension(:) :: F
+        !! The N-element external forcing vector.
+    real(real64), allocatable, dimension(:) :: rst
+        !! The N-element solution vector.
+
+    ! Local Variables
+    integer(int32) :: n
+
+    ! Input Check
+    n = size(K, 1)
+    if (size(K, 2) /= n) error stop DYN_MATRIX_SIZE_ERROR
+    if (size(F) /= n) error stop DYN_ARRAY_SIZE_ERROR
+
+    ! Solve the system
+    rst= sparse_direct_solve(K, F)
+end function
 
 ! ------------------------------------------------------------------------------
 end module
