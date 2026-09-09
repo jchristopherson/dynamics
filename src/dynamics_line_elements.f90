@@ -1,3 +1,7 @@
+! Shape Functions:
+! 2D Line: https://www.mm.bme.hu/~gyebro/files/ans_help_v182/ans_thry/thy_shp1.html#shp2dlinerdof
+! 3D Line: https://www.mm.bme.hu/~gyebro/files/ans_help_v182/ans_thry/thy_shp2.html#shp3d2node
+
 module dynamics_line_elements
     use iso_fortran_env
     use dynamics_structural
