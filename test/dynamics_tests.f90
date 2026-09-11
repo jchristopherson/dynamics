@@ -28,6 +28,9 @@ program main
     check = test_proportional_damping_frf()
     if (.not.check) flag = 2
 
+    check = test_sparse_proportional_damping_frf()
+    if (.not.check) flag = 119
+
     check = test_modal_response()
     if (.not.check) flag = 3
 

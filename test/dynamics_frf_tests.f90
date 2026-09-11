@@ -128,6 +128,15 @@ subroutine modal_frf_forcing_term(freq, f, args)
     f = [one, zero, zero]
 end subroutine
 
+subroutine sparse_modal_frf_forcing_term(freq, f, args)
+    real(real64), intent(in) :: freq
+    complex(real64), intent(out), dimension(:) :: f
+    class(*), intent(inout), optional :: args
+
+    f = (0.0d0, 0.0d0)
+    f(1) = cmplx(1.0d0, 0.25d0 * freq, real64)
+end subroutine
+
 ! Use the example from: https://github.com/jchristopherson/linalg
 function test_proportional_damping_frf() result(rst)
     ! Arguments
@@ -181,6 +190,90 @@ function test_proportional_damping_frf() result(rst)
     if (.not.assert(2.0d0 * pi * ans1, modes, tol)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_proportional_damping_frf -1"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_sparse_proportional_damping_frf() result(rst)
+    use linalg, only : dense_to_csr
+    logical :: rst
+
+    integer(int32), parameter :: n = 30
+    integer(int32), parameter :: nmodes = 3
+    integer(int32), parameter :: nfreq = 4
+    real(real64), parameter :: alpha = 0.1d0
+    real(real64), parameter :: beta = 0.02d0
+    real(real64), parameter :: tol = 1.0d-7
+    real(real64), parameter :: freq(nfreq) = [0.5d0, 1.0d0, 1.5d0, 2.5d0]
+    real(real64), parameter :: expected_modes(nmodes) = [2.0d0, 3.0d0, 4.0d0]
+
+    integer(int32) :: i
+    real(real64) :: modal_mass
+    real(real64) :: dense_mass(n,n), dense_stiff(n,n)
+    real(real64), allocatable, dimension(:) :: modes
+    real(real64), allocatable, dimension(:,:) :: modeshapes
+    complex(real64) :: denominator, force
+    complex(real64) :: expected(nfreq)
+    procedure(modal_excite), pointer :: fcn
+    type(csr_matrix) :: mass, stiff
+    type(frf) :: rsp, rsp_without_modes
+
+    rst = .true.
+    dense_mass = 0.0d0
+    dense_stiff = 0.0d0
+    do i = 1, n
+        dense_mass(i,i) = 1.0d0 + 0.05d0 * i
+        dense_stiff(i,i) = dense_mass(i,i) * (i + 1.0d0)**2
+    end do
+    mass = dense_to_csr(dense_mass)
+    stiff = dense_to_csr(dense_stiff)
+    fcn => sparse_modal_frf_forcing_term
+
+    rsp = frequency_response(mass, stiff, alpha, beta, nmodes, freq, fcn, &
+        modes, modeshapes)
+
+    do i = 1, nfreq
+        force = cmplx(1.0d0, 0.25d0 * freq(i), real64)
+        denominator = dense_stiff(1,1) - freq(i)**2 * dense_mass(1,1) + &
+            cmplx(0.0d0, freq(i) * (alpha * dense_mass(1,1) + &
+            beta * dense_stiff(1,1)), real64)
+        expected(i) = force / denominator
+    end do
+
+    if (maxval(abs(rsp%frequency - freq)) > tol) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_sparse_proportional_damping_frf -1"
+    end if
+    if (maxval(abs(rsp%responses(:,1) - expected)) > tol) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_sparse_proportional_damping_frf -2"
+    end if
+    if (maxval(abs(rsp%responses(:,2:n))) > tol) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_sparse_proportional_damping_frf -3"
+    end if
+    if (maxval(abs(modes - expected_modes)) > tol) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_sparse_proportional_damping_frf -4"
+    end if
+    if (size(modeshapes, 1) /= n .or. size(modeshapes, 2) /= nmodes) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_sparse_proportional_damping_frf -5"
+    end if
+    do i = 1, nmodes
+        modal_mass = dot_product(modeshapes(:,i), &
+            matmul(dense_mass, modeshapes(:,i)))
+        if (abs(modal_mass - 1.0d0) > tol) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_sparse_proportional_damping_frf -6"
+        end if
+    end do
+
+    rsp_without_modes = frequency_response(mass, stiff, alpha, beta, &
+        nmodes, freq, fcn)
+    if (maxval(abs(rsp_without_modes%responses - rsp%responses)) > tol) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_sparse_proportional_damping_frf -7"
     end if
 end function
 

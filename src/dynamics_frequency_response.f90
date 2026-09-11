@@ -103,6 +103,7 @@ module dynamics_frequency_response
     interface frequency_response
         !! Computes the frequency response functions for a system of ODE's.
         module procedure :: frf_modal_prop_damp
+        module procedure :: frf_modal_prop_damp_sparse
         module procedure :: frf_modal_prop_damp_2
         module procedure :: siso_freqres
         module procedure :: mimo_freqres
@@ -303,6 +304,99 @@ contains
 
         if (present(modeshapes)) then
             allocate(modeshapes(n, n), source = real(vecs))
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
+    function frf_modal_prop_damp_sparse(mass, stiff, alpha, beta, nmodes, &
+        freq, frc, modes, modeshapes, args) result(rst)
+        !! Computes a modal-truncated frequency response for a system with
+        !! proportional damping using CSR sparse mass and stiffness matrices.
+        !! The damping matrix is defined by \(C=\alpha M+\beta K\).
+        use dynamics_error_handling
+        use linalg, only : csr_matrix, matmul, size
+        type(csr_matrix), intent(in) :: mass
+            !! The N-by-N symmetric positive-definite mass matrix.
+        type(csr_matrix), intent(in) :: stiff
+            !! The N-by-N symmetric stiffness matrix.
+        real(real64), intent(in) :: alpha
+            !! The mass damping factor, \(\alpha\).
+        real(real64), intent(in) :: beta
+            !! The stiffness damping factor, \(\beta\).
+        integer(int32), intent(in) :: nmodes
+            !! The number of lowest-frequency modes to retain.  This value
+            !! must be greater than zero and less than N.
+        real(real64), intent(in), dimension(:) :: freq
+            !! An M-element array of frequency values in units of rad/s.
+        procedure(modal_excite), pointer, intent(in) :: frc
+            !! A pointer to the physical forcing function.
+        real(real64), intent(out), allocatable, optional, dimension(:) :: modes
+            !! An optional NMODES-element array containing the retained modal
+            !! frequencies in units of rad/s.
+        real(real64), intent(out), allocatable, optional, dimension(:,:) :: &
+            modeshapes
+            !! An optional N-by-NMODES matrix containing the mass-normalized
+            !! retained mode shapes.
+        class(*), intent(inout), optional :: args
+            !! An optional argument passed to the forcing function.
+        type(frf) :: rst
+            !! The modal-truncated frequency responses.
+
+        complex(real64), parameter :: j = (0.0d0, 1.0d0)
+        complex(real64), parameter :: zero = (0.0d0, 0.0d0)
+
+        integer(int32) :: i, imode, m, n
+        real(real64) :: modal_mass
+        complex(real64) :: s
+        real(real64), allocatable, dimension(:) :: mass_vec, modal_freqs, zeta
+        real(real64), allocatable, dimension(:,:) :: vecs
+        complex(real64), allocatable, dimension(:) :: f, q, u
+
+        m = size(freq)
+        n = size(mass, 1)
+
+        if (.not.(alpha >= 0.0d0) .or. .not.(beta >= 0.0d0)) &
+            error stop DYN_INVALID_INPUT_ERROR
+        if (.not.associated(frc)) error stop DYN_NULL_POINTER_ERROR
+
+        call modal_response(mass, stiff, nmodes, modal_freqs, vecs)
+
+        allocate(mass_vec(n))
+        do imode = 1, nmodes
+            mass_vec = matmul(mass, vecs(:,imode))
+            modal_mass = dot_product(vecs(:,imode), mass_vec)
+            if (.not.(modal_mass > 0.0d0)) &
+                error stop DYN_INVALID_INPUT_ERROR
+            vecs(:,imode) = vecs(:,imode) / sqrt(modal_mass)
+        end do
+
+        allocate(zeta(nmodes), source = compute_modal_damping( &
+            modal_freqs**2, alpha, beta))
+        allocate(f(n), source = zero)
+        allocate(q(nmodes), source = zero)
+        allocate(u(nmodes), source = zero)
+        allocate(rst%responses(m, n), source = zero)
+        allocate(rst%frequency(m), source = freq)
+
+        do i = 1, m
+            call frc(freq(i), f, args)
+            do imode = 1, nmodes
+                u(imode) = sum(vecs(:,imode) * f)
+            end do
+            s = j * freq(i)
+            q = u / (s**2 + 2.0d0 * zeta * modal_freqs * s + &
+                modal_freqs**2)
+            do imode = 1, nmodes
+                rst%responses(i,:) = rst%responses(i,:) + &
+                    vecs(:,imode) * q(imode)
+            end do
+        end do
+
+        if (present(modes)) then
+            allocate(modes(nmodes), source = modal_freqs)
+        end if
+        if (present(modeshapes)) then
+            allocate(modeshapes(n, nmodes), source = vecs)
         end if
     end function
 
