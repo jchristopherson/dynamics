@@ -123,6 +123,11 @@ module dynamics_frequency_response
         module procedure :: evaluate_receptance_frf_model_array
     end interface
 
+    interface modal_response
+        module procedure :: modal_response_dense
+        module procedure :: modal_response_sparse
+    end interface
+
 ! ------------------------------------------------------------------------------
     integer(int32), parameter :: FRF_ACCELERANCE_MODEL = 1
         !! Defines an accelerance frequency response model.
@@ -308,9 +313,9 @@ contains
         !! multi-degree-of-freedom system that uses proportional damping such
         !! that the damping matrix \( C \) is related to the stiffness an mass
         !! matrices by proportional damping coefficients \( \alpha \) and
-            !! In modal coordinates, each mode has denominator
-            !! $$ s^2+2\zeta_i\omega_i s+\omega_i^2, $$
-            !! and the physical response is reconstructed from the mode shapes.
+        !! In modal coordinates, each mode has denominator
+        !! $$ s^2+2\zeta_i\omega_i s+\omega_i^2, $$
+        !! and the physical response is reconstructed from the mode shapes.
         !! \( \beta \) by \( C = \alpha M + \beta K \).
         use linalg, only : eigen, sort, mtx_mult, LA_NO_OPERATION, LA_TRANSPOSE
         use dynamics_error_handling
@@ -392,7 +397,7 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
-    pure subroutine modal_response(mass, stiff, freqs, modeshapes)
+    pure subroutine modal_response_dense(mass, stiff, freqs, modeshapes)
         !! Computes the modal frequencies and modes shapes for 
         !! multi-degree-of-freedom system.
         !! The generalized eigenproblem is
@@ -448,6 +453,88 @@ contains
         ! Convert the eigenvalues to frequency values
         if (any(real(vals) <= 0.0d0)) error stop DYN_INVALID_INPUT_ERROR
         allocate(freqs(n), source = sqrt(real(vals)))
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    subroutine modal_response_sparse(mass, stiff, nmodes, freqs, modeshapes)
+        !! Computes selected modal frequencies and mode shapes for a
+        !! multi-degree-of-freedom system using CSR sparse matrices.
+        !! The generalized eigenproblem is
+        !! $$ K\boldsymbol{\phi}_i=\lambda_iM\boldsymbol{\phi}_i,
+        !! \qquad \omega_i=\sqrt{\lambda_i}. $$
+        use dynamics_error_handling
+        use linalg, only : csr_matrix, eigen, size, sort
+        type(csr_matrix), intent(in) :: mass
+            !! The N-by-N symmetric positive-definite mass matrix.
+        type(csr_matrix), intent(in) :: stiff
+            !! The N-by-N symmetric stiffness matrix.
+        integer(int32), intent(in) :: nmodes
+            !! The number of lowest-frequency modes to compute.  This value
+            !! must be greater than zero and less than N.
+        real(real64), intent(out), allocatable, dimension(:) :: freqs
+            !! An allocatable NMODES-element array containing the modal
+            !! frequencies in ascending order with units of rad/s.
+        real(real64), intent(out), allocatable, optional, dimension(:,:) :: &
+            modeshapes
+            !! An optional, allocatable N-by-NMODES matrix containing one mode
+            !! shape per column.
+
+        integer(int32) :: i, j, loc, n
+        real(real64) :: mass_scale, stiff_scale, temp, tol
+        real(real64), allocatable, dimension(:) :: temp_vec, vals
+        real(real64), allocatable, dimension(:,:) :: vecs
+
+        n = size(mass, 1)
+
+        if (n < 1) error stop DYN_INVALID_INPUT_ERROR
+        if (size(mass, 2) /= n) error stop DYN_MATRIX_SIZE_ERROR
+        if (size(stiff, 1) /= n .or. size(stiff, 2) /= n) &
+            error stop DYN_MATRIX_SIZE_ERROR
+        if (nmodes < 1 .or. nmodes >= n) error stop DYN_INVALID_INPUT_ERROR
+
+        tol = 10.0d0 * epsilon(0.0d0)
+        mass_scale = 1.0d0
+        stiff_scale = 1.0d0
+        if (size(mass%values) > 0) &
+            mass_scale = max(mass_scale, maxval(abs(mass%values)))
+        if (size(stiff%values) > 0) &
+            stiff_scale = max(stiff_scale, maxval(abs(stiff%values)))
+        do j = 1, n
+            do i = mass%row_indices(j), mass%row_indices(j + 1) - 1
+                if (abs(mass%values(i) - &
+                    mass%get(mass%column_indices(i), j)) > &
+                    tol * mass_scale) error stop DYN_INVALID_INPUT_ERROR
+            end do
+            do i = stiff%row_indices(j), stiff%row_indices(j + 1) - 1
+                if (abs(stiff%values(i) - &
+                    stiff%get(stiff%column_indices(i), j)) > &
+                    tol * stiff_scale) error stop DYN_INVALID_INPUT_ERROR
+            end do
+        end do
+
+        if (present(modeshapes)) then
+            call eigen(stiff, mass, nmodes, vals, vecs, sigma = 0.0d0)
+            allocate(temp_vec(n))
+            do i = 1, size(vals) - 1
+                loc = i - 1 + minloc(vals(i:), 1)
+                if (loc /= i) then
+                    temp = vals(i)
+                    vals(i) = vals(loc)
+                    vals(loc) = temp
+                    temp_vec = vecs(:,i)
+                    vecs(:,i) = vecs(:,loc)
+                    vecs(:,loc) = temp_vec
+                end if
+            end do
+            allocate(modeshapes(n, size(vals)), source = vecs)
+        else
+            call eigen(stiff, mass, nmodes, vals, sigma = 0.0d0)
+            call sort(vals)
+        end if
+
+        if (size(vals) /= nmodes .or. any(vals <= 0.0d0)) &
+            error stop DYN_INVALID_INPUT_ERROR
+        allocate(freqs(nmodes), source = sqrt(vals))
     end subroutine
 
 ! ------------------------------------------------------------------------------

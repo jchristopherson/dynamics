@@ -187,6 +187,7 @@ end function
 ! ------------------------------------------------------------------------------
 ! Use the example from: https://github.com/jchristopherson/linalg
 function test_modal_response() result(rst)
+    use linalg, only : dense_to_csr
     ! Arguments
     logical :: rst
 
@@ -202,6 +203,8 @@ function test_modal_response() result(rst)
     real(real64), parameter :: vec1(3) = [0.7179d0, 1.0d0, 0.7466d0]
     real(real64), parameter :: vec2(3) = [-0.4192d0, -0.1638d0, 1.0d0]
     real(real64), parameter :: vec3(3) = [1.0d0, -0.1837d0, 0.1791d0]
+    integer(int32), parameter :: sparse_n = 30
+    integer(int32), parameter :: sparse_nmodes = 3
 
     ! Define the model parameters
     real(real64), parameter :: m1 = 0.5d0
@@ -213,9 +216,13 @@ function test_modal_response() result(rst)
     real(real64), parameter :: k4 = 5.0d6
 
     ! Local Variables
-    real(real64) :: m(3,3), k(3,3)
-    real(real64), allocatable, dimension(:) :: modes
-    real(real64), allocatable, dimension(:,:) :: modeshapes
+    integer(int32) :: i
+    real(real64) :: m(3,3), k(3,3), sparse_m_dense(sparse_n, sparse_n), &
+        sparse_k_dense(sparse_n, sparse_n)
+    real(real64), allocatable, dimension(:) :: modes, sparse_modes, &
+        sparse_modes_only
+    real(real64), allocatable, dimension(:,:) :: modeshapes, sparse_modeshapes
+    type(csr_matrix) :: sparse_m, sparse_k
 
     ! Initialization
     rst = .true.
@@ -251,6 +258,50 @@ function test_modal_response() result(rst)
     if (.not.assert(vec3, modeshapes(:,3), tol)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_modal_response -4"
+    end if
+
+    ! Compute selected modes using CSR sparse matrices
+    sparse_m_dense = 0.0d0
+    sparse_k_dense = 0.0d0
+    do i = 1, sparse_n
+        sparse_m_dense(i,i) = 2.0d0
+        sparse_k_dense(i,i) = 2.0d0 + real(i, real64)
+        if (i > 1) then
+            sparse_m_dense(i,i-1) = 0.5d0
+            sparse_m_dense(i-1,i) = 0.5d0
+            sparse_k_dense(i,i-1) = -1.0d0
+            sparse_k_dense(i-1,i) = -1.0d0
+        end if
+    end do
+    sparse_m = dense_to_csr(sparse_m_dense)
+    sparse_k = dense_to_csr(sparse_k_dense)
+    call modal_response(sparse_m_dense, sparse_k_dense, modes, modeshapes)
+    call modal_response(sparse_m, sparse_k, sparse_nmodes, sparse_modes, &
+        sparse_modeshapes)
+    call normalize_mode_shapes(modeshapes)
+    call normalize_mode_shapes(sparse_modeshapes)
+
+    if (.not.assert(modes(1:sparse_nmodes), sparse_modes, tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_modal_response -5"
+    end if
+    if (.not.assert(modeshapes(:,1), sparse_modeshapes(:,1), tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_modal_response -6"
+    end if
+    if (.not.assert(modeshapes(:,2), sparse_modeshapes(:,2), tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_modal_response -7"
+    end if
+    if (.not.assert(modeshapes(:,3), sparse_modeshapes(:,3), tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_modal_response -8"
+    end if
+
+    call modal_response(sparse_m, sparse_k, sparse_nmodes, sparse_modes_only)
+    if (.not.assert(modes(1:sparse_nmodes), sparse_modes_only, tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_modal_response -9"
     end if
 end function
 
