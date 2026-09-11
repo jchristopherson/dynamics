@@ -423,6 +423,157 @@ contains
             print "(A)", "TEST FAILED: test_beam2d_strain_displacement -3"
         end if
     end function
+
+! ------------------------------------------------------------------------------
+    function test_beam2d_stress() result(rst)
+        logical :: rst
+
+        real(real64), parameter :: tol = 1.0d-10
+        real(real64), parameter :: area = 2.5d0
+        real(real64), parameter :: modulus = 3.0d7
+        real(real64), parameter :: displacement = 2.0d-3
+        real(real64), parameter :: length = 5.0d0
+        real(real64), parameter :: cosine = 3.0d0 / 5.0d0
+        real(real64), parameter :: sine = 4.0d0 / 5.0d0
+        real(real64), parameter :: s(1) = [0.25d0]
+
+        real(real64) :: u(6), expected(2)
+        real(real64), allocatable, dimension(:) :: stress
+        type(beam_element_2d) :: e
+
+        rst = .true.
+        e%node_1 = node(1, 3, 1.0d0, 2.0d0, 0.0d0)
+        e%node_2 = node(2, 3, 4.0d0, 6.0d0, 0.0d0)
+        e%area = area
+        e%moment_of_inertia = 0.75d0
+        e%material%modulus = modulus
+
+        u = [0.0d0, 0.0d0, 0.0d0, displacement * cosine, &
+            displacement * sine, 0.0d0]
+        expected = [area * modulus * displacement / length, 0.0d0]
+        stress = e%stress(u, s)
+
+        if (.not.assert(stress, expected, tol * maxval(abs(expected)))) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_beam2d_stress -1"
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
+    function test_beam2d_strain() result(rst)
+        logical :: rst
+
+        real(real64), parameter :: tol = 1.0d-12
+        real(real64), parameter :: displacement = 2.0d-3
+        real(real64), parameter :: length = 5.0d0
+        real(real64), parameter :: cosine = 3.0d0 / 5.0d0
+        real(real64), parameter :: sine = 4.0d0 / 5.0d0
+        real(real64), parameter :: s(1) = [0.25d0]
+
+        real(real64) :: u(6), expected(2)
+        real(real64), allocatable, dimension(:) :: strain
+        type(beam_element_2d) :: e
+
+        rst = .true.
+        e%node_1 = node(1, 3, 1.0d0, 2.0d0, 0.0d0)
+        e%node_2 = node(2, 3, 4.0d0, 6.0d0, 0.0d0)
+
+        u = [0.0d0, 0.0d0, 0.0d0, displacement * cosine, &
+            displacement * sine, 0.0d0]
+        expected = [displacement / length, 0.0d0]
+        strain = e%strain(u, s)
+
+        if (.not.assert(strain, expected, tol)) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_beam2d_strain -1"
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
+    function test_nodally_averaged_stress() result(rst)
+        logical :: rst
+
+        real(real64), parameter :: tol = 1.0d-12
+        real(real64) :: displacement(9), expected(2,3)
+        real(real64), allocatable, dimension(:,:) :: stress
+        type(beam_element_2d) :: elements(2)
+        type(material) :: mat
+        type(node) :: nodes(3)
+
+        rst = .true.
+        mat%modulus = 10.0d0
+        mat%poissons_ratio = 0.3d0
+        mat%density = 1.0d0
+        nodes = [ &
+            node(10, 3, 0.0d0, 0.0d0, 0.0d0), &
+            node(20, 3, 1.0d0, 0.0d0, 0.0d0), &
+            node(30, 3, 2.0d0, 0.0d0, 0.0d0) &
+        ]
+        elements(1) = beam_element_2d(mat, 2.0d0, 1.0d0, &
+            nodes(1), nodes(2))
+        elements(2) = beam_element_2d(mat, 2.0d0, 1.0d0, &
+            nodes(2), nodes(3))
+        displacement = [ &
+            0.0d0, 0.0d0, 0.0d0, &
+            0.1d0, 0.0d0, 0.0d0, &
+            0.3d0, 0.0d0, 0.0d0 &
+        ]
+        expected = reshape([ &
+            2.0d0, 0.0d0, &
+            3.0d0, 0.0d0, &
+            4.0d0, 0.0d0 &
+        ], [2, 3])
+
+        stress = nodally_averaged_stress(elements, nodes, displacement)
+
+        if (.not.assert(stress, expected, tol)) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_nodally_averaged_stress -1"
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
+    function test_nodally_averaged_strain() result(rst)
+        logical :: rst
+
+        real(real64), parameter :: tol = 1.0d-12
+        real(real64) :: displacement(9), expected(2,3)
+        real(real64), allocatable, dimension(:,:) :: strain
+        type(beam_element_2d) :: elements(2)
+        type(material) :: mat
+        type(node) :: nodes(3)
+
+        rst = .true.
+        mat%modulus = 10.0d0
+        mat%poissons_ratio = 0.3d0
+        mat%density = 1.0d0
+        nodes = [ &
+            node(10, 3, 0.0d0, 0.0d0, 0.0d0), &
+            node(20, 3, 1.0d0, 0.0d0, 0.0d0), &
+            node(30, 3, 2.0d0, 0.0d0, 0.0d0) &
+        ]
+        elements(1) = beam_element_2d(mat, 2.0d0, 1.0d0, &
+            nodes(1), nodes(2))
+        elements(2) = beam_element_2d(mat, 2.0d0, 1.0d0, &
+            nodes(2), nodes(3))
+        displacement = [ &
+            0.0d0, 0.0d0, 0.0d0, &
+            0.1d0, 0.0d0, 0.0d0, &
+            0.3d0, 0.0d0, 0.0d0 &
+        ]
+        expected = reshape([ &
+            0.1d0, 0.0d0, &
+            0.15d0, 0.0d0, &
+            0.2d0, 0.0d0 &
+        ], [2, 3])
+
+        strain = nodally_averaged_strain(elements, nodes, displacement)
+
+        if (.not.assert(strain, expected, tol)) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_nodally_averaged_strain -1"
+        end if
+    end function
     
     ! ------------------------------------------------------------------------------
     function test_beam2d_stiffness_matrix() result(rst)

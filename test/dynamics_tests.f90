@@ -43,6 +43,18 @@ program main
     check = test_beam2d_strain_displacement()
     if (.not.check) flag = 6
 
+    check = test_beam2d_stress()
+    if (.not.check) flag = 120
+
+    check = test_beam2d_strain()
+    if (.not.check) flag = 122
+
+    check = test_nodally_averaged_stress()
+    if (.not.check) flag = 121
+
+    check = test_nodally_averaged_strain()
+    if (.not.check) flag = 123
+
     check = test_beam2d_stiffness_matrix()
     if (.not.check) flag = 7
 

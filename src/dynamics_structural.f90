@@ -18,6 +18,8 @@ module dynamics_structural
     public :: shape_function_derivative
     public :: shape_function_second_derivative
     public :: create_connectivity_matrix
+    public :: nodally_averaged_strain
+    public :: nodally_averaged_stress
     public :: assemble_static_system
     public :: assemble_dynamic_system
     public :: apply_boundary_conditions
@@ -78,6 +80,8 @@ module dynamics_structural
         procedure(element_query), deferred, public, pass :: get_dimensionality
         procedure(element_query), deferred, public, pass :: get_node_count
         procedure(element_get_node), deferred, public, pass :: get_node
+        procedure(element_get_node_natural_coordinates), deferred, public, &
+            pass :: get_node_natural_coordinates
         procedure(element_query), deferred, public, pass :: get_dof_per_node
         procedure(element_shape_function), deferred, public, pass :: &
             evaluate_shape_function
@@ -92,6 +96,8 @@ module dynamics_structural
         procedure, public :: stiffness_matrix => e_stiffness_matrix
         procedure, public :: mass_matrix => e_mass_matrix
         procedure, public :: external_force_vector => e_ext_force_vector
+        procedure, public :: strain => e_strain
+        procedure, public :: stress => e_stress
     end type
     
 ! ------------------------------------------------------------------------------
@@ -104,10 +110,14 @@ module dynamics_structural
             get_terminal_nodes
         procedure(line_element_const_matrix_function), deferred, public, &
             pass :: rotation_matrix
+        procedure, public :: get_node_natural_coordinates => &
+            le_get_node_natural_coordinates
         procedure, public :: length => le_length
         procedure, public :: stiffness_matrix => le_stiffness_matrix
         procedure, public :: mass_matrix => le_mass_matrix
         procedure, public :: external_force_vector => le_ext_force_vector
+        procedure, public :: strain => le_strain
+        procedure, public :: stress => le_stress
     end type
 
 ! ******************************************************************************
@@ -137,6 +147,20 @@ module dynamics_structural
                 !! The local index of the node to retrieve.
             type(node) :: rst
                 !! The node.
+        end function
+
+        pure function element_get_node_natural_coordinates(this, i) &
+            result(rst)
+            !! Defines the signature of a function returning the natural
+            !! coordinates of an element node.
+            use iso_fortran_env, only : int32, real64
+            import element
+            class(element), intent(in) :: this
+                !! The element object.
+            integer(int32), intent(in) :: i
+                !! The local index of the node.
+            real(real64), allocatable, dimension(:) :: rst
+                !! The natural coordinates of the node.
         end function
 
         pure function element_matrix_function(this, s) result(rst)
@@ -486,6 +510,170 @@ function create_connectivity_matrix(gdof, e, nodes) result(rst)
         end do
     end do
     rst = create_csr_matrix(nnz, gdof, rows, cols, vals)
+end function
+
+! ------------------------------------------------------------------------------
+function nodally_averaged_strain(elements, nodes, displacement) result(rst)
+    !! Computes nodal strain results by averaging the strain contributions
+    !! from each element incident upon a node.
+    class(element), intent(in) :: elements(:)
+        !! The finite elements in the model.
+    class(node), intent(in) :: nodes(:)
+        !! The global node list defining the displacement-vector ordering.
+    real(real64), intent(in), dimension(:) :: displacement
+        !! The global displacement vector.
+    real(real64), allocatable, dimension(:,:) :: rst
+        !! The strain results.  Each column corresponds to a node in NODES,
+        !! and each row corresponds to one strain component.
+
+    integer(int32) :: dof, eidx, gdof, i, j, ncomp, ndof, nelnodes, node_index
+    integer(int32), allocatable, dimension(:) :: count, node_map
+    real(real64), allocatable, dimension(:) :: element_displacement, s, strain
+    type(node) :: element_node
+
+    if (size(elements) < 1 .or. size(nodes) < 1) &
+        error stop DYN_INVALID_INPUT_ERROR
+
+    gdof = 0
+    do i = 1, size(nodes)
+        if (nodes(i)%dof < 1) error stop DYN_INVALID_INPUT_ERROR
+        do j = i + 1, size(nodes)
+            if (nodes(i)%index == nodes(j)%index) &
+                error stop DYN_INVALID_INPUT_ERROR
+        end do
+        gdof = gdof + nodes(i)%dof
+    end do
+    if (size(displacement) /= gdof) error stop DYN_ARRAY_SIZE_ERROR
+
+    allocate(count(size(nodes)), source = 0)
+    ncomp = 0
+    do eidx = 1, size(elements)
+        nelnodes = elements(eidx)%get_node_count()
+        dof = elements(eidx)%get_dof_per_node()
+        if (nelnodes < 1 .or. dof < 1) error stop DYN_INVALID_INPUT_ERROR
+        ndof = nelnodes * dof
+        allocate(element_displacement(ndof), node_map(nelnodes))
+
+        do i = 1, nelnodes
+            node_index = 0
+            element_node = elements(eidx)%get_node(i)
+            do j = 1, size(nodes)
+                if (element_node%index == nodes(j)%index) then
+                    node_index = j
+                    exit
+                end if
+            end do
+            if (node_index == 0) error stop DYN_INVALID_INPUT_ERROR
+            if (nodes(node_index)%dof /= dof) &
+                error stop DYN_INVALID_INPUT_ERROR
+            node_map(i) = node_index
+            gdof = find_global_dof(nodes(node_index), nodes)
+            element_displacement((i - 1) * dof + 1:i * dof) = &
+                displacement(gdof:gdof + dof - 1)
+        end do
+
+        do i = 1, nelnodes
+            s = elements(eidx)%get_node_natural_coordinates(i)
+            strain = elements(eidx)%strain(element_displacement, s)
+            if (ncomp == 0) then
+                ncomp = size(strain)
+                if (ncomp < 1) error stop DYN_INVALID_INPUT_ERROR
+                allocate(rst(ncomp, size(nodes)), source = 0.0d0)
+            else if (size(strain) /= ncomp) then
+                error stop DYN_ARRAY_SIZE_ERROR
+            end if
+            rst(:,node_map(i)) = rst(:,node_map(i)) + strain
+            count(node_map(i)) = count(node_map(i)) + 1
+        end do
+        deallocate(element_displacement, node_map)
+    end do
+
+    if (any(count == 0)) error stop DYN_INVALID_INPUT_ERROR
+    do i = 1, size(nodes)
+        rst(:,i) = rst(:,i) / count(i)
+    end do
+end function
+
+! ------------------------------------------------------------------------------
+function nodally_averaged_stress(elements, nodes, displacement) result(rst)
+    !! Computes nodal stress results by averaging the stress contributions
+    !! from each element incident upon a node.
+    class(element), intent(in) :: elements(:)
+        !! The finite elements in the model.
+    class(node), intent(in) :: nodes(:)
+        !! The global node list defining the displacement-vector ordering.
+    real(real64), intent(in), dimension(:) :: displacement
+        !! The global displacement vector.
+    real(real64), allocatable, dimension(:,:) :: rst
+        !! The stress results.  Each column corresponds to a node in NODES,
+        !! and each row corresponds to one stress component.
+
+    integer(int32) :: dof, eidx, gdof, i, j, ncomp, ndof, nelnodes, node_index
+    integer(int32), allocatable, dimension(:) :: count, node_map
+    real(real64), allocatable, dimension(:) :: element_displacement, s, stress
+    type(node) :: element_node
+
+    if (size(elements) < 1 .or. size(nodes) < 1) &
+        error stop DYN_INVALID_INPUT_ERROR
+
+    gdof = 0
+    do i = 1, size(nodes)
+        if (nodes(i)%dof < 1) error stop DYN_INVALID_INPUT_ERROR
+        do j = i + 1, size(nodes)
+            if (nodes(i)%index == nodes(j)%index) &
+                error stop DYN_INVALID_INPUT_ERROR
+        end do
+        gdof = gdof + nodes(i)%dof
+    end do
+    if (size(displacement) /= gdof) error stop DYN_ARRAY_SIZE_ERROR
+
+    allocate(count(size(nodes)), source = 0)
+    ncomp = 0
+    do eidx = 1, size(elements)
+        nelnodes = elements(eidx)%get_node_count()
+        dof = elements(eidx)%get_dof_per_node()
+        if (nelnodes < 1 .or. dof < 1) error stop DYN_INVALID_INPUT_ERROR
+        ndof = nelnodes * dof
+        allocate(element_displacement(ndof), node_map(nelnodes))
+
+        do i = 1, nelnodes
+            node_index = 0
+            element_node = elements(eidx)%get_node(i)
+            do j = 1, size(nodes)
+                if (element_node%index == nodes(j)%index) then
+                    node_index = j
+                    exit
+                end if
+            end do
+            if (node_index == 0) error stop DYN_INVALID_INPUT_ERROR
+            if (nodes(node_index)%dof /= dof) &
+                error stop DYN_INVALID_INPUT_ERROR
+            node_map(i) = node_index
+            gdof = find_global_dof(nodes(node_index), nodes)
+            element_displacement((i - 1) * dof + 1:i * dof) = &
+                displacement(gdof:gdof + dof - 1)
+        end do
+
+        do i = 1, nelnodes
+            s = elements(eidx)%get_node_natural_coordinates(i)
+            stress = elements(eidx)%stress(element_displacement, s)
+            if (ncomp == 0) then
+                ncomp = size(stress)
+                if (ncomp < 1) error stop DYN_INVALID_INPUT_ERROR
+                allocate(rst(ncomp, size(nodes)), source = 0.0d0)
+            else if (size(stress) /= ncomp) then
+                error stop DYN_ARRAY_SIZE_ERROR
+            end if
+            rst(:,node_map(i)) = rst(:,node_map(i)) + stress
+            count(node_map(i)) = count(node_map(i)) + 1
+        end do
+        deallocate(element_displacement, node_map)
+    end do
+
+    if (any(count == 0)) error stop DYN_INVALID_INPUT_ERROR
+    do i = 1, size(nodes)
+        rst(:,i) = rst(:,i) / count(i)
+    end do
 end function
 
 ! ------------------------------------------------------------------------------
@@ -1070,6 +1258,50 @@ end subroutine
 ! ******************************************************************************
 ! ELEMENT MEMBERS
 ! ------------------------------------------------------------------------------
+pure function e_strain(this, displacement, s) result(rst)
+    !! Computes the element strain at the specified natural coordinate.
+    !! The strain is
+    !! $$ \boldsymbol{\varepsilon}=B\boldsymbol{u}_e. $$
+    class(element), intent(in) :: this
+        !! The element object.
+    real(real64), intent(in), dimension(:) :: displacement
+        !! The element displacement vector in the element coordinate system.
+    real(real64), intent(in), dimension(:) :: s
+        !! The natural coordinates at which to evaluate the strain.
+    real(real64), allocatable, dimension(:) :: rst
+        !! The resulting strain vector.
+
+    real(real64), allocatable, dimension(:,:) :: b
+
+    b = this%strain_displacement_matrix(s)
+    if (size(displacement) /= size(b, 2)) error stop DYN_ARRAY_SIZE_ERROR
+    rst = matmul(b, displacement)
+end function
+
+! ------------------------------------------------------------------------------
+pure function e_stress(this, displacement, s) result(rst)
+    !! Computes the element stress result at the specified natural coordinate.
+    !! The stress result is
+    !! $$ \boldsymbol{\sigma}=D B\boldsymbol{u}_e. $$
+    class(element), intent(in) :: this
+        !! The element object.
+    real(real64), intent(in), dimension(:) :: displacement
+        !! The element displacement vector in the element coordinate system.
+    real(real64), intent(in), dimension(:) :: s
+        !! The natural coordinates at which to evaluate the stress.
+    real(real64), allocatable, dimension(:) :: rst
+        !! The resulting stress vector.
+
+    real(real64), allocatable, dimension(:,:) :: b, d
+
+    b = this%strain_displacement_matrix(s)
+    if (size(displacement) /= size(b, 2)) error stop DYN_ARRAY_SIZE_ERROR
+    d = this%constitutive_matrix()
+    if (size(d, 2) /= size(b, 1)) error stop DYN_MATRIX_SIZE_ERROR
+    rst = matmul(d, matmul(b, displacement))
+end function
+
+! ------------------------------------------------------------------------------
 pure function e_stiffness_matrix(this, rule) result(rst)
     !! Computes the stiffness matrix for the element.
     class(element), intent(in) :: this
@@ -1247,6 +1479,62 @@ end function
 
 ! ******************************************************************************
 ! LINE_ELEMENT MEMBERS
+! ------------------------------------------------------------------------------
+pure function le_get_node_natural_coordinates(this, i) result(rst)
+    !! Returns the natural coordinate of a terminal node.
+    class(line_element), intent(in) :: this
+        !! The line_element object.
+    integer(int32), intent(in) :: i
+        !! The local node index.
+    real(real64), allocatable, dimension(:) :: rst
+        !! The natural coordinate of the node.
+
+    if (i < 1 .or. i > this%get_node_count()) &
+        error stop DYN_INDEX_OUT_OF_RANGE
+    if (this%get_node_count() /= 2) error stop DYN_INVALID_INPUT_ERROR
+    allocate(rst(1), source = 2.0d0 * i - 3.0d0)
+end function
+
+! ------------------------------------------------------------------------------
+pure function le_strain(this, displacement, s) result(rst)
+    !! Computes the line-element strain from global element displacements at
+    !! the specified natural coordinate.
+    class(line_element), intent(in) :: this
+        !! The line_element object.
+    real(real64), intent(in), dimension(:) :: displacement
+        !! The element displacement vector in the global coordinate system.
+    real(real64), intent(in), dimension(:) :: s
+        !! The natural coordinates at which to evaluate the strain.
+    real(real64), allocatable, dimension(:) :: rst
+        !! The resulting strain vector in the element coordinate system.
+
+    real(real64), allocatable, dimension(:,:) :: t
+
+    t = this%rotation_matrix()
+    if (size(displacement) /= size(t, 2)) error stop DYN_ARRAY_SIZE_ERROR
+    rst = e_strain(this, matmul(transpose(t), displacement), s)
+end function
+
+! ------------------------------------------------------------------------------
+pure function le_stress(this, displacement, s) result(rst)
+    !! Computes the line-element stress result from global element
+    !! displacements at the specified natural coordinate.
+    class(line_element), intent(in) :: this
+        !! The line_element object.
+    real(real64), intent(in), dimension(:) :: displacement
+        !! The element displacement vector in the global coordinate system.
+    real(real64), intent(in), dimension(:) :: s
+        !! The natural coordinates at which to evaluate the stress.
+    real(real64), allocatable, dimension(:) :: rst
+        !! The resulting stress vector in the element coordinate system.
+
+    real(real64), allocatable, dimension(:,:) :: t
+
+    t = this%rotation_matrix()
+    if (size(displacement) /= size(t, 2)) error stop DYN_ARRAY_SIZE_ERROR
+    rst = e_stress(this, matmul(transpose(t), displacement), s)
+end function
+
 ! ------------------------------------------------------------------------------
 pure function le_length(this) result(rst)
     !! Computes the length of the line_element.
