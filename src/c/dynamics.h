@@ -162,6 +162,23 @@
  * Store intersections approaching the Poincare plane from the back.
  */
 #define DYN_POINCARE_ONE_SIDED_FROM_BACK 2
+
+/**
+ * Single-point Gauss integration rule.
+ */
+#define DYN_ONE_POINT_INTEGRATION_RULE 1
+/**
+ * Two-point Gauss integration rule.
+ */
+#define DYN_TWO_POINT_INTEGRATION_RULE 2
+/**
+ * Three-point Gauss integration rule.
+ */
+#define DYN_THREE_POINT_INTEGRATION_RULE 3
+/**
+ * Four-point Gauss integration rule.
+ */
+#define DYN_FOUR_POINT_INTEGRATION_RULE 4
 /**
  * @}
  */
@@ -711,6 +728,122 @@ typedef struct
     double *D;  // n_outputs -by- n_inputs
 } c_state_space_model;
 
+/**
+ * @brief A linear-elastic-isotropic material.
+ */
+typedef struct
+{
+    /**
+     * The material density.
+    */
+    double density;
+    /**
+     * The modulus of elasticity.
+    */
+    double modulus;
+    /**
+     * The Poisson's ratio.
+    */
+    double poissons_ratio;
+} c_material;
+
+/**
+ * @brief A structural node with position and degrees of freedom.
+ */
+typedef struct
+{
+    /**
+     * The global index of the node.
+    */
+    int index;
+    /**
+     * The number of degrees of freedom associated with the node.
+    */
+    int dof;
+    /**
+     * The x-coordinate.
+    */
+    double x;
+    /**
+     * The y-coordinate.
+    */
+    double y;
+    /**
+     * The z-coordinate.
+    */
+    double z;
+} c_node;
+
+/**
+ * @brief A two-dimensional Bernoulli-Euler beam element.
+ */
+typedef struct
+{
+    /**
+     * The material.
+    */
+    c_material material;
+    /**
+     * The cross-sectional area.
+    */
+    double area;
+    /**
+     * The moment of inertia (second moment of area).
+    */
+    double moment_of_inertia;
+    /**
+     * The first node of the element (s = -1).
+    */
+    c_node node_1;
+    /**
+     * The second node of the element (s = 1).
+    */
+    c_node node_2;
+} c_beam_element_2d;
+
+/**
+ * @brief A three-dimensional Bernoulli-Euler beam element.
+ */
+typedef struct
+{
+    /**
+     * The material.
+    */
+    c_material material;
+    /**
+     * The cross-sectional area.
+    */
+    double area;
+    /**
+     * The moment of inertia about the element x-axis (torsional).
+    */
+    double Ixx;
+    /**
+     * The moment of inertia about the element y-axis.
+    */
+    double Iyy;
+    /**
+     * The moment of inertia about the element z-axis.
+    */
+    double Izz;
+    /**
+     * The cross-sectional product of inertia.
+    */
+    double Iyz;
+    /**
+     * The first node of the element (s = -1).
+    */
+    c_node node_1;
+    /**
+     * The second node of the element (s = 1).
+    */
+    c_node node_2;
+    /**
+     * A point, measured relative to node_1, that locates the direction of
+     * the element z-axis.
+    */
+    double orientation_point[3];
+} c_beam_element_3d;
 
 #ifdef __cplusplus
 extern "C" {
@@ -2207,6 +2340,252 @@ void c_state_space_zeros(const c_state_space_model *mdl, int n,
  */
 void c_state_space_transfer_function(const c_state_space_model *mdl, int nin,
     int nout, int n, const double complex *s, double complex *z, int ldz);
+/**
+ * @}
+ */
+
+/**
+ * @defgroup dynamics_structural Structural analysis and line elements
+ */
+/**
+ * @{
+ */
+/**
+ * Compute the length of a 2D beam element.
+ * @param elem Beam element.
+ * @return Element length.
+ */
+double c_beam_element_2d_length(const c_beam_element_2d *elem);
+/**
+ * Compute the 6-by-6 stiffness matrix of a 2D beam element.
+ * @param elem Beam element.
+ * @param rule Integration rule, or zero to use the default rule.
+ * @param k Output stiffness matrix.
+ * @param ldk Leading dimension of k.
+ */
+void c_beam_element_2d_stiffness_matrix(const c_beam_element_2d *elem,
+    int rule, double *k, int ldk);
+/**
+ * Compute the 6-by-6 mass matrix of a 2D beam element.
+ * @param elem Beam element.
+ * @param rule Integration rule, or zero to use the default rule.
+ * @param m Output mass matrix.
+ * @param ldm Leading dimension of m.
+ */
+void c_beam_element_2d_mass_matrix(const c_beam_element_2d *elem, int rule,
+    double *m, int ldm);
+/**
+ * Compute the 6-by-6 rotation matrix of a 2D beam element.
+ * @param elem Beam element.
+ * @param r Output rotation matrix.
+ * @param ldr Leading dimension of r.
+ */
+void c_beam_element_2d_rotation_matrix(const c_beam_element_2d *elem,
+    double *r, int ldr);
+/**
+ * Compute the strain in a 2D beam element at a natural coordinate.
+ * @param elem Beam element.
+ * @param displacement 6-element element displacement vector.
+ * @param s Natural coordinate in [-1, 1].
+ * @param strain Output 2-element strain vector.
+ */
+void c_beam_element_2d_strain(const c_beam_element_2d *elem,
+    const double displacement[6], double s, double strain[2]);
+/**
+ * Compute the stress in a 2D beam element at a natural coordinate.
+ * @param elem Beam element.
+ * @param displacement 6-element element displacement vector.
+ * @param s Natural coordinate in [-1, 1].
+ * @param stress Output 2-element stress vector.
+ */
+void c_beam_element_2d_stress(const c_beam_element_2d *elem,
+    const double displacement[6], double s, double stress[2]);
+/**
+ * Compute the equivalent nodal force vector for a distributed load on a 2D
+ * beam element.
+ * @param elem Beam element.
+ * @param q 2-element distributed load vector, [qx, qy].
+ * @param rule Integration rule, or zero to use the default rule.
+ * @param f Output 6-element nodal force vector.
+ */
+void c_beam_element_2d_external_force_vector(const c_beam_element_2d *elem,
+    const double q[2], int rule, double f[6]);
+/**
+ * Compute the length of a 3D beam element.
+ * @param elem Beam element.
+ * @return Element length.
+ */
+double c_beam_element_3d_length(const c_beam_element_3d *elem);
+/**
+ * Compute the 12-by-12 stiffness matrix of a 3D beam element.
+ * @param elem Beam element.
+ * @param rule Integration rule, or zero to use the default rule.
+ * @param k Output stiffness matrix.
+ * @param ldk Leading dimension of k.
+ */
+void c_beam_element_3d_stiffness_matrix(const c_beam_element_3d *elem,
+    int rule, double *k, int ldk);
+/**
+ * Compute the 12-by-12 mass matrix of a 3D beam element.
+ * @param elem Beam element.
+ * @param rule Integration rule, or zero to use the default rule.
+ * @param m Output mass matrix.
+ * @param ldm Leading dimension of m.
+ */
+void c_beam_element_3d_mass_matrix(const c_beam_element_3d *elem, int rule,
+    double *m, int ldm);
+/**
+ * Compute the 12-by-12 rotation matrix of a 3D beam element.
+ * @param elem Beam element.
+ * @param r Output rotation matrix.
+ * @param ldr Leading dimension of r.
+ */
+void c_beam_element_3d_rotation_matrix(const c_beam_element_3d *elem,
+    double *r, int ldr);
+/**
+ * Compute the strain in a 3D beam element at a natural coordinate.
+ * @param elem Beam element.
+ * @param displacement 12-element element displacement vector.
+ * @param s Natural coordinate in [-1, 1].
+ * @param strain Output 4-element strain vector.
+ */
+void c_beam_element_3d_strain(const c_beam_element_3d *elem,
+    const double displacement[12], double s, double strain[4]);
+/**
+ * Compute the stress in a 3D beam element at a natural coordinate.
+ * @param elem Beam element.
+ * @param displacement 12-element element displacement vector.
+ * @param s Natural coordinate in [-1, 1].
+ * @param stress Output 4-element stress vector.
+ */
+void c_beam_element_3d_stress(const c_beam_element_3d *elem,
+    const double displacement[12], double s, double stress[4]);
+/**
+ * Compute the equivalent nodal force vector for a distributed load on a 3D
+ * beam element.
+ * @param elem Beam element.
+ * @param q 4-element distributed load vector, [qx, qy, qz, qtheta].
+ * @param rule Integration rule, or zero to use the default rule.
+ * @param f Output 12-element nodal force vector.
+ */
+void c_beam_element_3d_external_force_vector(const c_beam_element_3d *elem,
+    const double q[4], int rule, double f[12]);
+/**
+ * Assemble a dense global stiffness matrix from 2D beam elements.
+ * @param gdof Total number of global degrees of freedom.
+ * @param n Element count.
+ * @param elements Beam elements.
+ * @param nn Node count.
+ * @param nodes Global node list.
+ * @param rule Integration rule, or zero to use the default rule.
+ * @param k Output gdof-by-gdof stiffness matrix.
+ * @param ldk Leading dimension of k.
+ */
+void c_assemble_static_system_beam_2d(int gdof, int n,
+    const c_beam_element_2d *elements, int nn, const c_node *nodes, int rule,
+    double *k, int ldk);
+/**
+ * Assemble dense global mass and stiffness matrices from 2D beam elements.
+ * @param gdof Total number of global degrees of freedom.
+ * @param n Element count.
+ * @param elements Beam elements.
+ * @param nn Node count.
+ * @param nodes Global node list.
+ * @param rule Integration rule, or zero to use the default rule.
+ * @param m Output gdof-by-gdof mass matrix.
+ * @param ldm Leading dimension of m.
+ * @param k Output gdof-by-gdof stiffness matrix.
+ * @param ldk Leading dimension of k.
+ */
+void c_assemble_dynamic_system_beam_2d(int gdof, int n,
+    const c_beam_element_2d *elements, int nn, const c_node *nodes, int rule,
+    double *m, int ldm, double *k, int ldk);
+/**
+ * Assemble a dense global stiffness matrix from 3D beam elements.
+ * @param gdof Total number of global degrees of freedom.
+ * @param n Element count.
+ * @param elements Beam elements.
+ * @param nn Node count.
+ * @param nodes Global node list.
+ * @param rule Integration rule, or zero to use the default rule.
+ * @param k Output gdof-by-gdof stiffness matrix.
+ * @param ldk Leading dimension of k.
+ */
+void c_assemble_static_system_beam_3d(int gdof, int n,
+    const c_beam_element_3d *elements, int nn, const c_node *nodes, int rule,
+    double *k, int ldk);
+/**
+ * Assemble dense global mass and stiffness matrices from 3D beam elements.
+ * @param gdof Total number of global degrees of freedom.
+ * @param n Element count.
+ * @param elements Beam elements.
+ * @param nn Node count.
+ * @param nodes Global node list.
+ * @param rule Integration rule, or zero to use the default rule.
+ * @param m Output gdof-by-gdof mass matrix.
+ * @param ldm Leading dimension of m.
+ * @param k Output gdof-by-gdof stiffness matrix.
+ * @param ldk Leading dimension of k.
+ */
+void c_assemble_dynamic_system_beam_3d(int gdof, int n,
+    const c_beam_element_3d *elements, int nn, const c_node *nodes, int rule,
+    double *m, int ldm, double *k, int ldk);
+/**
+ * Apply boundary conditions to a dense matrix by removing the constrained
+ * rows and columns.
+ * @param n Matrix order.
+ * @param nbc Number of constrained degrees of freedom.
+ * @param gdof Constrained degree-of-freedom indices; sorted in place.
+ * @param x n-by-n matrix to constrain.
+ * @param ldx Leading dimension of x.
+ * @param rst Output (n - nbc)-by-(n - nbc) constrained matrix.
+ * @param ldr Leading dimension of rst.
+ */
+void c_apply_boundary_conditions_mtx(int n, int nbc, int *gdof,
+    const double *x, int ldx, double *rst, int ldr);
+/**
+ * Apply boundary conditions to a dense vector by removing the constrained
+ * entries.
+ * @param n Vector length.
+ * @param nbc Number of constrained degrees of freedom.
+ * @param gdof Constrained degree-of-freedom indices; sorted in place.
+ * @param x n-element vector to constrain.
+ * @param rst Output (n - nbc)-element constrained vector.
+ */
+void c_apply_boundary_conditions_vec(int n, int nbc, int *gdof,
+    const double *x, double *rst);
+/**
+ * Restore the constrained degrees of freedom removed by
+ * `c_apply_boundary_conditions_vec`.
+ * @param nred Length of the reduced vector.
+ * @param nbc Number of constrained degrees of freedom.
+ * @param gdof Constrained degree-of-freedom indices; sorted in place.
+ * @param x nred-element reduced vector.
+ * @param rst Output (nred + nbc)-element restored vector.
+ */
+void c_restore_constrained_values_dense(int nred, int nbc, int *gdof,
+    const double *x, double *rst);
+/**
+ * Apply a displacement constraint to a single degree of freedom.
+ * @param dof Global degree-of-freedom index (one-based).
+ * @param val Prescribed displacement value.
+ * @param n Matrix order.
+ * @param k n-by-n stiffness matrix, updated in place.
+ * @param ldk Leading dimension of k.
+ * @param f n-element external force vector, updated in place.
+ */
+void c_apply_displacement_constraint_dense(int dof, double val, int n,
+    double *k, int ldk, double *f);
+/**
+ * Solve the static system K*u = f for a dense stiffness matrix.
+ * @param n Matrix order.
+ * @param k n-by-n stiffness matrix.
+ * @param ldk Leading dimension of k.
+ * @param f n-element external force vector.
+ * @param u Output n-element solution vector.
+ */
+void c_solve_static_system_dense(int n, const double *k, int ldk,
+    const double *f, double *u);
 /**
  * @}
  */
