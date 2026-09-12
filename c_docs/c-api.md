@@ -1,6 +1,6 @@
 # DYNAMICS C API
 
-The DYNAMICS C API is a C-compatible interface to the library. The public declarations are in [`dynamics.h`](../src/c/dynamics.h).
+The DYNAMICS C API is a C-compatible interface to the library. The public declarations are in [`dynamics.h`](../../src/c/dynamics.h).
 
 ## Conventions
 
@@ -28,7 +28,7 @@ cmake -S . -B build -DBUILD_DYNAMICS_C_INTERFACE=ON
 ## Example
 
 The repository contains a complete closed-loop example at
-[`examples/c_four_bar_example_1.c`](../examples/c_four_bar_example_1.c). It shows
+[`examples/c_four_bar_example_1.c`](../../examples/c_four_bar_example_1.c). It shows
 how to allocate mechanism links, connect them with `c_joint` values, create a
 planar linkage, solve its forward kinematics, and release all allocated data.
 
@@ -44,6 +44,7 @@ The generated reference is organized by API area:
 - [Serial linkage operations](./group__dynamics__serial.html)
 - [Parallel and planar linkage operations](./group__dynamics__parallel.html)
 - [Transfer functions and state-space models](./group__dynamics__state.html)
+- [Structural analysis and line elements](./group__dynamics__structural.html)
 
 The complete declaration reference is also available from the generated [Data Structures](annotated.html) and [Files](files.html) pages.
 

@@ -19,8 +19,6 @@
 
 /**
  * @defgroup dynamics_constants Public constants
- */
-/**
  * @{
  */
 /**
@@ -851,8 +849,6 @@ extern "C" {
 
 /**
  * @defgroup dynamics_matrix Matrix and general kinematics
- */
-/**
  * @{
  */
 /**
@@ -1189,8 +1185,6 @@ void c_to_angle_axis(const double *r, int ldr, double *angle, double axis[3]);
 
 /**
  * @defgroup dynamics_frequency Frequency response and system identification
- */
-/**
  * @{
  */
 /**
@@ -1459,8 +1453,6 @@ void c_free_dynamic_system_measurement_array(int n,
 
 /**
  * @defgroup dynamics_quaternion Quaternion operations
- */
-/**
  * @{
  */
 /**
@@ -1608,8 +1600,6 @@ void c_quaternion_to_roll_pitch_yaw(const c_quaternion *q, double *roll,
 
 /**
  * @defgroup dynamics_geometry Geometry operations
- */
-/**
  * @{
  */
 /**
@@ -1847,8 +1837,6 @@ void c_poincare_map(int n, const double *x, const double *y, const double *z,
 
 /**
  * @defgroup dynamics_serial Serial linkage operations
- */
-/**
  * @{
  */
 /**
@@ -1952,8 +1940,6 @@ void c_serial_linkage_inverse_kinematics(int n, const c_serial_linkage *lnk,
 
 /**
  * @defgroup dynamics_parallel Parallel and planar linkage operations
- */
-/**
  * @{
  */
 /**
@@ -2171,8 +2157,6 @@ void c_mechanism_inverse_kinematics(c_mechanism obj, const double *trg, int ldt,
 
 /**
  * @defgroup dynamics_state Transfer functions and state-space models
- */
-/**
  * @{
  */
 /**
@@ -2346,8 +2330,6 @@ void c_state_space_transfer_function(const c_state_space_model *mdl, int nin,
 
 /**
  * @defgroup dynamics_structural Structural analysis and line elements
- */
-/**
  * @{
  */
 /**
