@@ -151,7 +151,7 @@ jobs:
             -DCMAKE_C_COMPILER=${{ env.CC }}
           )
           if [ "${{ runner.os }}" = "Windows" ]; then
-            INSTALL_PREFIX="${GITHUB_WORKSPACE//\\//}/install"
+            INSTALL_PREFIX="${GITHUB_WORKSPACE//\\//}/install;/c/msys64/mingw64"
             CMAKE_OPTIONS+=( -G "MinGW Makefiles" )
           else
             INSTALL_PREFIX="${{ github.workspace }}/install"
