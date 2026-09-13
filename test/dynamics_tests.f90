@@ -49,6 +49,12 @@ program main
     check = test_beam2d_strain()
     if (.not.check) flag = 122
 
+    check = test_beam2d_bending_stress()
+    if (.not.check) flag = 124
+
+    check = test_beam2d_bending_strain()
+    if (.not.check) flag = 125
+
     check = test_nodally_averaged_stress()
     if (.not.check) flag = 121
 
@@ -90,6 +96,12 @@ program main
 
     check = test_beam3d_strain_displacement()
     if (.not.check) flag = 16
+
+    check = test_beam3d_bending_stress()
+    if (.not.check) flag = 126
+
+    check = test_beam3d_bending_strain()
+    if (.not.check) flag = 127
 
     check = test_beam3d_constitutive_matrix()
     if (.not.check) flag = 117
