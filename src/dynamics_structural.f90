@@ -1,7 +1,7 @@
 module dynamics_structural
     use iso_fortran_env
-    use linalg, only : csr_matrix, create_csr_matrix, dense_to_csr, sort, &
-        size, assignment(=), lu_factor, solve_lu, sparse_direct_solve
+    use linalg, only : csr_matrix, msr_matrix, create_csr_matrix, dense_to_csr, &
+        sort, size, assignment(=), lu_factor, solve_lu, pgmres_solver, matmul
     use dynamics_error_handling
     use dynamics_geometry
     implicit none
@@ -1802,16 +1802,33 @@ pure function solve_static_system_csr(K, F) result(rst)
     real(real64), allocatable, dimension(:) :: rst
         !! The N-element solution vector.
 
+    ! Parameters
+    real(real64), parameter :: residual_tolerance = 1.0d-8
+
     ! Local Variables
-    integer(int32) :: n
+    integer(int32) :: n, krylov
+    integer(int32), allocatable, dimension(:) :: ju
+    real(real64) :: rnorm
+    type(msr_matrix) :: lu
 
     ! Input Check
     n = size(K, 1)
     if (size(K, 2) /= n) error stop DYN_MATRIX_SIZE_ERROR
     if (size(F) /= n) error stop DYN_ARRAY_SIZE_ERROR
 
-    ! Solve the system
-    rst= sparse_direct_solve(K, F)
+    ! Build an ILU preconditioner with a tight drop tolerance, then let a
+    ! restarted GMRES iteration converge on the true solution rather than
+    ! trusting the incomplete factorization alone.
+    krylov = min(n, 300)
+    allocate(ju(n))
+    call lu_factor(K, lu, ju, droptol = epsilon(rnorm))
+    rst = pgmres_solver(K, lu, ju, F, im = krylov, tol = epsilon(rnorm), &
+        maxits = 200)
+
+    ! GMRES only monitors the preconditioned residual internally, so verify
+    ! the true (unpreconditioned) residual before trusting the result.
+    rnorm = norm2(F - matmul(K, rst)) / max(norm2(F), 1.0d0)
+    if (rnorm > residual_tolerance) error stop DYN_CONVERGENCE_ERROR
 end function
 
 ! ------------------------------------------------------------------------------
