@@ -74,7 +74,7 @@
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip"
                  data-bs-placement="bottom" data-html="true"
-                 title="<p> 0.5% of total for procedures.</p>Including implementation: 226 statements, 16.4% of total for procedures.">7 statements</a>
+                 title="<p> 0.6% of total for procedures.</p>Including implementation: 253 statements, 18.4% of total for procedures.">8 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -134,6 +134,7 @@
             <a class="list-group-item" href="../interface/frequency_response.html#moduleprocedure-frf_modal_prop_damp">frf_modal_prop_damp</a>
             <a class="list-group-item" href="../interface/frequency_response.html#moduleprocedure-frf_modal_prop_damp_sparse">frf_modal_prop_damp_sparse</a>
             <a class="list-group-item" href="../interface/frequency_response.html#moduleprocedure-frf_modal_prop_damp_2">frf_modal_prop_damp_2</a>
+            <a class="list-group-item" href="../interface/frequency_response.html#moduleprocedure-frf_modal_prop_damp_sparse_2">frf_modal_prop_damp_sparse_2</a>
             <a class="list-group-item" href="../interface/frequency_response.html#moduleprocedure-siso_freqres">siso_freqres</a>
             <a class="list-group-item" href="../interface/frequency_response.html#moduleprocedure-mimo_freqres">mimo_freqres</a>
         </div>
@@ -177,7 +178,7 @@ matrices by proportional damping coefficients <script type="math/tex"> \alpha </
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-mass~3"></span>
+              <span class="anchor" id="variable-mass~2"></span>
               real(kind=real64),
             </td>
 <td>intent(in),</td>
@@ -209,7 +210,7 @@ symmetric.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-alpha~7"></span>
+              <span class="anchor" id="variable-alpha"></span>
               real(kind=real64),
             </td>
 <td>intent(in)</td>
@@ -224,7 +225,7 @@ symmetric.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-beta~2"></span>
+              <span class="anchor" id="variable-beta"></span>
               real(kind=real64),
             </td>
 <td>intent(in)</td>
@@ -304,7 +305,7 @@ its own column.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-args~9"></span>
+              <span class="anchor" id="variable-args~3"></span>
               class(*),
             </td>
 <td>intent(inout),</td>
@@ -351,7 +352,7 @@ The damping matrix is defined by <script type="math/tex">C=\alpha M+\beta K</scr
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-mass~4"></span>
+              <span class="anchor" id="variable-mass~3"></span>
               type(csr_matrix),
             </td>
 <td>intent(in)</td>
@@ -381,7 +382,7 @@ The damping matrix is defined by <script type="math/tex">C=\alpha M+\beta K</scr
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-alpha~8"></span>
+              <span class="anchor" id="variable-alpha~2"></span>
               real(kind=real64),
             </td>
 <td>intent(in)</td>
@@ -396,7 +397,7 @@ The damping matrix is defined by <script type="math/tex">C=\alpha M+\beta K</scr
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-beta~3"></span>
+              <span class="anchor" id="variable-beta~2"></span>
               real(kind=real64),
             </td>
 <td>intent(in)</td>
@@ -489,7 +490,7 @@ retained mode shapes.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-args~10"></span>
+              <span class="anchor" id="variable-args~4"></span>
               class(*),
             </td>
 <td>intent(inout),</td>
@@ -540,7 +541,7 @@ and the physical response is reconstructed from the mode shapes.
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-mass~5"></span>
+              <span class="anchor" id="variable-mass~4"></span>
               real(kind=real64),
             </td>
 <td>intent(in),</td>
@@ -572,7 +573,7 @@ symmetric.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-alpha~9"></span>
+              <span class="anchor" id="variable-alpha~3"></span>
               real(kind=real64),
             </td>
 <td>intent(in)</td>
@@ -587,7 +588,7 @@ symmetric.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-beta~4"></span>
+              <span class="anchor" id="variable-beta~3"></span>
               real(kind=real64),
             </td>
 <td>intent(in)</td>
@@ -697,7 +698,7 @@ its own column.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-args~11"></span>
+              <span class="anchor" id="variable-args~5"></span>
               class(*),
             </td>
 <td>intent(inout),</td>
@@ -724,6 +725,221 @@ the outside world.</p>
   </div>
 
             <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-frf_modal_prop_damp_sparse_2"></span> <h3>private  function frf_modal_prop_damp_sparse_2(mass, stiff, alpha, beta, nmodes, nfreq, freq1, freq2, frc, modes, modeshapes, args) result(rst)  
+</h3></div>
+    <div class="card-body">
+        <p>Computes a modal-truncated frequency response for a system with
+proportional damping using CSR sparse mass and stiffness matrices.
+The damping matrix is defined by <script type="math/tex">C=\alpha M+\beta K</script>.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-mass~5"></span>
+              type(csr_matrix),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>mass</strong></td>
+            <td>
+                <p>The N-by-N symmetric positive-definite mass matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-stiff~4"></span>
+              type(csr_matrix),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>stiff</strong></td>
+            <td>
+                <p>The N-by-N symmetric stiffness matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-alpha~4"></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>alpha</strong></td>
+            <td>
+                <p>The mass damping factor, <script type="math/tex">\alpha</script>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-beta~4"></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>beta</strong></td>
+            <td>
+                <p>The stiffness damping factor, <script type="math/tex">\beta</script>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nmodes~2"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nmodes</strong></td>
+            <td>
+                <p>The number of lowest-frequency modes to retain.  This value
+must be greater than zero and less than N.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nfreq~2"></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nfreq</strong></td>
+            <td>
+                <p>The number of frequency values to analyze.  This value must be
+at least 2.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-freq1~2"></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>freq1</strong></td>
+            <td>
+                <p>The starting frequency, in units of rad/s.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-freq2~2"></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>freq2</strong></td>
+            <td>
+                <p>The ending frequency, in units of rad/s.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-frc~5"></span>
+              procedure(<a href='modal_excite.html'>modal_excite</a>),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              pointer
+            </td>
+            <td>::</td>
+            <td><strong>frc</strong></td>
+            <td>
+                <p>A pointer to the physical forcing function.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-modes~4"></span>
+              real(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td>optional,</td>            <td>
+              allocatable, dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>modes</strong></td>
+            <td>
+                <p>An optional NMODES-element array containing the retained modal
+frequencies in units of rad/s.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-modeshapes~4"></span>
+              real(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td>optional,</td>            <td>
+              allocatable, dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>modeshapes</strong></td>
+            <td>
+                <p>An optional N-by-NMODES matrix containing the mass-normalized
+retained mode shapes.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-args~6"></span>
+              class(*),
+            </td>
+<td>intent(inout),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>args</strong></td>
+            <td>
+                <p>An optional argument passed to the forcing function.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='..\type\frf.html'>frf</a>)</small>
+    </h4>
+    <p>The modal-truncated frequency responses.</p>
+
+    </div>
+  </div>
+
+            <div class="card">
     <div class="card-header codesum"><span class="anchor" id="proc-siso_freqres"></span> <h3>private  function siso_freqres(x, y, fs, win, method) result(rst)  
 </h3></div>
     <div class="card-body">
@@ -743,7 +959,7 @@ system.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-x~41"></span>
+              <span class="anchor" id="variable-x~19"></span>
               real(kind=real64),
             </td>
 <td>intent(in),</td>
@@ -758,7 +974,7 @@ system.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-y~27"></span>
+              <span class="anchor" id="variable-y~15"></span>
               real(kind=real64),
             </td>
 <td>intent(in),</td>
@@ -861,7 +1077,7 @@ signals.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-x~42"></span>
+              <span class="anchor" id="variable-x~20"></span>
               real(kind=real64),
             </td>
 <td>intent(in),</td>
@@ -876,7 +1092,7 @@ signals.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-y~28"></span>
+              <span class="anchor" id="variable-y~16"></span>
               real(kind=real64),
             </td>
 <td>intent(in),</td>
@@ -973,7 +1189,7 @@ signals.</p>
             <p class="text-end">
               Documentation generated by
               <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-09-12 13:21              </p>
+ on 2026-09-13 07:10              </p>
           </div>
         </div>
         <br>
