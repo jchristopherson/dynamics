@@ -28,6 +28,9 @@ program main
     check = test_proportional_damping_frf()
     if (.not.check) flag = 2
 
+    check = test_sparse_proportional_damping_frf()
+    if (.not.check) flag = 119
+
     check = test_modal_response()
     if (.not.check) flag = 3
 
@@ -39,6 +42,27 @@ program main
 
     check = test_beam2d_strain_displacement()
     if (.not.check) flag = 6
+
+    check = test_beam2d_stress()
+    if (.not.check) flag = 120
+
+    check = test_beam2d_strain()
+    if (.not.check) flag = 122
+
+    check = test_beam2d_bending_stress()
+    if (.not.check) flag = 124
+
+    check = test_beam2d_bending_strain()
+    if (.not.check) flag = 125
+
+    check = test_beam2d_internal_results()
+    if (.not.check) flag = 128
+
+    check = test_nodally_averaged_stress()
+    if (.not.check) flag = 121
+
+    check = test_nodally_averaged_strain()
+    if (.not.check) flag = 123
 
     check = test_beam2d_stiffness_matrix()
     if (.not.check) flag = 7
@@ -54,6 +78,9 @@ program main
 
     check = test_connectivity_matrix()
     if (.not.check) flag = 11
+
+    check = test_global_assembly()
+    if (.not.check) flag = 118
 
     check = test_forward_kinematics()
     if (.not.check) flag = 12
@@ -72,6 +99,18 @@ program main
 
     check = test_beam3d_strain_displacement()
     if (.not.check) flag = 16
+
+    check = test_beam3d_bending_stress()
+    if (.not.check) flag = 126
+
+    check = test_beam3d_bending_strain()
+    if (.not.check) flag = 127
+
+    check = test_beam3d_internal_results()
+    if (.not.check) flag = 129
+
+    check = test_beam3d_constitutive_matrix()
+    if (.not.check) flag = 117
 
     check = test_beam3d_stiffness_matrix()
     if (.not.check) flag = 17

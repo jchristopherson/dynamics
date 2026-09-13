@@ -225,6 +225,10 @@ if (${BUILD_DYNAMICS_C_INTERFACE})
     )
 endif()
 
+# Structural Example
+add_executable(structural_example structural_example.f90)
+target_link_libraries(structural_example ${PROJECT_NAME} ${FPLOT_LIBRARIES})
+
 if (${BUILD_SHARED_LIBS} AND WIN32)
     add_custom_command(
         TARGET frf_sweep_example_1

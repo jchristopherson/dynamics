@@ -423,6 +423,257 @@ contains
             print "(A)", "TEST FAILED: test_beam2d_strain_displacement -3"
         end if
     end function
+
+! ------------------------------------------------------------------------------
+    function test_beam2d_stress() result(rst)
+        logical :: rst
+
+        real(real64), parameter :: tol = 1.0d-10
+        real(real64), parameter :: area = 2.5d0
+        real(real64), parameter :: modulus = 3.0d7
+        real(real64), parameter :: displacement = 2.0d-3
+        real(real64), parameter :: length = 5.0d0
+        real(real64), parameter :: cosine = 3.0d0 / 5.0d0
+        real(real64), parameter :: sine = 4.0d0 / 5.0d0
+        real(real64), parameter :: s(1) = [0.25d0]
+
+        real(real64) :: u(6), expected(2)
+        real(real64), allocatable, dimension(:) :: stress
+        type(beam_element_2d) :: e
+
+        rst = .true.
+        e%node_1 = node(1, 3, 1.0d0, 2.0d0, 0.0d0)
+        e%node_2 = node(2, 3, 4.0d0, 6.0d0, 0.0d0)
+        e%area = area
+        e%moment_of_inertia = 0.75d0
+        e%material%modulus = modulus
+
+        u = [0.0d0, 0.0d0, 0.0d0, displacement * cosine, &
+            displacement * sine, 0.0d0]
+        expected = [area * modulus * displacement / length, 0.0d0]
+        stress = e%stress(u, s)
+
+        if (.not.assert(stress, expected, tol * maxval(abs(expected)))) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_beam2d_stress -1"
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
+    function test_beam2d_strain() result(rst)
+        logical :: rst
+
+        real(real64), parameter :: tol = 1.0d-12
+        real(real64), parameter :: displacement = 2.0d-3
+        real(real64), parameter :: length = 5.0d0
+        real(real64), parameter :: cosine = 3.0d0 / 5.0d0
+        real(real64), parameter :: sine = 4.0d0 / 5.0d0
+        real(real64), parameter :: s(1) = [0.25d0]
+
+        real(real64) :: u(6), expected(2)
+        real(real64), allocatable, dimension(:) :: strain
+        type(beam_element_2d) :: e
+
+        rst = .true.
+        e%node_1 = node(1, 3, 1.0d0, 2.0d0, 0.0d0)
+        e%node_2 = node(2, 3, 4.0d0, 6.0d0, 0.0d0)
+
+        u = [0.0d0, 0.0d0, 0.0d0, displacement * cosine, &
+            displacement * sine, 0.0d0]
+        expected = [displacement / length, 0.0d0]
+        strain = e%strain(u, s)
+
+        if (.not.assert(strain, expected, tol)) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_beam2d_strain -1"
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
+    function test_beam2d_bending_stress() result(rst)
+        logical :: rst
+
+        real(real64), parameter :: length = 5.0d0
+        real(real64), parameter :: area = 2.5d0
+        real(real64), parameter :: moi = 0.75d0
+        real(real64), parameter :: modulus = 3.0d7
+        real(real64), parameter :: curvature = 2.0d-3
+        real(real64), parameter :: tol = 1.0d-12
+        real(real64), parameter :: s(1) = [0.25d0]
+
+        real(real64) :: displacement(6), expected(2)
+        real(real64), allocatable :: stress(:)
+        type(material) :: mat
+        type(beam_element_2d) :: e
+
+        rst = .true.
+        mat = material(modulus, 0.3d0, 1.0d0)
+        e = beam_element_2d(mat, area, moi, &
+            node(1, 3, 0.0d0, 0.0d0, 0.0d0), &
+            node(2, 3, length, 0.0d0, 0.0d0))
+        displacement = [0.0d0, 0.0d0, 0.0d0, &
+            0.0d0, 0.5d0 * curvature * length**2, curvature * length]
+        expected = [0.0d0, modulus * moi * curvature]
+        stress = e%stress(displacement, s)
+
+        if (.not.assert(stress, expected, tol * maxval(abs(expected)))) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_beam2d_bending_stress -1"
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
+    function test_beam2d_bending_strain() result(rst)
+        logical :: rst
+
+        real(real64), parameter :: length = 5.0d0
+        real(real64), parameter :: curvature = 2.0d-3
+        real(real64), parameter :: s(1) = [0.25d0]
+
+        real(real64) :: displacement(6), expected(2)
+        real(real64), allocatable :: strain(:)
+        type(material) :: mat
+        type(beam_element_2d) :: e
+
+        rst = .true.
+        mat = material(3.0d7, 0.3d0, 1.0d0)
+        e = beam_element_2d(mat, 2.5d0, 0.75d0, &
+            node(1, 3, 0.0d0, 0.0d0, 0.0d0), &
+            node(2, 3, length, 0.0d0, 0.0d0))
+        displacement = [0.0d0, 0.0d0, 0.0d0, &
+            0.0d0, 0.5d0 * curvature * length**2, curvature * length]
+        expected = [0.0d0, curvature]
+        strain = e%strain(displacement, s)
+
+        if (.not.assert(strain, expected)) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_beam2d_bending_strain -1"
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
+    function test_beam2d_internal_results() result(rst)
+        logical :: rst
+
+        real(real64), parameter :: length = 5.0d0
+        real(real64), parameter :: moi = 0.75d0
+        real(real64), parameter :: modulus = 3.0d7
+        real(real64), parameter :: coefficient = 1.0d-4
+        real(real64), parameter :: s(1) = [0.25d0]
+        real(real64), parameter :: x = 0.5d0 * length * (s(1) + 1.0d0)
+        real(real64), parameter :: tol = 1.0d-12
+
+        real(real64) :: displacement(6), expected_moment, expected_shear
+        type(material) :: mat
+        type(beam_element_2d) :: e
+
+        rst = .true.
+        mat = material(modulus, 0.3d0, 1.0d0)
+        e = beam_element_2d(mat, 2.5d0, moi, &
+            node(1, 3, 0.0d0, 0.0d0, 0.0d0), &
+            node(2, 3, length, 0.0d0, 0.0d0))
+        displacement = [0.0d0, 0.0d0, 0.0d0, &
+            0.0d0, coefficient * length**3, 3.0d0 * coefficient * length**2]
+        expected_moment = modulus * moi * 6.0d0 * coefficient * x
+        expected_shear = modulus * moi * 6.0d0 * coefficient
+
+        if (.not.assert(e%bending_moment(displacement, s), expected_moment, &
+                tol * abs(expected_moment))) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_beam2d_internal_results -1"
+        end if
+        if (.not.assert(e%shear_force(displacement, s), expected_shear, &
+                tol * abs(expected_shear))) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_beam2d_internal_results -2"
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
+    function test_nodally_averaged_stress() result(rst)
+        logical :: rst
+
+        real(real64), parameter :: tol = 1.0d-12
+        real(real64) :: displacement(9), expected(2,3)
+        real(real64), allocatable, dimension(:,:) :: stress
+        type(beam_element_2d) :: elements(2)
+        type(material) :: mat
+        type(node) :: nodes(3)
+
+        rst = .true.
+        mat%modulus = 10.0d0
+        mat%poissons_ratio = 0.3d0
+        mat%density = 1.0d0
+        nodes = [ &
+            node(10, 3, 0.0d0, 0.0d0, 0.0d0), &
+            node(20, 3, 1.0d0, 0.0d0, 0.0d0), &
+            node(30, 3, 2.0d0, 0.0d0, 0.0d0) &
+        ]
+        elements(1) = beam_element_2d(mat, 2.0d0, 1.0d0, &
+            nodes(1), nodes(2))
+        elements(2) = beam_element_2d(mat, 2.0d0, 1.0d0, &
+            nodes(2), nodes(3))
+        displacement = [ &
+            0.0d0, 0.0d0, 0.0d0, &
+            0.1d0, 0.0d0, 0.0d0, &
+            0.3d0, 0.0d0, 0.0d0 &
+        ]
+        expected = reshape([ &
+            2.0d0, 0.0d0, &
+            3.0d0, 0.0d0, &
+            4.0d0, 0.0d0 &
+        ], [2, 3])
+
+        stress = nodally_averaged_stress(elements, nodes, displacement)
+
+        if (.not.assert(stress, expected, tol)) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_nodally_averaged_stress -1"
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
+    function test_nodally_averaged_strain() result(rst)
+        logical :: rst
+
+        real(real64), parameter :: tol = 1.0d-12
+        real(real64) :: displacement(9), expected(2,3)
+        real(real64), allocatable, dimension(:,:) :: strain
+        type(beam_element_2d) :: elements(2)
+        type(material) :: mat
+        type(node) :: nodes(3)
+
+        rst = .true.
+        mat%modulus = 10.0d0
+        mat%poissons_ratio = 0.3d0
+        mat%density = 1.0d0
+        nodes = [ &
+            node(10, 3, 0.0d0, 0.0d0, 0.0d0), &
+            node(20, 3, 1.0d0, 0.0d0, 0.0d0), &
+            node(30, 3, 2.0d0, 0.0d0, 0.0d0) &
+        ]
+        elements(1) = beam_element_2d(mat, 2.0d0, 1.0d0, &
+            nodes(1), nodes(2))
+        elements(2) = beam_element_2d(mat, 2.0d0, 1.0d0, &
+            nodes(2), nodes(3))
+        displacement = [ &
+            0.0d0, 0.0d0, 0.0d0, &
+            0.1d0, 0.0d0, 0.0d0, &
+            0.3d0, 0.0d0, 0.0d0 &
+        ]
+        expected = reshape([ &
+            0.1d0, 0.0d0, &
+            0.15d0, 0.0d0, &
+            0.2d0, 0.0d0 &
+        ], [2, 3])
+
+        strain = nodally_averaged_strain(elements, nodes, displacement)
+
+        if (.not.assert(strain, expected, tol)) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_nodally_averaged_strain -1"
+        end if
+    end function
     
     ! ------------------------------------------------------------------------------
     function test_beam2d_stiffness_matrix() result(rst)
@@ -497,20 +748,20 @@ contains
             print "(A)", "TEST FAILED: test_beam2d_stiffness_matrix -1"
         end if
     end function
-    
-    ! ------------------------------------------------------------------------------
+
+! ------------------------------------------------------------------------------
     function test_beam2d_mass_matrix() result(rst)
         ! Arguments
         logical :: rst
 
         ! Parameters
         real(real64), parameter :: tol = 1.0d-6
-    
+
         ! Local Variables
         real(real64) :: l, x1, y1, x2, y2, w, h, f
         real(real64), allocatable, dimension(:,:) :: m, ans, T
         type(beam_element_2d) :: e
-    
+
         ! Initialization
         rst = .true.
         call random_number(x1)
@@ -529,18 +780,18 @@ contains
         e%node_2%dof = 3
         l = sqrt((x2 - x1)**2 + (y2 - y1)**2)
         T = e%rotation_matrix()
-    
+
         ! Define the cross-sectional properties
         call random_number(w)
         call random_number(h)
         e%area = w * h
         e%moment_of_inertia = w * h**3 / 12.0d0
-    
+
         ! Define the material properties
         e%material%density = 0.101d0 / 3.86d2
         e%material%modulus = 10.0d6
         e%material%poissons_ratio = 0.33d0
-    
+
         ! Define the solution
         f = e%material%density * e%area * l / 4.2d2
         allocate(ans(6, 6), source = 0.0d0)
@@ -564,9 +815,8 @@ contains
         ans(3,6) = ans(6,3)
         ans(5,6) = ans(6,5)
         ans(6,6) = ans(3,3)
-
         ans = matmul(transpose(T), matmul(ans, T))
-    
+
         ! Test
         m = e%mass_matrix()
         if (.not.assert(ans, m, tol * maxval(abs(ans)))) then
@@ -783,14 +1033,18 @@ contains
         ! Variables
         integer(int32), parameter :: n = 20
         integer(int32), parameter :: nbc = 3
-        real(real64) :: k(n,n)
-        real(real64), allocatable, dimension(:,:) :: knew_dense, knew_csr
-        type(csr_matrix) :: kcsr, knewcsr
+        real(real64) :: k(n,n), f(n), fcsr(n)
+        real(real64), allocatable, dimension(:,:) :: knew_dense, knew_csr, &
+            restored_dense, restored_csr
+        type(csr_matrix) :: kcsr, knewcsr, restoredcsr
         integer(int32) :: gdofs_dense(nbc), gdofs_csr(nbc)
+        integer(int32) :: free_dofs(n - nbc)
+        integer(int32) :: i, j
 
         ! Initialization
         rst = .true.
         call random_number(k)
+        call random_number(f)
         gdofs_dense = [3, 10, 17]
         gdofs_csr = gdofs_dense
         kcsr = k
@@ -805,6 +1059,37 @@ contains
         if (.not.assert(knew_dense, knew_csr)) then
             rst = .false.
             print "(A)", "TEST FAILED: test_boundary_conditions_csr -1"
+        end if
+
+        ! Restore the reduced matrices and compare the dense and CSR paths.
+        allocate(restored_dense(n,n), restored_csr(n,n))
+        restored_dense = 0.0d0
+        j = 0
+        do i = 1, n
+            if (i /= gdofs_dense(1) .and. i /= gdofs_dense(2) .and. &
+                i /= gdofs_dense(3)) then
+                j = j + 1
+                free_dofs(j) = i
+            end if
+        end do
+        restored_dense(free_dofs, free_dofs) = knew_dense
+        restoredcsr = restore_constrained_values(gdofs_csr, knewcsr)
+        restored_csr = restoredcsr
+        if (.not.assert(restored_dense, restored_csr)) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_boundary_conditions_csr -2"
+        end if
+
+        ! Compare dense and CSR displacement constraints.
+        fcsr = f
+        kcsr = k
+        call apply_displacement_constraint(gdofs_dense(2), 0.25d0, k, f)
+        call apply_displacement_constraint(gdofs_csr(2), 0.25d0, kcsr, fcsr)
+        restored_csr = kcsr
+        if (.not.assert(k, restored_csr) .or. &
+            .not.assert(f, fcsr)) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_boundary_conditions_csr -3"
         end if
     end function
 
@@ -910,12 +1195,90 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
+function test_global_assembly() result(rst)
+    ! Arguments
+    logical :: rst
+
+    ! Local Variables
+    integer(int32) :: i, j, eidx, offset
+    real(real64) :: local_k(6,6), local_m(6,6)
+    real(real64) :: expected_k(9,9), expected_m(9,9)
+    real(real64), allocatable :: actual_k(:,:), actual_m(:,:)
+    type(beam_element_2d) :: elements(2)
+    type(material) :: mat
+    type(node) :: nodes(3)
+    type(csr_matrix) :: kcsr, mcsr
+
+    ! Initialization
+    rst = .true.
+    mat = material(2.0d0, 10.0d0, 0.25d0)
+    nodes = [ &
+        node(1, 3, 0.0d0, 0.0d0, 0.0d0), &
+        node(2, 3, 1.0d0, 0.0d0, 0.0d0), &
+        node(3, 3, 2.0d0, 0.0d0, 0.0d0) &
+    ]
+    elements(1) = beam_element_2d(mat, 1.0d0, 0.5d0, nodes(1), nodes(2))
+    elements(2) = beam_element_2d(mat, 1.0d0, 0.5d0, nodes(2), nodes(3))
+    expected_k = 0.0d0
+    expected_m = 0.0d0
+
+    do eidx = 1, 2
+        if (eidx == 1) then
+            offset = 1
+        else
+            offset = 4
+        end if
+        local_k = elements(eidx)%stiffness_matrix()
+        local_m = elements(eidx)%mass_matrix()
+        do i = 1, 6
+            do j = 1, 6
+                expected_k(offset + i - 1, offset + j - 1) = &
+                    expected_k(offset + i - 1, offset + j - 1) + local_k(i,j)
+                expected_m(offset + i - 1, offset + j - 1) = &
+                    expected_m(offset + i - 1, offset + j - 1) + local_m(i,j)
+            end do
+        end do
+    end do
+
+    call assemble_static_system(9, elements, nodes, kcsr)
+    allocate(actual_k(9,9))
+    actual_k = kcsr
+    if (.not.assert(actual_k, expected_k)) then
+        rst = .false.
+    end if
+    call assemble_static_system(9, elements, nodes, actual_k)
+    if (.not.assert(actual_k, expected_k)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_global_assembly -3"
+    end if
+    if (.not.rst) print "(A)", "TEST FAILED: test_global_assembly -1"
+
+    call assemble_dynamic_system(9, elements, nodes, mcsr, kcsr)
+    deallocate(actual_k)
+    allocate(actual_m(9,9), actual_k(9,9))
+    actual_m = mcsr
+    actual_k = kcsr
+    if (.not.assert(actual_m, expected_m) .or. &
+        .not.assert(actual_k, expected_k)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_global_assembly -2"
+    end if
+    call assemble_dynamic_system(9, elements, nodes, actual_m, actual_k)
+    if (.not.assert(actual_m, expected_m) .or. &
+        .not.assert(actual_k, expected_k)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_global_assembly -4"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
 function test_beam3d_shape_function_matrix() result(rst)
     ! Arguments
     logical :: rst
 
     ! Parameters
     real(real64), parameter :: tol = 1.0d-6
+
 
     ! Local Variables
     real(real64) :: x1, y1, z1, x2, y2, z2, A, rho, E, nu, Ixx, Iyy, Izz, L, G, s
@@ -1069,7 +1432,7 @@ function test_beam3d_stiffness_matrix() result(rst)
 
     ! Local Variables
     real(real64) :: x1, y1, z1, x2, y2, z2, x3, y3, z3, A, rho, E, nu, Ixx, &
-        Iyy, Izz, L, G, s
+        Iyy, Izz, Iyz, L, G, s
     real(real64), allocatable, dimension(:,:) :: T, K, ans
     type(beam_element_3d) :: b
     type(material) :: mat
@@ -1093,10 +1456,12 @@ function test_beam3d_stiffness_matrix() result(rst)
     call random_number(Ixx)
     call random_number(Iyy)
     call random_number(Izz)
+    call random_number(Iyz)
     b%area = A
     b%Ixx = Ixx
     b%Iyy = Iyy
     b%Izz = Izz
+    b%Iyz = Iyz
     b%material%density = rho
     b%material%modulus = E
     b%material%poissons_ratio = nu
@@ -1128,9 +1493,28 @@ function test_beam3d_stiffness_matrix() result(rst)
     ans(5,3) = -6.0d0 * E * Iyy / L**2
     ans(9,3) = -ans(3,3)
     ans(11,3) = ans(5,3)
+    ans(2,3) = 1.2d1 * E * Iyz / L**3
+    ans(5,2) = -6.0d0 * E * Iyz / L**2
+    ans(8,3) = -ans(2,3)
+    ans(11,2) = 6.0d0 * E * Iyz / L**2
+    ans(6,3) = 6.0d0 * E * Iyz / L**2
+    ans(8,5) = 6.0d0 * E * Iyz / L**2
+    ans(12,3) = -6.0d0 * E * Iyz / L**2
+    ans(5,9) = 6.0d0 * E * Iyz / L**2
+    ans(11,9) = -6.0d0 * E * Iyz / L**2
+    ans(6,5) = -4.0d0 * E * Iyz / L
+    ans(12,5) = -2.0d0 * E * Iyz / L
+    ans(6,11) = -2.0d0 * E * Iyz / L
+    ans(12,11) = -4.0d0 * E * Iyz / L
     ans(4,4) = G * Ixx / L
     ans(10,4) = -ans(4,4)
     ans(3,5) = ans(5,3)
+    ans(2,5) = ans(5,2)
+    ans(2,9) = -ans(2,3)
+    ans(2,11) = ans(11,2)
+    ans(3,6) = ans(6,3)
+    ans(3,8) = ans(8,3)
+    ans(3,12) = ans(12,3)
     ans(5,5) = 4.0d0 * E * Iyy / L
     ans(9,5) = -ans(11,3)
     ans(11,5) = 2.0d0 * E * Iyy / L
@@ -1141,20 +1525,35 @@ function test_beam3d_stiffness_matrix() result(rst)
     ans(1,7) = ans(7,1)
     ans(7,7) = ans(1,1)
     ans(2,8) = ans(8,2)
+    ans(5,6) = ans(6,5)
+    ans(5,8) = ans(8,5)
+    ans(5,12) = ans(12,5)
     ans(6,8) = ans(8,6)
     ans(8,8) = ans(2,2)
     ans(12,8) = -ans(6,2)
     ans(3,9) = ans(9,3)
+    ans(6,9) = -6.0d0 * E * Iyz / L**2
+    ans(8,9) = -ans(2,9)
+    ans(9,2) = ans(2,9)
+    ans(9,6) = ans(6,9)
+    ans(9,8) = ans(8,9)
     ans(5,9) = ans(9,5)
     ans(9,9) = ans(3,3)
     ans(11,9) = -ans(5,3)
     ans(4,10) = ans(10,4)
     ans(10,10) = ans(4,4)
     ans(3,11) = ans(11,3)
+    ans(8,11) = -6.0d0 * E * Iyz / L**2
+    ans(9,11) = ans(11,9)
+    ans(11,6) = ans(6,11)
+    ans(11,8) = ans(8,11)
     ans(5,11) = ans(11,5)
     ans(9,11) = ans(11,9)
     ans(11,11) = ans(5,5)
     ans(2,12) = ans(12,2)
+    ans(9,12) = -6.0d0 * E * Iyz / L**2
+    ans(12,9) = ans(9,12)
+    ans(11,12) = ans(12,11)
     ans(6,12) = ans(12,6)
     ans(8,12) = ans(12,8)
     ans(12,12) = ans(6,6)
@@ -1167,6 +1566,177 @@ function test_beam3d_stiffness_matrix() result(rst)
     if (.not.assert(K, ans, tol * maxval(abs(ans)))) then
         rst = .false.
         print "(A)", "TEST FAILED: test_beam3d_stiffness_matrix -1"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_beam3d_bending_stress() result(rst)
+    logical :: rst
+
+    real(real64), parameter :: length = 5.0d0
+    real(real64), parameter :: area = 2.5d0
+    real(real64), parameter :: ixx = 0.8d0
+    real(real64), parameter :: iyy = 1.2d0
+    real(real64), parameter :: izz = 1.6d0
+    real(real64), parameter :: iyz = -0.3d0
+    real(real64), parameter :: modulus = 2.0d7
+    real(real64), parameter :: ky = 2.0d-3
+    real(real64), parameter :: kz = -1.0d-3
+    real(real64), parameter :: tol = 1.0d-12
+    real(real64), parameter :: s(1) = [0.25d0]
+
+    real(real64) :: displacement(12), expected(4)
+    real(real64), allocatable :: stress(:)
+    type(material) :: mat
+    type(beam_element_3d) :: e
+
+    rst = .true.
+    mat = material(modulus, 0.25d0, 1.0d0)
+    e = beam_element_3d(mat, area, ixx, iyy, izz, iyz, &
+        node(1, 6, 0.0d0, 0.0d0, 0.0d0), &
+        node(2, 6, length, 0.0d0, 0.0d0), point(0.0d0, 0.0d0, -1.0d0))
+    displacement = 0.0d0
+    displacement(8) = 0.5d0 * ky * length**2
+    displacement(12) = ky * length
+    displacement(9) = 0.5d0 * kz * length**2
+    displacement(11) = -kz * length
+    expected = [0.0d0, modulus * (izz * ky + iyz * kz), &
+        modulus * (iyz * ky + iyy * kz), 0.0d0]
+    stress = e%stress(displacement, s)
+
+    if (.not.assert(stress, expected, tol * maxval(abs(expected)))) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_beam3d_bending_stress -1"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_beam3d_bending_strain() result(rst)
+    logical :: rst
+
+    real(real64), parameter :: length = 5.0d0
+    real(real64), parameter :: ky = 2.0d-3
+    real(real64), parameter :: kz = -1.0d-3
+    real(real64), parameter :: s(1) = [0.25d0]
+
+    real(real64) :: displacement(12), expected(4)
+    real(real64), allocatable :: strain(:)
+    type(material) :: mat
+    type(beam_element_3d) :: e
+
+    rst = .true.
+    mat = material(2.0d7, 0.25d0, 1.0d0)
+    e = beam_element_3d(mat, 2.5d0, 0.8d0, 1.2d0, 1.6d0, -0.3d0, &
+        node(1, 6, 0.0d0, 0.0d0, 0.0d0), &
+        node(2, 6, length, 0.0d0, 0.0d0), point(0.0d0, 0.0d0, -1.0d0))
+    displacement = 0.0d0
+    displacement(8) = 0.5d0 * ky * length**2
+    displacement(12) = ky * length
+    displacement(9) = 0.5d0 * kz * length**2
+    displacement(11) = -kz * length
+    expected = [0.0d0, ky, kz, 0.0d0]
+    strain = e%strain(displacement, s)
+
+    if (.not.assert(strain, expected, 1.0d-12)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_beam3d_bending_strain -1"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_beam3d_internal_results() result(rst)
+    logical :: rst
+
+    real(real64), parameter :: length = 5.0d0
+    real(real64), parameter :: ixx = 0.8d0
+    real(real64), parameter :: iyy = 1.2d0
+    real(real64), parameter :: izz = 1.6d0
+    real(real64), parameter :: iyz = -0.3d0
+    real(real64), parameter :: modulus = 2.0d7
+    real(real64), parameter :: cy = 1.0d-4
+    real(real64), parameter :: cz = -2.0d-4
+    real(real64), parameter :: s(1) = [0.25d0]
+    real(real64), parameter :: x = 0.5d0 * length * (s(1) + 1.0d0)
+    real(real64), parameter :: tol = 1.0d-12
+
+    real(real64) :: displacement(12), expected_moment(3), expected_shear(2)
+    type(material) :: mat
+    type(beam_element_3d) :: e
+
+    rst = .true.
+    mat = material(modulus, 0.25d0, 1.0d0)
+    e = beam_element_3d(mat, 2.5d0, ixx, iyy, izz, iyz, &
+        node(1, 6, 0.0d0, 0.0d0, 0.0d0), &
+        node(2, 6, length, 0.0d0, 0.0d0), point(0.0d0, 0.0d0, -1.0d0))
+    displacement = 0.0d0
+    displacement(8) = cy * length**3
+    displacement(12) = 3.0d0 * cy * length**2
+    displacement(9) = cz * length**3
+    displacement(11) = -3.0d0 * cz * length**2
+    expected_moment = [0.0d0, 0.0d0, &
+        modulus * (izz * 6.0d0 * cy * x + iyz * 6.0d0 * cz * x)]
+    expected_moment(2) = modulus * (iyz * 6.0d0 * cy * x + &
+        iyy * 6.0d0 * cz * x)
+    expected_shear = [modulus * (izz * 6.0d0 * cy + iyz * 6.0d0 * cz), &
+        -modulus * (iyz * 6.0d0 * cy + iyy * 6.0d0 * cz)]
+
+    if (.not.assert(e%bending_moment(displacement, s), expected_moment, &
+            tol * maxval(abs(expected_moment)))) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_beam3d_internal_results -1"
+    end if
+    if (.not.assert(e%shear_force(displacement, s), expected_shear, &
+            tol * maxval(abs(expected_shear)))) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_beam3d_internal_results -2"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_beam3d_constitutive_matrix() result(rst)
+    ! Arguments
+    logical :: rst
+
+    ! Parameters
+    real(real64), parameter :: tol = 1.0d-12
+
+    ! Local Variables
+    real(real64) :: area, E, nu, Ixx, Iyy, Izz, Iyz, G
+    real(real64), allocatable, dimension(:,:) :: D, ans
+    type(beam_element_3d) :: b
+
+    ! Initialization
+    rst = .true.
+    area = 2.5d0
+    E = 2.0d7
+    nu = 0.25d0
+    Ixx = 0.8d0
+    Iyy = 1.2d0
+    Izz = 1.6d0
+    Iyz = -0.3d0
+    G = E / (2.0d0 * (1.0d0 + nu))
+    b%area = area
+    b%Ixx = Ixx
+    b%Iyy = Iyy
+    b%Izz = Izz
+    b%Iyz = Iyz
+    b%material%modulus = E
+    b%material%poissons_ratio = nu
+
+    ! Define the expected constitutive matrix, including bending coupling.
+    allocate(ans(4,4), source = 0.0d0)
+    ans(1,1) = area * E
+    ans(2,2) = Izz * E
+    ans(2,3) = Iyz * E
+    ans(3,2) = ans(2,3)
+    ans(3,3) = Iyy * E
+    ans(4,4) = Ixx * G
+
+    ! Test
+    D = b%constitutive_matrix()
+    if (.not.assert(D, ans, tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_beam3d_constitutive_matrix -1"
     end if
 end function
 

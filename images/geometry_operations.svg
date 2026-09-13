@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="920" viewBox="0 0 1400 920" role="img" aria-labelledby="title desc">
+  <title id="title">DYNAMICS geometry representations and operations</title>
+  <desc id="desc">Overview of point, line, plane, and Pluecker line representations with normal, projection, distance, intersection, parallelism, and common-normal operations.</desc>
+  <defs>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1d5fa7"/></marker>
+    <marker id="arrow-red" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth"><path d="M 0 0 L 10 5 L 0 10 z" fill="#b0443e"/></marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth"><path d="M 0 0 L 10 5 L 0 10 z" fill="#2c8050"/></marker>
+    <style>
+      .title { font: 700 28px sans-serif; fill: #17212b; }
+      .heading { font: 700 21px sans-serif; fill: #17212b; }
+      .label { font: 18px sans-serif; fill: #17212b; }
+      .small { font: 15px sans-serif; fill: #43515c; }
+      .code { font: 15px monospace; fill: #43515c; }
+      .panel { fill: #f7f9fb; stroke: #c9d2da; stroke-width: 2; }
+      .axis-x { stroke: #1d5fa7; stroke-width: 3; marker-end: url(#arrow-blue); }
+      .axis-y { stroke: #b0443e; stroke-width: 3; marker-end: url(#arrow-red); }
+      .normal { stroke: #2c8050; stroke-width: 4; marker-end: url(#arrow-green); }
+      .measure { stroke: #687781; stroke-width: 3; stroke-dasharray: 7 6; marker-start: url(#arrow-blue); marker-end: url(#arrow-blue); }
+      .line { stroke: #17212b; stroke-width: 5; }
+      .point { fill: #17212b; }
+      .plane { fill: #b9d8e9; fill-opacity: 0.65; stroke: #4a88a8; stroke-width: 2; }
+    </style>
+  </defs>
+
+  <rect width="1400" height="920" fill="#ffffff"/>
+  <text x="700" y="42" text-anchor="middle" class="title">DYNAMICS geometry representations and operations</text>
+  <text x="700" y="70" text-anchor="middle" class="small">Points, lines, planes, and Plucker lines share a right-handed Cartesian geometry convention.</text>
+
+  <rect x="35" y="100" width="650" height="350" rx="8" class="panel"/>
+  <text x="360" y="138" text-anchor="middle" class="heading">Point, line, and plane</text>
+  <polygon points="140,350 430,270 610,355 320,435" class="plane"/>
+  <line x1="165" y1="385" x2="570" y2="205" class="line"/>
+  <circle cx="290" cy="330" r="8" class="point"/>
+  <circle cx="480" cy="250" r="8" class="point"/>
+  <text x="270" y="360" class="label">p</text>
+  <text x="485" y="240" class="label">q</text>
+  <text x="545" y="205" class="label">line v</text>
+  <line x1="290" y1="330" x2="355" y2="301" class="axis-x"/>
+  <line x1="290" y1="330" x2="290" y2="260" class="axis-y"/>
+  <text x="362" y="298" class="small">r0 + t v</text>
+  <text x="298" y="258" class="small">n</text>
+  <text x="390" y="388" class="label">plane: a x + b y + c z + d = 0</text>
+  <text x="65" y="420" class="code">point | line | plane | plane_normal | flip_normal</text>
+
+  <rect x="715" y="100" width="650" height="350" rx="8" class="panel"/>
+  <text x="1040" y="138" text-anchor="middle" class="heading">Projection and distance</text>
+  <line x1="790" y1="370" x2="1260" y2="205" class="line"/>
+  <circle cx="900" cy="330" r="8" class="point"/>
+  <circle cx="1130" cy="250" r="8" fill="#b0443e"/>
+  <circle cx="1020" cy="289" r="7" fill="#2c8050"/>
+  <line x1="900" y1="330" x2="1020" y2="289" class="normal"/>
+  <line x1="1130" y1="250" x2="1020" y2="289" class="measure"/>
+  <text x="882" y="358" class="label">p</text>
+  <text x="1138" y="245" class="label">q</text>
+  <text x="1028" y="310" class="small">nearest point</text>
+  <text x="930" y="305" class="small">normal / projection</text>
+  <polygon points="790,390 1040,330 1260,395 1010,445" class="plane"/>
+  <circle cx="1030" cy="385" r="7" class="point"/>
+  <line x1="1030" y1="290" x2="1030" y2="385" class="normal"/>
+  <text x="1040" y="375" class="small">point-plane distance</text>
+  <text x="745" y="420" class="code">nearest_point_on_line | point_to_line_distance</text>
+  <text x="745" y="440" class="code">point_plane_projection | vector_plane_projection | point_to_plane_distance</text>
+
+  <rect x="35" y="480" width="650" height="350" rx="8" class="panel"/>
+  <text x="360" y="518" text-anchor="middle" class="heading">Parallelism, intersection, and common normal</text>
+  <line x1="100" y1="690" x2="300" y2="585" class="line"/>
+  <line x1="410" y1="585" x2="610" y2="690" class="line"/>
+  <line x1="300" y1="585" x2="410" y2="585" class="normal"/>
+  <circle cx="300" cy="585" r="7" class="point"/>
+  <circle cx="410" cy="585" r="7" class="point"/>
+  <text x="280" y="565" class="small">closest on line 1</text>
+  <text x="415" y="565" class="small">closest on line 2</text>
+  <text x="335" y="575" class="label">common normal</text>
+  <line x1="120" y1="780" x2="570" y2="780" class="axis-x"/>
+  <line x1="345" y1="745" x2="345" y2="815" class="axis-y"/>
+  <circle cx="345" cy="780" r="8" class="point"/>
+  <text x="360" y="810" class="small">intersecting lines</text>
+  <text x="65" y="805" class="code">is_parallel | line_common_normal | do_lines_intersect</text>
+
+  <rect x="715" y="480" width="650" height="350" rx="8" class="panel"/>
+  <text x="1040" y="518" text-anchor="middle" class="heading">Plucker line coordinates</text>
+  <line x1="790" y1="745" x2="1230" y2="575" class="line"/>
+  <circle cx="900" cy="702" r="8" class="point"/>
+  <line x1="900" y1="702" x2="1050" y2="644" class="axis-x"/>
+  <text x="875" y="730" class="label">r0</text>
+  <text x="1058" y="640" class="label">u</text>
+  <path d="M 900 702 Q 850 620 930 570" fill="none" stroke="#2c8050" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <text x="820" y="590" class="label">m = r0 x u</text>
+  <text x="820" y="615" class="small">direction and moment coordinates</text>
+  <rect x="990" y="690" width="300" height="90" fill="#ffffff" stroke="#c9d2da" stroke-width="2"/>
+  <text x="1140" y="720" text-anchor="middle" class="label">L = [u, m]</text>
+  <text x="1140" y="750" text-anchor="middle" class="small">u . m = 0</text>
+  <text x="745" y="805" class="code">plucker_line | u | m | to_array | matmul</text>
+
+  <text x="700" y="875" text-anchor="middle" class="small">Constructors accept points, vectors, planes, point clouds, or coordinate arrays as described by each API routine.</text>
+</svg>

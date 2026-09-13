@@ -103,7 +103,9 @@ module dynamics_frequency_response
     interface frequency_response
         !! Computes the frequency response functions for a system of ODE's.
         module procedure :: frf_modal_prop_damp
+        module procedure :: frf_modal_prop_damp_sparse
         module procedure :: frf_modal_prop_damp_2
+        module procedure :: frf_modal_prop_damp_sparse_2
         module procedure :: siso_freqres
         module procedure :: mimo_freqres
     end interface
@@ -121,6 +123,11 @@ module dynamics_frequency_response
     interface evaluate_receptance_frf_model
         module procedure :: evaluate_receptance_frf_model_scalar
         module procedure :: evaluate_receptance_frf_model_array
+    end interface
+
+    interface modal_response
+        module procedure :: modal_response_dense
+        module procedure :: modal_response_sparse
     end interface
 
 ! ------------------------------------------------------------------------------
@@ -302,15 +309,108 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
+    function frf_modal_prop_damp_sparse(mass, stiff, alpha, beta, nmodes, &
+        freq, frc, modes, modeshapes, args) result(rst)
+        !! Computes a modal-truncated frequency response for a system with
+        !! proportional damping using CSR sparse mass and stiffness matrices.
+        !! The damping matrix is defined by \(C=\alpha M+\beta K\).
+        use dynamics_error_handling
+        use linalg, only : csr_matrix, matmul, size
+        type(csr_matrix), intent(in) :: mass
+            !! The N-by-N symmetric positive-definite mass matrix.
+        type(csr_matrix), intent(in) :: stiff
+            !! The N-by-N symmetric stiffness matrix.
+        real(real64), intent(in) :: alpha
+            !! The mass damping factor, \(\alpha\).
+        real(real64), intent(in) :: beta
+            !! The stiffness damping factor, \(\beta\).
+        integer(int32), intent(in) :: nmodes
+            !! The number of lowest-frequency modes to retain.  This value
+            !! must be greater than zero and less than N.
+        real(real64), intent(in), dimension(:) :: freq
+            !! An M-element array of frequency values in units of rad/s.
+        procedure(modal_excite), pointer, intent(in) :: frc
+            !! A pointer to the physical forcing function.
+        real(real64), intent(out), allocatable, optional, dimension(:) :: modes
+            !! An optional NMODES-element array containing the retained modal
+            !! frequencies in units of rad/s.
+        real(real64), intent(out), allocatable, optional, dimension(:,:) :: &
+            modeshapes
+            !! An optional N-by-NMODES matrix containing the mass-normalized
+            !! retained mode shapes.
+        class(*), intent(inout), optional :: args
+            !! An optional argument passed to the forcing function.
+        type(frf) :: rst
+            !! The modal-truncated frequency responses.
+
+        complex(real64), parameter :: j = (0.0d0, 1.0d0)
+        complex(real64), parameter :: zero = (0.0d0, 0.0d0)
+
+        integer(int32) :: i, imode, m, n
+        real(real64) :: modal_mass
+        complex(real64) :: s
+        real(real64), allocatable, dimension(:) :: mass_vec, modal_freqs, zeta
+        real(real64), allocatable, dimension(:,:) :: vecs
+        complex(real64), allocatable, dimension(:) :: f, q, u
+
+        m = size(freq)
+        n = size(mass, 1)
+
+        if (.not.(alpha >= 0.0d0) .or. .not.(beta >= 0.0d0)) &
+            error stop DYN_INVALID_INPUT_ERROR
+        if (.not.associated(frc)) error stop DYN_NULL_POINTER_ERROR
+
+        call modal_response(mass, stiff, nmodes, modal_freqs, vecs)
+
+        allocate(mass_vec(n))
+        do imode = 1, nmodes
+            mass_vec = matmul(mass, vecs(:,imode))
+            modal_mass = dot_product(vecs(:,imode), mass_vec)
+            if (.not.(modal_mass > 0.0d0)) &
+                error stop DYN_INVALID_INPUT_ERROR
+            vecs(:,imode) = vecs(:,imode) / sqrt(modal_mass)
+        end do
+
+        allocate(zeta(nmodes), source = compute_modal_damping( &
+            modal_freqs**2, alpha, beta))
+        allocate(f(n), source = zero)
+        allocate(q(nmodes), source = zero)
+        allocate(u(nmodes), source = zero)
+        allocate(rst%responses(m, n), source = zero)
+        allocate(rst%frequency(m), source = freq)
+
+        do i = 1, m
+            call frc(freq(i), f, args)
+            do imode = 1, nmodes
+                u(imode) = sum(vecs(:,imode) * f)
+            end do
+            s = j * freq(i)
+            q = u / (s**2 + 2.0d0 * zeta * modal_freqs * s + &
+                modal_freqs**2)
+            do imode = 1, nmodes
+                rst%responses(i,:) = rst%responses(i,:) + &
+                    vecs(:,imode) * q(imode)
+            end do
+        end do
+
+        if (present(modes)) then
+            allocate(modes(nmodes), source = modal_freqs)
+        end if
+        if (present(modeshapes)) then
+            allocate(modeshapes(n, nmodes), source = vecs)
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
     function frf_modal_prop_damp_2(mass, stiff, alpha, beta, nfreq, freq1, &
         freq2, frc, modes, modeshapes, args) result(rst)
         !! Computes the frequency response functions for a 
         !! multi-degree-of-freedom system that uses proportional damping such
         !! that the damping matrix \( C \) is related to the stiffness an mass
         !! matrices by proportional damping coefficients \( \alpha \) and
-            !! In modal coordinates, each mode has denominator
-            !! $$ s^2+2\zeta_i\omega_i s+\omega_i^2, $$
-            !! and the physical response is reconstructed from the mode shapes.
+        !! In modal coordinates, each mode has denominator
+        !! $$ s^2+2\zeta_i\omega_i s+\omega_i^2, $$
+        !! and the physical response is reconstructed from the mode shapes.
         !! \( \beta \) by \( C = \alpha M + \beta K \).
         use linalg, only : eigen, sort, mtx_mult, LA_NO_OPERATION, LA_TRANSPOSE
         use dynamics_error_handling
@@ -367,6 +467,63 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
+    function frf_modal_prop_damp_sparse_2(mass, stiff, alpha, beta, nmodes, &
+        nfreq, freq1, freq2, frc, modes, modeshapes, args) result(rst)
+        !! Computes a modal-truncated frequency response for a system with
+        !! proportional damping using CSR sparse mass and stiffness matrices.
+        !! The damping matrix is defined by \(C=\alpha M+\beta K\).
+        use dynamics_error_handling
+        use linalg, only : csr_matrix, matmul, size
+        type(csr_matrix), intent(in) :: mass
+            !! The N-by-N symmetric positive-definite mass matrix.
+        type(csr_matrix), intent(in) :: stiff
+            !! The N-by-N symmetric stiffness matrix.
+        real(real64), intent(in) :: alpha
+            !! The mass damping factor, \(\alpha\).
+        real(real64), intent(in) :: beta
+            !! The stiffness damping factor, \(\beta\).
+        integer(int32), intent(in) :: nmodes
+            !! The number of lowest-frequency modes to retain.  This value
+            !! must be greater than zero and less than N.
+        integer(int32), intent(in) :: nfreq
+            !! The number of frequency values to analyze.  This value must be
+            !! at least 2.
+        real(real64), intent(in) :: freq1
+            !! The starting frequency, in units of rad/s.
+        real(real64), intent(in) :: freq2
+            !! The ending frequency, in units of rad/s.
+        procedure(modal_excite), pointer, intent(in) :: frc
+            !! A pointer to the physical forcing function.
+        real(real64), intent(out), allocatable, optional, dimension(:) :: modes
+            !! An optional NMODES-element array containing the retained modal
+            !! frequencies in units of rad/s.
+        real(real64), intent(out), allocatable, optional, dimension(:,:) :: &
+            modeshapes
+            !! An optional N-by-NMODES matrix containing the mass-normalized
+            !! retained mode shapes.
+        class(*), intent(inout), optional :: args
+            !! An optional argument passed to the forcing function.
+        type(frf) :: rst
+            !! The modal-truncated frequency responses.
+
+        ! Local Variables
+        integer(int32) :: i
+        real(real64) :: df
+        real(real64), allocatable, dimension(:) :: freq
+
+        ! Input Checking
+        if (abs(freq1 - freq2) < sqrt(epsilon(freq1))) error stop DYN_INVALID_INPUT_ERROR
+        if (nfreq < 2) error stop DYN_INVALID_INPUT_ERROR
+
+        ! Process
+        df = (freq2 - freq1) / (nfreq - 1.0d0)
+        allocate(freq(nfreq))
+        freq = (/ (df * i + freq1, i = 0, nfreq - 1) /)
+        rst = frequency_response(mass, stiff, alpha, beta, nmodes, freq, frc, &
+            modes, modeshapes, args = args)
+    end function
+
+! ------------------------------------------------------------------------------
     pure elemental function compute_modal_damping(lambda, alpha, beta) &
         result(rst)
         !! Computes the modal damping factors \( \zeta_i \) given the
@@ -392,7 +549,7 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
-    pure subroutine modal_response(mass, stiff, freqs, modeshapes)
+    pure subroutine modal_response_dense(mass, stiff, freqs, modeshapes)
         !! Computes the modal frequencies and modes shapes for 
         !! multi-degree-of-freedom system.
         !! The generalized eigenproblem is
@@ -448,6 +605,88 @@ contains
         ! Convert the eigenvalues to frequency values
         if (any(real(vals) <= 0.0d0)) error stop DYN_INVALID_INPUT_ERROR
         allocate(freqs(n), source = sqrt(real(vals)))
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    subroutine modal_response_sparse(mass, stiff, nmodes, freqs, modeshapes)
+        !! Computes selected modal frequencies and mode shapes for a
+        !! multi-degree-of-freedom system using CSR sparse matrices.
+        !! The generalized eigenproblem is
+        !! $$ K\boldsymbol{\phi}_i=\lambda_iM\boldsymbol{\phi}_i,
+        !! \qquad \omega_i=\sqrt{\lambda_i}. $$
+        use dynamics_error_handling
+        use linalg, only : csr_matrix, eigen, size, sort
+        type(csr_matrix), intent(in) :: mass
+            !! The N-by-N symmetric positive-definite mass matrix.
+        type(csr_matrix), intent(in) :: stiff
+            !! The N-by-N symmetric stiffness matrix.
+        integer(int32), intent(in) :: nmodes
+            !! The number of lowest-frequency modes to compute.  This value
+            !! must be greater than zero and less than N.
+        real(real64), intent(out), allocatable, dimension(:) :: freqs
+            !! An allocatable NMODES-element array containing the modal
+            !! frequencies in ascending order with units of rad/s.
+        real(real64), intent(out), allocatable, optional, dimension(:,:) :: &
+            modeshapes
+            !! An optional, allocatable N-by-NMODES matrix containing one mode
+            !! shape per column.
+
+        integer(int32) :: i, j, loc, n
+        real(real64) :: mass_scale, stiff_scale, temp, tol
+        real(real64), allocatable, dimension(:) :: temp_vec, vals
+        real(real64), allocatable, dimension(:,:) :: vecs
+
+        n = size(mass, 1)
+
+        if (n < 1) error stop DYN_INVALID_INPUT_ERROR
+        if (size(mass, 2) /= n) error stop DYN_MATRIX_SIZE_ERROR
+        if (size(stiff, 1) /= n .or. size(stiff, 2) /= n) &
+            error stop DYN_MATRIX_SIZE_ERROR
+        if (nmodes < 1 .or. nmodes >= n) error stop DYN_INVALID_INPUT_ERROR
+
+        tol = 10.0d0 * epsilon(0.0d0)
+        mass_scale = 1.0d0
+        stiff_scale = 1.0d0
+        if (size(mass%values) > 0) &
+            mass_scale = max(mass_scale, maxval(abs(mass%values)))
+        if (size(stiff%values) > 0) &
+            stiff_scale = max(stiff_scale, maxval(abs(stiff%values)))
+        do j = 1, n
+            do i = mass%row_indices(j), mass%row_indices(j + 1) - 1
+                if (abs(mass%values(i) - &
+                    mass%get(mass%column_indices(i), j)) > &
+                    tol * mass_scale) error stop DYN_INVALID_INPUT_ERROR
+            end do
+            do i = stiff%row_indices(j), stiff%row_indices(j + 1) - 1
+                if (abs(stiff%values(i) - &
+                    stiff%get(stiff%column_indices(i), j)) > &
+                    tol * stiff_scale) error stop DYN_INVALID_INPUT_ERROR
+            end do
+        end do
+
+        if (present(modeshapes)) then
+            call eigen(stiff, mass, nmodes, vals, vecs, sigma = 0.0d0)
+            allocate(temp_vec(n))
+            do i = 1, size(vals) - 1
+                loc = i - 1 + minloc(vals(i:), 1)
+                if (loc /= i) then
+                    temp = vals(i)
+                    vals(i) = vals(loc)
+                    vals(loc) = temp
+                    temp_vec = vecs(:,i)
+                    vecs(:,i) = vecs(:,loc)
+                    vecs(:,loc) = temp_vec
+                end if
+            end do
+            allocate(modeshapes(n, size(vals)), source = vecs)
+        else
+            call eigen(stiff, mass, nmodes, vals, sigma = 0.0d0)
+            call sort(vals)
+        end if
+
+        if (size(vals) /= nmodes .or. any(vals <= 0.0d0)) &
+            error stop DYN_INVALID_INPUT_ERROR
+        allocate(freqs(nmodes), source = sqrt(vals))
     end subroutine
 
 ! ------------------------------------------------------------------------------

@@ -29,19 +29,20 @@ The `dynamics` module aggregates tools for analysis, modeling, and identificatio
     - Least-squares parameter estimation of dynamic models from measured input/output data.
     - Regression statistics and solver controls for fit quality and convergence behavior.
 - Kinematics, rigid-body motion, and robotics utilities
-    - Denavit-Hartenberg tools and forward/inverse kinematics.
+    - Denavit-Hartenberg parameter sets, transformations, and forward/inverse kinematics. See the [DH parameter diagram](images/dh_parameter_set.svg).
     - Jacobian-related helpers for mechanism analysis.
     - Serial-link linkage modeling (including revolute/prismatic joint handling).
     - Closed-loop (parallel) mechanism modeling with loop-closure constraints, mobility calculations, and constraint-partitioned Jacobians.
     - Graph-based mechanism topology utilities (spanning trees, independent loop identification).
     - Rotation transforms, angle-axis conversion, and quaternion algebra.
 - Geometry and vector utilities
-    - Plane/line/plucker-line utilities.
+    - Point, plane, line, and Plucker-line representations and constructors. See the [geometry operations diagram](images/geometry_operations.svg).
     - Point/line/plane projection and distance calculations.
     - Intersection/parallelism checks and common-normal calculations.
     - Vector helper routines such as cross products and skew-symmetric forms.
 - Structural dynamics
-    - 2D/3D beam element utilities and material/node/element abstractions.
+    - 2D/3D beam element utilities and material/node/element abstractions, with local-coordinate [beam system documentation](images/beam_coordinate_system.svg).
+    - Position-dependent beam shear-force and bending-moment extraction in 2D and 3D.
     - Connectivity matrix construction and boundary-condition application.
     - Sparse/CSR-oriented structural assembly helpers.
 - Stability analysis
@@ -459,9 +460,10 @@ module excitation
     implicit none
 
 contains
-    subroutine modal_frf_forcing_term(freq, f)
+    subroutine modal_frf_forcing_term(freq, f, args)
         real(real64), intent(in) :: freq
         complex(real64), intent(out), dimension(:) :: f
+        class(*), intent(inout), optional :: args
 
         complex(real64), parameter :: zero = (0.0d0, 0.0d0)
         complex(real64), parameter :: one = (1.0d0, 0.0d0)

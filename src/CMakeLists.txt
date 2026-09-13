@@ -22,6 +22,7 @@ set(DYNAMICS_SOURCES
     ${dir}/dynamics_joints.f90
     ${dir}/dynamics_linkage.f90
     ${dir}/dynamics_parallel_linkage.f90
+    ${dir}/dynamics_line_elements.f90
 )
 
 # C API
@@ -33,7 +34,7 @@ endif()
 # Dependencies
 include(FetchContent)
 find_package(OpenMP REQUIRED COMPONENTS Fortran)
-find_package(linalg 2.0.0 QUIET)
+find_package(linalg 2.1.0 QUIET)
 find_package(nonlin 2.2.0 QUIET)
 find_package(fstats 1.7.0 QUIET)
 find_package(diffeq 1.2.1 QUIET)

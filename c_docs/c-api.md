@@ -1,6 +1,6 @@
 # DYNAMICS C API
 
-The DYNAMICS C API is a C-compatible interface to the library. The public declarations are in [`dynamics.h`](../src/c/dynamics.h).
+The DYNAMICS C API is a C-compatible interface to the library. The public declarations are in [`dynamics.h`](../../src/c/dynamics.h).
 
 ## Conventions
 
@@ -28,9 +28,35 @@ cmake -S . -B build -DBUILD_DYNAMICS_C_INTERFACE=ON
 ## Example
 
 The repository contains a complete closed-loop example at
-[`examples/c_four_bar_example_1.c`](../examples/c_four_bar_example_1.c). It shows
+[`examples/c_four_bar_example_1.c`](../../examples/c_four_bar_example_1.c). It shows
 how to allocate mechanism links, connect them with `c_joint` values, create a
 planar linkage, solve its forward kinematics, and release all allocated data.
+
+## Beam coordinates
+
+The beam element APIs use the local element coordinate system shown below. The
+local x-axis runs from node 1 to node 2. For a 3D beam, the orientation point
+defines the local z-axis and the local y-axis completes the right-handed frame.
+
+![Beam element coordinate systems](../images/beam_coordinate_system.svg)
+
+## Denavit-Hartenberg parameters
+
+The `c_dh_parameter_set` structure follows the standard Denavit-Hartenberg
+convention used by the kinematics API. The transform maps coordinates from
+frame `i` into frame `i-1` as
+
+`Rz(joint_angle) Tz(link_offset) Tx(link_length) Rx(link_twist)`.
+
+![Standard Denavit-Hartenberg parameters](../images/dh_parameter_set.svg)
+
+## Geometry operations
+
+The geometry API provides point, line, plane, and Plucker-line representations,
+along with projection, distance, parallelism, intersection, and common-normal
+operations. The relationships are summarized below.
+
+![Geometry representations and operations](../images/geometry_operations.svg)
 
 ## Reference
 
@@ -44,6 +70,7 @@ The generated reference is organized by API area:
 - [Serial linkage operations](./group__dynamics__serial.html)
 - [Parallel and planar linkage operations](./group__dynamics__parallel.html)
 - [Transfer functions and state-space models](./group__dynamics__state.html)
+- [Structural analysis and line elements](./group__dynamics__structural.html)
 
 The complete declaration reference is also available from the generated [Data Structures](annotated.html) and [Files](files.html) pages.
 

@@ -129,7 +129,7 @@ jobs:
           mkdir -p consumer
           cat > consumer/CMakeLists.txt <<'EOF'
           cmake_minimum_required(VERSION 3.24)
-          project(dynamics_consumer LANGUAGES Fortran)
+          project(dynamics_consumer LANGUAGES Fortran C)
 
           find_package(dynamics CONFIG REQUIRED)
 
@@ -151,7 +151,7 @@ jobs:
             -DCMAKE_C_COMPILER=${{ env.CC }}
           )
           if [ "${{ runner.os }}" = "Windows" ]; then
-            INSTALL_PREFIX="${GITHUB_WORKSPACE//\\//}/install"
+            INSTALL_PREFIX="${GITHUB_WORKSPACE//\\//}/install;/c/msys64/mingw64"
             CMAKE_OPTIONS+=( -G "MinGW Makefiles" )
           else
             INSTALL_PREFIX="${{ github.workspace }}/install"
