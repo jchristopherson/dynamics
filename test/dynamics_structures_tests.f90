@@ -552,6 +552,44 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
+    function test_beam2d_internal_results() result(rst)
+        logical :: rst
+
+        real(real64), parameter :: length = 5.0d0
+        real(real64), parameter :: moi = 0.75d0
+        real(real64), parameter :: modulus = 3.0d7
+        real(real64), parameter :: coefficient = 1.0d-4
+        real(real64), parameter :: s(1) = [0.25d0]
+        real(real64), parameter :: x = 0.5d0 * length * (s(1) + 1.0d0)
+        real(real64), parameter :: tol = 1.0d-12
+
+        real(real64) :: displacement(6), expected_moment, expected_shear
+        type(material) :: mat
+        type(beam_element_2d) :: e
+
+        rst = .true.
+        mat = material(modulus, 0.3d0, 1.0d0)
+        e = beam_element_2d(mat, 2.5d0, moi, &
+            node(1, 3, 0.0d0, 0.0d0, 0.0d0), &
+            node(2, 3, length, 0.0d0, 0.0d0))
+        displacement = [0.0d0, 0.0d0, 0.0d0, &
+            0.0d0, coefficient * length**3, 3.0d0 * coefficient * length**2]
+        expected_moment = modulus * moi * 6.0d0 * coefficient * x
+        expected_shear = modulus * moi * 6.0d0 * coefficient
+
+        if (.not.assert(e%bending_moment(displacement, s), expected_moment, &
+                tol * abs(expected_moment))) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_beam2d_internal_results -1"
+        end if
+        if (.not.assert(e%shear_force(displacement, s), expected_shear, &
+                tol * abs(expected_shear))) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_beam2d_internal_results -2"
+        end if
+    end function
+
+! ------------------------------------------------------------------------------
     function test_nodally_averaged_stress() result(rst)
         logical :: rst
 
@@ -1602,6 +1640,55 @@ function test_beam3d_bending_strain() result(rst)
     if (.not.assert(strain, expected, 1.0d-12)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_beam3d_bending_strain -1"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_beam3d_internal_results() result(rst)
+    logical :: rst
+
+    real(real64), parameter :: length = 5.0d0
+    real(real64), parameter :: ixx = 0.8d0
+    real(real64), parameter :: iyy = 1.2d0
+    real(real64), parameter :: izz = 1.6d0
+    real(real64), parameter :: iyz = -0.3d0
+    real(real64), parameter :: modulus = 2.0d7
+    real(real64), parameter :: cy = 1.0d-4
+    real(real64), parameter :: cz = -2.0d-4
+    real(real64), parameter :: s(1) = [0.25d0]
+    real(real64), parameter :: x = 0.5d0 * length * (s(1) + 1.0d0)
+    real(real64), parameter :: tol = 1.0d-12
+
+    real(real64) :: displacement(12), expected_moment(3), expected_shear(2)
+    type(material) :: mat
+    type(beam_element_3d) :: e
+
+    rst = .true.
+    mat = material(modulus, 0.25d0, 1.0d0)
+    e = beam_element_3d(mat, 2.5d0, ixx, iyy, izz, iyz, &
+        node(1, 6, 0.0d0, 0.0d0, 0.0d0), &
+        node(2, 6, length, 0.0d0, 0.0d0), point(0.0d0, 0.0d0, -1.0d0))
+    displacement = 0.0d0
+    displacement(8) = cy * length**3
+    displacement(12) = 3.0d0 * cy * length**2
+    displacement(9) = cz * length**3
+    displacement(11) = -3.0d0 * cz * length**2
+    expected_moment = [0.0d0, 0.0d0, &
+        modulus * (izz * 6.0d0 * cy * x + iyz * 6.0d0 * cz * x)]
+    expected_moment(2) = modulus * (iyz * 6.0d0 * cy * x + &
+        iyy * 6.0d0 * cz * x)
+    expected_shear = [modulus * (izz * 6.0d0 * cy + iyz * 6.0d0 * cz), &
+        -modulus * (iyz * 6.0d0 * cy + iyy * 6.0d0 * cz)]
+
+    if (.not.assert(e%bending_moment(displacement, s), expected_moment, &
+            tol * maxval(abs(expected_moment)))) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_beam3d_internal_results -1"
+    end if
+    if (.not.assert(e%shear_force(displacement, s), expected_shear, &
+            tol * maxval(abs(expected_shear)))) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_beam3d_internal_results -2"
     end if
 end function
 

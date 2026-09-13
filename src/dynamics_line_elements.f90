@@ -36,6 +36,8 @@ module dynamics_line_elements
         procedure, public :: rotation_matrix => b2d_rotation_matrix
         procedure, public :: stiffness_matrix => b2d_stiffness_matrix
         procedure, public :: mass_matrix => b2d_mass_matrix
+        procedure, public :: shear_force => b2d_shear_force
+        procedure, public :: bending_moment => b2d_bending_moment
     end type
 
     interface beam_element_2d
@@ -77,6 +79,8 @@ module dynamics_line_elements
         procedure, public :: rotation_matrix => b3d_rotation_matrix
         procedure, public :: stiffness_matrix => b3d_stiffness_matrix
         procedure, public :: mass_matrix => b3d_mass_matrix
+        procedure, public :: shear_force => b3d_shear_force
+        procedure, public :: bending_moment => b3d_bending_moment
     end type
 
     interface beam_element_3d
@@ -282,6 +286,57 @@ pure function b2d_constitutive_matrix(this) result(rst)
     allocate(rst(2,2), source = 0.0d0)
     rst(1,1) = this%area * this%material%modulus
     rst(2,2) = this%moment_of_inertia * this%material%modulus
+end function
+
+! ------------------------------------------------------------------------------
+pure function b2d_bending_moment(this, displacement, s) result(rst)
+    !! Computes the local bending moment at the specified natural coordinate.
+    class(beam_element_2d), intent(in) :: this
+        !! The beam element.
+    real(real64), intent(in), dimension(:) :: displacement
+        !! The element displacement vector in the global coordinate system.
+    real(real64), intent(in), dimension(:) :: s
+        !! The natural coordinate at which to evaluate the moment.
+    real(real64) :: rst
+        !! The local bending moment.
+
+    real(real64), allocatable :: t(:,:), b(:,:)
+    real(real64) :: local_displacement(6)
+
+    t = this%rotation_matrix()
+    if (size(displacement) /= size(t, 2)) error stop DYN_ARRAY_SIZE_ERROR
+    local_displacement = matmul(transpose(t), displacement)
+    b = b2d_strain_disp_matrix_2d(this, s)
+    rst = this%moment_of_inertia * this%material%modulus * &
+        dot_product(b(2,:), local_displacement)
+end function
+
+! ------------------------------------------------------------------------------
+pure function b2d_shear_force(this, displacement, s) result(rst)
+    !! Computes the local shear force at the specified natural coordinate.
+    !! The sign convention is the derivative of the local bending moment with
+    !! respect to the local element coordinate.
+    class(beam_element_2d), intent(in) :: this
+        !! The beam element.
+    real(real64), intent(in), dimension(:) :: displacement
+        !! The element displacement vector in the global coordinate system.
+    real(real64), intent(in), dimension(:) :: s
+        !! The natural coordinate at which to evaluate the shear force.
+    real(real64) :: rst
+        !! The local shear force.
+
+    real(real64), allocatable :: t(:,:)
+    real(real64) :: local_displacement(6), l
+
+    t = this%rotation_matrix()
+    if (size(displacement) /= size(t, 2)) error stop DYN_ARRAY_SIZE_ERROR
+    local_displacement = matmul(transpose(t), displacement)
+    l = this%length()
+    rst = this%moment_of_inertia * this%material%modulus * &
+        (12.0d0 * local_displacement(2) / l**3 + &
+         6.0d0 * local_displacement(3) / l**2 - &
+         12.0d0 * local_displacement(5) / l**3 + &
+         6.0d0 * local_displacement(6) / l**2)
 end function
 
 ! ------------------------------------------------------------------------------
@@ -709,6 +764,69 @@ pure function b3d_constitutive_matrix(this) result(rst)
     rst(3,2) = rst(2,3)
     rst(4,4) = this%Ixx * this%material%modulus / &
         (2.0d0 * (1.0d0 + this%material%poissons_ratio))
+end function
+
+! ------------------------------------------------------------------------------
+pure function b3d_bending_moment(this, displacement, s) result(rst)
+    !! Computes the local moment vector at the specified natural coordinate.
+    !! The result is ordered as [torsional, y-axis, z-axis] moments.
+    class(beam_element_3d), intent(in) :: this
+        !! The beam element.
+    real(real64), intent(in), dimension(:) :: displacement
+        !! The element displacement vector in the global coordinate system.
+    real(real64), intent(in), dimension(:) :: s
+        !! The natural coordinate at which to evaluate the moments.
+    real(real64) :: rst(3)
+        !! The local moment vector.
+
+    real(real64), allocatable :: t(:,:), b(:,:)
+    real(real64) :: local_displacement(12), curvature(2), torsion, e
+
+    t = this%rotation_matrix()
+    if (size(displacement) /= size(t, 2)) error stop DYN_ARRAY_SIZE_ERROR
+    local_displacement = matmul(transpose(t), displacement)
+    b = b3d_strain_disp_matrix_3d(this, s)
+    curvature = [dot_product(b(2,:), local_displacement), &
+        dot_product(b(3,:), local_displacement)]
+    torsion = dot_product(b(4,:), local_displacement)
+    e = this%material%modulus
+    rst = [e * this%Ixx * torsion, &
+        e * (this%Iyz * curvature(1) + this%Iyy * curvature(2)), &
+        e * (this%Izz * curvature(1) + this%Iyz * curvature(2))]
+end function
+
+! ------------------------------------------------------------------------------
+pure function b3d_shear_force(this, displacement, s) result(rst)
+    !! Computes the local shear force vector at the specified natural
+    !! coordinate.  The result is ordered as [y-axis, z-axis] forces.
+    class(beam_element_3d), intent(in) :: this
+        !! The beam element.
+    real(real64), intent(in), dimension(:) :: displacement
+        !! The element displacement vector in the global coordinate system.
+    real(real64), intent(in), dimension(:) :: s
+        !! The natural coordinate at which to evaluate the shear forces.
+    real(real64) :: rst(2)
+        !! The local shear force vector.
+
+    real(real64), allocatable :: t(:,:)
+    real(real64) :: local_displacement(12), dcurvature(2), l, e
+
+    t = this%rotation_matrix()
+    if (size(displacement) /= size(t, 2)) error stop DYN_ARRAY_SIZE_ERROR
+    local_displacement = matmul(transpose(t), displacement)
+    l = this%length()
+    dcurvature = [&
+        12.0d0 * local_displacement(2) / l**3 + &
+        6.0d0 * local_displacement(6) / l**2 - &
+        12.0d0 * local_displacement(8) / l**3 + &
+        6.0d0 * local_displacement(12) / l**2, &
+        12.0d0 * local_displacement(3) / l**3 - &
+        6.0d0 * local_displacement(5) / l**2 - &
+        12.0d0 * local_displacement(9) / l**3 - &
+        6.0d0 * local_displacement(11) / l**2]
+    e = this%material%modulus
+    rst = [e * (this%Izz * dcurvature(1) + this%Iyz * dcurvature(2)), &
+        -e * (this%Iyz * dcurvature(1) + this%Iyy * dcurvature(2))]
 end function
 
 ! ------------------------------------------------------------------------------
