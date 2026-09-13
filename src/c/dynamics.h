@@ -506,6 +506,8 @@ typedef struct
 
 /**
  * @brief One Denavit-Hartenberg parameter set.
+ *
+ * @image html dh_parameter_set.svg "Standard Denavit-Hartenberg parameters"
  */
 typedef struct
 {
@@ -774,6 +776,8 @@ typedef struct
 
 /**
  * @brief A two-dimensional Bernoulli-Euler beam element.
+ *
+ * @image html beam_coordinate_system.svg "Beam element coordinate systems"
  */
 typedef struct
 {
@@ -801,6 +805,8 @@ typedef struct
 
 /**
  * @brief A three-dimensional Bernoulli-Euler beam element.
+ *
+ * @image html beam_coordinate_system.svg "Beam element coordinate systems"
  */
 typedef struct
 {
@@ -1601,6 +1607,7 @@ void c_quaternion_to_roll_pitch_yaw(const c_quaternion *q, double *roll,
 /**
  * @defgroup dynamics_geometry Geometry operations
  * @{
+ * @image html geometry_operations.svg "Geometry representations and operations"
  */
 /**
  * Extract a plane normal.
@@ -2383,6 +2390,25 @@ void c_beam_element_2d_strain(const c_beam_element_2d *elem,
 void c_beam_element_2d_stress(const c_beam_element_2d *elem,
     const double displacement[6], double s, double stress[2]);
 /**
+ * Compute the local shear force in a 2D beam element at a natural coordinate.
+ * @param elem Beam element.
+ * @param displacement 6-element element displacement vector.
+ * @param s Natural coordinate in [-1, 1].
+ * @return Local shear force.
+ */
+double c_beam_element_2d_shear_force(const c_beam_element_2d *elem,
+    const double displacement[6], double s);
+/**
+ * Compute the local bending moment in a 2D beam element at a natural
+ * coordinate.
+ * @param elem Beam element.
+ * @param displacement 6-element element displacement vector.
+ * @param s Natural coordinate in [-1, 1].
+ * @return Local bending moment.
+ */
+double c_beam_element_2d_bending_moment(const c_beam_element_2d *elem,
+    const double displacement[6], double s);
+/**
  * Compute the equivalent nodal force vector for a distributed load on a 2D
  * beam element.
  * @param elem Beam element.
@@ -2442,6 +2468,26 @@ void c_beam_element_3d_strain(const c_beam_element_3d *elem,
  */
 void c_beam_element_3d_stress(const c_beam_element_3d *elem,
     const double displacement[12], double s, double stress[4]);
+/**
+ * Compute the local shear-force vector in a 3D beam element at a natural
+ * coordinate. The output is ordered [y-axis, z-axis].
+ * @param elem Beam element.
+ * @param displacement 12-element element displacement vector.
+ * @param s Natural coordinate in [-1, 1].
+ * @param force Output 2-element local shear-force vector.
+ */
+void c_beam_element_3d_shear_force(const c_beam_element_3d *elem,
+    const double displacement[12], double s, double force[2]);
+/**
+ * Compute the local moment vector in a 3D beam element at a natural
+ * coordinate. The output is ordered [torsional, y-axis, z-axis].
+ * @param elem Beam element.
+ * @param displacement 12-element element displacement vector.
+ * @param s Natural coordinate in [-1, 1].
+ * @param moment Output 3-element local moment vector.
+ */
+void c_beam_element_3d_bending_moment(const c_beam_element_3d *elem,
+    const double displacement[12], double s, double moment[3]);
 /**
  * Compute the equivalent nodal force vector for a distributed load on a 3D
  * beam element.

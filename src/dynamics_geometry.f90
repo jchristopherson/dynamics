@@ -1,4 +1,11 @@
 module dynamics_geometry
+    !! Geometry primitives and operations for points, lines, planes, and
+    !! Plucker line coordinates.
+    !!
+    !! ![Geometry representations and operations](../../images/geometry_operations.svg)
+    !!
+    !! The diagram summarizes the representations and geometric relationships
+    !! used by the public constructors and query routines in this module.
     use iso_fortran_env
     use dynamics_helper
     use ieee_arithmetic

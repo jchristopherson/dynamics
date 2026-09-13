@@ -24,3 +24,4 @@ GENERATE_LATEX         = NO
 GENERATE_MAN           = NO
 GENERATE_XML           = NO
 HAVE_DOT               = NO
+IMAGE_PATH             = images

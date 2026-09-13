@@ -3300,6 +3300,30 @@ subroutine c_beam_element_2d_stress(elem, displacement, s, stress) &
 end subroutine
 
 ! ------------------------------------------------------------------------------
+function c_beam_element_2d_shear_force(elem, displacement, s) result(rst) &
+    bind(C, name = "c_beam_element_2d_shear_force")
+    type(c_beam_element_2d), intent(in) :: elem
+    real(c_double), intent(in) :: displacement(6)
+    real(c_double), intent(in), value :: s
+    real(c_double) :: rst
+    type(beam_element_2d) :: e
+    e = c_to_beam_element_2d(elem)
+    rst = e%shear_force(displacement, [s])
+end function
+
+! ------------------------------------------------------------------------------
+function c_beam_element_2d_bending_moment(elem, displacement, s) result(rst) &
+    bind(C, name = "c_beam_element_2d_bending_moment")
+    type(c_beam_element_2d), intent(in) :: elem
+    real(c_double), intent(in) :: displacement(6)
+    real(c_double), intent(in), value :: s
+    real(c_double) :: rst
+    type(beam_element_2d) :: e
+    e = c_to_beam_element_2d(elem)
+    rst = e%bending_moment(displacement, [s])
+end function
+
+! ------------------------------------------------------------------------------
 subroutine c_beam_element_2d_external_force_vector(elem, q, rule, f) &
     bind(C, name = "c_beam_element_2d_external_force_vector")
     type(c_beam_element_2d), intent(in) :: elem
@@ -3393,6 +3417,30 @@ subroutine c_beam_element_3d_stress(elem, displacement, s, stress) &
     type(beam_element_3d) :: e
     e = c_to_beam_element_3d(elem)
     stress = e%stress(displacement, [s])
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_beam_element_3d_shear_force(elem, displacement, s, force) &
+    bind(C, name = "c_beam_element_3d_shear_force")
+    type(c_beam_element_3d), intent(in) :: elem
+    real(c_double), intent(in) :: displacement(12)
+    real(c_double), intent(in), value :: s
+    real(c_double), intent(out) :: force(2)
+    type(beam_element_3d) :: e
+    e = c_to_beam_element_3d(elem)
+    force = e%shear_force(displacement, [s])
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine c_beam_element_3d_bending_moment(elem, displacement, s, moment) &
+    bind(C, name = "c_beam_element_3d_bending_moment")
+    type(c_beam_element_3d), intent(in) :: elem
+    real(c_double), intent(in) :: displacement(12)
+    real(c_double), intent(in), value :: s
+    real(c_double), intent(out) :: moment(3)
+    type(beam_element_3d) :: e
+    e = c_to_beam_element_3d(elem)
+    moment = e%bending_moment(displacement, [s])
 end subroutine
 
 ! ------------------------------------------------------------------------------

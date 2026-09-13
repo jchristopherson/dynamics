@@ -71,6 +71,13 @@ module dynamics_kinematics
 
     type dh_parameter_set
         !! Describes a set of Denavit-Hartenberg parameters for a single joint.
+        !!
+        !! ![Denavit-Hartenberg parameters](../../images/dh_parameter_set.svg)
+        !!
+        !! The parameters follow the standard convention used by
+        !! [[dh_matrix]]: the transform maps coordinates from frame i into
+        !! frame i-1 as
+        !! $$ {}^{i-1}T_i=R_z(\theta_i)T_z(d_i)T_x(a_i)R_x(\alpha_i). $$
         real(real64) :: link_length
             !! The link length is the distance between the proximal and distal
             !! joint axes as measured along the link's x-axis.
