@@ -105,6 +105,7 @@ module dynamics_frequency_response
         module procedure :: frf_modal_prop_damp
         module procedure :: frf_modal_prop_damp_sparse
         module procedure :: frf_modal_prop_damp_2
+        module procedure :: frf_modal_prop_damp_sparse_2
         module procedure :: siso_freqres
         module procedure :: mimo_freqres
     end interface
@@ -463,6 +464,63 @@ contains
         freq = (/ (df * i + freq1, i = 0, nfreq - 1) /)
         rst = frequency_response(mass, stiff, alpha, beta, freq, frc, modes, &
             modeshapes, args = args)
+    end function
+
+! ------------------------------------------------------------------------------
+    function frf_modal_prop_damp_sparse_2(mass, stiff, alpha, beta, nmodes, &
+        nfreq, freq1, freq2, frc, modes, modeshapes, args) result(rst)
+        !! Computes a modal-truncated frequency response for a system with
+        !! proportional damping using CSR sparse mass and stiffness matrices.
+        !! The damping matrix is defined by \(C=\alpha M+\beta K\).
+        use dynamics_error_handling
+        use linalg, only : csr_matrix, matmul, size
+        type(csr_matrix), intent(in) :: mass
+            !! The N-by-N symmetric positive-definite mass matrix.
+        type(csr_matrix), intent(in) :: stiff
+            !! The N-by-N symmetric stiffness matrix.
+        real(real64), intent(in) :: alpha
+            !! The mass damping factor, \(\alpha\).
+        real(real64), intent(in) :: beta
+            !! The stiffness damping factor, \(\beta\).
+        integer(int32), intent(in) :: nmodes
+            !! The number of lowest-frequency modes to retain.  This value
+            !! must be greater than zero and less than N.
+        integer(int32), intent(in) :: nfreq
+            !! The number of frequency values to analyze.  This value must be
+            !! at least 2.
+        real(real64), intent(in) :: freq1
+            !! The starting frequency, in units of rad/s.
+        real(real64), intent(in) :: freq2
+            !! The ending frequency, in units of rad/s.
+        procedure(modal_excite), pointer, intent(in) :: frc
+            !! A pointer to the physical forcing function.
+        real(real64), intent(out), allocatable, optional, dimension(:) :: modes
+            !! An optional NMODES-element array containing the retained modal
+            !! frequencies in units of rad/s.
+        real(real64), intent(out), allocatable, optional, dimension(:,:) :: &
+            modeshapes
+            !! An optional N-by-NMODES matrix containing the mass-normalized
+            !! retained mode shapes.
+        class(*), intent(inout), optional :: args
+            !! An optional argument passed to the forcing function.
+        type(frf) :: rst
+            !! The modal-truncated frequency responses.
+
+        ! Local Variables
+        integer(int32) :: i
+        real(real64) :: df
+        real(real64), allocatable, dimension(:) :: freq
+
+        ! Input Checking
+        if (abs(freq1 - freq2) < sqrt(epsilon(freq1))) error stop DYN_INVALID_INPUT_ERROR
+        if (nfreq < 2) error stop DYN_INVALID_INPUT_ERROR
+
+        ! Process
+        df = (freq2 - freq1) / (nfreq - 1.0d0)
+        allocate(freq(nfreq))
+        freq = (/ (df * i + freq1, i = 0, nfreq - 1) /)
+        rst = frequency_response(mass, stiff, alpha, beta, nmodes, freq, frc, &
+            modes, modeshapes, args = args)
     end function
 
 ! ------------------------------------------------------------------------------

@@ -67,6 +67,13 @@ program example
     real(real64), parameter :: poissons_ratio = 0.33d0
     real(real64), parameter :: density = 2.7d3
 
+    ! FRF Parameters
+    integer(int32), parameter :: nfreq = 1000
+    real(real64), parameter :: alpha = 1.0d-3
+    real(real64), parameter :: beta = 2.0d-6
+    real(real64), parameter :: minfreq = 2.0d0 * pi * 1.0d1
+    real(real64), parameter :: maxfreq = 2.0d0 * pi * 1.0d3
+
     ! Variables
     type(material) :: mat
     type(node) :: nodes(nnodes)
@@ -77,6 +84,8 @@ program example
     real(real64), allocatable, dimension(:) :: F, Fbc, ubc, u, Fr, freqs
     real(real64), allocatable, dimension(:,:) :: shapesbc, shapes
     type(csr_matrix) :: K, Kbc, M, Mbc
+    type(frf) :: frsp
+    procedure(modal_excite), pointer :: excitefcn
     character(len = 32) :: str
 
     ! Create the material
@@ -190,10 +199,37 @@ program example
     ! Plot each of the lowest-frequency mode shapes
     do i = 1, min(n_plot_modes, size(freqs))
         write(str, "(A, I0, A, F0.3, A)") "Mode ", i, ": ", freqs(i), " Hz"
-        call plot_deflection(nodes, shapes(:,i), leg_nodes, 1.0d0, trim(str))
+        call plot_deflection(nodes, shapes(:,i), leg_nodes, 1.0d-1, trim(str))
     end do
 
+! ******************************************************************************
+! HARMONIC ANALYSIS
+! ------------------------------------------------------------------------------
+    excitefcn => modal_frf_forcing_term
+    frsp = frequency_response(Mbc, Kbc, alpha, beta, n_plot_modes, nfreq, &
+        minfreq, maxfreq, excitefcn)
+    call plot_frf(frsp, 5)
+
 contains
+! ------------------------------------------------------------------------------
+    subroutine modal_frf_forcing_term(freq_, f_, args_)
+        !! The forcing function.
+        real(real64), intent(in) :: freq_
+            !! The frequency value.
+        complex(real64), intent(out), dimension(:) :: f_
+            !! The output forcing vector.
+        class(*), intent(inout), optional :: args_
+
+        complex(real64), parameter :: zero = (0.0d0, 0.0d0)
+
+        ! Set f_ to zeros
+        f_ = zero
+
+        ! Assign the forcing term to the appropriate node
+        f_(5) = applied_force
+    end subroutine
+
+! ------------------------------------------------------------------------------
     subroutine plot_deflection(nodes_, u_, leg_nodes_, scaling, title)
         use fplot_core
         !! Plots the deformed shape
@@ -245,4 +281,44 @@ contains
 
         call plt%draw()
     end subroutine
+
+! ------------------------------------------------------------------------------
+    subroutine plot_frf(rsp_, dof_)
+        use fplot_core
+        !! Plots the FRF of the requested degree of freedom.
+        type(frf), intent(in) :: rsp_
+            !! The frequency response.
+        integer(int32), intent(in) :: dof_
+            !! The degree of freedom to plot.
+
+        ! Local Variables
+        type(multiplot) :: plt
+        type(plot_2d) :: plt1, plt2
+
+        ! Create the plot
+        call plt%initialize(2, 1, width = 1000, height = 500)
+        call plt1%initialize()
+        call plt2%initialize()
+
+        call plt1%set_x_axis_title("f [Hz]")
+        call plt1%set_y_axis_title("|X| [dB]")
+        call plt2%set_x_axis_title("f [Hz]")
+        call plt2%set_y_axis_title("{/Symbol f} [deg]")
+
+        call plt1%push( &
+            rsp_%frequency / (2.0d0 * pi), &
+            2.0d1 * log10(abs(rsp_%responses(:,dof_)) / abs(rsp_%responses(1,dof_))) &
+        )
+        call plt%set(1, 1, plt1)
+
+        call plt2%push( &
+            rsp_%frequency / (2.0d0 * pi), &
+            (1.8d2 / pi) * atan2(aimag(rsp_%responses(:,dof_)), real(rsp_%responses(:,dof_))) &
+        )
+        call plt%set(2, 1, plt2)
+        
+        call plt%draw()
+    end subroutine
+
+! ------------------------------------------------------------------------------
 end program
