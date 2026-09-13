@@ -28,11 +28,14 @@ var NAVTREE =
     [ "Conventions", "index.html#autotoc_md1", null ],
     [ "Linking", "index.html#autotoc_md2", null ],
     [ "Example", "index.html#autotoc_md3", null ],
-    [ "Reference", "index.html#autotoc_md4", null ],
+    [ "Beam coordinates", "index.html#autotoc_md4", null ],
+    [ "Denavit-Hartenberg parameters", "index.html#autotoc_md5", null ],
+    [ "Geometry operations", "index.html#autotoc_md6", null ],
+    [ "Reference", "index.html#autotoc_md7", null ],
     [ "DYNAMICS C API Routine Reference", "md__2home_2runner_2work_2dynamics_2dynamics_2c__docs_2c-api-reference.html", [
-      [ "Reading routine declarations", "md__2home_2runner_2work_2dynamics_2dynamics_2c__docs_2c-api-reference.html#autotoc_md6", null ],
-      [ "Argument conventions", "md__2home_2runner_2work_2dynamics_2dynamics_2c__docs_2c-api-reference.html#autotoc_md7", null ],
-      [ "Complete routine list", "md__2home_2runner_2work_2dynamics_2dynamics_2c__docs_2c-api-reference.html#autotoc_md8", null ]
+      [ "Reading routine declarations", "md__2home_2runner_2work_2dynamics_2dynamics_2c__docs_2c-api-reference.html#autotoc_md9", null ],
+      [ "Argument conventions", "md__2home_2runner_2work_2dynamics_2dynamics_2c__docs_2c-api-reference.html#autotoc_md10", null ],
+      [ "Complete routine list", "md__2home_2runner_2work_2dynamics_2dynamics_2c__docs_2c-api-reference.html#autotoc_md11", null ]
     ] ],
     [ "Topics", "topics.html", "topics" ],
     [ "Classes", "annotated.html", [
@@ -58,7 +61,7 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "annotated.html",
-"structc__coordinate__system.html#ab8bcfd5c8a36f6a11d367192c892ca05"
+"group__dynamics__structural.html#ga8a3831109b1c57e59a48eccf7b4be5f1"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

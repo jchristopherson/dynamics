@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700" role="img" aria-labelledby="title desc">
+  <title id="title">Denavit-Hartenberg parameter set</title>
+  <desc id="desc">Standard Denavit-Hartenberg geometry showing link length a, link twist alpha, link offset d, and joint angle theta between consecutive coordinate frames.</desc>
+  <defs>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1d5fa7"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#b0443e"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2c8050"/>
+    </marker>
+    <marker id="arrow-gray" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#687781"/>
+    </marker>
+    <style>
+      .title { font: 700 26px sans-serif; fill: #17212b; }
+      .heading { font: 700 21px sans-serif; fill: #17212b; }
+      .label { font: 18px sans-serif; fill: #17212b; }
+      .small { font: 16px sans-serif; fill: #43515c; }
+      .axis-x { stroke: #1d5fa7; stroke-width: 4; marker-end: url(#arrow-blue); }
+      .axis-z { stroke: #b0443e; stroke-width: 4; marker-end: url(#arrow-red); }
+      .axis-y { stroke: #2c8050; stroke-width: 4; marker-end: url(#arrow-green); }
+      .measure { stroke: #687781; stroke-width: 3; marker-start: url(#arrow-gray); marker-end: url(#arrow-gray); }
+      .guide { stroke: #aab6bf; stroke-width: 2; stroke-dasharray: 7 7; }
+      .frame { fill: #17212b; }
+      .panel { fill: #f7f9fb; stroke: #c9d2da; stroke-width: 2; }
+      .link { stroke: #17212b; stroke-width: 12; stroke-linecap: round; }
+      .arc { fill: none; stroke-width: 3; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="700" fill="#ffffff"/>
+  <text x="600" y="42" text-anchor="middle" class="title">Standard Denavit-Hartenberg parameter set</text>
+  <text x="600" y="70" text-anchor="middle" class="small">Frame i is related to frame i-1 by Rz(theta_i) Tz(d_i) Tx(a_i) Rx(alpha_i)</text>
+
+  <rect x="35" y="95" width="720" height="540" rx="8" class="panel"/>
+  <text x="395" y="135" text-anchor="middle" class="heading">Consecutive joint frames</text>
+
+  <!-- Proximal z axis and distal z axis -->
+  <line x1="205" y1="520" x2="205" y2="215" class="axis-z"/>
+  <line x1="575" y1="485" x2="690" y2="205" class="axis-z"/>
+  <circle cx="205" cy="520" r="9" class="frame"/>
+  <circle cx="575" cy="485" r="9" class="frame"/>
+  <text x="170" y="210" class="label" fill="#b0443e">+z<tspan baseline-shift="sub">i-1</tspan></text>
+  <text x="682" y="190" class="label" fill="#b0443e">+z<tspan baseline-shift="sub">i</tspan></text>
+  <text x="135" y="550" class="label">O<tspan baseline-shift="sub">i-1</tspan></text>
+  <text x="585" y="515" class="label">O<tspan baseline-shift="sub">i</tspan></text>
+
+  <!-- Common normal / link x axis -->
+  <line x1="205" y1="520" x2="575" y2="485" class="link"/>
+  <line x1="205" y1="520" x2="440" y2="498" class="axis-x"/>
+  <text x="330" y="475" class="label" fill="#1d5fa7">+x<tspan baseline-shift="sub">i</tspan> (common normal)</text>
+
+  <!-- d measurement -->
+  <line x1="160" y1="520" x2="160" y2="355" class="measure"/>
+  <line x1="160" y1="355" x2="205" y2="355" class="guide"/>
+  <text x="112" y="445" class="label">d<tspan baseline-shift="sub">i</tspan></text>
+  <text x="75" y="465" class="small">link offset</text>
+
+  <!-- a measurement -->
+  <line x1="205" y1="570" x2="575" y2="535" class="measure"/>
+  <text x="382" y="568" class="label">a<tspan baseline-shift="sub">i</tspan></text>
+  <text x="350" y="590" class="small">link length</text>
+
+  <!-- theta arc -->
+  <path d="M 205 405 A 115 115 0 0 1 315 514" class="arc" stroke="#2c8050"/>
+  <text x="270" y="415" class="label" fill="#2c8050">theta<tspan baseline-shift="sub">i</tspan></text>
+  <text x="270" y="438" class="small">about z<tspan baseline-shift="sub">i-1</tspan></text>
+
+  <!-- alpha arc -->
+  <path d="M 575 400 A 85 85 0 0 0 610 392" class="arc" stroke="#b0443e"/>
+  <text x="620" y="380" class="label" fill="#b0443e">alpha<tspan baseline-shift="sub">i</tspan></text>
+  <text x="620" y="402" class="small">about x<tspan baseline-shift="sub">i</tspan></text>
+
+  <text x="75" y="615" class="small">The axes and dimensions are shown schematically; signs follow the right-hand rule.</text>
+
+  <rect x="785" y="95" width="380" height="540" rx="8" class="panel"/>
+  <text x="975" y="135" text-anchor="middle" class="heading">dh_parameter_set</text>
+  <text x="820" y="195" class="label">link_length</text>
+  <text x="1125" y="195" text-anchor="end" class="small">a<tspan baseline-shift="sub">i</tspan></text>
+  <line x1="820" y1="210" x2="1130" y2="210" class="guide"/>
+  <text x="820" y="270" class="label">link_twist</text>
+  <text x="1125" y="270" text-anchor="end" class="small">alpha<tspan baseline-shift="sub">i</tspan></text>
+  <line x1="820" y1="285" x2="1130" y2="285" class="guide"/>
+  <text x="820" y="345" class="label">link_offset</text>
+  <text x="1125" y="345" text-anchor="end" class="small">d<tspan baseline-shift="sub">i</tspan></text>
+  <line x1="820" y1="360" x2="1130" y2="360" class="guide"/>
+  <text x="820" y="420" class="label">joint_angle</text>
+  <text x="1125" y="420" text-anchor="end" class="small">theta<tspan baseline-shift="sub">i</tspan></text>
+  <line x1="820" y1="435" x2="1130" y2="435" class="guide"/>
+  <text x="975" y="505" text-anchor="middle" class="small">All angles are in radians.</text>
+  <text x="975" y="545" text-anchor="middle" class="small">The transform maps frame i</text>
+  <text x="975" y="568" text-anchor="middle" class="small">coordinates into frame i-1.</text>
+</svg>

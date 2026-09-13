@@ -88,7 +88,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 9.0% of total for modules and submodules.">530 statements</a>
+               title=" 8.5% of total for modules and submodules.">562 statements</a>
           </li>
 
             <li id="source-file">
@@ -137,6 +137,7 @@
             <a class="list-group-item" href="../module/dynamics_geometry.html#interface-matmul">matmul</a>
             <a class="list-group-item" href="../module/dynamics_geometry.html#interface-plane">plane</a>
             <a class="list-group-item" href="../module/dynamics_geometry.html#interface-plucker_line">plucker_line</a>
+            <a class="list-group-item" href="../module/dynamics_geometry.html#interface-point">point</a>
         </div>
       </div>
     </div>
@@ -153,6 +154,7 @@
             <a class="list-group-item" href="../module/dynamics_geometry.html#type-line">line</a>
             <a class="list-group-item" href="../module/dynamics_geometry.html#type-plane">plane</a>
             <a class="list-group-item" href="../module/dynamics_geometry.html#type-plucker_line">plucker_line</a>
+            <a class="list-group-item" href="../module/dynamics_geometry.html#type-point">point</a>
         </div>
       </div>
     </div>
@@ -170,6 +172,7 @@
             <a class="list-group-item" href="../module/dynamics_geometry.html#proc-line_common_normal">line_common_normal</a>
             <a class="list-group-item" href="../module/dynamics_geometry.html#proc-line_from_point_and_vector">line_from_point_and_vector</a>
             <a class="list-group-item" href="../module/dynamics_geometry.html#proc-nearest_point_on_line">nearest_point_on_line</a>
+            <a class="list-group-item" href="../module/dynamics_geometry.html#proc-normal_vector_to_line">normal_vector_to_line</a>
             <a class="list-group-item" href="../module/dynamics_geometry.html#proc-plane_normal">plane_normal</a>
             <a class="list-group-item" href="../module/dynamics_geometry.html#proc-point_plane_projection">point_plane_projection</a>
             <a class="list-group-item" href="../module/dynamics_geometry.html#proc-point_to_line_distance">point_to_line_distance</a>
@@ -205,7 +208,11 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    
+    <p>Geometry primitives and operations for points, lines, planes, and
+Plucker line coordinates.</p>
+<p><img alt="Geometry representations and operations" src="../../images/geometry_operations.svg"></p>
+<p>The diagram summarizes the representations and geometric relationships
+used by the public constructors and query routines in this module.</p>
 <br>        <div class="panel panel-default">
       <div class="panel-heading">
         <h3 class="panel-title">Uses</h3>
@@ -214,9 +221,9 @@
           <li class="list-group-item">
             <ul class="list-inline">
                 <li><a href="http://fortranwiki.org/fortran/show/ieee_arithmetic">ieee_arithmetic</a></li>
-                <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
                 <li><a href='../module/dynamics_helper.html'>dynamics_helper</a></li>
                 <li>lapack</li>
+                <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
                 <li>fstats</li>
             </ul>
           </li>
@@ -250,6 +257,7 @@
             <a class="list-group-item" href="../module/dynamics_geometry.html#interface-matmul">matmul</a>
             <a class="list-group-item" href="../module/dynamics_geometry.html#interface-plane">plane</a>
             <a class="list-group-item" href="../module/dynamics_geometry.html#interface-plucker_line">plucker_line</a>
+            <a class="list-group-item" href="../module/dynamics_geometry.html#interface-point">point</a>
         </div>
       </div>
     </div>
@@ -266,6 +274,7 @@
             <a class="list-group-item" href="../module/dynamics_geometry.html#type-line">line</a>
             <a class="list-group-item" href="../module/dynamics_geometry.html#type-plane">plane</a>
             <a class="list-group-item" href="../module/dynamics_geometry.html#type-plucker_line">plucker_line</a>
+            <a class="list-group-item" href="../module/dynamics_geometry.html#type-point">point</a>
         </div>
       </div>
     </div>
@@ -283,6 +292,7 @@
             <a class="list-group-item" href="../module/dynamics_geometry.html#proc-line_common_normal">line_common_normal</a>
             <a class="list-group-item" href="../module/dynamics_geometry.html#proc-line_from_point_and_vector">line_from_point_and_vector</a>
             <a class="list-group-item" href="../module/dynamics_geometry.html#proc-nearest_point_on_line">nearest_point_on_line</a>
+            <a class="list-group-item" href="../module/dynamics_geometry.html#proc-normal_vector_to_line">normal_vector_to_line</a>
             <a class="list-group-item" href="../module/dynamics_geometry.html#proc-plane_normal">plane_normal</a>
             <a class="list-group-item" href="../module/dynamics_geometry.html#proc-point_plane_projection">point_plane_projection</a>
             <a class="list-group-item" href="../module/dynamics_geometry.html#proc-point_to_line_distance">point_to_line_distance</a>
@@ -1447,6 +1457,89 @@ two planes are parallel.</p>
     </ul>
   </div>
 
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="interface-point"></span>
+      <h3>public        interface <a href='../interface/point.html'>point</a> 
+      </h3>
+    </div>
+    <ul class="list-group">
+          <li class="list-group-item">
+                <h3>
+    private pure function pt_init(x, y, z) result(rst)  
+
+    </h3>
+  <p>Constructs a new [[point]].</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+                <p>The x-coordinate.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>y</strong></td>
+            <td>
+                <p>The y-coordinate.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>z</strong></td>
+            <td>
+                <p>The z-coordinate.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/point.html'>point</a>)</small>
+    </h4>
+    <p>The new [[point]].</p>
+
+          </li>
+    </ul>
+  </div>
+
     </section>
   <br>
 
@@ -1846,7 +1939,7 @@ contain the moment vector.</p>
                 <td>
                     procedure
                     ,                  public
-                  :: <strong><a href='../type/plucker_line.html#boundprocedure-m~5'>m</a></strong>
+                  :: <strong><a href='../type/plucker_line.html#boundprocedure-m~7'>m</a></strong>
  =>
                     pl_m
 <small>Function</small>                </td>
@@ -1874,6 +1967,106 @@ contain the moment vector.</p>
               </tr>
           </tbody>
         </table>
+    </div>
+  </div>
+
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="type-point"></span>
+      <h3>
+        type, public&nbsp;::&nbsp;
+        <a href='../type/point.html'>point</a>
+        
+      </h3>
+    </div>
+    <div class="panel-body">
+      <p>Defines a point in 3D, Cartesian space.</p>
+
+        <h4>Components</h4>
+          <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Visibility</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+<th></th><th>Initial</th>        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-x~18"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>The x-coordinate.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-y~14"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>y</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>The y-coordinate.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-z~2"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>z</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>The z-coordinate.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+        <h4>Constructor</h4>
+          
+        <table class="table table-striped varlist">
+          <tbody>
+                <tr>
+                  <td>
+                        private
+
+                    pure
+                    function
+                    <strong>pt_init</strong>
+                    (x, y, z)
+                  </td>
+                  <td><p>Constructs a new [[point]].</p></td>
+                </tr>
+          </tbody>
+        </table>
+
+
     </div>
   </div>
 
@@ -2238,6 +2431,82 @@ specified point.</p>
     </h4>
     <p>The line parameteric variable <script type="math/tex">t</script> defining the location of
 the point nearest along the line.</p>
+
+    </div>
+  </div>
+
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-normal_vector_to_line"></span><h3>public pure function <a href='../proc/normal_vector_to_line.html'>normal_vector_to_line</a>(pt1, pt2, pt) result(rst)  
+</h3></div>
+    <div class="panel-body">
+          
+  <p>Computes the normal vector to a line defined by pt1 and pt2 assuming
+some point (pt) not on the line.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/point.html'>point</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>pt1</strong></td>
+            <td>
+<p>The origin point of the line segment.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/point.html'>point</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>pt2</strong></td>
+            <td>
+<p>The termination point of the line segment.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/point.html'>point</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>pt</strong></td>
+            <td>
+<p>A point, not on the line.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), (3)</small>
+    </h4>
+    <p>The resulting normal vector (unit length).</p>
 
     </div>
   </div>
@@ -2671,7 +2940,7 @@ is 10x machine epsilon.</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-09-06 02:15            </p>
+ on 2026-09-13 20:03            </p>
         </div>
       </div>
       <br>

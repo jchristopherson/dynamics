@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['general_20kinematics_0',['Matrix and general kinematics',['../group__dynamics__matrix.html',1,'']]],
-  ['geometry_20operations_1',['Geometry operations',['../group__dynamics__geometry.html',1,'']]]
+  ['frequency_20response_20and_20system_20identification_0',['Frequency response and system identification',['../group__dynamics__frequency.html',1,'']]],
+  ['functions_20and_20state_20space_20models_1',['Transfer functions and state-space models',['../group__dynamics__state.html',1,'']]]
 ];

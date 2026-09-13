@@ -1,11 +1,12 @@
 var searchData=
 [
-  ['m_0',['m',['../structc__plucker__line.html#a107f6e367c9328b5cdcc62f739033e1d',1,'c_plucker_line']]],
-  ['mass_1',['mass',['../structc__binary__link.html#ae6fd138554034a15e5207091a467bdc3',1,'c_binary_link::mass'],['../structc__mechanism__link.html#a69628ab19ddf9d503f773dc6d12b505d',1,'c_mechanism_link::mass']]],
-  ['matrix_20and_20general_20kinematics_2',['Matrix and general kinematics',['../group__dynamics__matrix.html',1,'']]],
-  ['max_5ffunction_5fevaluations_3',['max_function_evaluations',['../structc__iteration__controls.html#a72ad6f7799ea342694820ef2f05e0af3',1,'c_iteration_controls']]],
-  ['max_5fiteration_5fbetween_5fupdates_4',['max_iteration_between_updates',['../structc__iteration__controls.html#aa9f2ba86810098fdef1b2c14bc921ae4',1,'c_iteration_controls']]],
-  ['max_5fiteration_5fcount_5',['max_iteration_count',['../structc__iteration__controls.html#afa65b0400ffca60d333893f7e5b13742',1,'c_iteration_controls']]],
-  ['method_6',['method',['../structc__lm__solver__options.html#aee04331777a98e22cf6d202d24302716',1,'c_lm_solver_options']]],
-  ['models_7',['Transfer functions and state-space models',['../group__dynamics__state.html',1,'']]]
+  ['line_20elements_0',['Structural analysis and line elements',['../group__dynamics__structural.html',1,'']]],
+  ['link_5fcount_1',['link_count',['../structc__serial__linkage.html#a36c4544d2fabd78b5be290a69cb09fd1',1,'c_serial_linkage']]],
+  ['link_5flength_2',['link_length',['../structc__dh__parameter__set.html#a0099f8eff3295058334874d865d94a1e',1,'c_dh_parameter_set::link_length'],['../structc__binary__link.html#a8341e61f64e084349594fcd827265342',1,'c_binary_link::link_length']]],
+  ['link_5foffset_3',['link_offset',['../structc__dh__parameter__set.html#a90527d421f49e43d8190d313ef6c5415',1,'c_dh_parameter_set::link_offset'],['../structc__binary__link.html#a010ada75a25f5d3bc4ad0e00fa6d1265',1,'c_binary_link::link_offset']]],
+  ['link_5ftwist_4',['link_twist',['../structc__dh__parameter__set.html#a824ad6923419a439ce424cf394ff3829',1,'c_dh_parameter_set::link_twist'],['../structc__binary__link.html#acf9f397e623dd6aa3703d514dea67d8b',1,'c_binary_link::link_twist']]],
+  ['linkage_20operations_5',['linkage operations',['../group__dynamics__parallel.html',1,'Parallel and planar linkage operations'],['../group__dynamics__serial.html',1,'Serial linkage operations']]],
+  ['linking_6',['Linking',['../index.html#autotoc_md2',1,'']]],
+  ['links_7',['links',['../structc__serial__linkage.html#a51c033c8327a0adfdd02548aaaf6c546',1,'c_serial_linkage']]],
+  ['list_8',['Complete routine list',['../md__2home_2runner_2work_2dynamics_2dynamics_2c__docs_2c-api-reference.html#autotoc_md11',1,'']]]
 ];

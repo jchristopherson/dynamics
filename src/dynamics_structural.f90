@@ -1,12 +1,9 @@
-! Shape Functions:
-! 2D Line: https://www.mm.bme.hu/~gyebro/files/ans_help_v182/ans_thry/thy_shp1.html#shp2dlinerdof
-! 3D Line: https://www.mm.bme.hu/~gyebro/files/ans_help_v182/ans_thry/thy_shp2.html#shp3d2node
-
 module dynamics_structural
     use iso_fortran_env
-    use linalg, only : csr_matrix, create_csr_matrix, sort, size, assignment(=)
+    use linalg, only : csr_matrix, msr_matrix, create_csr_matrix, dense_to_csr, &
+        sort, size, assignment(=), lu_factor, solve_lu, pgmres_solver, matmul
     use dynamics_error_handling
-    use dynamics_rotation
+    use dynamics_geometry
     implicit none
     private
     public :: csr_matrix
@@ -18,16 +15,18 @@ module dynamics_structural
     public :: node
     public :: material
     public :: element
-    public :: line_element
-    public :: beam_element_2d
     public :: shape_function_derivative
     public :: shape_function_second_derivative
     public :: create_connectivity_matrix
+    public :: nodally_averaged_strain
+    public :: nodally_averaged_stress
+    public :: assemble_static_system
+    public :: assemble_dynamic_system
     public :: apply_boundary_conditions
     public :: apply_displacement_constraint
     public :: restore_constrained_values
-    public :: point
-    public :: beam_element_3d
+    public :: solve_static_system
+    public :: line_element
 
 ! ******************************************************************************
 ! CONSTANTS
@@ -44,17 +43,6 @@ module dynamics_structural
 ! ******************************************************************************
 ! TYPES
 ! ------------------------------------------------------------------------------
-    type :: point
-        !! Defines a point in 3D, Cartesian space.
-        real(real64) :: x
-            !! The x-coordinate.
-        real(real64) :: y
-            !! The y-coordinate.
-        real(real64) :: z
-            !! The z-coordinate.
-    end type
-
-! ------------------------------------------------------------------------------
     type, extends(point) :: node
         !! Defines a node.
         integer(int32) :: index
@@ -62,6 +50,11 @@ module dynamics_structural
         integer(int32) :: dof
             !! The number of degrees of freeedom associated with this node.
     end type
+
+    interface node
+        module procedure :: nd_init_1
+        module procedure :: nd_init_2
+    end interface
 
 ! ------------------------------------------------------------------------------
     type :: material
@@ -74,6 +67,10 @@ module dynamics_structural
             !! The Poisson's ratio of the material.
     end type
 
+    interface material
+        module procedure :: mat_init
+    end interface
+
 ! ------------------------------------------------------------------------------
     type, abstract :: element
         !! Defines an element.
@@ -83,6 +80,8 @@ module dynamics_structural
         procedure(element_query), deferred, public, pass :: get_dimensionality
         procedure(element_query), deferred, public, pass :: get_node_count
         procedure(element_get_node), deferred, public, pass :: get_node
+        procedure(element_get_node_natural_coordinates), deferred, public, &
+            pass :: get_node_natural_coordinates
         procedure(element_query), deferred, public, pass :: get_dof_per_node
         procedure(element_shape_function), deferred, public, pass :: &
             evaluate_shape_function
@@ -97,8 +96,10 @@ module dynamics_structural
         procedure, public :: stiffness_matrix => e_stiffness_matrix
         procedure, public :: mass_matrix => e_mass_matrix
         procedure, public :: external_force_vector => e_ext_force_vector
+        procedure, public :: strain => e_strain
+        procedure, public :: stress => e_stress
     end type
-
+    
 ! ------------------------------------------------------------------------------
     type, extends(element), abstract :: line_element
         !! Defines a line element type.
@@ -109,70 +110,14 @@ module dynamics_structural
             get_terminal_nodes
         procedure(line_element_const_matrix_function), deferred, public, &
             pass :: rotation_matrix
+        procedure, public :: get_node_natural_coordinates => &
+            le_get_node_natural_coordinates
         procedure, public :: length => le_length
         procedure, public :: stiffness_matrix => le_stiffness_matrix
         procedure, public :: mass_matrix => le_mass_matrix
         procedure, public :: external_force_vector => le_ext_force_vector
-    end type
-
-! ------------------------------------------------------------------------------
-    type, extends(line_element) :: beam_element_2d
-        !! Defines a two-dimensional Bernoulli-Euler beam element.
-        real(real64) :: moment_of_inertia
-            !! The beam moment of inertia (second moment of area).
-        type(node) :: node_1
-            !! The first node of the element (s = -1).
-        type(node) :: node_2
-            !! The second node of the element (s = 1).
-    contains
-        procedure, public :: get_dimensionality => b2d_dimensionality
-        procedure, public :: get_node_count => b2d_get_node_count
-        procedure, public :: get_dof_per_node => b2d_dof_per_node
-        procedure, public :: get_node => b2d_get_node
-        procedure, public :: get_terminal_nodes => b2d_terminal_nodes
-        procedure, public :: evaluate_shape_function => b2d_shape_function
-        procedure, public :: shape_function_matrix => b2d_shape_function_matrix_2d
-        procedure, public :: strain_displacement_matrix => b2d_strain_disp_matrix_2d
-        procedure, public :: constitutive_matrix => b2d_constitutive_matrix
-        procedure, public :: jacobian => b2d_jacobian
-        procedure, public :: rotation_matrix => b2d_rotation_matrix
-        procedure, public :: stiffness_matrix => b2d_stiffness_matrix
-        procedure, public :: mass_matrix => b2d_mass_matrix
-    end type
-
-! ------------------------------------------------------------------------------
-    type, extends(line_element) :: beam_element_3d
-        !! Defines a three-dimensional Bernoulli-Euler beam element.
-        real(real64) :: Ixx
-            !! The beam moment of inertia about the element x-axis.
-        real(real64) :: Iyy
-            !! The beam moment of inertia about the element y-axis.
-        real(real64) :: Izz
-            !! The beam moment of inertia about the element z-axis.
-        type(node) :: node_1
-            !! The first node of the element (s = -1).
-        type(node) :: node_2
-            !! The second node of the element (s = 1).
-        type(point) :: orientation_point
-            !! A point used to determine the orientation of the beam in 3D
-            !! space.  The orientation point is measured relative to the first
-            !! node in the element.  Specifically, the element z axis is assumed
-            !! to be defined by the location of this point relative to the
-            !! location of node 1.
-    contains
-        procedure, public :: get_dimensionality => b3d_dimensionality
-        procedure, public :: get_node_count => b3d_get_node_count
-        procedure, public :: get_dof_per_node => b3d_dof_per_node
-        procedure, public :: get_node => b3d_get_node
-        procedure, public :: get_terminal_nodes => b3d_terminal_nodes
-        procedure, public :: evaluate_shape_function => b3d_shape_function
-        procedure, public :: shape_function_matrix => b3d_shape_function_matrix_3d
-        procedure, public :: strain_displacement_matrix => b3d_strain_disp_matrix_3d
-        procedure, public :: constitutive_matrix => b3d_constitutive_matrix
-        procedure, public :: jacobian => b3d_jacobian
-        procedure, public :: rotation_matrix => b3d_rotation_matrix
-        procedure, public :: stiffness_matrix => b3d_stiffness_matrix
-        procedure, public :: mass_matrix => b3d_mass_matrix
+        procedure, public :: strain => le_strain
+        procedure, public :: stress => le_stress
     end type
 
 ! ******************************************************************************
@@ -202,6 +147,20 @@ module dynamics_structural
                 !! The local index of the node to retrieve.
             type(node) :: rst
                 !! The node.
+        end function
+
+        pure function element_get_node_natural_coordinates(this, i) &
+            result(rst)
+            !! Defines the signature of a function returning the natural
+            !! coordinates of an element node.
+            use iso_fortran_env, only : int32, real64
+            import element
+            class(element), intent(in) :: this
+                !! The element object.
+            integer(int32), intent(in) :: i
+                !! The local index of the node.
+            real(real64), allocatable, dimension(:) :: rst
+                !! The natural coordinates of the node.
         end function
 
         pure function element_matrix_function(this, s) result(rst)
@@ -244,6 +203,19 @@ module dynamics_structural
             real(real64) :: rst
                 !! The value of the i-th shape function at s.
         end function
+        
+        pure function integrand(elem, s) result(rst)
+            !! Defines the signature of a function containing an integrand.
+            use iso_fortran_env, only : real64
+            import element
+            class(element), intent(in) :: elem
+                !! The element object.
+            real(real64), intent(in), dimension(:) :: s
+                !! The natural coordinate at which to evaluate the integrand.
+            real(real64), allocatable, dimension(:,:) :: rst
+                !! The result.
+        end function
+
         pure subroutine line_element_get_terminal(this, i1, i2)
             !! Defines the signature of a routine for returning the terminal
             !! node numbers.
@@ -267,18 +239,6 @@ module dynamics_structural
             real(real64), allocatable, dimension(:,:) :: rst
                 !! The resulting matrix.
         end function
-
-        pure function integrand(elem, s) result(rst)
-            !! Defines the signature of a function containing an integrand.
-            use iso_fortran_env, only : real64
-            import element
-            class(element), intent(in) :: elem
-                !! The element object.
-            real(real64), intent(in), dimension(:) :: s
-                !! The natural coordinate at which to evaluate the integrand.
-            real(real64), allocatable, dimension(:,:) :: rst
-                !! The result.
-        end function
     end interface
 
 ! ******************************************************************************
@@ -290,6 +250,30 @@ module dynamics_structural
         module procedure :: apply_boundary_conditions_csr
     end interface
 
+    interface restore_constrained_values
+        module procedure :: restore_constrained_values_dense
+        module procedure :: restore_constrained_values_csr
+    end interface
+
+    interface apply_displacement_constraint
+        module procedure :: apply_displacement_constraint_dense
+        module procedure :: apply_displacement_constraint_csr
+    end interface
+
+    interface assemble_static_system
+        module procedure :: assemble_static_system_dense
+        module procedure :: assemble_static_system_csr
+    end interface
+
+    interface assemble_dynamic_system
+        module procedure :: assemble_dynamic_system_dense
+        module procedure :: assemble_dynamic_system_csr
+    end interface
+
+    interface solve_static_system
+        module procedure :: solve_static_system_dense
+        module procedure :: solve_static_system_csr
+    end interface
 contains
 ! ******************************************************************************
 ! DIFFERENTIATION ROUTINES
@@ -529,6 +513,367 @@ function create_connectivity_matrix(gdof, e, nodes) result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+function nodally_averaged_strain(elements, nodes, displacement) result(rst)
+    !! Computes nodal strain results by averaging the strain contributions
+    !! from each element incident upon a node.
+    class(element), intent(in) :: elements(:)
+        !! The finite elements in the model.
+    class(node), intent(in) :: nodes(:)
+        !! The global node list defining the displacement-vector ordering.
+    real(real64), intent(in), dimension(:) :: displacement
+        !! The global displacement vector.
+    real(real64), allocatable, dimension(:,:) :: rst
+        !! The strain results.  Each column corresponds to a node in NODES,
+        !! and each row corresponds to one strain component.
+
+    integer(int32) :: dof, eidx, gdof, i, j, ncomp, ndof, nelnodes, node_index
+    integer(int32), allocatable, dimension(:) :: count, node_map
+    real(real64), allocatable, dimension(:) :: element_displacement, s, strain
+    type(node) :: element_node
+
+    if (size(elements) < 1 .or. size(nodes) < 1) &
+        error stop DYN_INVALID_INPUT_ERROR
+
+    gdof = 0
+    do i = 1, size(nodes)
+        if (nodes(i)%dof < 1) error stop DYN_INVALID_INPUT_ERROR
+        do j = i + 1, size(nodes)
+            if (nodes(i)%index == nodes(j)%index) &
+                error stop DYN_INVALID_INPUT_ERROR
+        end do
+        gdof = gdof + nodes(i)%dof
+    end do
+    if (size(displacement) /= gdof) error stop DYN_ARRAY_SIZE_ERROR
+
+    allocate(count(size(nodes)), source = 0)
+    ncomp = 0
+    do eidx = 1, size(elements)
+        nelnodes = elements(eidx)%get_node_count()
+        dof = elements(eidx)%get_dof_per_node()
+        if (nelnodes < 1 .or. dof < 1) error stop DYN_INVALID_INPUT_ERROR
+        ndof = nelnodes * dof
+        allocate(element_displacement(ndof), node_map(nelnodes))
+
+        do i = 1, nelnodes
+            node_index = 0
+            element_node = elements(eidx)%get_node(i)
+            do j = 1, size(nodes)
+                if (element_node%index == nodes(j)%index) then
+                    node_index = j
+                    exit
+                end if
+            end do
+            if (node_index == 0) error stop DYN_INVALID_INPUT_ERROR
+            if (nodes(node_index)%dof /= dof) &
+                error stop DYN_INVALID_INPUT_ERROR
+            node_map(i) = node_index
+            gdof = find_global_dof(nodes(node_index), nodes)
+            element_displacement((i - 1) * dof + 1:i * dof) = &
+                displacement(gdof:gdof + dof - 1)
+        end do
+
+        do i = 1, nelnodes
+            s = elements(eidx)%get_node_natural_coordinates(i)
+            strain = elements(eidx)%strain(element_displacement, s)
+            if (ncomp == 0) then
+                ncomp = size(strain)
+                if (ncomp < 1) error stop DYN_INVALID_INPUT_ERROR
+                allocate(rst(ncomp, size(nodes)), source = 0.0d0)
+            else if (size(strain) /= ncomp) then
+                error stop DYN_ARRAY_SIZE_ERROR
+            end if
+            rst(:,node_map(i)) = rst(:,node_map(i)) + strain
+            count(node_map(i)) = count(node_map(i)) + 1
+        end do
+        deallocate(element_displacement, node_map)
+    end do
+
+    if (any(count == 0)) error stop DYN_INVALID_INPUT_ERROR
+    do i = 1, size(nodes)
+        rst(:,i) = rst(:,i) / count(i)
+    end do
+end function
+
+! ------------------------------------------------------------------------------
+function nodally_averaged_stress(elements, nodes, displacement) result(rst)
+    !! Computes nodal stress results by averaging the stress contributions
+    !! from each element incident upon a node.
+    class(element), intent(in) :: elements(:)
+        !! The finite elements in the model.
+    class(node), intent(in) :: nodes(:)
+        !! The global node list defining the displacement-vector ordering.
+    real(real64), intent(in), dimension(:) :: displacement
+        !! The global displacement vector.
+    real(real64), allocatable, dimension(:,:) :: rst
+        !! The stress results.  Each column corresponds to a node in NODES,
+        !! and each row corresponds to one stress component.
+
+    integer(int32) :: dof, eidx, gdof, i, j, ncomp, ndof, nelnodes, node_index
+    integer(int32), allocatable, dimension(:) :: count, node_map
+    real(real64), allocatable, dimension(:) :: element_displacement, s, stress
+    type(node) :: element_node
+
+    if (size(elements) < 1 .or. size(nodes) < 1) &
+        error stop DYN_INVALID_INPUT_ERROR
+
+    gdof = 0
+    do i = 1, size(nodes)
+        if (nodes(i)%dof < 1) error stop DYN_INVALID_INPUT_ERROR
+        do j = i + 1, size(nodes)
+            if (nodes(i)%index == nodes(j)%index) &
+                error stop DYN_INVALID_INPUT_ERROR
+        end do
+        gdof = gdof + nodes(i)%dof
+    end do
+    if (size(displacement) /= gdof) error stop DYN_ARRAY_SIZE_ERROR
+
+    allocate(count(size(nodes)), source = 0)
+    ncomp = 0
+    do eidx = 1, size(elements)
+        nelnodes = elements(eidx)%get_node_count()
+        dof = elements(eidx)%get_dof_per_node()
+        if (nelnodes < 1 .or. dof < 1) error stop DYN_INVALID_INPUT_ERROR
+        ndof = nelnodes * dof
+        allocate(element_displacement(ndof), node_map(nelnodes))
+
+        do i = 1, nelnodes
+            node_index = 0
+            element_node = elements(eidx)%get_node(i)
+            do j = 1, size(nodes)
+                if (element_node%index == nodes(j)%index) then
+                    node_index = j
+                    exit
+                end if
+            end do
+            if (node_index == 0) error stop DYN_INVALID_INPUT_ERROR
+            if (nodes(node_index)%dof /= dof) &
+                error stop DYN_INVALID_INPUT_ERROR
+            node_map(i) = node_index
+            gdof = find_global_dof(nodes(node_index), nodes)
+            element_displacement((i - 1) * dof + 1:i * dof) = &
+                displacement(gdof:gdof + dof - 1)
+        end do
+
+        do i = 1, nelnodes
+            s = elements(eidx)%get_node_natural_coordinates(i)
+            stress = elements(eidx)%stress(element_displacement, s)
+            if (ncomp == 0) then
+                ncomp = size(stress)
+                if (ncomp < 1) error stop DYN_INVALID_INPUT_ERROR
+                allocate(rst(ncomp, size(nodes)), source = 0.0d0)
+            else if (size(stress) /= ncomp) then
+                error stop DYN_ARRAY_SIZE_ERROR
+            end if
+            rst(:,node_map(i)) = rst(:,node_map(i)) + stress
+            count(node_map(i)) = count(node_map(i)) + 1
+        end do
+        deallocate(element_displacement, node_map)
+    end do
+
+    if (any(count == 0)) error stop DYN_INVALID_INPUT_ERROR
+    do i = 1, size(nodes)
+        rst(:,i) = rst(:,i) / count(i)
+    end do
+end function
+
+! ------------------------------------------------------------------------------
+subroutine assemble_static_system_csr(gdof, elements, nodes, k, rule)
+    !! Assembles the global stiffness matrix in CSR format.
+    integer(int32), intent(in) :: gdof
+        !! The total number of global degrees of freedom.
+    class(element), intent(in) :: elements(:)
+        !! The finite elements to assemble.
+    class(node), intent(in), dimension(:) :: nodes
+        !! The global node list.
+    type(csr_matrix), intent(out) :: k
+        !! The assembled global stiffness matrix in CSR format.
+    integer(int32), intent(in), optional :: rule
+        !! The numerical integration rule.
+
+    ! Local Variables
+    integer(int32) :: i, j, eidx, row, col, ndof
+    real(real64), allocatable :: kdense(:,:), ke(:,:)
+
+    ! Initialization
+    allocate(kdense(gdof,gdof), source = 0.0d0)
+
+    ! Accumulate element contributions in global work storage.
+    do eidx = 1, size(elements)
+        if (present(rule)) then
+            ke = elements(eidx)%stiffness_matrix(rule)
+        else
+            ke = elements(eidx)%stiffness_matrix()
+        end if
+        ndof = size(ke, 1)
+        do i = 1, ndof
+            row = find_global_dof(elements(eidx)%get_node( &
+                (i - 1) / elements(eidx)%get_dof_per_node() + 1), nodes) + &
+                mod(i - 1, elements(eidx)%get_dof_per_node())
+            do j = 1, ndof
+                col = find_global_dof(elements(eidx)%get_node( &
+                    (j - 1) / elements(eidx)%get_dof_per_node() + 1), nodes) + &
+                    mod(j - 1, elements(eidx)%get_dof_per_node())
+                kdense(row, col) = kdense(row, col) + ke(i, j)
+            end do
+        end do
+    end do
+    k = dense_to_csr(kdense)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine assemble_dynamic_system_csr(gdof, elements, nodes, m, k, rule)
+    !! Assembles global mass and stiffness matrices in CSR format.
+    integer(int32), intent(in) :: gdof
+        !! The total number of global degrees of freedom.
+    class(element), intent(in) :: elements(:)
+        !! The finite elements to assemble.
+    class(node), intent(in), dimension(:) :: nodes
+        !! The global node list.
+    type(csr_matrix), intent(out) :: m
+        !! The assembled global mass matrix in CSR format.
+    type(csr_matrix), intent(out) :: k
+        !! The assembled global stiffness matrix in CSR format.
+    integer(int32), intent(in), optional :: rule
+        !! The numerical integration rule.
+
+    ! Local Variables
+    integer(int32) :: i, j, eidx, row, col, ndof
+    real(real64), allocatable :: mdense(:,:), kdense(:,:), km(:,:), ke(:,:)
+
+    ! Initialization
+    allocate(mdense(gdof,gdof), kdense(gdof,gdof), source = 0.0d0)
+
+    ! Accumulate element contributions in global work storage.
+    do eidx = 1, size(elements)
+        if (present(rule)) then
+            km = elements(eidx)%mass_matrix(rule)
+            ke = elements(eidx)%stiffness_matrix(rule)
+        else
+            km = elements(eidx)%mass_matrix()
+            ke = elements(eidx)%stiffness_matrix()
+        end if
+        ndof = size(ke, 1)
+        do i = 1, ndof
+            row = find_global_dof(elements(eidx)%get_node( &
+                (i - 1) / elements(eidx)%get_dof_per_node() + 1), nodes) + &
+                mod(i - 1, elements(eidx)%get_dof_per_node())
+            do j = 1, ndof
+                col = find_global_dof(elements(eidx)%get_node( &
+                    (j - 1) / elements(eidx)%get_dof_per_node() + 1), nodes) + &
+                    mod(j - 1, elements(eidx)%get_dof_per_node())
+                mdense(row, col) = mdense(row, col) + km(i, j)
+            end do
+        end do
+        do i = 1, ndof
+            row = find_global_dof(elements(eidx)%get_node( &
+                (i - 1) / elements(eidx)%get_dof_per_node() + 1), nodes) + &
+                mod(i - 1, elements(eidx)%get_dof_per_node())
+            do j = 1, ndof
+                col = find_global_dof(elements(eidx)%get_node( &
+                    (j - 1) / elements(eidx)%get_dof_per_node() + 1), nodes) + &
+                    mod(j - 1, elements(eidx)%get_dof_per_node())
+                kdense(row, col) = kdense(row, col) + ke(i, j)
+            end do
+        end do
+    end do
+    m = dense_to_csr(mdense)
+    k = dense_to_csr(kdense)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine assemble_static_system_dense(gdof, elements, nodes, k, rule)
+    !! Assembles a dense global stiffness matrix.
+    integer(int32), intent(in) :: gdof
+        !! The total number of global degrees of freedom.
+    class(element), intent(in) :: elements(:)
+        !! The finite elements to assemble.
+    class(node), intent(in), dimension(:) :: nodes
+        !! The global node list.
+    real(real64), allocatable, intent(out) :: k(:,:)
+        !! The assembled global stiffness matrix.
+    integer(int32), intent(in), optional :: rule
+        !! The numerical integration rule.
+
+    ! Local Variables
+    integer(int32) :: i, j, eidx, row, col, ndof
+    real(real64), allocatable :: ke(:,:)
+
+    ! Initialization
+    allocate(k(gdof, gdof), source = 0.0d0)
+
+    ! Accumulate element contributions in global dense storage.
+    do eidx = 1, size(elements)
+        if (present(rule)) then
+            ke = elements(eidx)%stiffness_matrix(rule)
+        else
+            ke = elements(eidx)%stiffness_matrix()
+        end if
+        ndof = size(ke, 1)
+        do i = 1, ndof
+            row = find_global_dof(elements(eidx)%get_node( &
+                (i - 1) / elements(eidx)%get_dof_per_node() + 1), nodes) + &
+                mod(i - 1, elements(eidx)%get_dof_per_node())
+            do j = 1, ndof
+                col = find_global_dof(elements(eidx)%get_node( &
+                    (j - 1) / elements(eidx)%get_dof_per_node() + 1), nodes) + &
+                    mod(j - 1, elements(eidx)%get_dof_per_node())
+                k(row, col) = k(row, col) + ke(i, j)
+            end do
+        end do
+    end do
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine assemble_dynamic_system_dense(gdof, elements, nodes, m, k, rule)
+    !! Assembles dense global mass and stiffness matrices.
+    integer(int32), intent(in) :: gdof
+        !! The total number of global degrees of freedom.
+    class(element), intent(in) :: elements(:)
+        !! The finite elements to assemble.
+    class(node), intent(in), dimension(:) :: nodes
+        !! The global node list.
+    real(real64), allocatable, intent(out) :: m(:,:)
+        !! The assembled global mass matrix.
+    real(real64), allocatable, intent(out) :: k(:,:)
+        !! The assembled global stiffness matrix.
+    integer(int32), intent(in), optional :: rule
+        !! The numerical integration rule.
+
+    ! Local Variables
+    integer(int32) :: i, j, eidx, row, col, ndof
+    real(real64), allocatable :: km(:,:), ke(:,:)
+
+    ! Initialization
+    allocate(m(gdof, gdof), k(gdof, gdof), source = 0.0d0)
+
+    ! Accumulate element contributions in global dense storage.
+    do eidx = 1, size(elements)
+        if (present(rule)) then
+            km = elements(eidx)%mass_matrix(rule)
+            ke = elements(eidx)%stiffness_matrix(rule)
+        else
+            km = elements(eidx)%mass_matrix()
+            ke = elements(eidx)%stiffness_matrix()
+        end if
+        ndof = size(ke, 1)
+        do i = 1, ndof
+            row = find_global_dof(elements(eidx)%get_node( &
+                (i - 1) / elements(eidx)%get_dof_per_node() + 1), nodes) + &
+                mod(i - 1, elements(eidx)%get_dof_per_node())
+            do j = 1, ndof
+                col = find_global_dof(elements(eidx)%get_node( &
+                    (j - 1) / elements(eidx)%get_dof_per_node() + 1), nodes) + &
+                    mod(j - 1, elements(eidx)%get_dof_per_node())
+                m(row, col) = m(row, col) + km(i, j)
+                k(row, col) = k(row, col) + ke(i, j)
+            end do
+        end do
+    end do
+end subroutine
+
+! ******************************************************************************
+! BOUNDARY CONDITIONS ROUTINES
+! ------------------------------------------------------------------------------
 function apply_boundary_conditions_mtx(gdof, x) result(rst)
     !! Applies boundary conditions to a matrix by removal of the appropriate
     !! rows and columns.
@@ -723,7 +1068,7 @@ function apply_boundary_conditions_vec(gdof, x) result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
-function restore_constrained_values(gdof, x) result(rst)
+function restore_constrained_values_dense(gdof, x) result(rst)
     !! Restores the constrained degrees-of-freedom from the boundary conditions
     !! applied by apply_boundary_conditions.
     integer(int32), intent(inout), dimension(:) :: gdof
@@ -773,8 +1118,75 @@ function restore_constrained_values(gdof, x) result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+function restore_constrained_values_csr(gdof, x) result(rst)
+    !! Restores constrained rows and columns to a reduced CSR matrix.
+    integer(int32), intent(inout), dimension(:) :: gdof
+        !! An array of the global degrees of freedom to restrain.  The array
+        !! is sorted into ascending order on output.
+    type(csr_matrix), intent(in) :: x
+        !! The reduced CSR matrix.
+    type(csr_matrix) :: rst
+        !! The expanded CSR matrix with zero constrained rows and columns.
+
+    ! Local Variables
+    integer(int32) :: i, j, ii, n, nbc, nnew, nnz, pos, nout
+    integer(int32), allocatable :: indices(:), rows(:), cols(:)
+    real(real64), allocatable :: vals(:)
+
+    ! Initialization
+    n = size(x, 1)
+    nbc = size(gdof)
+    nnew = n + nbc
+    nnz = size(x%values)
+
+    ! Input Checking
+    if (size(x, 2) /= n) error stop DYN_MATRIX_SIZE_ERROR
+    do i = 1, nbc
+        if (gdof(i) < 1 .or. gdof(i) > nnew) error stop DYN_INDEX_OUT_OF_RANGE
+    end do
+
+    ! Build the map from reduced indices to unconstrained global indices.
+    allocate(indices(n))
+    nout = 0
+    if (nbc == 0) then
+        do i = 1, n
+            nout = nout + 1
+            indices(nout) = i
+        end do
+    else
+        call sort(gdof, .true.)
+        do i = 2, nbc
+            if (gdof(i) == gdof(i-1)) &
+                error stop DYN_NONMONOTONIC_ARRAY_ERROR
+        end do
+        ii = 1
+        do i = 1, nnew
+            if (i /= gdof(ii)) then
+                nout = nout + 1
+                indices(nout) = i
+            else
+                ii = min(ii + 1, nbc)
+            end if
+        end do
+    end if
+
+    ! Remap the existing nonzeros without creating entries in constrained rows.
+    allocate(rows(nnz), cols(nnz), vals(nnz))
+    pos = 0
+    do i = 1, n
+        do j = x%row_indices(i), x%row_indices(i + 1) - 1
+            pos = pos + 1
+            rows(pos) = indices(i)
+            cols(pos) = indices(x%column_indices(j))
+            vals(pos) = x%values(j)
+        end do
+    end do
+    rst = create_csr_matrix(nnew, nnew, rows, cols, vals)
+end function
+
+! ------------------------------------------------------------------------------
 ! REF: https://www.sciencedirect.com/topics/engineering/prescribed-displacement-boundary-condition
-subroutine apply_displacement_constraint(dof, val, k, f)
+subroutine apply_displacement_constraint_dense(dof, val, k, f)
     !! Applies a displacement constraint to the specified degree of freedom.
     integer(int32), intent(in) :: dof
         !! The global degree-of-freedom to which the constraint should be
@@ -794,8 +1206,101 @@ subroutine apply_displacement_constraint(dof, val, k, f)
     f(dof) = val
 end subroutine
 
+! ------------------------------------------------------------------------------
+subroutine apply_displacement_constraint_csr(dof, val, k, f)
+    !! Applies a displacement constraint to a CSR-format sparse matrix.
+    integer(int32), intent(in) :: dof
+        !! The global degree-of-freedom to which the constraint should be
+        !! applied.
+    real(real64), intent(in) :: val
+        !! The value of the displacement constraint.
+    type(csr_matrix), intent(inout) :: k
+        !! The stiffness matrix to which the constraint should be applied.
+    real(real64), intent(inout), dimension(:) :: f
+        !! The external force vector to which the constraint should be applied.
+
+    ! Local Variables
+    integer(int32) :: i, j, m, n, nnz, pos
+    integer(int32), allocatable :: rows(:), cols(:)
+    real(real64), allocatable :: vals(:)
+
+    ! Initialization
+    m = size(k, 1)
+    n = size(k, 2)
+    nnz = size(k%values)
+
+    ! Input Checking
+    if (m /= n) error stop DYN_MATRIX_SIZE_ERROR
+    if (dof < 1 .or. dof > m) error stop DYN_INDEX_OUT_OF_RANGE
+    if (size(f) /= m) error stop DYN_ARRAY_SIZE_ERROR
+
+    ! Rebuild the sparse matrix, omitting the constrained row and inserting its
+    ! unit diagonal entry.
+    allocate(rows(nnz + 1), cols(nnz + 1), vals(nnz + 1))
+    pos = 0
+    do i = 1, m
+        if (i == dof) cycle
+        do j = k%row_indices(i), k%row_indices(i + 1) - 1
+            pos = pos + 1
+            rows(pos) = i
+            cols(pos) = k%column_indices(j)
+            vals(pos) = k%values(j)
+        end do
+    end do
+    pos = pos + 1
+    rows(pos) = dof
+    cols(pos) = dof
+    vals(pos) = 1.0d0
+    k = create_csr_matrix(m, n, rows(1:pos), cols(1:pos), vals(1:pos))
+    f(dof) = val
+end subroutine
+
 ! ******************************************************************************
 ! ELEMENT MEMBERS
+! ------------------------------------------------------------------------------
+pure function e_strain(this, displacement, s) result(rst)
+    !! Computes the element strain at the specified natural coordinate.
+    !! The strain is
+    !! $$ \boldsymbol{\varepsilon}=B\boldsymbol{u}_e. $$
+    class(element), intent(in) :: this
+        !! The element object.
+    real(real64), intent(in), dimension(:) :: displacement
+        !! The element displacement vector in the element coordinate system.
+    real(real64), intent(in), dimension(:) :: s
+        !! The natural coordinates at which to evaluate the strain.
+    real(real64), allocatable, dimension(:) :: rst
+        !! The resulting strain vector.
+
+    real(real64), allocatable, dimension(:,:) :: b
+
+    b = this%strain_displacement_matrix(s)
+    if (size(displacement) /= size(b, 2)) error stop DYN_ARRAY_SIZE_ERROR
+    rst = matmul(b, displacement)
+end function
+
+! ------------------------------------------------------------------------------
+pure function e_stress(this, displacement, s) result(rst)
+    !! Computes the element stress result at the specified natural coordinate.
+    !! The stress result is
+    !! $$ \boldsymbol{\sigma}=D B\boldsymbol{u}_e. $$
+    class(element), intent(in) :: this
+        !! The element object.
+    real(real64), intent(in), dimension(:) :: displacement
+        !! The element displacement vector in the element coordinate system.
+    real(real64), intent(in), dimension(:) :: s
+        !! The natural coordinates at which to evaluate the stress.
+    real(real64), allocatable, dimension(:) :: rst
+        !! The resulting stress vector.
+
+    real(real64), allocatable, dimension(:,:) :: b, d
+
+    b = this%strain_displacement_matrix(s)
+    if (size(displacement) /= size(b, 2)) error stop DYN_ARRAY_SIZE_ERROR
+    d = this%constitutive_matrix()
+    if (size(d, 2) /= size(b, 1)) error stop DYN_MATRIX_SIZE_ERROR
+    rst = matmul(d, matmul(b, displacement))
+end function
+
 ! ------------------------------------------------------------------------------
 pure function e_stiffness_matrix(this, rule) result(rst)
     !! Computes the stiffness matrix for the element.
@@ -975,6 +1480,62 @@ end function
 ! ******************************************************************************
 ! LINE_ELEMENT MEMBERS
 ! ------------------------------------------------------------------------------
+pure function le_get_node_natural_coordinates(this, i) result(rst)
+    !! Returns the natural coordinate of a terminal node.
+    class(line_element), intent(in) :: this
+        !! The line_element object.
+    integer(int32), intent(in) :: i
+        !! The local node index.
+    real(real64), allocatable, dimension(:) :: rst
+        !! The natural coordinate of the node.
+
+    if (i < 1 .or. i > this%get_node_count()) &
+        error stop DYN_INDEX_OUT_OF_RANGE
+    if (this%get_node_count() /= 2) error stop DYN_INVALID_INPUT_ERROR
+    allocate(rst(1), source = 2.0d0 * i - 3.0d0)
+end function
+
+! ------------------------------------------------------------------------------
+pure function le_strain(this, displacement, s) result(rst)
+    !! Computes the line-element strain from global element displacements at
+    !! the specified natural coordinate.
+    class(line_element), intent(in) :: this
+        !! The line_element object.
+    real(real64), intent(in), dimension(:) :: displacement
+        !! The element displacement vector in the global coordinate system.
+    real(real64), intent(in), dimension(:) :: s
+        !! The natural coordinates at which to evaluate the strain.
+    real(real64), allocatable, dimension(:) :: rst
+        !! The resulting strain vector in the element coordinate system.
+
+    real(real64), allocatable, dimension(:,:) :: t
+
+    t = this%rotation_matrix()
+    if (size(displacement) /= size(t, 2)) error stop DYN_ARRAY_SIZE_ERROR
+    rst = e_strain(this, matmul(transpose(t), displacement), s)
+end function
+
+! ------------------------------------------------------------------------------
+pure function le_stress(this, displacement, s) result(rst)
+    !! Computes the line-element stress result from global element
+    !! displacements at the specified natural coordinate.
+    class(line_element), intent(in) :: this
+        !! The line_element object.
+    real(real64), intent(in), dimension(:) :: displacement
+        !! The element displacement vector in the global coordinate system.
+    real(real64), intent(in), dimension(:) :: s
+        !! The natural coordinates at which to evaluate the stress.
+    real(real64), allocatable, dimension(:) :: rst
+        !! The resulting stress vector in the element coordinate system.
+
+    real(real64), allocatable, dimension(:,:) :: t
+
+    t = this%rotation_matrix()
+    if (size(displacement) /= size(t, 2)) error stop DYN_ARRAY_SIZE_ERROR
+    rst = e_stress(this, matmul(transpose(t), displacement), s)
+end function
+
+! ------------------------------------------------------------------------------
 pure function le_length(this) result(rst)
     !! Computes the length of the line_element.
     class(line_element), intent(in) :: this
@@ -996,7 +1557,6 @@ pure function le_length(this) result(rst)
     dz = n2%z - n1%z
     rst = sqrt(dx**2 + dy**2 + dz**2)
 end function
-
 
 ! ------------------------------------------------------------------------------
 pure function le_stiffness_matrix(this, rule) result(rst)
@@ -1097,345 +1657,62 @@ pure function le_ext_force_vector(this, q, rule) result(rst)
 end function
 
 ! ******************************************************************************
-! BEAM_2D ROUTINES
+! NODE MEMBERS
 ! ------------------------------------------------------------------------------
-pure function b2d_dimensionality(this) result(rst)
-    !! Gets the dimensionality of the element.
-    class(beam_element_2d), intent(in) :: this
-        !! The beam_element_2d object.
-    integer(int32) :: rst
-        !! The dimensionality.
-    rst = 2
-end function
-
-! ------------------------------------------------------------------------------
-pure function b2d_get_node_count(this) result(rst)
-    !! Gets the number of nodes for the element.
-    class(beam_element_2d), intent(in) :: this
-        !! The beam_element_2d object.
-    integer(int32) :: rst
-        !! The number of nodes.
-    rst = 2
-end function
-
-! ------------------------------------------------------------------------------
-pure function b2d_dof_per_node(this) result(rst)
-    !! Gets the number of degrees of freedom per node.
-    class(beam_element_2d), intent(in) :: this
-        !! The beam_element_2d object.
-    integer(int32) :: rst
-        !! The number of DOF per node.
-    rst = 3
-end function
-
-! ------------------------------------------------------------------------------
-pure function b2d_get_node(this, i) result(rst)
-    !! Gets the requested node from the element.
-    class(beam_element_2d), intent(in) :: this
-        !! The beam_element_2d object.
-    integer(int32), intent(in) :: i
-        !! The local index of the node to retrieve.
+pure function nd_init_1(index, dof, x, y, z) result(rst)
+    !! Constructs a new [[node]].
+    integer(int32), intent(in) :: index
+        !! The global index of the node.
+    integer(int32), intent(in) :: dof
+        !! The number of degrees of freedom of the node.
+    real(real64), intent(in) :: x
+        !! The x-coordinate.
+    real(real64), intent(in) :: y
+        !! The y-coordinate.
+    real(real64), intent(in) :: z
+        !! The z-coordinate.
     type(node) :: rst
-        !! The requested node.
-
-    if (i == 1) then
-        rst = this%node_1
-    else
-        rst = this%node_2
-    end if
+        !! The new [[node]].
+    rst%index = index
+    rst%dof = dof
+    rst%x = x
+    rst%y = y
+    rst%z = z
 end function
 
 ! ------------------------------------------------------------------------------
-pure subroutine b2d_terminal_nodes(this, i1, i2)
-    !! Gets the terminal node numbers for the element.
-    class(beam_element_2d), intent(in) :: this
-        !! The beam_element_2d object.
-    integer(int32), intent(out) :: i1
-        !! The index of the node at the head of the element.
-    integer(int32), intent(out) :: i2
-        !! The index of the node at the tail of the element.
-    i1 = 1
-    i2 = 2
-end subroutine
-
-! ------------------------------------------------------------------------------
-pure function b2d_shape_function(this, i, s) result(rst)
-    !! Evaluates the i-th shape function at natural coordinate s.
-    class(beam_element_2d), intent(in) :: this
-        !! The beam_element_2d object.
-    integer(int32), intent(in) :: i
-        !! The index of the shape function to evaluate.
-    real(real64), intent(in), dimension(:) :: s
-        !! The value of the natural coordinate at which to evaluate
-        !! the shape function.
-    real(real64) :: rst
-        !! The value of the i-th shape function at s.
-
-    ! Local Variables
-    real(real64) :: l
-
-    ! Process
-    select case (i)
-    case (1)
-        rst = 0.5d0 * (1.0d0 - s(1))
-    case (2)
-        rst = 0.25d0 * (1.0d0 - s(1))**2 * (2.0d0 + s(1))
-    case (3)
-        rst = 0.25d0 * (1.0d0 - s(1))**2 * (1.0d0 + s(1))
-    case (4)
-        rst = 0.5d0 * (1.0d0 + s(1))
-    case (5)
-        rst = 0.25d0 * (1.0d0 + s(1))**2 * (2.0d0 - s(1))
-    case (6)
-        rst = 0.25d0 * (1.0d0 + s(1))**2 * (s(1) - 1.0d0)
-    case default
-        rst = 0.0d0
-    end select
+pure function nd_init_2(index, dof, pt) result(rst)
+    !! Constructs a new [[node]].
+    integer(int32), intent(in) :: index
+        !! The global index of the node.
+    integer(int32), intent(in) :: dof
+        !! The number of degrees of freedom of the node.
+    class(point), intent(in) :: pt
+        !! The location of the node.
+    type(node) :: rst
+        !! The new [[node]].
+    rst = nd_init_1(index, dof, pt%x, pt%y, pt%z)
 end function
 
+! ******************************************************************************
+! MATERIAL MEMBERS
 ! ------------------------------------------------------------------------------
-pure function b2d_shape_function_matrix_2d(this, s) result(rst)
-    !! Computes the shape function matrix for a beam element.
-    class(beam_element_2d), intent(in) :: this
-        !! The beam_element_2d object.
-    real(real64), intent(in), dimension(:) :: s
-        !! The value of the natural coordinate at which to evaluate the shape
-        !! functions.
-    real(real64), allocatable, dimension(:,:) :: rst
-        !! The shape function matrix.
-
-    ! Local Variables
-    real(real64) :: n1, n2, n3, n4, n5, n6, l
-
-    ! Initialization
-    allocate(rst(2, 6), source = 0.0d0)
-    l = this%length()
-
-    ! Process
-    n1 = this%evaluate_shape_function(1, s)
-    n2 = this%evaluate_shape_function(2, s)
-    n3 = 0.5d0 * l * this%evaluate_shape_function(3, s)
-    n4 = this%evaluate_shape_function(4, s)
-    n5 = this%evaluate_shape_function(5, s)
-    n6 = 0.5d0 * l * this%evaluate_shape_function(6, s)
-    
-    rst(1,1) = n1
-    rst(2,2) = n2
-    rst(2,3) = n3
-    rst(1,4) = n4
-    rst(2,5) = n5
-    rst(2,6) = n6
+pure function mat_init(modulus, pratio, density) result(rst)
+    !! Constructs a new [[material]].
+    real(real64), intent(in) :: modulus
+        !! The modulus of elasticity.
+    real(real64), intent(in) :: pratio
+        !! The Poisson's ratio.
+    real(real64), intent(in) :: density
+        !! The density.
+    type(material) :: rst
+        !! The new [[material]].
+    rst%modulus = modulus
+    rst%poissons_ratio = pratio
+    rst%density = density
 end function
 
-! ------------------------------------------------------------------------------
-pure function b2d_strain_disp_matrix_2d(this, s) result(rst)
-    !! Computes the strain-displacement matrix for a 2D beam element.
-    class(beam_element_2d), intent(in) :: this
-        !! The beam_element_2d object.
-    real(real64), intent(in), dimension(:) :: s
-        !! The value of the natural coordinate at which to evaluate the matrix.
-    real(real64), allocatable, dimension(:,:) :: rst
-        !! The strain-displacement matrix.
 
-    ! Local Variables
-    real(real64) :: l, sv
-    
-    ! Initialization
-    allocate(rst(2, 6), source = 0.0d0)
-
-    ! Process - use exact analytical formulas derived from the Hermite
-    ! shape functions for a 2D Euler-Bernoulli beam element.
-    ! For natural coordinate s in [-1, 1] and physical length l:
-    !   Axial strain:  epsilon = du/dx
-    !   Curvature:     kappa   = d2v/dx2
-    l = this%length()
-    sv = s(1)
-    rst(1,1) = -1.0d0 / l
-    rst(2,2) = 6.0d0 * sv / l**2
-    rst(2,3) = (3.0d0 * sv - 1.0d0) / l
-    rst(1,4) = 1.0d0 / l
-    rst(2,5) = -6.0d0 * sv / l**2
-    rst(2,6) = (3.0d0 * sv + 1.0d0) / l
-end function
-
-! ------------------------------------------------------------------------------
-pure function b2d_constitutive_matrix(this) result(rst)
-    !! Computes the constitutive matrix for the element.
-    class(beam_element_2d), intent(in) :: this
-        !! The beam_element_2d object.
-    real(real64), allocatable, dimension(:,:) :: rst
-        !! The resulting matrix.
-
-    ! Process
-    allocate(rst(2,2), source = 0.0d0)
-    rst(1,1) = this%area * this%material%modulus
-    rst(2,2) = this%moment_of_inertia * this%material%modulus
-end function
-
-! ------------------------------------------------------------------------------
-pure function b2d_jacobian(this, s) result(rst)
-    !! Computes the Jacobian matrix for a 2D beam element.
-    class(beam_element_2d), intent(in) :: this
-        !! The beam_element_2d object.
-    real(real64), intent(in), dimension(:) :: s
-        !! The value of the natural coordinate at which to evaluate the matrix.
-    real(real64), allocatable, dimension(:,:) :: rst
-        !! The Jacobian matrix.
-
-    rst = reshape([0.5d0 * this%length()], [1, 1])
-end function
-
-! ------------------------------------------------------------------------------
-pure function b2d_rotation_matrix(this) result(rst)
-    !! Computes the rotation matrix for the element.
-    class(beam_element_2d), intent(in) :: this
-        !! The beam_element_2d object.
-    real(real64), allocatable, dimension(:,:) :: rst
-        !! The resulting 6-by-6 rotation matrix.
-
-    ! Local Variables
-    real(real64) :: theta, ct, st
-    type(node) :: n1, n2
-
-    ! Process
-    allocate(rst(6, 6), source = 0.0d0)
-    n1 = this%get_node(1)
-    n2 = this%get_node(2)
-    theta = atan2(n2%y - n1%y, n2%x - n1%x)
-    ct = cos(theta)
-    st = sin(theta)
-
-    rst(1,1) = ct
-    rst(2,1) = st
-    rst(1,2) = -st
-    rst(2,2) = ct
-    rst(3,3) = 1.0d0
-    rst(4,4) = ct
-    rst(5,4) = st
-    rst(4,5) = -st
-    rst(5,5) = ct
-    rst(6,6) = 1.0d0
-end function
-
-! ------------------------------------------------------------------------------
-pure function b2d_stiffness_matrix(this, rule) result(rst)
-    !! Computes the stiffness matrix for the element.
-    class(beam_element_2d), intent(in) :: this
-        !! The beam_element_2d object.
-    integer(int32), intent(in), optional :: rule
-        !! The integration rule.  The rule must be one of the following:
-        !!
-        !! - MECH_ONE_POINT_INTEGRATION_RULE
-        !!
-        !! - MECH_TWO_POINT_INTEGRATION_RULE
-        !!
-        !! - MECH_THREE_POINT_INTEGRATION_RULE
-        !!
-        !! - MECH_FOUR_POINT_INTEGRATION_RULE
-        !!
-        !! The default integration rule is MECH_TWO_POINT_INTEGRATION_RULE.
-    real(real64), allocatable, dimension(:,:) :: rst
-        !! The resulting matrix.
-
-    ! Local Variables
-    real(real64) :: A, E, I, L
-    real(real64), allocatable, dimension(:,:) :: T, Tt
-
-    ! Initialization
-    A = this%area
-    E = this%material%modulus
-    I = this%moment_of_inertia
-    L = this%length()
-
-    ! Compute the rotation matrix
-    T = this%rotation_matrix()
-    Tt = transpose(T)
-
-    ! Construct the stiffness matrix
-    allocate(rst(6, 6), source = 0.0d0)
-    rst(1,1) = A * E / L
-    rst(2,2) = 12.0d0 * E * I / (L**3)
-    rst(3,3) = 4.0d0 * E * I / L
-    rst(2,3) = 6.0d0 * E * I / (L**2)
-    rst(3,2) = rst(2,3)
-    rst(1,4) = -rst(1,1)
-    rst(4,1) = rst(1,4)
-    rst(2,5) = -rst(2,2)
-    rst(5,2) = rst(2,5)
-    rst(2,6) = rst(2,3)
-    rst(6,2) = rst(2,6)
-    rst(3,5) = -rst(2,3)
-    rst(5,3) = rst(3,5)
-    rst(3,6) = 2.0d0 * E * I / L
-    rst(6,3) = rst(3,6)
-    rst(4:6,4:6) = rst(1:3,1:3)
-    rst(5,6) = -rst(2,3)
-    rst(6,5) = rst(5,6)
-
-    ! Apply the transformation
-    rst = matmul(Tt, matmul(rst, T))
-end function
-
-! ------------------------------------------------------------------------------
-pure function b2d_mass_matrix(this, rule) result(rst)
-    !! Computes the mass matrix for the element.
-    class(beam_element_2d), intent(in) :: this
-        !! The beam_element_2d object.
-    integer(int32), intent(in), optional :: rule
-        !! The integration rule.  The rule must be one of the following:
-        !!
-        !! - MECH_ONE_POINT_INTEGRATION_RULE
-        !!
-        !! - MECH_TWO_POINT_INTEGRATION_RULE
-        !!
-        !! - MECH_THREE_POINT_INTEGRATION_RULE
-        !!
-        !! - MECH_FOUR_POINT_INTEGRATION_RULE
-        !!
-        !! The default integration rule is MECH_TWO_POINT_INTEGRATION_RULE.
-    real(real64), allocatable, dimension(:,:) :: rst
-        !! The resulting matrix.
-
-    ! Local Variables
-    real(real64) :: rho, A, L, f
-    real(real64), allocatable, dimension(:,:) :: T, Tt
-
-    ! Initialization
-    rho = this%material%density
-    A = this%area
-    L = this%length()
-    f = rho * A * L / 4.2d2
-
-    ! Compute the rotation matrix
-    T = this%rotation_matrix()
-    Tt = transpose(T)
-
-    ! Construct the mass matrix
-    allocate(rst(6, 6), source = 0.0d0)
-    rst(1,1) = 1.4d2 * f
-    rst(4,1) = 7.0d1 * f
-    rst(2,2) = 1.56d2 * f
-    rst(3,2) = 2.2d1 * L * f
-    rst(5,2) = 5.4d1 * f
-    rst(6,2) = -1.3d1 * L * f
-    rst(2,3) = rst(3,2)
-    rst(3,3) = 4.0d0 * L**2 * f
-    rst(5,3) = 1.3d1 * L * f
-    rst(6,3) = -3.0d0 * L**2 * f
-    rst(1,4) = rst(4,1)
-    rst(4,4) = rst(1,1)
-    rst(2,5) = rst(5,2)
-    rst(3,5) = rst(5,3)
-    rst(5,5) = rst(2,2)
-    rst(6,5) = -2.2d1 * L * f
-    rst(2,6) = rst(6,2)
-    rst(3,6) = rst(6,3)
-    rst(5,6) = rst(6,5)
-    rst(6,6) = rst(3,3)
-
-    ! Apply the transformation
-    rst = matmul(Tt, matmul(rst, T))
-end function
 
 ! ******************************************************************************
 ! PRIVATE ROUTINES
@@ -1486,464 +1763,72 @@ pure function det(x) result(rst)
     end select
 end function
 
-! ------------------------------------------------------------------------------
-! REF: https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
-pure function normal_vector_to_line(pt1, pt2, pt) result(rst)
-    !! Computes the normal vector to a line defined by pt1 and pt2 assuming
-    !! some point (pt) not on the line.
-    class(point), intent(in) :: pt1
-        !! The origin point of the line segment.
-    class(point), intent(in) :: pt2
-        !! The termination point of the line segment.
-    class(point), intent(in) :: pt
-        !! A point, not on the line.
-    real(real64) :: rst(3)
-        !! The resulting normal vector (unit length).
-
-    ! Local Variables
-    real(real64) :: a(3), p(3), n(3), amp(3)
-
-    ! Initialization
-    a = [pt1%x, pt1%y, pt1%z]
-    n = [pt2%x, pt2%y, pt2%z] - a
-    p = [pt%x, pt%y, pt%z]
-    amp = a - p
-    rst = amp - dot_product(amp, n) * n
-    rst = rst / norm2(rst)
-end function
-
-
 ! ******************************************************************************
-! BEAM_3D ROUTINES
+! SOLVERS
 ! ------------------------------------------------------------------------------
-pure function b3d_dimensionality(this) result(rst)
-    !! Gets the dimensionality of the element.
-    class(beam_element_3d), intent(in) :: this
-        !! The beam_element_3d object.
-    integer(int32) :: rst
-        !! The dimensionality.
-    rst = 3
-end function
-
-! ------------------------------------------------------------------------------
-pure function b3d_get_node_count(this) result(rst)
-    !! Gets the number of nodes for the element.
-    class(beam_element_3d), intent(in) :: this
-        !! The beam_element_3d object.
-    integer(int32) :: rst
-        !! The number of nodes.
-    rst = 2
-end function
-
-! ------------------------------------------------------------------------------
-pure function b3d_dof_per_node(this) result(rst)
-    !! Gets the number of degrees of freedom per node.
-    class(beam_element_3d), intent(in) :: this
-        !! The beam_element_3d object.
-    integer(int32) :: rst
-        !! The number of DOF per node.
-    rst = 6
-end function
-
-! ------------------------------------------------------------------------------
-pure function b3d_get_node(this, i) result(rst)
-    !! Gets the requested node from the element.
-    class(beam_element_3d), intent(in) :: this
-        !! The beam_element_3d object.
-    integer(int32), intent(in) :: i
-        !! The local index of the node to retrieve.
-    type(node) :: rst
-        !! The requested node.
-
-    if (i == 1) then
-        rst = this%node_1
-    else
-        rst = this%node_2
-    end if
-end function
-
-! ------------------------------------------------------------------------------
-pure subroutine b3d_terminal_nodes(this, i1, i2)
-    !! Gets the terminal node numbers for the element.
-    class(beam_element_3d), intent(in) :: this
-        !! The beam_element_3d object.
-    integer(int32), intent(out) :: i1
-        !! The index of the node at the head of the element.
-    integer(int32), intent(out) :: i2
-        !! The index of the node at the tail of the element.
-    i1 = 1
-    i2 = 2
-end subroutine
-
-! ------------------------------------------------------------------------------
-pure function b3d_shape_function(this, i, s) result(rst)
-    !! Evaluates the i-th shape function at natural coordinate s.
-    class(beam_element_3d), intent(in) :: this
-        !! The beam_element_3d object.
-    integer(int32), intent(in) :: i
-        !! The index of the shape function to evaluate.
-    real(real64), intent(in), dimension(:) :: s
-        !! The value of the natural coordinate at which to evaluate
-        !! the shape function.
-    real(real64) :: rst
-        !! The value of the i-th shape function at s.
+pure function solve_static_system_dense(K, F) result(rst)
+    !! Solves the static system \(K u = f\).
+    real(real64), intent(in), dimension(:,:) :: K
+        !! The N-by-N stiffness matrix.
+    real(real64), intent(in), dimension(:) :: F
+        !! The N-element external forcing vector.
+    real(real64), allocatable, dimension(:) :: rst
+        !! The N-element solution vector.
 
     ! Local Variables
-    real(real64) :: l
+    integer(int32) :: n
+    integer(int32), allocatable, dimension(:) :: pvt
+    real(real64), allocatable, dimension(:,:) :: lu
 
-    ! Process
-    select case (i)
-    case (1)
-        rst = 0.5d0 * (1.0d0 - s(1))
-    case (2)
-        rst = 0.25d0 * (1.0d0 - s(1))**2 * (2.0d0 + s(1))
-    case (3)
-        rst = 0.25d0 * (1.0d0 - s(1))**2 * (2.0d0 + s(1))
-    case (4)
-        rst = 0.5d0 * (1.0d0 - s(1))
-    case (5)
-        rst = 0.25d0 * (1.0d0 - s(1)**2) * (1.0d0 - s(1))
-    case (6)
-        rst = 0.25d0 * (1.0d0 - s(1)**2) * (1.0d0 - s(1))
-    case (7)
-        rst = 0.5d0 * (1.0d0 + s(1))
-    case (8)
-        rst = 0.25d0 * (1.0d0 + s(1))**2 * (2.0d0 - s(1))
-    case (9)
-        rst = 0.25d0 * (1.0d0 + s(1))**2 * (2.0d0 - s(1))
-    case (10)
-        rst = 0.5d0 * (1.0d0 + s(1))
-    case (11)
-        rst = 0.25d0 * (1.0d0 - s(1)**2) * (1.0d0 + s(1))
-    case (12)
-        rst = 0.25d0 * (1.0d0 - s(1)**2) * (1.0d0 + s(1))
-    case default
-        rst = 0.0d0
-    end select
+    ! Input Check
+    n = size(K, 1)
+    if (size(K, 2) /= n) error stop DYN_MATRIX_SIZE_ERROR
+    if (size(F) /= n) error stop DYN_ARRAY_SIZE_ERROR
+
+    ! Factor the system
+    call lu_factor(K, ipvt = pvt, lu = lu)
+
+    ! Solve the system
+    rst = solve_lu(lu, pvt, F)
 end function
 
 ! ------------------------------------------------------------------------------
-pure function b3d_shape_function_matrix_3d(this, s) result(rst)
-    !! Computes the shape function matrix for a beam element.
-    class(beam_element_3d), intent(in) :: this
-        !! The beam_element_3d object.
-    real(real64), intent(in), dimension(:) :: s
-        !! The value of the natural coordinate at which to evaluate the shape
-        !! functions.
-    real(real64), allocatable, dimension(:,:) :: rst
-        !! The shape function matrix.
+pure function solve_static_system_csr(K, F) result(rst)
+    !! Solves the static system \(K u = f\).
+    type(csr_matrix), intent(in) :: K
+        !! The N-by-N stiffness matrix.
+    real(real64), intent(in), dimension(:) :: F
+        !! The N-element external forcing vector.
+    real(real64), allocatable, dimension(:) :: rst
+        !! The N-element solution vector.
+
+    ! Parameters
+    real(real64), parameter :: residual_tolerance = 1.0d-8
 
     ! Local Variables
-    real(real64) :: n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11, n12, l
+    integer(int32) :: n, krylov
+    integer(int32), allocatable, dimension(:) :: ju
+    real(real64) :: rnorm
+    type(msr_matrix) :: lu
 
-    ! Initialization
-    allocate(rst(4, 12), source = 0.0d0)
-    l = this%length()
+    ! Input Check
+    n = size(K, 1)
+    if (size(K, 2) /= n) error stop DYN_MATRIX_SIZE_ERROR
+    if (size(F) /= n) error stop DYN_ARRAY_SIZE_ERROR
 
-    ! Process
-    n1 = this%evaluate_shape_function(1, s)
-    n2 = this%evaluate_shape_function(2, s)
-    n3 = this%evaluate_shape_function(3, s)
-    n4 = this%evaluate_shape_function(4, s)
-    n5 = -0.5d0 * l * this%evaluate_shape_function(5, s)
-    n6 = 0.5d0 * l * this%evaluate_shape_function(6, s)
-    n7 = this%evaluate_shape_function(7, s)
-    n8 = this%evaluate_shape_function(8, s)
-    n9 = this%evaluate_shape_function(9, s)
-    n10 = this%evaluate_shape_function(10, s)
-    n11 = 0.5d0 * l * this%evaluate_shape_function(11, s)
-    n12 = -0.5d0 * l * this%evaluate_shape_function(12, s)
+    ! Build an ILU preconditioner with a tight drop tolerance, then let a
+    ! restarted GMRES iteration converge on the true solution rather than
+    ! trusting the incomplete factorization alone.
+    krylov = min(n, 300)
+    allocate(ju(n))
+    call lu_factor(K, lu, ju, droptol = epsilon(rnorm))
+    rst = pgmres_solver(K, lu, ju, F, im = krylov, tol = epsilon(rnorm), &
+        maxits = 200)
 
-    rst(1,1) = n1
-    rst(2,2) = n2
-    rst(3,3) = n3
-    rst(4,4) = n4
-    rst(3,5) = n5
-    rst(2,6) = n6
-
-    rst(1,7) = n7
-    rst(2,8) = n8
-    rst(3,9) = n9
-    rst(4,10) = n10
-    rst(3,11) = n11
-    rst(2,12) = n12
-end function
-
-! ------------------------------------------------------------------------------
-pure function b3d_strain_disp_matrix_3d(this, s) result(rst)
-    !! Computes the strain-displacement matrix for a 3D beam element.
-    class(beam_element_3d), intent(in) :: this
-        !! The beam_element_3d object.
-    real(real64), intent(in), dimension(:) :: s
-        !! The value of the natural coordinate at which to evaluate the matrix.
-    real(real64), allocatable, dimension(:,:) :: rst
-        !! The strain-displacement matrix.
-
-    ! Local Variables
-    real(real64) :: l, dsdx, dn1ds, dn2ds, dn3ds, dn4ds, dn5ds, dn6ds, &
-        dn7ds, dn8ds, dn9ds, dn10ds, dn11ds, dn12ds
-    
-    ! Initialization
-    allocate(rst(4, 12), source = 0.0d0)
-
-    ! Process
-    l = this%length()
-    dsdx = 2.0d0 / l    ! s = 2 * x / L - 1, so ds/dx = 2 / L
-    dn1ds = shape_function_derivative(1, this, s, 1)
-    dn2ds = shape_function_second_derivative(2, this, s, 1)
-    dn3ds = shape_function_second_derivative(3, this, s, 1)
-    dn4ds = shape_function_derivative(4, this, s, 1)
-    dn5ds = -0.5d0 * l * shape_function_second_derivative(5, this, s, 1)
-    dn6ds = 0.5d0 * l * shape_function_second_derivative(6, this, s, 1)
-    dn7ds = shape_function_derivative(7, this, s, 1)
-    dn8ds = shape_function_second_derivative(8, this, s, 1)
-    dn9ds = shape_function_second_derivative(9, this, s, 1)
-    dn10ds = shape_function_derivative(10, this, s, 1)
-    dn11ds = 0.5d0 * l * shape_function_second_derivative(11, this, s, 1)
-    dn12ds = -0.5d0 * l * shape_function_second_derivative(12, this, s, 1)
-
-    ! Build the matrix
-    rst(1,1) = dn1ds * dsdx
-    rst(2,2) = dn2ds * dsdx**2
-    rst(3,3) = dn3ds * dsdx**2
-    rst(4,4) = dn4ds * dsdx
-    rst(3,5) = dn5ds * dsdx**2
-    rst(2,6) = dn6ds * dsdx**2
-    rst(1,7) = dn7ds * dsdx
-    rst(2,8) = dn8ds * dsdx**2
-    rst(3,9) = dn9ds * dsdx**2
-    rst(4,10) = dn10ds * dsdx
-    rst(3,11) = dn11ds * dsdx**2
-    rst(2,12) = dn12ds * dsdx**2
-end function
-! ------------------------------------------------------------------------------
-pure function b3d_constitutive_matrix(this) result(rst)
-    !! Computes the constitutive matrix for the element.
-    class(beam_element_3d), intent(in) :: this
-        !! The beam_element_3d object.
-    real(real64), allocatable, dimension(:,:) :: rst
-        !! The resulting matrix.
-
-    ! Process
-    allocate(rst(4,4), source = 0.0d0)
-    rst(1,1) = this%area * this%material%modulus
-    rst(2,2) = this%Izz * this%material%modulus
-    rst(3,3) = this%Iyy * this%material%modulus
-    rst(4,4) = this%Ixx * this%material%modulus / &
-        (2.0d0 * (1.0d0 + this%material%poissons_ratio))
-end function
-
-! ------------------------------------------------------------------------------
-pure function b3d_jacobian(this, s) result(rst)
-    !! Computes the Jacobian matrix for a 3D beam element.
-    class(beam_element_3d), intent(in) :: this
-        !! The beam_element_3d object.
-    real(real64), intent(in), dimension(:) :: s
-        !! The value of the natural coordinate at which to evaluate the matrix.
-    real(real64), allocatable, dimension(:,:) :: rst
-        !! The Jacobian matrix.
-
-    rst = reshape([0.5d0 * this%length()], [1, 1])
-end function
-
-! ------------------------------------------------------------------------------
-pure function b3d_rotation_matrix(this) result(rst)
-    !! Computes the rotation matrix for the element.
-    class(beam_element_3d), intent(in) :: this
-        !! The beam_element_3d object.
-    real(real64), allocatable, dimension(:,:) :: rst
-        !! The resulting 12-by-12 rotation matrix.
-
-    ! Local Variables
-    real(real64) :: i(3), j(3), k(3)
-
-    ! Define the unit vectors
-    i = [ &
-        this%node_2%x - this%node_1%x, &
-        this%node_2%y - this%node_1%y, &
-        this%node_2%z - this%node_1%z &
-    ]
-    i = i / norm2(i)
-    k = normal_vector_to_line(this%node_1, this%node_2, this%orientation_point)
-    j = [ &
-        k(2) * i(3) - k(3) * i(2), &
-        k(3) * i(1) - k(1) * i(3), &
-        k(1) * i(2) - k(2) * i(1) &
-    ]
-
-    ! Construct the matrix
-    allocate(rst(12, 12), source = 0.0d0)
-    rst(1:3,1:3) = rotate(i, j, k)
-    rst(4:6,4:6) = rst(1:3,1:3)
-    rst(7:9,7:9) = rst(1:3,1:3)
-    rst(10:12,10:12) = rst(1:3,1:3)
-end function
-
-! ------------------------------------------------------------------------------
-! https://www.researchgate.net/publication/352816965_3-D_Beam_Finite_Element_Programming_-A_Practical_Guide_Part_1
-! https://homes.civil.aau.dk/jc/FemteSemester/Beams3D.pdf
-! https://www.sesamx.io/blog/beam_finite_element/
-! https://www.brown.edu/Departments/Engineering/Courses/En2340/Projects/Projects_2015/Wenqiang_Fan.pdf
-! https://www.mm.bme.hu/~gyebro/files/ans_help_v182/ans_thry/thy_shp2.html#shp3d2node
-pure function b3d_stiffness_matrix(this, rule) result(rst)
-    !! Computes the stiffness matrix for the element.
-    class(beam_element_3d), intent(in) :: this
-        !! The beam_element_3d object.
-    integer(int32), intent(in), optional :: rule
-        !! The integration rule.  The rule must be one of the following:
-        !!
-        !! - MECH_ONE_POINT_INTEGRATION_RULE
-        !!
-        !! - MECH_TWO_POINT_INTEGRATION_RULE
-        !!
-        !! - MECH_THREE_POINT_INTEGRATION_RULE
-        !!
-        !! - MECH_FOUR_POINT_INTEGRATION_RULE
-        !!
-        !! The default integration rule is MECH_TWO_POINT_INTEGRATION_RULE.
-    real(real64), allocatable, dimension(:,:) :: rst
-        !! The resulting matrix.
-
-    ! Local Variables
-    real(real64) :: A, E, Iyy, Izz, Jxx, G, L
-    real(real64), allocatable, dimension(:,:) :: T, Tt
-
-    ! Initialization
-    A = this%area
-    Jxx = this%Ixx
-    Iyy = this%Iyy
-    Izz = this%Izz
-    E = this%material%modulus
-    G = E / (2.0d0 * (1.0d0 + this%material%poissons_ratio))
-    L = this%length()
-
-    ! Compute the rotation matrix
-    T = this%rotation_matrix()
-    Tt = transpose(T)
-
-    ! Construct the stiffness matrix
-    allocate(rst(12, 12), source = 0.0d0)
-    rst(1,1) = A * E / L
-    rst(7,1) = -rst(1,1)
-    rst(2,2) = 1.2d1 * E * Izz / L**3
-    rst(6,2) = 6.0d0 * E * Izz / L**2
-    rst(8,2) = -rst(2,2)
-    rst(12,2) = rst(6,2)
-    rst(3,3) = 1.2d1 * E * Iyy / L**3
-    rst(5,3) = -6.0d0 * E * Iyy / L**2
-    rst(9,3) = -rst(3,3)
-    rst(11,3) = rst(5,3)
-    rst(4,4) = G * Jxx / L
-    rst(10,4) = -rst(4,4)
-    rst(3,5) = rst(5,3)
-    rst(5,5) = 4.0d0 * E * Iyy / L
-    rst(9,5) = -rst(11,3)
-    rst(11,5) = 2.0d0 * E * Iyy / L
-    rst(2,6) = rst(6,2)
-    rst(6,6) = 4.0d0 * E * Izz / L
-    rst(8,6) = -rst(12,2)
-    rst(12,6) = 2.0d0 * E * Izz / L
-    rst(1,7) = rst(7,1)
-    rst(7,7) = rst(1,1)
-    rst(2,8) = rst(8,2)
-    rst(6,8) = rst(8,6)
-    rst(8,8) = rst(2,2)
-    rst(12,8) = -rst(6,2)
-    rst(3,9) = rst(9,3)
-    rst(5,9) = rst(9,5)
-    rst(9,9) = rst(3,3)
-    rst(11,9) = -rst(5,3)
-    rst(4,10) = rst(10,4)
-    rst(10,10) = rst(4,4)
-    rst(3,11) = rst(11,3)
-    rst(5,11) = rst(11,5)
-    rst(9,11) = rst(11,9)
-    rst(11,11) = rst(5,5)
-    rst(2,12) = rst(12,2)
-    rst(6,12) = rst(12,6)
-    rst(8,12) = rst(12,8)
-    rst(12,12) = rst(6,6)
-
-    ! Apply the transformation
-    rst = matmul(Tt, matmul(rst, T))
-end function
-
-! ------------------------------------------------------------------------------
-pure function b3d_mass_matrix(this, rule) result(rst)
-    !! Computes the mass matrix for the element.
-    class(beam_element_3d), intent(in) :: this
-        !! The beam_element_3d object.
-    integer(int32), intent(in), optional :: rule
-        !! The integration rule.  The rule must be one of the following:
-        !!
-        !! - MECH_ONE_POINT_INTEGRATION_RULE
-        !!
-        !! - MECH_TWO_POINT_INTEGRATION_RULE
-        !!
-        !! - MECH_THREE_POINT_INTEGRATION_RULE
-        !!
-        !! - MECH_FOUR_POINT_INTEGRATION_RULE
-        !!
-        !! The default integration rule is MECH_TWO_POINT_INTEGRATION_RULE.
-    real(real64), allocatable, dimension(:,:) :: rst
-        !! The resulting matrix.
-
-    ! Local Variables
-    real(real64) :: rho, L
-    real(real64), allocatable, dimension(:,:) :: T, Tt
-
-    ! Initialization
-    rho = this%material%density
-    L = this%length()
-
-    ! Compute the rotation matrix
-    T = this%rotation_matrix()
-    Tt = transpose(T)
-
-    ! Compute the mass matrix
-    allocate(rst(12, 12), source = 0.0d0)
-    rst(1,1) = L * rho / 3.0d0
-    rst(7,1) = L * rho / 6.0d0
-    rst(2,2) = 1.3d1 * L * rho / 3.5d1
-    rst(6,2) = 1.1d1 * rho * L**2 / 2.1d2
-    rst(8,2) = 9.0d0 * L * rho / 7.0d1
-    rst(12,2) = -1.3d1 * rho * L**2 / 4.2d2
-    rst(3,3) = 1.3d0 * rho * L / 3.5d1
-    rst(5,3) = -1.1d0 * rho * L**2 / 2.1d2
-    rst(9,3) = 9.0d0 * rho * L / 7.0d1
-    rst(11,3) = 1.3d1 * rho * L**2 / 4.2d2
-    rst(4,4) = rho * L / 3.0d0
-    rst(10,4) = rho * L / 6.0d0
-    rst(3,5) = rst(5,3)
-    rst(5,5) = rho * L**3 / 1.05d2
-    rst(9,5) = -1.3d1 * rho * L**2 / 4.2d2
-    rst(11,5) = -rho * L**3 / 1.4d2
-    rst(2,6) = rst(6,2)
-    rst(6,6) = rho * L**3 / 1.05d2
-    rst(8,6) = 1.3d1 * rho * L**2 / 4.2d2
-    rst(12,6) = -rho * L**3 / 1.4d2
-    rst(1,7) = rst(7,1)
-    rst(7,7) = rst(1,1)
-    rst(2,8) = rst(8,2)
-    rst(6,8) = rst(8,6)
-    rst(8,8) = rst(2,2)
-    rst(12,8) = -1.1d1 * rho * L**2 / 2.1d2
-    rst(3,9) = rst(9,3)
-    rst(5,9) = rst(9,5)
-    rst(9,9) = rst(3,3)
-    rst(11,9) = 1.1d1 * rho * L**2 / 2.1d2
-    rst(4,10) = rst(10,4)
-    rst(10,10) = rst(4,4)
-    rst(3,11) = rst(11,3)
-    rst(9,11) = rst(11,9)
-    rst(11,11) = rst(5,5)
-    rst(2,12) = rst(12,2)
-    rst(6,12) = rst(12,6)
-    rst(8,12) = rst(12,8)
-    rst(12,12) = rst(6,6)
-
-    ! Apply the transformation
-    rst = matmul(Tt, matmul(rst, T))
+    ! GMRES only monitors the preconditioned residual internally, so verify
+    ! the true (unpreconditioned) residual before trusting the result.
+    rnorm = norm2(F - matmul(K, rst)) / max(norm2(F), 1.0d0)
+    if (rnorm > residual_tolerance) error stop DYN_CONVERGENCE_ERROR
 end function
 
 ! ------------------------------------------------------------------------------

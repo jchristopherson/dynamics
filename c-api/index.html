@@ -93,7 +93,7 @@ $(document).ready(function(){initNavTree('index.html',''); initResizable(); });
   <div class="headertitle"><div class="title">DYNAMICS C API </div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="md__2home_2runner_2work_2dynamics_2dynamics_2c__docs_2c-api"></a> The DYNAMICS C API is a C-compatible interface to the library. The public declarations are in <a href="../src/c/dynamics.h"><code>dynamics.h</code></a>.</p>
+<div class="textblock"><p><a class="anchor" id="md__2home_2runner_2work_2dynamics_2dynamics_2c__docs_2c-api"></a> The DYNAMICS C API is a C-compatible interface to the library. The public declarations are in <a href="../../src/c/dynamics.h"><code>dynamics.h</code></a>.</p>
 <h1><a class="anchor" id="autotoc_md1"></a>
 Conventions</h1>
 <ul>
@@ -112,8 +112,21 @@ Linking</h1>
 <div class="fragment"><div class="line">cmake -S . -B build -DBUILD_DYNAMICS_C_INTERFACE=ON</div>
 </div><!-- fragment --><h1><a class="anchor" id="autotoc_md3"></a>
 Example</h1>
-<p>The repository contains a complete closed-loop example at <a href="../examples/c_four_bar_example_1.c"><code>examples/c_four_bar_example_1.c</code></a>. It shows how to allocate mechanism links, connect them with <code><a class="el" href="structc__joint.html" title="A joint connecting two mechanism link frames.">c_joint</a></code> values, create a planar linkage, solve its forward kinematics, and release all allocated data.</p>
+<p>The repository contains a complete closed-loop example at <a href="../../examples/c_four_bar_example_1.c"><code>examples/c_four_bar_example_1.c</code></a>. It shows how to allocate mechanism links, connect them with <code><a class="el" href="structc__joint.html" title="A joint connecting two mechanism link frames.">c_joint</a></code> values, create a planar linkage, solve its forward kinematics, and release all allocated data.</p>
 <h1><a class="anchor" id="autotoc_md4"></a>
+Beam coordinates</h1>
+<p>The beam element APIs use the local element coordinate system shown below. The local x-axis runs from node 1 to node 2. For a 3D beam, the orientation point defines the local z-axis and the local y-axis completes the right-handed frame.</p>
+<p><img src="../images/beam_coordinate_system.svg" alt="Beam element coordinate systems" style="pointer-events: none;" class="inline"/></p>
+<h1><a class="anchor" id="autotoc_md5"></a>
+Denavit-Hartenberg parameters</h1>
+<p>The <code><a class="el" href="structc__dh__parameter__set.html" title="One Denavit-Hartenberg parameter set.">c_dh_parameter_set</a></code> structure follows the standard Denavit-Hartenberg convention used by the kinematics API. The transform maps coordinates from frame <code>i</code> into frame <code>i-1</code> as</p>
+<p><code>Rz(joint_angle) Tz(link_offset) Tx(link_length) Rx(link_twist)</code>.</p>
+<p><img src="../images/dh_parameter_set.svg" alt="Standard Denavit-Hartenberg parameters" style="pointer-events: none;" class="inline"/></p>
+<h1><a class="anchor" id="autotoc_md6"></a>
+Geometry operations</h1>
+<p>The geometry API provides point, line, plane, and Plucker-line representations, along with projection, distance, parallelism, intersection, and common-normal operations. The relationships are summarized below.</p>
+<p><img src="../images/geometry_operations.svg" alt="Geometry representations and operations" style="pointer-events: none;" class="inline"/></p>
+<h1><a class="anchor" id="autotoc_md7"></a>
 Reference</h1>
 <p>The generated reference is organized by API area:</p>
 <ul>
@@ -125,6 +138,7 @@ Reference</h1>
 <li><a href="./group__dynamics__serial.html">Serial linkage operations</a></li>
 <li><a href="./group__dynamics__parallel.html">Parallel and planar linkage operations</a></li>
 <li><a href="./group__dynamics__state.html">Transfer functions and state-space models</a></li>
+<li><a href="./group__dynamics__structural.html">Structural analysis and line elements</a></li>
 </ul>
 <p>The complete declaration reference is also available from the generated <a href="annotated.html">Data Structures</a> and <a href="files.html">Files</a> pages.</p>
 <p>Routine-level documentation, including the purpose of every public routine, its arguments, output arguments, and return value, is maintained in the <a class="el" href="md__2home_2runner_2work_2dynamics_2dynamics_2c__docs_2c-api-reference.html">C API</a>routine reference". The declarations in <code><a class="el" href="dynamics_8h.html" title="Public C interface to the DYNAMICS library.">dynamics.h</a></code> remain the authoritative source for types, array dimensions, and calling conventions. </p>

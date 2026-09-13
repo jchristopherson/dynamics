@@ -95,10 +95,22 @@ relative to its parent frame.</p><a href="../proc/acceleration_transform.html" c
                  <td></td>
                </tr>
 			   <tr>
-                 <td><a href='..\proc\apply_displacement_constraint.html'>apply_displacement_constraint</a></td>
+                 <td><a href='..\interface\apply_displacement_constraint.html'>apply_displacement_constraint</a></td>
                  <td><a href='..\module\dynamics_structural.html'>dynamics_structural</a></td>
-                 <td>Subroutine</td>
-                 <td><p>Applies a displacement constraint to the specified degree of freedom.</p></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\interface\assemble_dynamic_system.html'>assemble_dynamic_system</a></td>
+                 <td><a href='..\module\dynamics_structural.html'>dynamics_structural</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\interface\assemble_static_system.html'>assemble_static_system</a></td>
+                 <td><a href='..\module\dynamics_structural.html'>dynamics_structural</a></td>
+                 <td>Interface</td>
+                 <td></td>
                </tr>
 			   <tr>
                  <td><a href='..\interface\assignment(=).html'>assignment(=)</a></td>
@@ -109,6 +121,18 @@ relative to its parent frame.</p><a href="../proc/acceleration_transform.html" c
 			   <tr>
                  <td><a href='..\interface\assignment(=)~2.html'>assignment(=)</a></td>
                  <td><a href='..\module\dynamics_quaternions.html'>dynamics_quaternions</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\interface\beam_element_2d.html'>beam_element_2d</a></td>
+                 <td><a href='..\module\dynamics_line_elements.html'>dynamics_line_elements</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\interface\beam_element_3d.html'>beam_element_3d</a></td>
+                 <td><a href='..\module\dynamics_line_elements.html'>dynamics_line_elements</a></td>
                  <td>Interface</td>
                  <td></td>
                </tr>
@@ -449,6 +473,12 @@ The logarithmic decrement is calculated as follows.</p><a href="../proc/logarith
                  <td><p>Solves the LTI system given by the specified state space model.</p></td>
                </tr>
 			   <tr>
+                 <td><a href='..\interface\material.html'>material</a></td>
+                 <td><a href='..\module\dynamics_structural.html'>dynamics_structural</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
                  <td><a href='..\interface\matmul.html'>matmul</a></td>
                  <td><a href='..\module\dynamics_geometry.html'>dynamics_geometry</a></td>
                  <td>Interface</td>
@@ -461,15 +491,10 @@ The logarithmic decrement is calculated as follows.</p><a href="../proc/logarith
                  <td></td>
                </tr>
 			   <tr>
-                 <td><a href='..\proc\modal_response.html'>modal_response</a></td>
+                 <td><a href='..\interface\modal_response.html'>modal_response</a></td>
                  <td><a href='..\module\dynamics_frequency_response.html'>dynamics_frequency_response</a></td>
-                 <td>Subroutine</td>
-                 <td><p>Computes the modal frequencies and modes shapes for 
-multi-degree-of-freedom system.
-The generalized eigenproblem is
-<script type="math/tex; mode=display"> K\boldsymbol{\phi}_i=\lambda_iM\boldsymbol{\phi}_i,
-\qquad \omega_i=\sqrt{\lambda_i}. </script>
-</p></td>
+                 <td>Interface</td>
+                 <td></td>
                </tr>
 			   <tr>
                  <td><a href='..\interface\multi_joint_link.html'>multi_joint_link</a></td>
@@ -483,6 +508,33 @@ The generalized eigenproblem is
                  <td>Function</td>
                  <td><p>Gets the line parameter for the point on the line nearest the 
 specified point.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\proc\nodally_averaged_strain.html'>nodally_averaged_strain</a></td>
+                 <td><a href='..\module\dynamics_structural.html'>dynamics_structural</a></td>
+                 <td>Function</td>
+                 <td><p>Computes nodal strain results by averaging the strain contributions
+from each element incident upon a node.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\proc\nodally_averaged_stress.html'>nodally_averaged_stress</a></td>
+                 <td><a href='..\module\dynamics_structural.html'>dynamics_structural</a></td>
+                 <td>Function</td>
+                 <td><p>Computes nodal stress results by averaging the stress contributions
+from each element incident upon a node.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\interface\node.html'>node</a></td>
+                 <td><a href='..\module\dynamics_structural.html'>dynamics_structural</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\proc\normal_vector_to_line.html'>normal_vector_to_line</a></td>
+                 <td><a href='..\module\dynamics_geometry.html'>dynamics_geometry</a></td>
+                 <td>Function</td>
+                 <td><p>Computes the normal vector to a line defined by pt1 and pt2 assuming
+some point (pt) not on the line.</p></td>
                </tr>
 			   <tr>
                  <td><a href='..\proc\normalize_mode_shapes.html'>normalize_mode_shapes</a></td>
@@ -581,6 +633,12 @@ the segment is interpolated as
 and the section point satisfies <script type="math/tex">a x(t)+b y(t)+c z(t)+d=0</script>.</p></td>
                </tr>
 			   <tr>
+                 <td><a href='..\interface\point.html'>point</a></td>
+                 <td><a href='..\module\dynamics_geometry.html'>dynamics_geometry</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
                  <td><a href='..\proc\point_plane_projection.html'>point_plane_projection</a></td>
                  <td><a href='..\module\dynamics_geometry.html'>dynamics_geometry</a></td>
                  <td>Function</td>
@@ -620,11 +678,10 @@ resonant frequency to its half-power bandwidth.</p></td>
                  <td></td>
                </tr>
 			   <tr>
-                 <td><a href='..\proc\restore_constrained_values.html'>restore_constrained_values</a></td>
+                 <td><a href='..\interface\restore_constrained_values.html'>restore_constrained_values</a></td>
                  <td><a href='..\module\dynamics_structural.html'>dynamics_structural</a></td>
-                 <td>Function</td>
-                 <td><p>Restores the constrained degrees-of-freedom from the boundary conditions
-applied by apply_boundary_conditions.</p></td>
+                 <td>Interface</td>
+                 <td></td>
                </tr>
 			   <tr>
                  <td><a href='..\interface\rigid_body.html'>rigid_body</a></td>
@@ -647,28 +704,28 @@ to 100% of its final value and is given by the following relationship.</p><a hre
                  <td></td>
                </tr>
 			   <tr>
-                 <td><a href='..\proc\rotate_x.html'>rotate_x</a></td>
+                 <td><a href='..\proc\rotate_x~2.html'>rotate_x</a></td>
                  <td><a href='..\module\dynamics_rotation.html'>dynamics_rotation</a></td>
                  <td>Function</td>
                  <td><p>Constructs the rotation matrix describing a rotation about an
 x-axis such that 
-<script type="math/tex"> \overrightarrow{r_2} = \textbf{R}_x \overrightarrow{r_1} </script>.</p><a href="../proc/rotate_x.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+<script type="math/tex"> \overrightarrow{r_2} = \textbf{R}_x \overrightarrow{r_1} </script>.</p><a href="../proc/rotate_x~2.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
 			   <tr>
-                 <td><a href='..\proc\rotate_y.html'>rotate_y</a></td>
+                 <td><a href='..\proc\rotate_y~2.html'>rotate_y</a></td>
                  <td><a href='..\module\dynamics_rotation.html'>dynamics_rotation</a></td>
                  <td>Function</td>
                  <td><p>Constructs the rotation matrix describing a rotation about a y-axis
 such that 
-<script type="math/tex"> \overrightarrow{r_2} = \textbf{R}_y \overrightarrow{r_1} </script>.</p><a href="../proc/rotate_y.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+<script type="math/tex"> \overrightarrow{r_2} = \textbf{R}_y \overrightarrow{r_1} </script>.</p><a href="../proc/rotate_y~2.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
 			   <tr>
-                 <td><a href='..\proc\rotate_z.html'>rotate_z</a></td>
+                 <td><a href='..\proc\rotate_z~2.html'>rotate_z</a></td>
                  <td><a href='..\module\dynamics_rotation.html'>dynamics_rotation</a></td>
                  <td>Function</td>
                  <td><p>Constructs the rotation matrix describing a rotation about a y-axis
 such that 
-<script type="math/tex"> \overrightarrow{r_2} = \textbf{R}_z \overrightarrow{r_1} </script>.</p><a href="../proc/rotate_z.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+<script type="math/tex"> \overrightarrow{r_2} = \textbf{R}_z \overrightarrow{r_1} </script>.</p><a href="../proc/rotate_z~2.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
 			   <tr>
                  <td><a href='..\proc\scalar_projection.html'>scalar_projection</a></td>
@@ -720,6 +777,12 @@ natural coordinate specified.</p></td>
                  <td>Function</td>
                  <td><p>Solves the inverse kinematics problem for a linkage.  An iterative
 solution procedure is utilized.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\interface\solve_static_system.html'>solve_static_system</a></td>
+                 <td><a href='..\module\dynamics_structural.html'>dynamics_structural</a></td>
+                 <td>Interface</td>
+                 <td></td>
                </tr>
 			   <tr>
                  <td><a href='..\interface\ss_excitation.html'>ss_excitation</a></td>
@@ -814,7 +877,7 @@ its parent frame.</p><a href="../proc/velocity_transform.html" class="pull-right
             <p class="text-end">
               Documentation generated by
               <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-09-04 16:45              </p>
+ on 2026-09-13 13:42              </p>
           </div>
         </div>
         <br>

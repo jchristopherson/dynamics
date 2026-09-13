@@ -8,7 +8,7 @@
     <meta name="author" content="Jason Christopherson" >
     <link rel="icon" href="../favicon.png">
 
-    <title>apply_displacement_constraint &ndash; DYNAMICS</title>
+    <title>assemble_dynamic_system &ndash; DYNAMICS</title>
 
     <link href="../css/bootstrap.min.css" rel="stylesheet">
     <link href="../css/pygments.css" rel="stylesheet">
@@ -76,8 +76,8 @@
 
     <div class="container">
   <div class="row">
-    <h1>apply_displacement_constraint
-      <small>Subroutine</small>
+    <h1>assemble_dynamic_system
+      <small>Interface</small>
       
     </h1>
       <div class="row" id="info-bar">
@@ -88,7 +88,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 0.7% of total for procedures.">9 statements</a>
+               title="<p> 0.3% of total for procedures.</p>Including implementation: 70 statements,  5.1% of total for procedures.">4 statements</a>
           </li>
 
             <li id="source-file">
@@ -99,7 +99,7 @@
         <ol class="breadcrumb in-well text-right">
               <li><a href='../sourcefile/dynamics_structural.f90.html'>dynamics_structural.f90</a></li>
               <li><a href='../module/dynamics_structural.html'>dynamics_structural</a></li>
-          <li class="active">apply_displacement_constraint</li>
+          <li class="active">assemble_dynamic_system</li>
         </ol>
       </div>
     </div>
@@ -114,7 +114,7 @@
   
   <div class="row">
     <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
-      <div id="sidebar">
+        <div id="sidebar">
       <h3>Contents</h3>
   
   
@@ -134,7 +134,20 @@
   
   
   
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#modprocs-0">Module Procedures</a>
+        </h3>
+      </div>
+      <div id="modprocs-0" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../interface/assemble_dynamic_system.html#moduleprocedure-assemble_dynamic_system_dense">assemble_dynamic_system_dense</a>
+            <a class="list-group-item" href="../interface/assemble_dynamic_system.html#moduleprocedure-assemble_dynamic_system_csr">assemble_dynamic_system_csr</a>
+        </div>
+      </div>
+    </div>
+
 
 
   </div>
@@ -142,14 +155,59 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>public  subroutine apply_displacement_constraint(dof, val, k, f)  
-</h2>
-    
+      <h2>public interface assemble_dynamic_system</h2>
+   
 
-    <p>Applies a displacement constraint to the specified degree of freedom.</p>
+     <section class="visible-xs visible-sm hidden-md">
+         <h3>Contents</h3>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#modprocs-1">Module Procedures</a>
+        </h3>
+      </div>
+      <div id="modprocs-1" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../interface/assemble_dynamic_system.html#moduleprocedure-assemble_dynamic_system_dense">assemble_dynamic_system_dense</a>
+            <a class="list-group-item" href="../interface/assemble_dynamic_system.html#moduleprocedure-assemble_dynamic_system_csr">assemble_dynamic_system_csr</a>
+        </div>
+      </div>
+    </div>
 
-    <h3>Arguments</h3>
-        <table class="table table-striped varlist">
+
+
+     </section>
+     <br class="visible-xs visible-sm hidden-md">
+     
+
+
+   <h2>Module Procedures</h2>
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-assemble_dynamic_system_dense"></span><h3>private  subroutine assemble_dynamic_system_dense(gdof, elements, nodes, m, k, rule)  
+</h3></div>
+    <div class="panel-body">
+        <p>Assembles dense global mass and stiffness matrices.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
     <thead>
       <tr>
         <th>Type</th>
@@ -161,7 +219,7 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-dof"></span>
+              <span class="anchor" ></span>
               integer(kind=int32),
             </td>
 <td>intent(in)</td>
@@ -169,100 +227,210 @@
               
             </td>
             <td>::</td>
-            <td><strong>dof</strong></td>
+            <td><strong>gdof</strong></td>
             <td>
-                <p>The global degree-of-freedom to which the constraint should be
-applied.</p>
+                <p>The total number of global degrees of freedom.</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-val"></span>
-              real(kind=real64),
+              <span class="anchor" ></span>
+              class(<a href='../type/element.html'>element</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>val</strong></td>
+            <td><strong>elements</strong>(:)</td>
             <td>
-                <p>The value of the displacement constraint.</p>
+                <p>The finite elements to assemble.</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-k~6"></span>
-              real(kind=real64),
+              <span class="anchor" ></span>
+              class(<a href='../type/node.html'>node</a>),
             </td>
-<td>intent(inout),</td>
-              <td></td>            <td>
-              dimension(:,:)
-            </td>
-            <td>::</td>
-            <td><strong>k</strong></td>
-            <td>
-                <p>The stiffness matrix to which the constraint should be applied.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-f~3"></span>
-              real(kind=real64),
-            </td>
-<td>intent(inout),</td>
+<td>intent(in),</td>
               <td></td>            <td>
               dimension(:)
             </td>
             <td>::</td>
-            <td><strong>f</strong></td>
+            <td><strong>nodes</strong></td>
             <td>
-                <p>The external force vector to which the constraint should be applied.</p>
+                <p>The global node list.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>m</strong>(:,:)</td>
+            <td>
+                <p>The assembled global mass matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>k</strong>(:,:)</td>
+            <td>
+                <p>The assembled global stiffness matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>rule</strong></td>
+            <td>
+                <p>The numerical integration rule.</p>
             </td>
         </tr>
     </tbody>
   </table>
 
-    <br>
 
-    <section class="visible-xs visible-sm hidden-md">
-        <h3>Contents</h3>
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-
-
-    </section>
-    <br class="visible-xs visible-sm hidden-md">
-
-
-    
-    
-
-    
-    
-
-
-    
-    
     </div>
   </div>
+
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-assemble_dynamic_system_csr"></span><h3>private  subroutine assemble_dynamic_system_csr(gdof, elements, nodes, m, k, rule)  
+</h3></div>
+    <div class="panel-body">
+        <p>Assembles global mass and stiffness matrices in CSR format.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>gdof</strong></td>
+            <td>
+                <p>The total number of global degrees of freedom.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/element.html'>element</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>elements</strong>(:)</td>
+            <td>
+                <p>The finite elements to assemble.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/node.html'>node</a>),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>nodes</strong></td>
+            <td>
+                <p>The global node list.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(csr_matrix),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>m</strong></td>
+            <td>
+                <p>The assembled global mass matrix in CSR format.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(csr_matrix),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>k</strong></td>
+            <td>
+                <p>The assembled global stiffness matrix in CSR format.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>rule</strong></td>
+            <td>
+                <p>The numerical integration rule.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+
+ </div>
+</div>
 
     <hr>    
     </div> <!-- /container -->
@@ -276,7 +444,7 @@ applied.</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-09-06 02:15            </p>
+ on 2026-09-13 20:03            </p>
         </div>
       </div>
       <br>

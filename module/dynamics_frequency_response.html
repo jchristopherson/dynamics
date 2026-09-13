@@ -88,7 +88,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title="11.4% of total for modules and submodules.">669 statements</a>
+               title="12.2% of total for modules and submodules.">811 statements</a>
           </li>
 
             <li id="source-file">
@@ -150,6 +150,7 @@
             <a class="list-group-item" href="../module/dynamics_frequency_response.html#interface-frequency_sweep">frequency_sweep</a>
             <a class="list-group-item" href="../module/dynamics_frequency_response.html#interface-harmonic_ode">harmonic_ode</a>
             <a class="list-group-item" href="../module/dynamics_frequency_response.html#interface-modal_excite">modal_excite</a>
+            <a class="list-group-item" href="../module/dynamics_frequency_response.html#interface-modal_response">modal_response</a>
             <a class="list-group-item" href="../module/dynamics_frequency_response.html#interface-ode_excite">ode_excite</a>
         </div>
       </div>
@@ -193,7 +194,6 @@
       </div>
       <div id="subs-0" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../module/dynamics_frequency_response.html#proc-modal_response">modal_response</a>
             <a class="list-group-item" href="../module/dynamics_frequency_response.html#proc-normalize_mode_shapes">normalize_mode_shapes</a>
         </div>
       </div>
@@ -220,11 +220,11 @@
       <ul class="list-group">
           <li class="list-group-item">
             <ul class="list-inline">
-                <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
                 <li>spectrum</li>
+                <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
+                <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
                 <li>fstats</li>
                 <li>diffeq</li>
-                <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
             </ul>
           </li>
       </ul>
@@ -270,6 +270,7 @@
             <a class="list-group-item" href="../module/dynamics_frequency_response.html#interface-frequency_sweep">frequency_sweep</a>
             <a class="list-group-item" href="../module/dynamics_frequency_response.html#interface-harmonic_ode">harmonic_ode</a>
             <a class="list-group-item" href="../module/dynamics_frequency_response.html#interface-modal_excite">modal_excite</a>
+            <a class="list-group-item" href="../module/dynamics_frequency_response.html#interface-modal_response">modal_response</a>
             <a class="list-group-item" href="../module/dynamics_frequency_response.html#interface-ode_excite">ode_excite</a>
         </div>
       </div>
@@ -313,7 +314,6 @@
       </div>
       <div id="subs-1" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../module/dynamics_frequency_response.html#proc-modal_response">modal_response</a>
             <a class="list-group-item" href="../module/dynamics_frequency_response.html#proc-normalize_mode_shapes">normalize_mode_shapes</a>
         </div>
       </div>
@@ -853,6 +853,189 @@ the outside world.</p>
           </li>
           <li class="list-group-item">
                 <h3>
+    private  function frf_modal_prop_damp_sparse(mass, stiff, alpha, beta, nmodes, freq, frc, modes, modeshapes, args) result(rst)  
+
+    </h3>
+  <p>Computes a modal-truncated frequency response for a system with
+proportional damping using CSR sparse mass and stiffness matrices.
+The damping matrix is defined by <script type="math/tex">C=\alpha M+\beta K</script>.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(csr_matrix),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>mass</strong></td>
+            <td>
+                <p>The N-by-N symmetric positive-definite mass matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(csr_matrix),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>stiff</strong></td>
+            <td>
+                <p>The N-by-N symmetric stiffness matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>alpha</strong></td>
+            <td>
+                <p>The mass damping factor, <script type="math/tex">\alpha</script>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>beta</strong></td>
+            <td>
+                <p>The stiffness damping factor, <script type="math/tex">\beta</script>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nmodes</strong></td>
+            <td>
+                <p>The number of lowest-frequency modes to retain.  This value
+must be greater than zero and less than N.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>freq</strong></td>
+            <td>
+                <p>An M-element array of frequency values in units of rad/s.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              procedure(<a href='../interface/modal_excite.html'>modal_excite</a>),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              pointer
+            </td>
+            <td>::</td>
+            <td><strong>frc</strong></td>
+            <td>
+                <p>A pointer to the physical forcing function.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td>optional,</td>            <td>
+              allocatable, dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>modes</strong></td>
+            <td>
+                <p>An optional NMODES-element array containing the retained modal
+frequencies in units of rad/s.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td>optional,</td>            <td>
+              allocatable, dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>modeshapes</strong></td>
+            <td>
+                <p>An optional N-by-NMODES matrix containing the mass-normalized
+retained mode shapes.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(*),
+            </td>
+<td>intent(inout),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>args</strong></td>
+            <td>
+                <p>An optional argument passed to the forcing function.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/frf.html'>frf</a>)</small>
+    </h4>
+    <p>The modal-truncated frequency responses.</p>
+
+          </li>
+          <li class="list-group-item">
+                <h3>
     private  function frf_modal_prop_damp_2(mass, stiff, alpha, beta, nfreq, freq1, freq2, frc, modes, modeshapes, args) result(rst)  
 
     </h3>
@@ -1057,6 +1240,220 @@ the outside world.</p>
     <small>type(<a href='../type/frf.html'>frf</a>)</small>
     </h4>
     <p>The resulting frequency responses.</p>
+
+          </li>
+          <li class="list-group-item">
+                <h3>
+    private  function frf_modal_prop_damp_sparse_2(mass, stiff, alpha, beta, nmodes, nfreq, freq1, freq2, frc, modes, modeshapes, args) result(rst)  
+
+    </h3>
+  <p>Computes a modal-truncated frequency response for a system with
+proportional damping using CSR sparse mass and stiffness matrices.
+The damping matrix is defined by <script type="math/tex">C=\alpha M+\beta K</script>.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(csr_matrix),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>mass</strong></td>
+            <td>
+                <p>The N-by-N symmetric positive-definite mass matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(csr_matrix),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>stiff</strong></td>
+            <td>
+                <p>The N-by-N symmetric stiffness matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>alpha</strong></td>
+            <td>
+                <p>The mass damping factor, <script type="math/tex">\alpha</script>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>beta</strong></td>
+            <td>
+                <p>The stiffness damping factor, <script type="math/tex">\beta</script>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nmodes</strong></td>
+            <td>
+                <p>The number of lowest-frequency modes to retain.  This value
+must be greater than zero and less than N.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nfreq</strong></td>
+            <td>
+                <p>The number of frequency values to analyze.  This value must be
+at least 2.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>freq1</strong></td>
+            <td>
+                <p>The starting frequency, in units of rad/s.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>freq2</strong></td>
+            <td>
+                <p>The ending frequency, in units of rad/s.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              procedure(<a href='../interface/modal_excite.html'>modal_excite</a>),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              pointer
+            </td>
+            <td>::</td>
+            <td><strong>frc</strong></td>
+            <td>
+                <p>A pointer to the physical forcing function.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td>optional,</td>            <td>
+              allocatable, dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>modes</strong></td>
+            <td>
+                <p>An optional NMODES-element array containing the retained modal
+frequencies in units of rad/s.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td>optional,</td>            <td>
+              allocatable, dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>modeshapes</strong></td>
+            <td>
+                <p>An optional N-by-NMODES matrix containing the mass-normalized
+retained mode shapes.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(*),
+            </td>
+<td>intent(inout),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>args</strong></td>
+            <td>
+                <p>An optional argument passed to the forcing function.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/frf.html'>frf</a>)</small>
+    </h4>
+    <p>The modal-truncated frequency responses.</p>
 
           </li>
           <li class="list-group-item">
@@ -1907,6 +2304,215 @@ the outside world.</p>
 
        <div class="panel panel-default">
     <div class="panel-heading codesum">
+      <span class="anchor" id="interface-modal_response"></span>
+      <h3>public        interface <a href='../interface/modal_response.html'>modal_response</a> 
+      </h3>
+    </div>
+    <ul class="list-group">
+          <li class="list-group-item">
+                <h3>
+    private pure subroutine modal_response_dense(mass, stiff, freqs, modeshapes)  
+
+    </h3>
+  <p>Computes the modal frequencies and modes shapes for 
+multi-degree-of-freedom system.
+The generalized eigenproblem is
+<script type="math/tex; mode=display"> K\boldsymbol{\phi}_i=\lambda_iM\boldsymbol{\phi}_i,
+\qquad \omega_i=\sqrt{\lambda_i}. </script>
+</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>mass</strong></td>
+            <td>
+                <p>The N-by-N mass matrix for the system.  This matrix must be
+symmetric.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>stiff</strong></td>
+            <td>
+                <p>The N-by-N stiffness matrix for the system.  This matrix must
+be symmetric.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              allocatable, dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>freqs</strong></td>
+            <td>
+                <p>An allocatable N-element array where the modal frequencies will
+be returned in ascending order with units of rad/s.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td>optional,</td>            <td>
+              allocatable, dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>modeshapes</strong></td>
+            <td>
+                <p>An optional, allocatable N-by-N matrix where the N mode shapes
+for the system will be returned.  The mode shapes are stored in
+columns.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+          </li>
+          <li class="list-group-item">
+                <h3>
+    private  subroutine modal_response_sparse(mass, stiff, nmodes, freqs, modeshapes)  
+
+    </h3>
+  <p>Computes selected modal frequencies and mode shapes for a
+multi-degree-of-freedom system using CSR sparse matrices.
+The generalized eigenproblem is
+<script type="math/tex; mode=display"> K\boldsymbol{\phi}_i=\lambda_iM\boldsymbol{\phi}_i,
+\qquad \omega_i=\sqrt{\lambda_i}. </script>
+</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(csr_matrix),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>mass</strong></td>
+            <td>
+                <p>The N-by-N symmetric positive-definite mass matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(csr_matrix),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>stiff</strong></td>
+            <td>
+                <p>The N-by-N symmetric stiffness matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nmodes</strong></td>
+            <td>
+                <p>The number of lowest-frequency modes to compute.  This value
+must be greater than zero and less than N.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              allocatable, dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>freqs</strong></td>
+            <td>
+                <p>An allocatable NMODES-element array containing the modal
+frequencies in ascending order with units of rad/s.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td>optional,</td>            <td>
+              allocatable, dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>modeshapes</strong></td>
+            <td>
+                <p>An optional, allocatable N-by-NMODES matrix containing one mode
+shape per column.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+          </li>
+    </ul>
+  </div>
+
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
       <span class="anchor" id="interface-ode_excite"></span>
       <h3>        interface
       </h3>
@@ -2537,101 +3143,6 @@ iterative solution and the nature of the convergence.</p>
     <section>
     <h2>Subroutines</h2>
       <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="proc-modal_response"></span><h3>public pure subroutine <a href='../proc/modal_response.html'>modal_response</a>(mass, stiff, freqs, modeshapes)  
-</h3></div>
-    <div class="panel-body">
-          
-  <p>Computes the modal frequencies and modes shapes for 
-multi-degree-of-freedom system.
-The generalized eigenproblem is
-<script type="math/tex; mode=display"> K\boldsymbol{\phi}_i=\lambda_iM\boldsymbol{\phi}_i,
-\qquad \omega_i=\sqrt{\lambda_i}. </script>
-</p>
-
-  <h4>Arguments</h4>
-      <table class="table table-striped varlist">
-    <thead>
-      <tr>
-        <th>Type</th>
-<th>Intent</th><th>Optional</th>        <th>Attributes</th>
-        <th></th>
-        <th>Name</th>
-        <th></th>
-    </thead>
-    <tbody>
-        <tr>
-            <td>
-              <span class="anchor" ></span>
-              real(kind=real64),
-            </td>
-<td>intent(in),</td>
-              <td></td>            <td>
-              dimension(:,:)
-            </td>
-            <td>::</td>
-            <td><strong>mass</strong></td>
-            <td>
-<p>The N-by-N mass matrix for the system.  This matrix must be
-symmetric.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" ></span>
-              real(kind=real64),
-            </td>
-<td>intent(in),</td>
-              <td></td>            <td>
-              dimension(:,:)
-            </td>
-            <td>::</td>
-            <td><strong>stiff</strong></td>
-            <td>
-<p>The N-by-N stiffness matrix for the system.  This matrix must
-be symmetric.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" ></span>
-              real(kind=real64),
-            </td>
-<td>intent(out),</td>
-              <td></td>            <td>
-              allocatable, dimension(:)
-            </td>
-            <td>::</td>
-            <td><strong>freqs</strong></td>
-            <td>
-<p>An allocatable N-element array where the modal frequencies will
-be returned in ascending order with units of rad/s.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" ></span>
-              real(kind=real64),
-            </td>
-<td>intent(out),</td>
-              <td>optional,</td>            <td>
-              allocatable, dimension(:,:)
-            </td>
-            <td>::</td>
-            <td><strong>modeshapes</strong></td>
-            <td>
-<p>An optional, allocatable N-by-N matrix where the N mode shapes
-for the system will be returned.  The mode shapes are stored in
-columns.</p>
-            </td>
-        </tr>
-    </tbody>
-  </table>
-
-
-    </div>
-  </div>
-
-      <div class="panel panel-default">
     <div class="panel-heading codesum"><span class="anchor" id="proc-normalize_mode_shapes"></span><h3>public pure subroutine <a href='../proc/normalize_mode_shapes.html'>normalize_mode_shapes</a>(x)  
 </h3></div>
     <div class="panel-body">
@@ -2697,7 +3208,7 @@ k=\arg\max_j|\phi_{i,j}|. </script>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-09-06 02:15            </p>
+ on 2026-09-13 20:03            </p>
         </div>
       </div>
       <br>

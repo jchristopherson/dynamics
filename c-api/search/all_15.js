@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['w_0',['w',['../structc__quaternion.html#af1d4a0fb79f5a3efa02d79a0551b13aa',1,'c_quaternion']]]
+  ['v_0',['v',['../structc__line.html#ae00d841f3ba8486841b0bb7b252338df',1,'c_line']]]
 ];

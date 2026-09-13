@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['identification_0',['Frequency response and system identification',['../group__dynamics__frequency.html',1,'']]]
+  ['general_20kinematics_0',['Matrix and general kinematics',['../group__dynamics__matrix.html',1,'']]],
+  ['geometry_20operations_1',['Geometry operations',['../group__dynamics__geometry.html',1,'']]]
 ];

@@ -1,6 +1,4 @@
 var searchData=
 [
-  ['parallel_20and_20planar_20linkage_20operations_0',['Parallel and planar linkage operations',['../group__dynamics__parallel.html',1,'']]],
-  ['planar_20linkage_20operations_1',['Parallel and planar linkage operations',['../group__dynamics__parallel.html',1,'']]],
-  ['public_20constants_2',['Public constants',['../group__dynamics__constants.html',1,'']]]
+  ['operations_0',['operations',['../group__dynamics__geometry.html',1,'Geometry operations'],['../group__dynamics__parallel.html',1,'Parallel and planar linkage operations'],['../group__dynamics__quaternion.html',1,'Quaternion operations'],['../group__dynamics__serial.html',1,'Serial linkage operations']]]
 ];

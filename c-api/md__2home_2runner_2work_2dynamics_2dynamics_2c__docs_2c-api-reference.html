@@ -93,12 +93,12 @@ $(document).ready(function(){initNavTree('md__2home_2runner_2work_2dynamics_2dyn
   <div class="headertitle"><div class="title">DYNAMICS C API Routine Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md5"></a> The public C interface is declared in <code><a class="el" href="dynamics_8h.html" title="Public C interface to the DYNAMICS library.">src/c/dynamics.h</a></code>. Every routine is listed in the generated Doxygen reference by API group. The declaration page is the authoritative reference for the exact prototype; this page records the meaning of the argument and return-value conventions used by every routine.</p>
-<h1><a class="anchor" id="autotoc_md6"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md8"></a> The public C interface is declared in <code><a class="el" href="dynamics_8h.html" title="Public C interface to the DYNAMICS library.">src/c/dynamics.h</a></code>. Every routine is listed in the generated Doxygen reference by API group. The declaration page is the authoritative reference for the exact prototype; this page records the meaning of the argument and return-value conventions used by every routine.</p>
+<h1><a class="anchor" id="autotoc_md9"></a>
 Reading routine declarations</h1>
 <p>Each routine's declaration identifies every argument by name and C type. Input arguments are marked <code>const</code> where the routine does not modify the referenced storage. Non-const pointer and array arguments are caller-provided output or in/out storage. Their required length or matrix shape is given by the related size argument and the routine's API-group documentation.</p>
 <p>For routines returning <code>void</code>, results are written to those non-const output arguments. Routines returning <code>double</code>, <code>bool</code>, or <code>int</code> return the computed scalar or status/count value shown in the declaration. Allocation routines return an integer status and initialize the supplied object; a nonzero status indicates allocation or construction failure. <code>c_alloc_dynamic_system_measurement_array</code> returns the allocated measurement-array pointer, and linkage creation routines return a <code>c_mechanism</code> handle. Release routines return <code>void</code> and accept the object they own.</p>
-<h1><a class="anchor" id="autotoc_md7"></a>
+<h1><a class="anchor" id="autotoc_md10"></a>
 Argument conventions</h1>
 <ul>
 <li><code>n</code>, <code>m</code>, <code>k</code>, <code>nfreq</code>, and similar integer arguments specify vector lengths, matrix dimensions, counts, or numbers of samples as named by the routine.</li>
@@ -108,7 +108,7 @@ Argument conventions</h1>
 <li>Mechanism link, joint, and frame indices are one-based. A <code>c_mechanism</code> returned by a creation routine must be released with <code>c_free_mechanism</code>.</li>
 <li>Callback arguments describe caller-supplied functions. Their callback typedef declarations in <code><a class="el" href="dynamics_8h.html" title="Public C interface to the DYNAMICS library.">dynamics.h</a></code> document the callback arguments and outputs.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md8"></a>
+<h1><a class="anchor" id="autotoc_md11"></a>
 Complete routine list</h1>
 <p>The generated pages linked from the <a class="el" href="index.html#md__2home_2runner_2work_2dynamics_2dynamics_2c__docs_2c-api">C API guide</a> provide the complete routine list and exact signatures, grouped as follows:</p>
 <ul>

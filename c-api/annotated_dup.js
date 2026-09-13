@@ -1,5 +1,7 @@
 var annotated_dup =
 [
+    [ "c_beam_element_2d", "structc__beam__element__2d.html", "structc__beam__element__2d" ],
+    [ "c_beam_element_3d", "structc__beam__element__3d.html", "structc__beam__element__3d" ],
     [ "c_binary_link", "structc__binary__link.html", "structc__binary__link" ],
     [ "c_coordinate_system", "structc__coordinate__system.html", "structc__coordinate__system" ],
     [ "c_dh_parameter_set", "structc__dh__parameter__set.html", "structc__dh__parameter__set" ],
@@ -11,7 +13,9 @@ var annotated_dup =
     [ "c_joint", "structc__joint.html", "structc__joint" ],
     [ "c_line", "structc__line.html", "structc__line" ],
     [ "c_lm_solver_options", "structc__lm__solver__options.html", "structc__lm__solver__options" ],
+    [ "c_material", "structc__material.html", "structc__material" ],
     [ "c_mechanism_link", "structc__mechanism__link.html", "structc__mechanism__link" ],
+    [ "c_node", "structc__node.html", "structc__node" ],
     [ "c_plane", "structc__plane.html", "structc__plane" ],
     [ "c_plucker_line", "structc__plucker__line.html", "structc__plucker__line" ],
     [ "c_polynomial", "structc__polynomial.html", "structc__polynomial" ],
