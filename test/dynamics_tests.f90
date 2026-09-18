@@ -13,6 +13,7 @@ program main
     use dynamics_linkage_tests
     use dynamics_parallel_linkage_tests
     use dynamics_variational_integrator_tests
+    use dynamics_linkage_dynamics_tests
     implicit none
 
     ! Variables
@@ -397,6 +398,12 @@ program main
 
     check = test_variational_graph_solver()
     if (.not.check) flag = 133
+
+    check = test_serial_linkage_dynamics()
+    if (.not.check) flag = 134
+
+    check = test_parallel_linkage_dynamics()
+    if (.not.check) flag = 135
 
     ! End
     if (flag /= 0) stop flag

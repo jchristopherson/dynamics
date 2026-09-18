@@ -24,6 +24,7 @@ set(DYNAMICS_SOURCES
     ${dir}/dynamics_parallel_linkage.f90
     ${dir}/dynamics_line_elements.f90
     ${dir}/dynamics_variational_integrators.f90
+    ${dir}/dynamics_linkage_dynamics.f90
 )
 
 # C API

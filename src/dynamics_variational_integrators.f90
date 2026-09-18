@@ -201,7 +201,8 @@ subroutine vi_step(this, bodies, state, dt, constraint_count, constraint, &
     real(real64) :: alpha, trial_norm, residual_norm
     real(real64), allocatable, dimension(:) :: unknown, trial, residual, &
         trial_residual, delta
-    real(real64), allocatable, dimension(:,:) :: jacobian, lu
+    real(real64), allocatable, dimension(:,:) :: jacobian, lu, &
+        constraint_gradient
     type(variational_state) :: accepted_state
 
     ! Input Checking
@@ -221,6 +222,17 @@ subroutine vi_step(this, bodies, state, dt, constraint_count, constraint, &
         unknown(6*i-2:6*i) = state%angular_velocity(:,i)
     end do
     if (nconstraint > 0) unknown(6*nbody+1:nvar) = 0.0d0
+
+    ! The reduced constraint Jacobian is evaluated at the current state and is
+    ! constant throughout the Newton iterations for this discrete step.
+    if (nconstraint > 0) then
+        allocate(constraint_gradient(nconstraint, 6*nbody))
+        if (present(constraint_jacobian)) then
+            call constraint_jacobian(state, constraint_gradient, args)
+        else
+            call finite_difference_constraint_gradient(constraint_gradient)
+        end if
+    end if
 
     ! Solve the discrete Euler-Lagrange equations and position-level
     ! constraints with damped Newton iterations.
@@ -279,7 +291,7 @@ contains
         integer(int32) :: body_index, first
         real(real64), dimension(3) :: omega1, omega2, momentum1, momentum2
         real(real64), allocatable, dimension(:,:) :: applied_force, &
-            applied_torque, constraint_gradient
+            applied_torque
         real(real64), allocatable, dimension(:) :: constraint_value
 
         ! Evaluate external loading at the current discrete state. This is the
@@ -316,14 +328,8 @@ contains
             ! Apply constraint forces through the reduced configuration Jacobian
             ! and append the position-level constraints at the new configuration.
         if (nconstraint > 0) then
-            allocate(constraint_value(nconstraint), &
-                constraint_gradient(nconstraint, 6*nbody))
+            allocate(constraint_value(nconstraint))
             call constraint(next_state, constraint_value, args)
-            if (present(constraint_jacobian)) then
-                call constraint_jacobian(state, constraint_gradient, args)
-            else
-                call finite_difference_constraint_gradient(constraint_gradient)
-            end if
             value(1:6*nbody) = value(1:6*nbody) - matmul( &
                 transpose(constraint_gradient), x(6*nbody+1:nvar))
             value(6*nbody+1:nvar) = constraint_value

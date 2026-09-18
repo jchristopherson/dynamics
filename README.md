@@ -37,6 +37,7 @@ The `dynamics` module aggregates tools for analysis, modeling, and identificatio
     - Rotation transforms, angle-axis conversion, and quaternion algebra.
 - Variational multibody integration
     - Structure-preserving rigid-body integration in maximal coordinates using the formulation of Brüdigam et al. (2023).
+    - Direct dynamic analysis of serial, spatial parallel, and planar parallel linkages using link mass properties and joint attachment frames.
     - Holonomic equality constraints enforced at the position level with Lagrange multipliers.
     - Unit-quaternion orientation updates with body-frame angular velocities and inertia tensors.
     - Dense LU and graph-factorized block solvers for the coupled Newton equations.
