@@ -12,6 +12,7 @@ program main
     use dynamics_geometry_tests
     use dynamics_linkage_tests
     use dynamics_parallel_linkage_tests
+    use dynamics_variational_integrator_tests
     implicit none
 
     ! Variables
@@ -384,6 +385,18 @@ program main
 
     check = test_open_chain_equivalence()
     if (.not.check) flag = 107
+
+    check = test_variational_free_body()
+    if (.not.check) flag = 130
+
+    check = test_variational_applied_force()
+    if (.not.check) flag = 131
+
+    check = test_variational_position_constraint()
+    if (.not.check) flag = 132
+
+    check = test_variational_graph_solver()
+    if (.not.check) flag = 133
 
     ! End
     if (flag /= 0) stop flag

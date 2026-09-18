@@ -1,0 +1,220 @@
+module dynamics_variational_integrator_tests
+    use iso_fortran_env, only : real64
+    use fortran_test_helper
+    use dynamics
+    implicit none
+
+contains
+! ------------------------------------------------------------------------------
+function test_variational_free_body() result(rst)
+    !! Tests momentum preservation and quaternion advancement for a free body.
+    logical :: rst
+        !! True if the free-body update is correct; else, false.
+    type(rigid_body) :: bodies(1)
+        !! The body properties.
+    type(variational_state) :: state
+        !! The maximal-coordinate body state.
+    type(variational_integrator) :: integrator
+        !! The integrator under test.
+    real(real64), parameter :: dt = 0.01d0
+        !! The integration time step.
+    real(real64) :: expected_q(4)
+        !! The expected orientation quaternion.
+
+    ! Initialization
+    rst = .true.
+    bodies(1) = rigid_body(2.0d0)
+    call initialize_variational_state(state, 1)
+    state%velocity(:,1) = [1.0d0, -2.0d0, 0.5d0]
+    state%angular_velocity(:,1) = [0.0d0, 0.0d0, 1.0d0]
+
+    ! Advance one free-body step.
+    call integrator%step(bodies, state, dt)
+    expected_q = [sqrt(1.0d0 - (0.5d0*dt)**2), 0.0d0, 0.0d0, 0.5d0*dt]
+
+    ! Test the translational and rotational updates.
+    if (.not.assert(state%position(:,1), &
+        [0.01d0, -0.02d0, 0.005d0], 1.0d-12)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_variational_free_body - position"
+    end if
+    if (.not.assert(state%velocity(:,1), &
+        [1.0d0, -2.0d0, 0.5d0], 1.0d-12)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_variational_free_body - velocity"
+    end if
+    if (.not.assert(state%orientation(1)%to_array(), expected_q, &
+        1.0d-12)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_variational_free_body - orientation"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_variational_applied_force() result(rst)
+    !! Tests the translational discrete momentum balance under constant force.
+    logical :: rst
+        !! True if the forced update is correct; else, false.
+    type(rigid_body) :: bodies(1)
+        !! The body properties.
+    type(variational_state) :: state
+        !! The maximal-coordinate body state.
+    type(variational_integrator) :: integrator
+        !! The integrator under test.
+
+    ! Initialization
+    rst = .true.
+    bodies(1) = rigid_body(2.0d0)
+    call initialize_variational_state(state, 1)
+
+    ! Advance one step under a constant downward force.
+    call integrator%step(bodies, state, 0.01d0, &
+        force_function = constant_force)
+
+    ! Test the resulting velocity and position.
+    if (.not.assert(state%velocity(:,1), &
+        [0.0d0, 0.0d0, -0.0981d0], 1.0d-10)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_variational_applied_force - velocity"
+    end if
+    if (.not.assert(state%position(:,1), &
+        [0.0d0, 0.0d0, -0.000981d0], 1.0d-12)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_variational_applied_force - position"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_variational_position_constraint() result(rst)
+    !! Tests position-level equality-constraint enforcement and multipliers.
+    logical :: rst
+        !! True if the constrained update is correct; else, false.
+    type(rigid_body) :: bodies(1)
+        !! The body properties.
+    type(variational_state) :: state
+        !! The maximal-coordinate body state.
+    type(variational_integrator) :: integrator
+        !! The integrator under test.
+    real(real64), allocatable :: multipliers(:)
+        !! The computed equality-constraint multipliers.
+
+    ! Initialization
+    rst = .true.
+    bodies(1) = rigid_body(2.0d0)
+    call initialize_variational_state(state, 1)
+    state%velocity(:,1) = [1.0d0, -2.0d0, 0.5d0]
+
+    ! Advance while fixing all three center-of-mass coordinates.
+    call integrator%step(bodies, state, 0.01d0, 3, &
+        fixed_position, multipliers = multipliers)
+
+    ! Test the constrained state and reaction multipliers.
+    if (.not.assert(state%position(:,1), [0.0d0, 0.0d0, 0.0d0], &
+        1.0d-10)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_variational_position_constraint - position"
+    end if
+    if (.not.assert(state%velocity(:,1), [0.0d0, 0.0d0, 0.0d0], &
+        1.0d-10)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_variational_position_constraint - velocity"
+    end if
+    if (.not.assert(multipliers, [-200.0d0, 400.0d0, -100.0d0], &
+        1.0d-4)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_variational_position_constraint - multiplier"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_variational_graph_solver() result(rst)
+    !! Tests the graph-factorized Newton solver against the dense reference
+    !! solver for a two-body, three-equation relative-position constraint.
+    logical :: rst
+        !! True if the graph and dense solutions agree; else, false.
+    type(rigid_body) :: bodies(2)
+        !! The two rigid bodies in the test problem.
+    type(variational_state) :: dense_state, graph_state
+        !! Identical initial states advanced by the two solver variants.
+    type(variational_integrator) :: dense_integrator, graph_integrator
+        !! The dense and graph-factorized integrators.
+    real(real64), allocatable :: dense_multipliers(:), graph_multipliers(:)
+        !! Constraint multipliers returned by each solver.
+
+    ! Initialization
+    rst = .true.
+    bodies(1) = rigid_body(1.0d0)
+    bodies(2) = rigid_body(1.0d0)
+    call initialize_variational_state(dense_state, 2)
+    dense_state%position(:,2) = [1.0d0, 0.0d0, 0.0d0]
+    dense_state%velocity(:,1) = [1.0d0, 0.0d0, 0.0d0]
+    dense_state%velocity(:,2) = [-1.0d0, 0.0d0, 0.0d0]
+    graph_state = dense_state
+    graph_integrator%settings%linear_solver = VI_GRAPH_FACTORIZED_SOLVER
+
+    ! Advance both copies of the problem.
+    call dense_integrator%step(bodies, dense_state, 0.01d0, 3, &
+        relative_position_constraint, multipliers = dense_multipliers)
+    call graph_integrator%step(bodies, graph_state, 0.01d0, 3, &
+        relative_position_constraint, multipliers = graph_multipliers)
+
+    ! The factorization strategy must not alter the nonlinear solution.
+    if (.not.assert(graph_state%position, dense_state%position, 1.0d-10)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_variational_graph_solver - position"
+    end if
+    if (.not.assert(graph_state%velocity, dense_state%velocity, 1.0d-10)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_variational_graph_solver - velocity"
+    end if
+    if (.not.assert(graph_multipliers, dense_multipliers, 1.0d-7)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_variational_graph_solver - multiplier"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+subroutine constant_force(t, state, force, torque, args)
+    !! Supplies the constant force used by the applied-force test.
+    real(real64), intent(in) :: t
+        !! The current time; unused by this callback.
+    type(variational_state), intent(in) :: state
+        !! The current state; unused by this callback.
+    real(real64), intent(out) :: force(:,:), torque(:,:)
+        !! The output force and torque arrays.
+    class(*), intent(inout), optional :: args
+        !! Optional user data; unused by this callback.
+
+    force = 0.0d0
+    torque = 0.0d0
+    force(3,1) = -19.62d0
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine fixed_position(state, value, args)
+    !! Fixes the center-of-mass position of the first body at the origin.
+    type(variational_state), intent(in) :: state
+        !! The state at which to evaluate the constraint.
+    real(real64), intent(out) :: value(:)
+        !! The three position residuals.
+    class(*), intent(inout), optional :: args
+        !! Optional user data; unused by this callback.
+
+    value = state%position(:,1)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine relative_position_constraint(state, value, args)
+    !! Evaluates a fixed relative-position constraint between two bodies.
+    type(variational_state), intent(in) :: state
+        !! The maximal-coordinate state to evaluate.
+    real(real64), intent(out) :: value(:)
+        !! The three relative-position constraint residuals.
+    class(*), intent(inout), optional :: args
+        !! Optional user data; unused by this test callback.
+
+    value = state%position(:,2) - state%position(:,1) - &
+        [1.0d0, 0.0d0, 0.0d0]
+end subroutine
+
+end module
