@@ -757,6 +757,58 @@ typedef struct {
     double moment[3];
 } c_joint_reaction;
 
+/** @brief Linear spring between body-fixed points; body zero denotes ground. */
+typedef struct {
+    /** First moving-body index, or zero for ground. */
+    int body_1;
+    /** Second moving-body index, or zero for ground. */
+    int body_2;
+    /** First attachment in body coordinates, or world coordinates for ground. */
+    double point_1[3];
+    /** Second attachment in body coordinates, or world coordinates for ground. */
+    double point_2[3];
+    /** Linear stiffness. */
+    double stiffness;
+    /** Zero-force length; values below/above this produce compression/tension. */
+    double free_length;
+} c_linear_spring;
+
+/** @brief Axial linear viscous damper between body-fixed points. */
+typedef struct {
+    int body_1; /**< First moving-body index, or zero for ground. */
+    int body_2; /**< Second moving-body index, or zero for ground. */
+    double point_1[3]; /**< First body/world attachment point. */
+    double point_2[3]; /**< Second body/world attachment point. */
+    double damping; /**< Axial damping coefficient. */
+} c_linear_damper;
+
+/** @brief Linear torsional spring bound to a revolute-joint axis. */
+typedef struct {
+    int joint_index; /**< One-based revolute-joint index. */
+    double stiffness; /**< Torque per radian. */
+    double free_angle; /**< Zero-torque relative joint angle in radians. */
+} c_torsional_spring;
+
+/** @brief Twist-rate damper bound to a revolute-joint axis. */
+typedef struct {
+    int joint_index; /**< One-based revolute-joint index. */
+    double damping; /**< Torque per unit relative angular velocity. */
+} c_torsional_damper;
+
+/** @brief Instantaneous scalar result for an axial force element. */
+typedef struct {
+    double length; /**< Current attachment distance. */
+    double length_rate; /**< Relative velocity along the element axis. */
+    double force; /**< Signed force acting on body 1 toward body 2. */
+} c_axial_element_result;
+
+/** @brief Instantaneous scalar result for a torsional force element. */
+typedef struct {
+    double angle; /**< Signed relative revolute-joint angle in radians. */
+    double angle_rate; /**< Relative twist rate about the joint axis. */
+    double torque; /**< Signed torque acting on the child link. */
+} c_torsional_element_result;
+
 /**
  * @brief Opaque handle to a closed-loop mechanism. Create handles with
  * `c_create_parallel_linkage` or `c_create_planar_linkage`, and release them
@@ -2384,6 +2436,69 @@ int c_linkage_dynamic_joint_count(c_linkage_dynamic_model obj);
  * @return Base linkage constraint count, or zero for a NULL handle.
  */
 int c_linkage_dynamic_constraint_count(c_linkage_dynamic_model obj);
+/**
+ * Add a tension/compression linear spring.
+ * @param obj Dynamic-model handle.
+ * @param element Spring attachment, stiffness, and free-length definition.
+ */
+void c_linkage_dynamic_add_linear_spring(c_linkage_dynamic_model obj,
+    const c_linear_spring *element);
+/**
+ * Add an axis-only linear viscous damper.
+ * @param obj Dynamic-model handle.
+ * @param element Damper attachment and damping-coefficient definition.
+ */
+void c_linkage_dynamic_add_linear_damper(c_linkage_dynamic_model obj,
+    const c_linear_damper *element);
+/**
+ * Add a linear torsional spring to a revolute joint.
+ * @param obj Dynamic-model handle.
+ * @param element Revolute-joint index, stiffness, and free-angle definition.
+ */
+void c_linkage_dynamic_add_torsional_spring(c_linkage_dynamic_model obj,
+    const c_torsional_spring *element);
+/**
+ * Add a twist-rate damper to a revolute joint.
+ * @param obj Dynamic-model handle.
+ * @param element Revolute-joint index and damping-coefficient definition.
+ */
+void c_linkage_dynamic_add_torsional_damper(c_linkage_dynamic_model obj,
+    const c_torsional_damper *element);
+/** @param obj Dynamic-model handle. @return Number of axial elements. */
+int c_linkage_dynamic_axial_element_count(c_linkage_dynamic_model obj);
+/** @param obj Dynamic-model handle. @return Number of torsional elements. */
+int c_linkage_dynamic_torsional_element_count(c_linkage_dynamic_model obj);
+/**
+ * Query all axial elements at one state.
+ * @param obj Dynamic-model handle.
+ * @param nbody Moving-body count.
+ * @param time State time.
+ * @param position Position array, shape 3-by-nbody.
+ * @param orientation Quaternion array, length nbody.
+ * @param velocity Velocity array, shape 3-by-nbody.
+ * @param angular_velocity Body-frame angular velocity, shape 3-by-nbody.
+ * @param results Output array sized by c_linkage_dynamic_axial_element_count.
+ */
+void c_linkage_dynamic_axial_element_results(c_linkage_dynamic_model obj,
+    int nbody, double time, const double *position,
+    const c_quaternion *orientation, const double *velocity,
+    const double *angular_velocity, c_axial_element_result *results);
+/**
+ * Query all torsional elements at one state.
+ * @param obj Dynamic-model handle.
+ * @param nbody Moving-body count.
+ * @param time State time.
+ * @param position Position array, shape 3-by-nbody.
+ * @param orientation Quaternion array, length nbody.
+ * @param velocity Velocity array, shape 3-by-nbody.
+ * @param angular_velocity Body-frame angular velocity, shape 3-by-nbody.
+ * @param results Output array sized by
+ * c_linkage_dynamic_torsional_element_count.
+ */
+void c_linkage_dynamic_torsional_element_results(c_linkage_dynamic_model obj,
+    int nbody, double time, const double *position,
+    const c_quaternion *orientation, const double *velocity,
+    const double *angular_velocity, c_torsional_element_result *results);
 /**
  * Solve linkage dynamics. Query body and constraint counts first to allocate
  * output arrays. When prescribed_motion is non-NULL, prescribed_body is the

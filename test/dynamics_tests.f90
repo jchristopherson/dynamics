@@ -429,6 +429,9 @@ program main
     check = test_serial_linkage_dynamics()
     if (.not.check) flag = 134
 
+	check = test_linkage_force_elements()
+	if (.not.check) flag = 147
+
     check = test_parallel_linkage_dynamics()
     if (.not.check) flag = 135
 

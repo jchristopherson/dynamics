@@ -65,6 +65,21 @@ link. The equal-and-opposite wrench acts on the parent link. Multipliers for
 planar-body restrictions and prescribed motion are not reported as joint
 reactions.
 
+## Linkage force-element conventions
+
+Axial elements connect two attachment points. Body index zero denotes ground,
+with the corresponding point expressed in world coordinates; all other points
+are body-fixed coordinates. Linear spring force is positive in tension and
+negative in compression, with zero force at `free_length`. Linear damping uses
+only the attachment-point relative velocity projected onto the current element
+axis.
+
+Torsional elements reference a one-based revolute-joint index, which fixes the
+element axis to the joint axis. Linear spring torque is zero at `free_angle`,
+and linear damping uses only the relative twist rate about that axis. The
+count routines return the storage required by the matching result-query
+routines; results follow element insertion order.
+
 ## Complete routine list
 
 The generated pages linked from the [C API guide](c-api.md) provide the complete

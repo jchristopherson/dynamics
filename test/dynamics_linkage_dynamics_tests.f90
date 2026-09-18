@@ -77,6 +77,97 @@ function test_serial_linkage_dynamics() result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+function test_linkage_force_elements() result(rst)
+    !! Verifies axial tension/compression, axial damping, torsional spring and
+    !! twist damping behavior, result queries, and dynamic load application.
+    logical :: rst
+    real(real64), dimension(3,3) :: inertia
+    type(binary_link), dimension(1) :: links
+    type(serial_linkage) :: mechanism
+    type(linkage_dynamic_model) :: model
+    type(variational_state) :: state
+    type(variational_state), allocatable, dimension(:) :: solution
+    type(variational_integrator) :: integrator
+    type(linear_spring) :: tension_spring, compression_spring
+    type(linear_damper) :: damper
+    type(torsional_spring) :: twist_spring
+    type(torsional_damper) :: twist_damper
+    type(axial_element_result), allocatable, dimension(:) :: axial_results
+    type(torsional_element_result), allocatable, dimension(:) :: twist_results
+
+    rst = .true.
+    inertia = 0.0d0
+    inertia(1,1) = 1.0d0
+    inertia(2,2) = 1.0d0
+    inertia(3,3) = 1.0d0
+    links(1) = binary_link(length = 1.0d0, mass = 1.0d0, &
+        inertia = inertia, cg = [-0.5d0, 0.0d0, 0.0d0])
+    mechanism = serial_linkage(links)
+    model = linkage_dynamic_model(mechanism, [0.4d0])
+    state = model%get_initial_state()
+
+    ! Place the body CG two units from ground and give it separating velocity.
+    state%orientation(1) = quaternion([1.0d0, 0.0d0, 0.0d0, 0.0d0])
+    state%position(:,1) = [2.0d0, 0.0d0, 0.0d0]
+    state%velocity(:,1) = [3.0d0, 0.0d0, 0.0d0]
+    state%angular_velocity(:,1) = [0.0d0, 0.0d0, 0.3d0]
+
+    tension_spring%body_1 = 0
+    tension_spring%body_2 = 1
+    tension_spring%point_2 = links(1)%cg
+    tension_spring%stiffness = 10.0d0
+    tension_spring%free_length = 1.0d0
+    compression_spring = tension_spring
+    compression_spring%free_length = 3.0d0
+    damper%body_1 = 0
+    damper%body_2 = 1
+    damper%point_2 = links(1)%cg
+    damper%damping = 2.0d0
+    call model%add_linear_spring(tension_spring)
+    call model%add_linear_spring(compression_spring)
+    call model%add_linear_damper(damper)
+
+    twist_spring%joint_index = 1
+    twist_spring%stiffness = 10.0d0
+    twist_spring%free_angle = 0.1d0
+    twist_damper%joint_index = 1
+    twist_damper%damping = 2.0d0
+    call model%add_torsional_spring(twist_spring)
+    call model%add_torsional_damper(twist_damper)
+
+    axial_results = model%get_axial_element_results(state)
+    if (.not.assert(model%get_axial_element_count(), 3) .or. &
+        .not.assert(axial_results(1)%length, 2.0d0) .or. &
+        .not.assert(axial_results(1)%force, 10.0d0) .or. &
+        .not.assert(axial_results(2)%force, -10.0d0) .or. &
+        .not.assert(axial_results(3)%force, 6.0d0)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_linkage_force_elements - axial"
+    end if
+
+    ! Restore a joint-compatible pose for torsional result and solve checks.
+    state = model%get_initial_state()
+    state%angular_velocity(:,1) = [0.0d0, 0.0d0, 0.3d0]
+    twist_results = model%get_torsional_element_results(state)
+    if (.not.assert(model%get_torsional_element_count(), 2) .or. &
+        .not.assert(twist_results(1)%angle, 0.4d0) .or. &
+        .not.assert(twist_results(1)%torque, -3.0d0) .or. &
+        .not.assert(twist_results(2)%angle_rate, 0.3d0) .or. &
+        .not.assert(twist_results(2)%torque, -0.6d0)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_linkage_force_elements - torsional"
+    end if
+
+    ! A spring acting about the free revolute axis must alter angular velocity.
+    state = model%get_initial_state()
+    solution = model%solve(integrator, 1.0d-3, 2, initial_state = state)
+    if (solution(2)%angular_velocity(3,1) >= 0.0d0) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_linkage_force_elements - solve"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
 function test_spatial_joint_dynamics() result(rst)
     !! Exercises compatible configurations and reaction mappings for the
     !! spatial prismatic, cylindrical, universal, and spherical joints.

@@ -105,6 +105,12 @@ bool c_test_linkage_dynamics(void)
     c_linkage_dynamic_model serial_model;
     c_serial_linkage serial = {0};
     c_joint_reaction reactions[4];
+    c_linear_spring spring = {0};
+    c_linear_damper damper = {0};
+    c_torsional_spring torsional_spring = {0};
+    c_torsional_damper torsional_damper = {0};
+    c_axial_element_result axial_results[2];
+    c_torsional_element_result torsional_results[2];
     double configuration[4], theta = 0.7;
     double gravity[3] = {0.0, -9.81, 0.0};
     double force[9] = {0.0}, torque[9] = {0.0};
@@ -146,14 +152,43 @@ bool c_test_linkage_dynamics(void)
         c_linkage_dynamic_joint_count(model) != 4 ||
         c_linkage_dynamic_constraint_count(model) != 17) result = false;
     if (result) {
+        spring.body_1 = 0;
+        spring.body_2 = 1;
+        spring.point_2[0] = 0.5;
+        spring.stiffness = 10.0;
+        spring.free_length = 1.0;
+        damper.body_1 = 0;
+        damper.body_2 = 1;
+        damper.point_2[0] = 0.5;
+        damper.damping = 0.5;
+        torsional_spring.joint_index = 1;
+        torsional_spring.stiffness = 2.0;
+        torsional_spring.free_angle = theta;
+        torsional_damper.joint_index = 1;
+        torsional_damper.damping = 0.25;
+        c_linkage_dynamic_add_linear_spring(model, &spring);
+        c_linkage_dynamic_add_linear_damper(model, &damper);
+        c_linkage_dynamic_add_torsional_spring(model, &torsional_spring);
+        c_linkage_dynamic_add_torsional_damper(model, &torsional_damper);
+        if (c_linkage_dynamic_axial_element_count(model) != 2 ||
+            c_linkage_dynamic_torsional_element_count(model) != 2)
+            result = false;
         c_linkage_dynamic_solve(model, 3, 18, &settings, 2, 1.0e-4, gravity,
             force, torque, 1, fixed_motion, &theta, position, orientation,
             velocity, angular_velocity, multipliers);
         c_linkage_dynamic_joint_reactions(model, 3, 18, 1.0e-4,
             position + 9, orientation + 3, velocity + 9,
             angular_velocity + 9, multipliers + 18, reactions);
+        c_linkage_dynamic_axial_element_results(model, 3, 1.0e-4,
+            position + 9, orientation + 3, velocity + 9,
+            angular_velocity + 9, axial_results);
+        c_linkage_dynamic_torsional_element_results(model, 3, 1.0e-4,
+            position + 9, orientation + 3, velocity + 9,
+            angular_velocity + 9, torsional_results);
         for (int i = 0; i < 3; ++i)
             if (!isfinite(reactions[0].force[i])) result = false;
+        if (!isfinite(axial_results[0].force) ||
+            !isfinite(torsional_results[0].torque)) result = false;
     }
     if (!result) printf("TEST FAILED: c_test_linkage_dynamics\n");
     c_free_linkage_dynamic_model(model);

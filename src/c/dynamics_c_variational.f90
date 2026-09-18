@@ -63,6 +63,36 @@ module dynamics_c_variational
         real(c_double) :: force(3), moment(3)
     end type
 
+    type, bind(C) :: c_linear_spring_vi
+        integer(c_int) :: body_1, body_2
+        real(c_double) :: point_1(3), point_2(3)
+        real(c_double) :: stiffness, free_length
+    end type
+
+    type, bind(C) :: c_linear_damper_vi
+        integer(c_int) :: body_1, body_2
+        real(c_double) :: point_1(3), point_2(3)
+        real(c_double) :: damping
+    end type
+
+    type, bind(C) :: c_torsional_spring_vi
+        integer(c_int) :: joint_index
+        real(c_double) :: stiffness, free_angle
+    end type
+
+    type, bind(C) :: c_torsional_damper_vi
+        integer(c_int) :: joint_index
+        real(c_double) :: damping
+    end type
+
+    type, bind(C) :: c_axial_element_result_vi
+        real(c_double) :: length, length_rate, force
+    end type
+
+    type, bind(C) :: c_torsional_element_result_vi
+        real(c_double) :: angle, angle_rate, torque
+    end type
+
     abstract interface
         subroutine c_vi_force(state, force, torque, user_data) bind(C)
             import c_variational_state_vi, c_double, c_ptr
@@ -113,6 +143,10 @@ module dynamics_c_variational
     public :: c_vi_model_body_count, c_vi_model_joint_count
     public :: c_vi_model_constraint_count, c_vi_model_solve
     public :: c_vi_model_joint_reactions
+    public :: c_vi_add_linear_spring, c_vi_add_linear_damper
+    public :: c_vi_add_torsional_spring, c_vi_add_torsional_damper
+    public :: c_vi_axial_count, c_vi_torsional_count
+    public :: c_vi_axial_results, c_vi_torsional_results
 
 contains
 
@@ -364,6 +398,119 @@ function c_vi_model_constraint_count(obj) result(rst) bind(C,name="c_linkage_dyn
     type(linkage_dynamic_model), pointer :: model
     model=>get_model(obj); rst=0; if(associated(model)) rst=model%get_constraint_count()
 end function
+
+subroutine c_vi_add_linear_spring(obj,c) bind(C,name="c_linkage_dynamic_add_linear_spring")
+    type(c_ptr), intent(in), value :: obj
+    type(c_linear_spring_vi), intent(in) :: c
+    type(linkage_dynamic_model), pointer :: model
+    type(linear_spring) :: spring
+    model=>get_model(obj); if(.not.associated(model)) error stop DYN_NULL_POINTER_ERROR
+    spring%body_1=c%body_1; spring%body_2=c%body_2
+    spring%point_1=c%point_1; spring%point_2=c%point_2
+    spring%stiffness=c%stiffness; spring%free_length=c%free_length
+    call model%add_linear_spring(spring)
+end subroutine
+
+subroutine c_vi_add_linear_damper(obj,c) bind(C,name="c_linkage_dynamic_add_linear_damper")
+    type(c_ptr), intent(in), value :: obj
+    type(c_linear_damper_vi), intent(in) :: c
+    type(linkage_dynamic_model), pointer :: model
+    type(linear_damper) :: damper
+    model=>get_model(obj); if(.not.associated(model)) error stop DYN_NULL_POINTER_ERROR
+    damper%body_1=c%body_1; damper%body_2=c%body_2
+    damper%point_1=c%point_1; damper%point_2=c%point_2
+    damper%damping=c%damping; call model%add_linear_damper(damper)
+end subroutine
+
+subroutine c_vi_add_torsional_spring(obj,c) bind(C,name="c_linkage_dynamic_add_torsional_spring")
+    type(c_ptr), intent(in), value :: obj
+    type(c_torsional_spring_vi), intent(in) :: c
+    type(linkage_dynamic_model), pointer :: model
+    type(torsional_spring) :: spring
+    model=>get_model(obj); if(.not.associated(model)) error stop DYN_NULL_POINTER_ERROR
+    spring%joint_index=c%joint_index; spring%stiffness=c%stiffness
+    spring%free_angle=c%free_angle; call model%add_torsional_spring(spring)
+end subroutine
+
+subroutine c_vi_add_torsional_damper(obj,c) bind(C,name="c_linkage_dynamic_add_torsional_damper")
+    type(c_ptr), intent(in), value :: obj
+    type(c_torsional_damper_vi), intent(in) :: c
+    type(linkage_dynamic_model), pointer :: model
+    type(torsional_damper) :: damper
+    model=>get_model(obj); if(.not.associated(model)) error stop DYN_NULL_POINTER_ERROR
+    damper%joint_index=c%joint_index; damper%damping=c%damping
+    call model%add_torsional_damper(damper)
+end subroutine
+
+function c_vi_axial_count(obj) result(rst) bind(C,name="c_linkage_dynamic_axial_element_count")
+    type(c_ptr), intent(in), value :: obj; integer(c_int) :: rst
+    type(linkage_dynamic_model), pointer :: model
+    model=>get_model(obj); rst=0
+    if(associated(model)) rst=model%get_axial_element_count()
+end function
+
+function c_vi_torsional_count(obj) result(rst) bind(C,name="c_linkage_dynamic_torsional_element_count")
+    type(c_ptr), intent(in), value :: obj; integer(c_int) :: rst
+    type(linkage_dynamic_model), pointer :: model
+    model=>get_model(obj); rst=0
+    if(associated(model)) rst=model%get_torsional_element_count()
+end function
+
+subroutine unpack_model_state(model,nbody,time,p,q,v,w,state)
+    type(linkage_dynamic_model), intent(in) :: model
+    integer(c_int), intent(in), value :: nbody
+    real(c_double), intent(in), value :: time
+    real(c_double), intent(in) :: p(3,nbody),v(3,nbody),w(3,nbody)
+    type(c_quaternion_vi), intent(in) :: q(nbody)
+    type(variational_state), intent(out) :: state
+    integer(int32) :: i
+    if(nbody/=model%get_body_count()) error stop DYN_ARRAY_SIZE_ERROR
+    call initialize_variational_state(state,int(nbody,int32))
+    state%time=time; state%position=p; state%velocity=v; state%angular_velocity=w
+    do i=1,nbody
+        state%orientation(i)=quaternion([q(i)%w,q(i)%x,q(i)%y,q(i)%z])
+    end do
+end subroutine
+
+subroutine c_vi_axial_results(obj,nbody,time,p,q,v,w,r) &
+    bind(C,name="c_linkage_dynamic_axial_element_results")
+    type(c_ptr), intent(in), value :: obj
+    integer(c_int), intent(in), value :: nbody
+    real(c_double), intent(in), value :: time
+    real(c_double), intent(in) :: p(3,nbody),v(3,nbody),w(3,nbody)
+    type(c_quaternion_vi), intent(in) :: q(nbody)
+    type(c_axial_element_result_vi), intent(out) :: r(*)
+    type(linkage_dynamic_model), pointer :: model
+    type(variational_state) :: state
+    type(axial_element_result), allocatable, dimension(:) :: fr
+    integer(int32) :: i
+    model=>get_model(obj); if(.not.associated(model)) error stop DYN_NULL_POINTER_ERROR
+    call unpack_model_state(model,nbody,time,p,q,v,w,state)
+    fr=model%get_axial_element_results(state)
+    do i=1,size(fr)
+        r(i)=c_axial_element_result_vi(fr(i)%length,fr(i)%length_rate,fr(i)%force)
+    end do
+end subroutine
+
+subroutine c_vi_torsional_results(obj,nbody,time,p,q,v,w,r) &
+    bind(C,name="c_linkage_dynamic_torsional_element_results")
+    type(c_ptr), intent(in), value :: obj
+    integer(c_int), intent(in), value :: nbody
+    real(c_double), intent(in), value :: time
+    real(c_double), intent(in) :: p(3,nbody),v(3,nbody),w(3,nbody)
+    type(c_quaternion_vi), intent(in) :: q(nbody)
+    type(c_torsional_element_result_vi), intent(out) :: r(*)
+    type(linkage_dynamic_model), pointer :: model
+    type(variational_state) :: state
+    type(torsional_element_result), allocatable, dimension(:) :: fr
+    integer(int32) :: i
+    model=>get_model(obj); if(.not.associated(model)) error stop DYN_NULL_POINTER_ERROR
+    call unpack_model_state(model,nbody,time,p,q,v,w,state)
+    fr=model%get_torsional_element_results(state)
+    do i=1,size(fr)
+        r(i)=c_torsional_element_result_vi(fr(i)%angle,fr(i)%angle_rate,fr(i)%torque)
+    end do
+end subroutine
 
 function motion_bridge(t) result(rst)
     real(real64), intent(in) :: t; real(real64) :: rst

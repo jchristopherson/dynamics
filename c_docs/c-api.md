@@ -92,6 +92,22 @@ column into world-frame joint forces and moments. Reactions are returned in
 mechanism joint order and act on each joint's child link. The reaction on the
 parent link is equal and opposite.
 
+Linkage dynamic models may also contain linear force elements:
+
+- `c_linear_spring` acts in tension and compression between arbitrary
+	body-fixed points. Its `free_length` defines zero force and therefore any
+	preload at the initial configuration.
+- `c_linear_damper` acts only on relative velocity along the current element
+	axis.
+- `c_torsional_spring` acts about the axis of its referenced revolute joint;
+	`free_angle` defines its zero-torque angle.
+- `c_torsional_damper` opposes only relative twist rate about that joint axis.
+
+Body index zero denotes a ground attachment whose point is expressed in world
+coordinates. Other attachment points are expressed in their body frame. Use
+the element count and result routines to query current length/rate/force or
+angle/rate/torque values.
+
 Opaque dynamic-model handles own copied linkage and mass-property data; release
 them with `c_free_linkage_dynamic_model`. Callback state views are temporary and
 must not be retained after a callback returns. The prescribed-motion callback

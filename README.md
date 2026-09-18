@@ -39,6 +39,8 @@ The `dynamics` module aggregates tools for analysis, modeling, and identificatio
     - Structure-preserving rigid-body integration in maximal coordinates using the formulation of Brüdigam et al. (2023).
     - Direct dynamic analysis of serial, spatial parallel, and planar parallel linkages using link mass properties and joint attachment frames.
     - World-frame joint reaction forces and moments recovered from dynamic-analysis constraint multipliers.
+    - Tension/compression linear springs with free-length preload and axial-only linear viscous dampers between body or ground attachment points.
+    - Revolute-joint torsional springs with free-angle preload and twist-rate-only torsional dampers, with extensible force-law base types for future nonlinear elements.
     - Holonomic equality constraints enforced at the position level with Lagrange multipliers.
     - Unit-quaternion orientation updates with body-frame angular velocities and inertia tensors.
     - Dense LU and graph-factorized block solvers for the coupled Newton equations.

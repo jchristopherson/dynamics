@@ -12,6 +12,7 @@ module dynamics_linkage_dynamics
 	use dynamics_joints, only : joint, FIXED_JOINT, REVOLUTE_JOINT, &
 		PRISMATIC_JOINT, CYLINDRICAL_JOINT, UNIVERSAL_JOINT, SPHERICAL_JOINT
 	use dynamics_quaternions, only : quaternion
+	use dynamics_helper, only : cross_product
 	use dynamics_rigid_bodies, only : rigid_body
 	use dynamics_variational_integrators, only : variational_integrator, &
 		variational_state
@@ -22,6 +23,14 @@ module dynamics_linkage_dynamics
 	public :: linkage_dynamic_model
 	public :: linkage_prescribed_motion
 	public :: joint_reaction
+	public :: axial_force_element
+	public :: linear_spring
+	public :: linear_damper
+	public :: torsional_force_element
+	public :: torsional_spring
+	public :: torsional_damper
+	public :: axial_element_result
+	public :: torsional_element_result
 
 	abstract interface
 		function linkage_prescribed_motion(t) result(rst)
@@ -53,11 +62,98 @@ module dynamics_linkage_dynamics
 			!! The joint reaction moment about the joint center.
 	end type
 
+	type axial_element_result
+		!! Defines the instantaneous state and scalar force of an axial element.
+		real(real64) :: length = 0.0d0
+			!! The current distance between attachment points.
+		real(real64) :: length_rate = 0.0d0
+			!! The relative attachment velocity along the element axis.
+		real(real64) :: force = 0.0d0
+			!! The signed force acting on body 1 toward body 2.
+	end type
+
+	type torsional_element_result
+		!! Defines the instantaneous twist state and torque of a torsional element.
+		real(real64) :: angle = 0.0d0
+			!! The signed joint angle, in radians.
+		real(real64) :: angle_rate = 0.0d0
+			!! The relative twist rate about the revolute-joint axis.
+		real(real64) :: torque = 0.0d0
+			!! The signed torque applied to the child body about the joint axis.
+	end type
+
+	type axial_force_element
+		!! Defines an extensible force element between two body-fixed points.
+		!! Body index zero denotes a ground point expressed in world coordinates.
+		integer(int32) :: body_1 = 0
+		integer(int32) :: body_2 = 0
+		real(real64), dimension(3) :: point_1 = 0.0d0
+		real(real64), dimension(3) :: point_2 = 0.0d0
+	contains
+		procedure, public :: evaluate_force => axial_zero_force
+	end type
+
+	type, extends(axial_force_element) :: linear_spring
+		!! Defines a linear axial spring supporting tension and compression.
+		real(real64) :: stiffness = 0.0d0
+			!! The force per unit extension.
+		real(real64) :: free_length = 0.0d0
+			!! The zero-force element length, including preload definition.
+	contains
+		procedure, public :: evaluate_force => linear_spring_force
+	end type
+
+	type, extends(axial_force_element) :: linear_damper
+		!! Defines a linear viscous damper acting only along the element axis.
+		real(real64) :: damping = 0.0d0
+			!! The force per unit axial relative velocity.
+	contains
+		procedure, public :: evaluate_force => linear_damper_force
+	end type
+
+	type torsional_force_element
+		!! Defines an extensible torsional element bound to a revolute joint.
+		integer(int32) :: joint_index = 0
+			!! The one-based revolute-joint index whose axis the element uses.
+	contains
+		procedure, public :: evaluate_torque => torsional_zero_torque
+	end type
+
+	type, extends(torsional_force_element) :: torsional_spring
+		!! Defines a linear torsional spring about a revolute-joint axis.
+		real(real64) :: stiffness = 0.0d0
+			!! The torque per unit angular displacement.
+		real(real64) :: free_angle = 0.0d0
+			!! The zero-torque relative joint angle, in radians.
+	contains
+		procedure, public :: evaluate_torque => torsional_spring_torque
+	end type
+
+	type, extends(torsional_force_element) :: torsional_damper
+		!! Defines a linear damper opposing only joint-axis twist rate.
+		real(real64) :: damping = 0.0d0
+			!! The torque per unit relative angular velocity.
+	contains
+		procedure, public :: evaluate_torque => torsional_damper_torque
+	end type
+
+	type axial_element_container
+		class(axial_force_element), allocatable :: item
+	end type
+
+	type torsional_element_container
+		class(torsional_force_element), allocatable :: item
+	end type
+
 	type linkage_dynamic_model
 		!! Defines the variational-integrator representation of a linkage.
 		!! Body index zero in a joint descriptor denotes the fixed ground link.
 		type(rigid_body), allocatable, private, dimension(:) :: m_bodies
 		type(dynamic_joint), allocatable, private, dimension(:) :: m_joints
+		type(axial_element_container), allocatable, private, dimension(:) :: &
+			m_axial_elements
+		type(torsional_element_container), allocatable, private, dimension(:) :: &
+			m_torsional_elements
 		type(variational_state), private :: m_initial_state
 		logical, private :: m_planar = .false.
 		integer(int32), private :: m_constraint_count = 0
@@ -68,6 +164,17 @@ module dynamics_linkage_dynamics
 		procedure, public :: get_initial_state => ldm_get_initial_state
 		procedure, public :: constraint_residual => ldm_constraint_residual
 		procedure, public :: get_joint_reactions => ldm_get_joint_reactions
+		procedure, public :: add_axial_element => ldm_add_axial_element
+		procedure, public :: add_linear_spring => ldm_add_linear_spring
+		procedure, public :: add_linear_damper => ldm_add_linear_damper
+		procedure, public :: add_torsional_element => ldm_add_torsional_element
+		procedure, public :: add_torsional_spring => ldm_add_torsional_spring
+		procedure, public :: add_torsional_damper => ldm_add_torsional_damper
+		procedure, public :: get_axial_element_count => ldm_get_axial_count
+		procedure, public :: get_torsional_element_count => ldm_get_torsional_count
+		procedure, public :: get_axial_element_results => ldm_get_axial_results
+		procedure, public :: get_torsional_element_results => &
+			ldm_get_torsional_results
 		procedure, public :: solve => ldm_solve
 	end type
 
@@ -87,6 +194,48 @@ module dynamics_linkage_dynamics
 	end type
 
 contains
+! ------------------------------------------------------------------------------
+pure function axial_zero_force(this, length, length_rate) result(rst)
+	class(axial_force_element), intent(in) :: this
+	real(real64), intent(in) :: length, length_rate
+	real(real64) :: rst
+	rst = 0.0d0
+end function
+
+pure function linear_spring_force(this, length, length_rate) result(rst)
+	class(linear_spring), intent(in) :: this
+	real(real64), intent(in) :: length, length_rate
+	real(real64) :: rst
+	rst = this%stiffness * (length - this%free_length)
+end function
+
+pure function linear_damper_force(this, length, length_rate) result(rst)
+	class(linear_damper), intent(in) :: this
+	real(real64), intent(in) :: length, length_rate
+	real(real64) :: rst
+	rst = this%damping * length_rate
+end function
+
+pure function torsional_zero_torque(this, angle, angle_rate) result(rst)
+	class(torsional_force_element), intent(in) :: this
+	real(real64), intent(in) :: angle, angle_rate
+	real(real64) :: rst
+	rst = 0.0d0
+end function
+
+pure function torsional_spring_torque(this, angle, angle_rate) result(rst)
+	class(torsional_spring), intent(in) :: this
+	real(real64), intent(in) :: angle, angle_rate
+	real(real64) :: rst
+	rst = -this%stiffness * (angle - this%free_angle)
+end function
+
+pure function torsional_damper_torque(this, angle, angle_rate) result(rst)
+	class(torsional_damper), intent(in) :: this
+	real(real64), intent(in) :: angle, angle_rate
+	real(real64) :: rst
+	rst = -this%damping * angle_rate
+end function
 ! ------------------------------------------------------------------------------
 function ldm_from_serial(mechanism, q) result(rst)
 	!! Constructs a dynamic model from a serial linkage and a compatible set of
@@ -220,6 +369,115 @@ function ldm_get_initial_state(this) result(rst)
 	class(linkage_dynamic_model), intent(in) :: this
 	type(variational_state) :: rst
 	rst = this%m_initial_state
+end function
+
+! ------------------------------------------------------------------------------
+subroutine ldm_add_axial_element(this, element)
+	!! Adds an extensible axial force element to the dynamic model.
+	class(linkage_dynamic_model), intent(inout) :: this
+	class(axial_force_element), intent(in) :: element
+	type(axial_element_container), allocatable, dimension(:) :: buffer
+	integer(int32) :: n
+
+	call validate_body_pair(this, element%body_1, element%body_2)
+	n = this%get_axial_element_count()
+	allocate(buffer(n + 1))
+	if (n > 0) buffer(1:n) = this%m_axial_elements
+	allocate(buffer(n + 1)%item, source = element)
+	call move_alloc(buffer, this%m_axial_elements)
+end subroutine
+
+subroutine ldm_add_linear_spring(this, element)
+	class(linkage_dynamic_model), intent(inout) :: this
+	type(linear_spring), intent(in) :: element
+	if (element%stiffness < 0.0d0 .or. element%free_length < 0.0d0) &
+		error stop DYN_INVALID_INPUT_ERROR
+	call this%add_axial_element(element)
+end subroutine
+
+subroutine ldm_add_linear_damper(this, element)
+	class(linkage_dynamic_model), intent(inout) :: this
+	type(linear_damper), intent(in) :: element
+	if (element%damping < 0.0d0) error stop DYN_INVALID_INPUT_ERROR
+	call this%add_axial_element(element)
+end subroutine
+
+subroutine ldm_add_torsional_element(this, element)
+	!! Adds an extensible torsional element bound to a revolute joint.
+	class(linkage_dynamic_model), intent(inout) :: this
+	class(torsional_force_element), intent(in) :: element
+	type(torsional_element_container), allocatable, dimension(:) :: buffer
+	integer(int32) :: n
+
+	if (element%joint_index < 1 .or. &
+		element%joint_index > this%get_joint_count()) &
+		error stop DYN_INVALID_INPUT_ERROR
+	if (this%m_joints(element%joint_index)%joint_type /= REVOLUTE_JOINT) &
+		error stop DYN_INVALID_INPUT_ERROR
+	n = this%get_torsional_element_count()
+	allocate(buffer(n + 1))
+	if (n > 0) buffer(1:n) = this%m_torsional_elements
+	allocate(buffer(n + 1)%item, source = element)
+	call move_alloc(buffer, this%m_torsional_elements)
+end subroutine
+
+subroutine ldm_add_torsional_spring(this, element)
+	class(linkage_dynamic_model), intent(inout) :: this
+	type(torsional_spring), intent(in) :: element
+	if (element%stiffness < 0.0d0) error stop DYN_INVALID_INPUT_ERROR
+	call this%add_torsional_element(element)
+end subroutine
+
+subroutine ldm_add_torsional_damper(this, element)
+	class(linkage_dynamic_model), intent(inout) :: this
+	type(torsional_damper), intent(in) :: element
+	if (element%damping < 0.0d0) error stop DYN_INVALID_INPUT_ERROR
+	call this%add_torsional_element(element)
+end subroutine
+
+pure function ldm_get_axial_count(this) result(rst)
+	class(linkage_dynamic_model), intent(in) :: this
+	integer(int32) :: rst
+	rst = 0
+	if (allocated(this%m_axial_elements)) rst = size(this%m_axial_elements)
+end function
+
+pure function ldm_get_torsional_count(this) result(rst)
+	class(linkage_dynamic_model), intent(in) :: this
+	integer(int32) :: rst
+	rst = 0
+	if (allocated(this%m_torsional_elements)) &
+		rst = size(this%m_torsional_elements)
+end function
+
+function ldm_get_axial_results(this, state) result(rst)
+	!! Gets instantaneous lengths, rates, and signed forces for axial elements.
+	class(linkage_dynamic_model), intent(in) :: this
+	type(variational_state), intent(in) :: state
+	type(axial_element_result), allocatable, dimension(:) :: rst
+	integer(int32) :: i
+	real(real64), dimension(3) :: direction, arm_1, arm_2
+
+	allocate(rst(this%get_axial_element_count()))
+	do i = 1, size(rst)
+		call evaluate_axial_element(this, state, this%m_axial_elements(i)%item, &
+			rst(i), direction, arm_1, arm_2)
+	end do
+end function
+
+function ldm_get_torsional_results(this, state) result(rst)
+	!! Gets instantaneous angles, twist rates, and torques for torsional elements.
+	class(linkage_dynamic_model), intent(in) :: this
+	type(variational_state), intent(in) :: state
+	type(torsional_element_result), allocatable, dimension(:) :: rst
+	integer(int32) :: i
+	real(real64), dimension(3) :: axis
+
+	allocate(rst(this%get_torsional_element_count()))
+	do i = 1, size(rst)
+		call evaluate_torsional_element(this, state, &
+			this%m_torsional_elements(i)%item, rst(i), axis)
+	end do
 end function
 
 ! ------------------------------------------------------------------------------
@@ -462,9 +720,157 @@ subroutine linkage_gravity(t, state, force, torque, args)
 		end do
 		force = force + context%body_force
 		torque = torque + context%body_torque
+		call apply_force_elements(context%model, state, force, torque)
 	class default
 		error stop DYN_INVALID_INPUT_ERROR
 	end select
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine apply_force_elements(model, state, force, torque)
+	class(linkage_dynamic_model), intent(in) :: model
+	type(variational_state), intent(in) :: state
+	real(real64), intent(inout), dimension(:,:) :: force, torque
+	integer(int32) :: i
+	real(real64), dimension(3) :: direction, arm_1, arm_2, element_force, axis
+	type(axial_element_result) :: axial_result
+	type(torsional_element_result) :: torsional_result
+
+	do i = 1, model%get_axial_element_count()
+		call evaluate_axial_element(model, state, model%m_axial_elements(i)%item, &
+			axial_result, direction, arm_1, arm_2)
+		element_force = axial_result%force * direction
+		call apply_point_force(model, state, &
+			model%m_axial_elements(i)%item%body_1, arm_1, element_force, &
+			force, torque)
+		call apply_point_force(model, state, &
+			model%m_axial_elements(i)%item%body_2, arm_2, -element_force, &
+			force, torque)
+	end do
+
+	do i = 1, model%get_torsional_element_count()
+		call evaluate_torsional_element(model, state, &
+			model%m_torsional_elements(i)%item, torsional_result, axis)
+		call apply_axis_torque(state, &
+			model%m_joints(model%m_torsional_elements(i)%item%joint_index)%child_body, &
+			torsional_result%torque * axis, torque)
+		call apply_axis_torque(state, &
+			model%m_joints(model%m_torsional_elements(i)%item%joint_index)%parent_body, &
+			-torsional_result%torque * axis, torque)
+	end do
+end subroutine
+
+subroutine evaluate_axial_element(model, state, element, result, direction, &
+	arm_1, arm_2)
+	class(linkage_dynamic_model), intent(in) :: model
+	type(variational_state), intent(in) :: state
+	class(axial_force_element), intent(in) :: element
+	type(axial_element_result), intent(out) :: result
+	real(real64), intent(out), dimension(3) :: direction, arm_1, arm_2
+	real(real64), dimension(3) :: p1, p2, v1, v2
+
+	call attachment_state(model, state, element%body_1, element%point_1, &
+		p1, v1, arm_1)
+	call attachment_state(model, state, element%body_2, element%point_2, &
+		p2, v2, arm_2)
+	direction = p2 - p1
+	result%length = norm2(direction)
+	if (result%length <= sqrt(epsilon(1.0d0))) &
+		error stop DYN_INVALID_INPUT_ERROR
+	direction = direction / result%length
+	result%length_rate = dot_product(v2 - v1, direction)
+	result%force = element%evaluate_force(result%length, result%length_rate)
+end subroutine
+
+subroutine attachment_state(model, state, body, point, position, velocity, arm)
+	class(linkage_dynamic_model), intent(in) :: model
+	type(variational_state), intent(in) :: state
+	integer(int32), intent(in) :: body
+	real(real64), intent(in), dimension(3) :: point
+	real(real64), intent(out), dimension(3) :: position, velocity, arm
+	real(real64), dimension(3,3) :: rotation
+	real(real64), dimension(3) :: omega_world
+
+	if (body == 0) then
+		position = point
+		velocity = 0.0d0
+		arm = 0.0d0
+	else
+		rotation = state%orientation(body)%to_matrix()
+		arm = matmul(rotation, point - model%m_bodies(body)%cg)
+		position = state%position(:,body) + arm
+		omega_world = matmul(rotation, state%angular_velocity(:,body))
+		velocity = state%velocity(:,body) + cross_product(omega_world, arm)
+	end if
+end subroutine
+
+subroutine apply_point_force(model, state, body, arm, applied, force, torque)
+	class(linkage_dynamic_model), intent(in) :: model
+	type(variational_state), intent(in) :: state
+	integer(int32), intent(in) :: body
+	real(real64), intent(in), dimension(3) :: arm, applied
+	real(real64), intent(inout), dimension(:,:) :: force, torque
+	real(real64), dimension(3,3) :: rotation
+
+	if (body == 0) return
+	force(:,body) = force(:,body) + applied
+	rotation = state%orientation(body)%to_matrix()
+	torque(:,body) = torque(:,body) + &
+		matmul(transpose(rotation), cross_product(arm, applied))
+end subroutine
+
+subroutine evaluate_torsional_element(model, state, element, result, axis)
+	class(linkage_dynamic_model), intent(in) :: model
+	type(variational_state), intent(in) :: state
+	class(torsional_force_element), intent(in) :: element
+	type(torsional_element_result), intent(out) :: result
+	real(real64), intent(out), dimension(3) :: axis
+	type(dynamic_joint) :: descriptor
+	real(real64), dimension(4,4) :: parent, child, relative
+	real(real64), dimension(3) :: omega_parent, omega_child
+
+	descriptor = model%m_joints(element%joint_index)
+	parent = joint_world_transform(model, state, descriptor%parent_body, &
+		descriptor%parent_frame)
+	child = joint_world_transform(model, state, descriptor%child_body, &
+		descriptor%child_frame)
+	relative = matmul(transform_inverse(parent), child)
+	result%angle = atan2(relative(2,1), relative(1,1))
+	axis = parent(1:3,3)
+	call body_angular_velocity(state, descriptor%parent_body, omega_parent)
+	call body_angular_velocity(state, descriptor%child_body, omega_child)
+	result%angle_rate = dot_product(axis, omega_child - omega_parent)
+	result%torque = element%evaluate_torque(result%angle, result%angle_rate)
+end subroutine
+
+subroutine body_angular_velocity(state, body, omega)
+	type(variational_state), intent(in) :: state
+	integer(int32), intent(in) :: body
+	real(real64), intent(out), dimension(3) :: omega
+	if (body == 0) then
+		omega = 0.0d0
+	else
+		omega = matmul(state%orientation(body)%to_matrix(), &
+			state%angular_velocity(:,body))
+	end if
+end subroutine
+
+subroutine apply_axis_torque(state, body, applied, torque)
+	type(variational_state), intent(in) :: state
+	integer(int32), intent(in) :: body
+	real(real64), intent(in), dimension(3) :: applied
+	real(real64), intent(inout), dimension(:,:) :: torque
+	if (body == 0) return
+	torque(:,body) = torque(:,body) + &
+		matmul(transpose(state%orientation(body)%to_matrix()), applied)
+end subroutine
+
+subroutine validate_body_pair(model, body_1, body_2)
+	class(linkage_dynamic_model), intent(in) :: model
+	integer(int32), intent(in) :: body_1, body_2
+	if (body_1 < 0 .or. body_1 > model%get_body_count() .or. &
+		body_2 < 0 .or. body_2 > model%get_body_count() .or. &
+		body_1 == body_2) error stop DYN_INVALID_INPUT_ERROR
 end subroutine
 
 ! ------------------------------------------------------------------------------
