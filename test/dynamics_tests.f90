@@ -396,6 +396,9 @@ program main
     check = test_variational_position_constraint()
     if (.not.check) flag = 132
 
+    check = test_variational_analytic_constraint_jacobian()
+    if (.not.check) flag = 137
+
     check = test_variational_graph_solver()
     if (.not.check) flag = 133
 
@@ -407,6 +410,12 @@ program main
 
     check = test_parallel_linkage_dynamics()
     if (.not.check) flag = 135
+
+    check = test_spatial_joint_dynamics()
+    if (.not.check) flag = 138
+
+    check = test_fixed_and_planar_prismatic_joints()
+    if (.not.check) flag = 139
 
     ! End
     if (flag /= 0) stop flag

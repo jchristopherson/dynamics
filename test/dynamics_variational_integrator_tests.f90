@@ -127,6 +127,30 @@ function test_variational_position_constraint() result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+function test_variational_analytic_constraint_jacobian() result(rst)
+    !! Verifies the optional analytic constraint Jacobian path.
+    logical :: rst
+    type(rigid_body) :: bodies(1)
+    type(variational_state) :: state
+    type(variational_integrator) :: integrator
+    real(real64), allocatable, dimension(:) :: multipliers
+
+    rst = .true.
+    bodies(1) = rigid_body(2.0d0)
+    call initialize_variational_state(state, 1)
+    state%velocity(:,1) = [1.0d0, -2.0d0, 0.5d0]
+    call integrator%step(bodies, state, 0.01d0, 3, fixed_position, &
+        constraint_jacobian = fixed_position_jacobian, &
+        multipliers = multipliers)
+    if (.not.assert(state%position(:,1), [0.0d0, 0.0d0, 0.0d0], &
+        1.0d-10)) then
+        rst = .false.
+        print "(A)", &
+            "TEST FAILED: test_variational_analytic_constraint_jacobian"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
 function test_variational_graph_solver() result(rst)
     !! Tests the graph-factorized Newton solver against the dense reference
     !! solver for a two-body, three-equation relative-position constraint.
@@ -231,6 +255,19 @@ subroutine fixed_position(state, value, args)
         !! Optional user data; unused by this callback.
 
     value = state%position(:,1)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine fixed_position_jacobian(state, jacobian, args)
+    !! Supplies the exact reduced Jacobian for fixed center-of-mass position.
+    type(variational_state), intent(in) :: state
+    real(real64), intent(out), dimension(:,:) :: jacobian
+    class(*), intent(inout), optional :: args
+
+    jacobian = 0.0d0
+    jacobian(1,1) = 1.0d0
+    jacobian(2,2) = 1.0d0
+    jacobian(3,3) = 1.0d0
 end subroutine
 
 ! ------------------------------------------------------------------------------

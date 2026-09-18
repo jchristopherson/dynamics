@@ -34,6 +34,7 @@
 # Directories
 build/
 doc/
+build-coverage/
 
 # CMake Stuff
 .cmaketools.json
