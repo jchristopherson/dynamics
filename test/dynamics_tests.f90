@@ -405,6 +405,9 @@ program main
 	check = test_variational_multiplier_history()
 	if (.not.check) flag = 136
 
+    check = test_scaled_constraint_differences()
+    if (.not.check) flag = 140
+
     check = test_serial_linkage_dynamics()
     if (.not.check) flag = 134
 

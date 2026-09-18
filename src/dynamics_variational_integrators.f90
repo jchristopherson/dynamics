@@ -108,6 +108,15 @@ module dynamics_variational_integrators
         real(real64) :: finite_difference_step = 1.0d-7
             !! The relative forward-difference step used for numerical
             !! Jacobians.
+        real(real64) :: constraint_translation_scale = 1.0d0
+            !! The characteristic translation magnitude used as the absolute
+            !! floor when perturbing position components in a numerical
+            !! constraint Jacobian. This value has the same length units as
+            !! the model positions.
+        real(real64) :: constraint_rotation_scale = 1.0d0
+            !! The characteristic dimensionless quaternion-tangent magnitude
+            !! used when perturbing rotational components in a numerical
+            !! constraint Jacobian.
         integer(int32) :: maximum_iterations = 50
             !! The maximum number of Newton iterations allowed per time step.
         integer(int32) :: maximum_line_search_iterations = 12
@@ -399,35 +408,42 @@ contains
         type(variational_state) :: perturbed_state
         type(quaternion) :: perturbation
         integer(int32) :: body_index, component, column
-        real(real64) :: step_size
+        real(real64) :: rotation_step, translation_step
         real(real64), allocatable, dimension(:) :: base_value, perturbed_value
 
         ! Evaluate the unperturbed constraint once for all forward differences.
         allocate(base_value(nconstraint), perturbed_value(nconstraint))
         call constraint(state, base_value, args)
-        step_size = this%settings%finite_difference_step
+		rotation_step = this%settings%finite_difference_step * &
+			this%settings%constraint_rotation_scale
         do body_index = 1, nbody
             do component = 1, 3
                 ! Translational tangent direction.
+				translation_step = this%settings%finite_difference_step * &
+					max(abs(state%position(component,body_index)), &
+					this%settings%constraint_translation_scale)
                 column = 6 * body_index - 6 + component
                 perturbed_state = state
                 perturbed_state%position(component,body_index) = &
-                    perturbed_state%position(component,body_index) + step_size
+                    perturbed_state%position(component,body_index) + &
+					translation_step
                 call constraint(perturbed_state, perturbed_value, args)
-                derivative(:,column) = (perturbed_value - base_value) / step_size
+                derivative(:,column) = (perturbed_value - base_value) / &
+					translation_step
 
                 ! Local quaternion-vector tangent direction. The scalar part
                 ! maintains a unit quaternion without a separate normalization.
                 column = 6 * body_index - 3 + component
                 perturbed_state = state
-                perturbation = quaternion([sqrt(1.0d0 - step_size**2), &
-                    merge(step_size, 0.0d0, component == 1), &
-                    merge(step_size, 0.0d0, component == 2), &
-                    merge(step_size, 0.0d0, component == 3)])
+                perturbation = quaternion([sqrt(1.0d0 - rotation_step**2), &
+                    merge(rotation_step, 0.0d0, component == 1), &
+                    merge(rotation_step, 0.0d0, component == 2), &
+                    merge(rotation_step, 0.0d0, component == 3)])
                 perturbed_state%orientation(body_index) = &
                     state%orientation(body_index) * perturbation
                 call constraint(perturbed_state, perturbed_value, args)
-                derivative(:,column) = (perturbed_value - base_value) / step_size
+                derivative(:,column) = (perturbed_value - base_value) / &
+					rotation_step
             end do
         end do
     end subroutine
@@ -560,6 +576,10 @@ subroutine check_inputs(settings, bodies, state, dt, nconstraint, has_constraint
     ! Validate nonlinear and linear solver settings.
     if (settings%tolerance <= 0.0d0 .or. &
         settings%finite_difference_step <= 0.0d0 .or. &
+		settings%constraint_translation_scale <= 0.0d0 .or. &
+		settings%constraint_rotation_scale <= 0.0d0 .or. &
+        settings%finite_difference_step * &
+            settings%constraint_rotation_scale >= 1.0d0 .or. &
         settings%maximum_iterations < 1 .or. &
         settings%maximum_line_search_iterations < 0) &
         error stop DYN_INVALID_INPUT_ERROR

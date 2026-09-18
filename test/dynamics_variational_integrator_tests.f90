@@ -4,6 +4,10 @@ module dynamics_variational_integrator_tests
     use dynamics
     implicit none
 
+    type scaled_constraint_data
+        real(real64), dimension(3) :: target_position
+    end type
+
 contains
 ! ------------------------------------------------------------------------------
 function test_variational_free_body() result(rst)
@@ -228,6 +232,35 @@ function test_variational_multiplier_history() result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+function test_scaled_constraint_differences() result(rst)
+    !! Verifies that translation perturbations remain resolvable at large world
+    !! coordinates while rotation perturbations use their independent scale.
+    logical :: rst
+    type(rigid_body) :: bodies(1)
+    type(variational_state) :: state
+    type(variational_integrator) :: integrator
+    type(scaled_constraint_data) :: data
+    real(real64), allocatable, dimension(:) :: multipliers
+
+    rst = .true.
+    bodies(1) = rigid_body(1.0d0)
+    call initialize_variational_state(state, 1)
+    data%target_position = [1.0d12, -1.0d12, 5.0d11]
+    state%position(:,1) = data%target_position
+    state%velocity(:,1) = [1.0d0, -2.0d0, 0.5d0]
+    state%angular_velocity(:,1) = [0.1d0, -0.2d0, 0.3d0]
+    integrator%settings%constraint_translation_scale = 1.0d3
+    integrator%settings%constraint_rotation_scale = 0.25d0
+    call integrator%step(bodies, state, 1.0d-3, 6, &
+        scaled_fixed_pose, multipliers = multipliers, args = data)
+    if (maxval(abs(state%position(:,1) - data%target_position)) > &
+        1.0d-6 .or. norm2(aimag(state%orientation(1))) > 1.0d-8) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_scaled_constraint_differences"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
 subroutine constant_force(t, state, force, torque, args)
     !! Supplies the constant force used by the applied-force test.
     real(real64), intent(in) :: t
@@ -282,6 +315,22 @@ subroutine relative_position_constraint(state, value, args)
 
     value = state%position(:,2) - state%position(:,1) - &
         [1.0d0, 0.0d0, 0.0d0]
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine scaled_fixed_pose(state, value, args)
+    !! Fixes a body pose at large translational coordinates.
+    type(variational_state), intent(in) :: state
+    real(real64), intent(out), dimension(:) :: value
+    class(*), intent(inout), optional :: args
+
+    select type (data => args)
+    type is (scaled_constraint_data)
+        value(1:3) = state%position(:,1) - data%target_position
+        value(4:6) = aimag(state%orientation(1))
+    class default
+        value = huge(1.0d0)
+    end select
 end subroutine
 
 end module
