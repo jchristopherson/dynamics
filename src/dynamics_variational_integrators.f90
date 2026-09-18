@@ -16,6 +16,7 @@ module dynamics_variational_integrators
         DYN_CONVERGENCE_ERROR, DYN_INVALID_INPUT_ERROR
     use dynamics_quaternions, only : quaternion, operator(*), abs
     use dynamics_rigid_bodies, only : rigid_body
+    use dynamics_helper, only : cross_product
     implicit none
     private
 
@@ -40,13 +41,13 @@ module dynamics_variational_integrators
         !! bodies. Angular velocities and inertia tensors are expressed in each
         !! body's frame. Positions, translational velocities, forces, and
         !! orientations use the world frame.
-        real(real64), allocatable :: position(:,:)
+        real(real64), allocatable, dimension(:,:) :: position
             !! Body center-of-mass positions, dimensioned 3-by-nbody.
-        type(quaternion), allocatable :: orientation(:)
+        type(quaternion), allocatable, dimension(:) :: orientation
             !! Unit body-to-world orientation quaternions.
-        real(real64), allocatable :: velocity(:,:)
+        real(real64), allocatable, dimension(:,:) :: velocity
             !! Center-of-mass velocities, dimensioned 3-by-nbody.
-        real(real64), allocatable :: angular_velocity(:,:)
+        real(real64), allocatable, dimension(:,:) :: angular_velocity
             !! Body-frame angular velocities, dimensioned 3-by-nbody.
         real(real64) :: time = 0.0d0
             !! The time associated with the state.
@@ -61,9 +62,9 @@ module dynamics_variational_integrators
                 !! The current simulation time.
             type(variational_state), intent(in) :: state
                 !! The current maximal-coordinate state.
-            real(real64), intent(out) :: force(:,:)
+            real(real64), intent(out), dimension(:,:) :: force
                 !! The 3-by-nbody world-frame force array.
-            real(real64), intent(out) :: torque(:,:)
+            real(real64), intent(out), dimension(:,:) :: torque
                 !! The 3-by-nbody body-frame torque array.
             class(*), intent(inout), optional :: args
                 !! Optional user-supplied data.
@@ -75,7 +76,7 @@ module dynamics_variational_integrators
             import :: real64, variational_state
             type(variational_state), intent(in) :: state
                 !! The state at which to evaluate the constraints.
-            real(real64), intent(out) :: value(:)
+            real(real64), intent(out), dimension(:) :: value
                 !! The constraint residual vector, which is zero for a
                 !! constraint-compatible state.
             class(*), intent(inout), optional :: args
@@ -91,7 +92,7 @@ module dynamics_variational_integrators
             import :: real64, variational_state
             type(variational_state), intent(in) :: state
                 !! The state at which to evaluate the Jacobian.
-            real(real64), intent(out) :: jacobian(:,:)
+            real(real64), intent(out), dimension(:,:) :: jacobian
                 !! The nconstraint-by-(6*nbody) Jacobian. Columns are ordered
                 !! [dx, quaternion-vector variation] for each body.
             class(*), intent(inout), optional :: args
@@ -127,6 +128,8 @@ module dynamics_variational_integrators
     contains
         procedure, public :: step => vi_step
             !! Advances a maximal-coordinate rigid-body state by one step.
+        procedure, public :: solve => vi_solve
+            !! Computes the solution.
     end type
 
 contains
@@ -170,7 +173,7 @@ subroutine vi_step(this, bodies, state, dt, constraint_count, constraint, &
     !! h\omega_{k+1}/2\right).$$
     class(variational_integrator), intent(in) :: this
         !! The variational integrator.
-    type(rigid_body), intent(in) :: bodies(:)
+    type(rigid_body), intent(in), dimension(:) :: bodies
         !! The body mass and body-frame inertia properties.
     type(variational_state), intent(inout) :: state
         !! On input, the current state; on output, the converged next state.
@@ -187,17 +190,18 @@ subroutine vi_step(this, bodies, state, dt, constraint_count, constraint, &
     procedure(variational_constraint_jacobian), optional :: constraint_jacobian
         !! An optional analytic reduced constraint Jacobian. When omitted, the
         !! Jacobian is evaluated by finite differences.
-    real(real64), allocatable, intent(out), optional :: multipliers(:)
+    real(real64), allocatable, intent(out), optional, dimension(:) :: multipliers
         !! The converged Lagrange multipliers.
     class(*), intent(inout), optional :: args
         !! Optional user-supplied data forwarded to all callbacks.
 
     ! Local Variables
     integer(int32) :: i, iteration, line_iteration, nbody, nconstraint, nvar
-    integer(int32), allocatable :: pivot(:)
+    integer(int32), allocatable, dimension(:) :: pivot
     real(real64) :: alpha, trial_norm, residual_norm
-    real(real64), allocatable :: unknown(:), trial(:), residual(:), &
-        trial_residual(:), jacobian(:,:), lu(:,:), delta(:)
+    real(real64), allocatable, dimension(:) :: unknown, trial, residual, &
+        trial_residual, delta
+    real(real64), allocatable, dimension(:,:) :: jacobian, lu
     type(variational_state) :: accepted_state
 
     ! Input Checking
@@ -265,17 +269,18 @@ contains
     subroutine evaluate_residual(x, value)
         !! Evaluates the coupled discrete Euler-Lagrange and holonomic
         !! constraint residual for a Newton iterate.
-        real(real64), intent(in) :: x(:)
+        real(real64), intent(in), dimension(:) :: x
             !! The Newton unknown vector.
-        real(real64), intent(out) :: value(:)
+        real(real64), intent(out), dimension(:) :: value
             !! The residual vector.
 
         ! Local Variables
         type(variational_state) :: next_state
         integer(int32) :: body_index, first
-        real(real64) :: omega1(3), omega2(3), momentum1(3), momentum2(3)
-        real(real64), allocatable :: applied_force(:,:), applied_torque(:,:), &
-            constraint_value(:), constraint_gradient(:,:)
+        real(real64), dimension(3) :: omega1, omega2, momentum1, momentum2
+        real(real64), allocatable, dimension(:,:) :: applied_force, &
+            applied_torque, constraint_gradient
+        real(real64), allocatable, dimension(:) :: constraint_value
 
         ! Evaluate external loading at the current discrete state. This is the
         ! left-endpoint discrete force convention used by the paper.
@@ -327,7 +332,7 @@ contains
 
     subroutine state_from_unknown(x, next_state)
         !! Constructs a maximal-coordinate state from a Newton unknown vector.
-        real(real64), intent(in) :: x(:)
+        real(real64), intent(in), dimension(:) :: x
             !! The trial velocity and multiplier vector.
         type(variational_state), intent(out) :: next_state
             !! The state implied by the trial body velocities.
@@ -355,15 +360,15 @@ contains
 
     subroutine finite_difference_jacobian(x, value, derivative)
         !! Computes the full Newton Jacobian by scaled forward differences.
-        real(real64), intent(in) :: x(:), value(:)
+        real(real64), intent(in), dimension(:) :: x, value
             !! The current unknown vector and its residual.
-        real(real64), intent(out) :: derivative(:,:)
+        real(real64), intent(out), dimension(:,:) :: derivative
             !! The numerical Newton Jacobian.
 
         ! Local Variables
         integer(int32) :: column
         real(real64) :: step_size
-        real(real64), allocatable :: perturbed(:), perturbed_value(:)
+        real(real64), allocatable, dimension(:) :: perturbed, perturbed_value
 
         ! Perturb each unknown by a scale-aware step with an absolute floor.
         allocate(perturbed(size(x)), perturbed_value(size(value)))
@@ -380,7 +385,7 @@ contains
     subroutine finite_difference_constraint_gradient(derivative)
         !! Computes the reduced constraint Jacobian by perturbing translations
         !! directly and orientations on the unit-quaternion manifold.
-        real(real64), intent(out) :: derivative(:,:)
+        real(real64), intent(out), dimension(:,:) :: derivative
             !! The nconstraint-by-(6*nbody) reduced Jacobian.
 
         ! Local Variables
@@ -388,7 +393,7 @@ contains
         type(quaternion) :: perturbation
         integer(int32) :: body_index, component, column
         real(real64) :: step_size
-        real(real64), allocatable :: base_value(:), perturbed_value(:)
+        real(real64), allocatable, dimension(:) :: base_value, perturbed_value
 
         ! Evaluate the unperturbed constraint once for all forward differences.
         allocate(base_value(nconstraint), perturbed_value(nconstraint))
@@ -422,12 +427,78 @@ contains
 end subroutine
 
 ! ------------------------------------------------------------------------------
+function vi_solve(this, bodies, state, dt, ntime, constraint_count, &
+    constraint, force_function, constraint_jacobian, multipliers, args) &
+    result(rst)
+    !! Computes the solution for the rigid-body system for the specified number
+    !! of sequential time steps.
+    class(variational_integrator), intent(in) :: this
+        !! The variational integrator.
+    type(rigid_body), intent(in), dimension(:) :: bodies
+        !! The body mass and body-frame inertia properties.
+    type(variational_state), intent(inout) :: state
+        !! On input, the current state; on output, the converged next state.
+    real(real64), intent(in) :: dt
+        !! The positive fixed time step.
+    integer(int32), intent(in) :: ntime
+        !! The number of times steps to take.
+    integer(int32), intent(in), optional :: constraint_count
+        !! The number of scalar equality constraints. The default is zero.
+    procedure(variational_constraint), optional :: constraint
+        !! The holonomic equality-constraint callback. It is required when
+        !! constraint_count is greater than zero.
+    procedure(variational_force), optional :: force_function
+        !! The external force and torque callback. When omitted, all applied
+        !! forces and torques are zero.
+    procedure(variational_constraint_jacobian), optional :: constraint_jacobian
+        !! An optional analytic reduced constraint Jacobian. When omitted, the
+        !! Jacobian is evaluated by finite differences.
+    real(real64), allocatable, intent(out), optional, dimension(:,:) :: multipliers
+        !! The converged Lagrange multipliers.
+    class(*), intent(inout), optional :: args
+        !! Optional user-supplied data forwarded to all callbacks.
+    type(variational_state), allocatable, dimension(:) :: rst
+        !! The solution at each time step.
+
+    ! Local Variables
+    integer(int32) :: i
+    real(real64), allocatable, dimension(:) :: mult
+    type(variational_state) :: new_state
+
+    ! Input Checking
+    if (ntime < 1) error stop DYN_INVALID_INPUT_ERROR
+
+    ! Process
+    allocate(rst(ntime))
+    rst(1) = state  ! initial state
+    new_state = state
+    do i = 2, ntime
+        call this%step(bodies, new_state, dt, &
+            constraint_count = constraint_count, &
+            constraint = constraint, &
+            force_function = force_function, &
+            constraint_jacobian = constraint_jacobian, &
+            multipliers = mult, &
+            args = args &
+        )
+        rst(i) = new_state
+        if (present(multipliers)) then
+            if (.not.allocated(multipliers)) then
+                allocate(multipliers(size(mult), ntime - 1))
+            end if
+            multipliers(:,i - 1) = mult
+        end if
+        deallocate(mult)
+    end do
+end function
+
+! ------------------------------------------------------------------------------
 subroutine check_inputs(settings, bodies, state, dt, nconstraint, has_constraint)
     !! Validates dimensions, solver settings, body properties, and the
     !! quaternion angular-velocity domain required by the discrete update.
     type(variational_integrator_settings), intent(in) :: settings
         !! The numerical settings to validate.
-    type(rigid_body), intent(in) :: bodies(:)
+    type(rigid_body), intent(in), dimension(:) :: bodies
         !! The rigid-body properties to validate.
     type(variational_state), intent(in) :: state
         !! The maximal-coordinate state to validate.
@@ -483,24 +554,25 @@ function graph_factorized_solve(matrix, vector, nbody, nconstraint) result(rst)
     !! body is represented by a six-variable graph node and each scalar
     !! constraint by a one-variable node. Schur-complement updates add the fill
     !! edges required by Algorithm 2 of Brudigam et al. (2023).
-    real(real64), intent(in) :: matrix(:,:)
+    real(real64), intent(in), dimension(:,:) :: matrix
         !! The square Newton matrix.
-    real(real64), intent(in) :: vector(:)
+    real(real64), intent(in), dimension(:) :: vector
         !! The right-hand-side vector.
     integer(int32), intent(in) :: nbody
         !! The number of six-variable rigid-body nodes.
     integer(int32), intent(in) :: nconstraint
         !! The number of scalar constraint nodes.
-    real(real64), allocatable :: rst(:)
+    real(real64), allocatable, dimension(:) :: rst
         !! The solution vector.
 
     ! Local Variables
-    logical, allocatable :: active(:)
-    integer(int32), allocatable :: elimination_order(:)
+    logical, allocatable, dimension(:) :: active
+    integer(int32), allocatable, dimension(:) :: elimination_order
     integer(int32) :: candidate, candidate_degree, degree, i, i1, i2, &
         j, j1, j2, k, k1, k2, nnode, position
-    real(real64), allocatable :: work(:,:), reduced_rhs(:), diagonal(:,:), &
-        normalized_upper(:,:)
+    real(real64), allocatable, dimension(:,:) :: work, diagonal, &
+        normalized_upper
+    real(real64), allocatable, dimension(:) :: reduced_rhs
 
     ! Initialization
     nnode = nbody + nconstraint
@@ -604,9 +676,9 @@ end subroutine
 ! ------------------------------------------------------------------------------
 function graph_node_degree(matrix, active, node, nbody) result(rst)
     !! Counts the active graph edges incident on a node.
-    real(real64), intent(in) :: matrix(:,:)
+    real(real64), intent(in), dimension(:,:) :: matrix
         !! The current Schur-complement matrix.
-    logical, intent(in) :: active(:)
+    logical, intent(in), dimension(:) :: active
         !! Flags identifying nodes that have not yet been eliminated.
     integer(int32), intent(in) :: node
         !! The node whose degree is requested.
@@ -630,7 +702,7 @@ end function
 ! ------------------------------------------------------------------------------
 function blocks_connected(matrix, node1, node2, nbody) result(rst)
     !! Determines whether either directed block between two nodes is nonzero.
-    real(real64), intent(in) :: matrix(:,:)
+    real(real64), intent(in), dimension(:,:) :: matrix
         !! The current Schur-complement matrix.
     integer(int32), intent(in) :: node1
         !! The first node index.
@@ -656,7 +728,7 @@ end function
 ! ------------------------------------------------------------------------------
 pure function graph_zero_tolerance(matrix) result(rst)
     !! Computes a scale-aware tolerance for detecting absent graph edges.
-    real(real64), intent(in) :: matrix(:,:)
+    real(real64), intent(in), dimension(:,:) :: matrix
         !! The matrix whose numerical scale is used.
     real(real64) :: rst
         !! The edge detection tolerance.
@@ -668,7 +740,7 @@ end function
 ! ------------------------------------------------------------------------------
 function block_is_nonsingular(matrix) result(rst)
     !! Tests a candidate diagonal block using partial-pivot elimination.
-    real(real64), intent(in) :: matrix(:,:)
+    real(real64), intent(in), dimension(:,:) :: matrix
         !! The square candidate diagonal block.
     logical :: rst
         !! True when every elimination pivot is numerically nonzero.
@@ -676,7 +748,8 @@ function block_is_nonsingular(matrix) result(rst)
     ! Local Variables
     integer(int32) :: i, pivot_index
     real(real64) :: tolerance
-    real(real64), allocatable :: work(:,:), row(:)
+    real(real64), allocatable, dimension(:,:) :: work
+    real(real64), allocatable, dimension(:) :: row
 
     ! Perform a small partial-pivot factorization solely to classify the block.
     work = matrix
@@ -703,16 +776,16 @@ end function
 ! ------------------------------------------------------------------------------
 function solve_block(matrix, vector) result(rst)
     !! Solves a square diagonal-block system.
-    real(real64), intent(in) :: matrix(:,:)
+    real(real64), intent(in), dimension(:,:) :: matrix
         !! The square block matrix.
-    real(real64), intent(in) :: vector(:)
+    real(real64), intent(in), dimension(:) :: vector
         !! The block right-hand side.
-    real(real64), allocatable :: rst(:)
+    real(real64), allocatable, dimension(:) :: rst
         !! The block solution.
 
     ! Local Variables
-    integer(int32), allocatable :: pivot(:)
-    real(real64), allocatable :: lu(:,:)
+    integer(int32), allocatable, dimension(:) :: pivot
+    real(real64), allocatable, dimension(:,:) :: lu
 
     ! Factor and solve the diagonal block.
     call lu_factor(matrix, ipvt = pivot, lu = lu)
@@ -722,17 +795,17 @@ end function
 ! ------------------------------------------------------------------------------
 function solve_block_matrix(matrix, right_hand_side) result(rst)
     !! Solves a square block against each column of a matrix.
-    real(real64), intent(in) :: matrix(:,:)
+    real(real64), intent(in), dimension(:,:) :: matrix
         !! The square block matrix.
-    real(real64), intent(in) :: right_hand_side(:,:)
+    real(real64), intent(in), dimension(:,:) :: right_hand_side
         !! The block right-hand-side matrix.
-    real(real64), allocatable :: rst(:,:)
+    real(real64), allocatable, dimension(:,:) :: rst
         !! The block solution matrix.
 
     ! Local Variables
     integer(int32) :: i
-    integer(int32), allocatable :: pivot(:)
-    real(real64), allocatable :: lu(:,:)
+    integer(int32), allocatable, dimension(:) :: pivot
+    real(real64), allocatable, dimension(:,:) :: lu
 
     ! Reuse one block factorization for every right-hand-side column.
     allocate(rst(size(right_hand_side,1), size(right_hand_side,2)))
@@ -748,13 +821,15 @@ pure function quaternion_increment(omega, dt) result(increment)
     !! angular velocity over one variational time step:
     !!
     !! $$\Delta q=\left(\sqrt{1-\|h\omega/2\|^2},h\omega/2\right).$$
-    real(real64), intent(in) :: omega(3), dt
+    real(real64), intent(in), dimension(3) :: omega
+    real(real64), intent(in) :: dt
         !! The body-frame angular velocity and positive time step.
     type(quaternion) :: increment
         !! The unit orientation increment.
 
     ! Local Variables
-    real(real64) :: vector_part(3), scalar_part
+    real(real64), dimension(3) :: vector_part
+    real(real64) :: scalar_part
 
     ! Construct the vector part and select the positive scalar branch.
     vector_part = 0.5d0 * dt * omega
@@ -764,17 +839,4 @@ pure function quaternion_increment(omega, dt) result(increment)
 end function
 
 ! ------------------------------------------------------------------------------
-pure function cross_product(a, b) result(c)
-    !! Computes the three-dimensional vector cross product.
-    real(real64), intent(in) :: a(3), b(3)
-        !! The left and right vector operands.
-    real(real64) :: c(3)
-        !! The cross product a-by-b.
-
-    ! Process
-    c = [a(2)*b(3) - a(3)*b(2), &
-        a(3)*b(1) - a(1)*b(3), &
-        a(1)*b(2) - a(2)*b(1)]
-end function
-
 end module

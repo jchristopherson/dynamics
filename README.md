@@ -35,6 +35,12 @@ The `dynamics` module aggregates tools for analysis, modeling, and identificatio
     - Closed-loop (parallel) mechanism modeling with loop-closure constraints, mobility calculations, and constraint-partitioned Jacobians.
     - Graph-based mechanism topology utilities (spanning trees, independent loop identification).
     - Rotation transforms, angle-axis conversion, and quaternion algebra.
+- Variational multibody integration
+    - Structure-preserving rigid-body integration in maximal coordinates using the formulation of Brüdigam et al. (2023).
+    - Holonomic equality constraints enforced at the position level with Lagrange multipliers.
+    - Unit-quaternion orientation updates with body-frame angular velocities and inertia tensors.
+    - Dense LU and graph-factorized block solvers for the coupled Newton equations.
+    - Callback interfaces for applied forces, body-frame torques, constraints, and optional analytic constraint Jacobians.
 - Geometry and vector utilities
     - Point, plane, line, and Plucker-line representations and constructors. See the [geometry operations diagram](images/geometry_operations.svg).
     - Point/line/plane projection and distance calculations.
@@ -136,7 +142,7 @@ target_link_libraries(your_target PRIVATE dynamics)
 ```
 
 ## Kinematics Example
-The following example illustrates the forward and inverse kinematic models of the illustrated 3R mechanism.  This example is Example 127 from Jazar's text "Theory of Applied Robotics, Kinematics, Dynamics, & Control."
+The [`kinematics_example_1`](examples/kinematics_example_1.f90) example illustrates the forward and inverse kinematic models of the illustrated 3R mechanism. This example is Example 127 from Jazar's text "Theory of Applied Robotics, Kinematics, Dynamics, & Control."
 
 ![](images/3R%20Manipulator.PNG?raw=true)
 
@@ -223,7 +229,7 @@ A closed-loop, or parallel, mechanism is described by the `parallel_linkage` typ
 
 Unlike a serial linkage, the forward kinematics of a closed-loop mechanism require the solution of these constraints.  As a mechanism admits more than one assembly mode, the starting estimate supplied by `set_configuration` selects the branch of interest.
 
-The following example analyzes a planar four-bar linkage driven at the crank.
+The [`four_bar_example_1`](examples/four_bar_example_1.f90) example analyzes a planar four-bar linkage driven at the crank.
 
 ```fortran
 program example
@@ -437,7 +443,7 @@ Notice that the linkage is drawn by querying the mechanism itself.  The `body_tr
 ![](images/four_bar_example_1.png?raw=true)
 
 ## Frequency Response Example
-Consider the following 3 DOF system.  The following example illustrates how to use this library to compute the frequency response functions for this system.  
+Consider the following 3 DOF system. The [`frf_proportional_example_1`](examples/frf_proportional_example_1.f90) example illustrates how to use this library to compute the frequency response functions for this system.
 
 ![](images/3%20DOF%20Schematic.PNG?raw=true)
 
@@ -522,7 +528,7 @@ The computed frequency response functions.
 ![](images/frf_proportional_example_1.png?raw=true)
 
 ## Nonlinear FRF Example
-Computing the frequency response function for a nonlinear system is not as straight-forward.  A technique for capturing nonlinear behaviors, such as jump phenomenon, is to sweep through frequency, in both an ascending and a descending manner.  This example illustrates such a frequency sweeping using the famous Duffing equation as the model.
+Computing the frequency response function for a nonlinear system is not as straight-forward. A technique for capturing nonlinear behaviors, such as jump phenomenon, is to sweep through frequency, in both an ascending and a descending manner. The [`frf_sweep_example_1`](examples/frf_sweep_example_1.f90) example illustrates such a frequency sweep using the famous Duffing equation as the model.
 
 ```math
 \ddot{x} + \delta \dot{x} + \alpha x + \beta x^3 = \gamma \sin \omega t
@@ -598,7 +604,7 @@ The computed frequency response functions, both ascending and descending, as com
 ![](images/frf_sweep_example_1.png?raw=true)
 
 ## Parameter Discovery (System Identification):
-The following example illustrates how to estimate parameters of an ODE given an observed output to a known input.  This example illustrates how to find $\omega_{n}$ and $\zeta$ in the model of a single degree of freedom system.
+The [`siso_lsq_fit_example`](examples/siso_lsq_fit_example.f90) example illustrates how to estimate parameters of an ODE given an observed output to a known input. It finds $\omega_{n}$ and $\zeta$ in the model of a single degree of freedom system.
 ```math
 \ddot{x} + 2 \zeta \omega_{n} \dot{x} + \omega_{n}^{2} x = f(t)
 ```
@@ -745,6 +751,47 @@ DAMPING TERM:
         T-Statistic:   68.707E+00
 ```
 ![](images/siso_least_squares_fit_example.png?raw=true)
+
+## Variational Integrator Example
+The [`variational_integrator_example`](examples/variational_integrator_example.f90) simulates a planar double pendulum in maximal coordinates. Both connecting rods have distributed mass, finite cross-section inertia, and gravity loading at their centers of mass. Six holonomic constraints pin the first rod to ground and join the two rod endpoints.
+
+The example selects the graph-factorized solver from Brüdigam et al. (2023), supplies force and constraint callbacks, and provides an analytic reduced constraint Jacobian for efficient Newton iterations:
+
+```fortran
+type(rigid_body), dimension(2) :: bodies
+type(variational_state) :: initial_state
+type(variational_state), allocatable, dimension(:) :: solution
+type(variational_integrator) :: integrator
+
+! Each connecting rod carries its own mass and center-of-mass inertia tensor.
+bodies(1) = rigid_body(mass1, rod_inertia(mass1, length1, width1))
+bodies(2) = rigid_body(mass2, rod_inertia(mass2, length2, width2))
+
+call initialize_variational_state(initial_state, 2)
+initial_state%orientation(1) = quaternion(angle1_initial, &
+    [0.0d0, 0.0d0, 1.0d0])
+initial_state%orientation(2) = quaternion(angle2_initial, &
+    [0.0d0, 0.0d0, 1.0d0])
+
+! Set compatible center-of-mass positions for the two endpoint constraints.
+direction1 = [sin(angle1_initial), -cos(angle1_initial), 0.0d0]
+direction2 = [sin(angle2_initial), -cos(angle2_initial), 0.0d0]
+initial_state%position(:,1) = 0.5d0 * length1 * direction1
+initial_state%position(:,2) = length1 * direction1 + &
+    0.5d0 * length2 * direction2
+
+integrator%settings%linear_solver = VI_GRAPH_FACTORIZED_SOLVER
+solution = integrator%solve(bodies, initial_state, dt, ntime, &
+    constraint_count = 6, &
+    constraint = pendulum_constraints, &
+    force_function = gravity_forces, &
+    constraint_jacobian = pendulum_constraint_jacobian, &
+    args = parameters)
+```
+
+The complete example includes the massive-rod inertia calculation, gravity and endpoint-constraint callbacks, analytic quaternion-tangent Jacobian, and plots of both rod angles. Build it with `BUILD_DYNAMICS_EXAMPLES=ON` and run the `variational_integrator_example` target.
+
+![Double-pendulum rod angles produced by the variational integrator example](images/variational_integrator_example.png?raw=true)
 
 ## References
 1. J. D. Hartog, "Mechanical Vibrations," New York: Dover Publications, Inc., 1985.

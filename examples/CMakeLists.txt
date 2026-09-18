@@ -229,6 +229,10 @@ endif()
 add_executable(structural_example structural_example.f90)
 target_link_libraries(structural_example ${PROJECT_NAME} ${FPLOT_LIBRARIES})
 
+# Variational Integrator Example
+add_executable(variational_integrator_example variational_integrator_example.f90)
+target_link_libraries(variational_integrator_example ${PROJECT_NAME} ${FPLOT_LIBRARIES})
+
 if (${BUILD_SHARED_LIBS} AND WIN32)
     add_custom_command(
         TARGET frf_sweep_example_1
@@ -236,6 +240,15 @@ if (${BUILD_SHARED_LIBS} AND WIN32)
         COMMAND ${CMAKE_COMMAND} -E copy 
         $<TARGET_RUNTIME_DLLS:frf_sweep_example_1> 
         $<TARGET_FILE_DIR:frf_sweep_example_1>
+        COMMAND_EXPAND_LISTS
+    )
+
+    add_custom_command(
+        TARGET variational_integrator_example
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+        $<TARGET_RUNTIME_DLLS:variational_integrator_example>
+        $<TARGET_FILE_DIR:variational_integrator_example>
         COMMAND_EXPAND_LISTS
     )
 endif()
