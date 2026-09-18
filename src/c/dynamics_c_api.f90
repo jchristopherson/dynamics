@@ -73,6 +73,7 @@ module dynamics_c_api
             real(c_double), intent(in), value :: t
             real(c_double), intent(out) :: u(n)
         end subroutine
+
     end interface
 
     type c_vecfcn_container
