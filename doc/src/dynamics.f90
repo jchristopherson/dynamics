@@ -14,5 +14,8 @@ module dynamics
     use dynamics_parallel_linkage
     use dynamics_geometry
     use dynamics_quaternions
+    use dynamics_rigid_bodies
     use dynamics_line_elements
+    use dynamics_variational_integrators
+    use dynamics_linkage_dynamics
 end module
