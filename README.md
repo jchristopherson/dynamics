@@ -794,6 +794,39 @@ The complete example includes the massive-rod inertia calculation, gravity and e
 
 ![Double-pendulum rod angles produced by the variational integrator example](images/variational_integrator_example.png?raw=true)
 
+## Prescribed-Motion Four-Bar Dynamics Example
+The [`motor_driven_four_bar_example`](examples/motor_driven_four_bar_example.f90) demonstrates dynamic analysis of a planar parallel linkage using `linkage_dynamic_model`. The crank, coupler, and rocker have distributed mass and rotational inertia, while the ground link remains fixed. Gravity acts in the negative world-y direction.
+
+Rather than applying a specified torque or using closed-loop control, the example prescribes a sinusoidal absolute crank angle. The additional rheonomic constraint enforces this motion directly, and its Lagrange multiplier gives the motor torque required to produce the commanded trajectory:
+
+```fortran
+pure function crank_motion(t) result(rst)
+    real(real64), intent(in) :: t
+    real(real64) :: rst
+
+    rst = motion_center - motion_amplitude * &
+        cos(2.0d0 * pi * motion_frequency * t)
+end function
+
+dynamic_model = linkage_dynamic_model(mechanism, q)
+integrator%settings%linear_solver = VI_DENSE_SOLVER
+
+solution = dynamic_model%solve(integrator, dt, ntime, &
+    gravity = [0.0d0, -9.80665d0, 0.0d0], &
+    prescribed_body = 1, &
+    prescribed_motion = crank_motion, &
+    multipliers = constraint_multipliers)
+
+! The prescribed-motion constraint is appended last, so its multiplier is
+! the required crank motor torque.
+motor_torque(2:ntime) = constraint_multipliers( &
+    size(constraint_multipliers, 1), :)
+```
+
+The output tracks the crank, coupler, and rocker angles together with the resulting motor torque required to overcome linkage inertia and gravity while satisfying all joint and loop-closure constraints.
+
+![Link angles and required motor torque for the prescribed-motion four-bar example](images/motor_driven_four_bar_example.png?raw=true)
+
 ## References
 1. J. D. Hartog, "Mechanical Vibrations," New York: Dover Publications, Inc., 1985.
 2. S. S. Rau, "Mechanical Vibrations," 3rd ed., Reading, MA: Addison-Wesley Publishing Co., 1995.

@@ -350,6 +350,7 @@ contains
         ! Apply the translational update and the unit quaternion retraction to
         ! each body independently.
         next_state = state
+		next_state%time = state%time + dt
         do body_index = 1, nbody
             first = 6 * body_index - 5
             next_state%velocity(:,body_index) = x(first:first+2)

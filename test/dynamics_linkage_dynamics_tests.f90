@@ -63,6 +63,7 @@ function test_parallel_linkage_dynamics() result(rst)
     real(real64), dimension(4) :: q
     real(real64), dimension(2) :: closure_point
     real(real64), allocatable, dimension(:) :: residual
+    real(real64), allocatable, dimension(:,:) :: multipliers
     type(link_container), dimension(4) :: links
     type(joint), dimension(4) :: joints
     type(planar_linkage) :: mechanism
@@ -101,6 +102,24 @@ function test_parallel_linkage_dynamics() result(rst)
         rst = .false.
         print "(A)", "TEST FAILED: test_parallel_linkage_dynamics - dynamic step"
     end if
+
+    solution = model%solve(integrator, 1.0d-4, 2, &
+        prescribed_body = 1, prescribed_motion = fixed_crank_motion, &
+        multipliers = multipliers)
+    if (.not.assert(size(multipliers,1), &
+        model%get_constraint_count() + 1)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_parallel_linkage_dynamics - motor multiplier"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+pure function fixed_crank_motion(t) result(rst)
+    !! Supplies the fixed crank angle used to exercise prescribed motion.
+    real(real64), intent(in) :: t
+    real(real64) :: rst
+
+    rst = 0.7d0
 end function
 
 ! ------------------------------------------------------------------------------

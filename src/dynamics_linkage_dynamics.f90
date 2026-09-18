@@ -20,6 +20,18 @@ module dynamics_linkage_dynamics
 	private
 
 	public :: linkage_dynamic_model
+	public :: linkage_prescribed_motion
+
+	abstract interface
+		function linkage_prescribed_motion(t) result(rst)
+			!! Computes a prescribed angular displacement as a function of time.
+			import :: real64
+			real(real64), intent(in) :: t
+				!! The simulation time.
+			real(real64) :: rst
+				!! The prescribed absolute angle, in radians.
+		end function
+	end interface
 
 	type dynamic_joint
 		!! Stores one joint in maximal-coordinate body indexing.
@@ -54,6 +66,11 @@ module dynamics_linkage_dynamics
 	type linkage_solve_context
 		class(linkage_dynamic_model), pointer :: model => null()
 		real(real64), dimension(3) :: gravity = 0.0d0
+		real(real64), allocatable, dimension(:,:) :: body_force
+		real(real64), allocatable, dimension(:,:) :: body_torque
+		integer(int32) :: prescribed_body = 0
+		procedure(linkage_prescribed_motion), pointer, nopass :: &
+			prescribed_motion => null()
 	end type
 
 contains
@@ -202,29 +219,66 @@ function ldm_constraint_residual(this, state) result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
-function ldm_solve(this, integrator, dt, ntime, initial_state, gravity) &
+function ldm_solve(this, integrator, dt, ntime, initial_state, gravity, &
+	body_force, body_torque, prescribed_body, prescribed_motion, multipliers) &
 	result(rst)
 	!! Integrates the linkage dynamics under an optional uniform world-frame
-	!! gravitational acceleration.
+	!! gravitational acceleration and optional constant body loads.
 	class(linkage_dynamic_model), intent(in), target :: this
 	type(variational_integrator), intent(in) :: integrator
 	real(real64), intent(in) :: dt
 	integer(int32), intent(in) :: ntime
 	type(variational_state), intent(in), optional :: initial_state
 	real(real64), intent(in), optional, dimension(3) :: gravity
+	real(real64), intent(in), optional, dimension(:,:) :: body_force
+		!! Constant 3-by-nbody world-frame force array.
+	real(real64), intent(in), optional, dimension(:,:) :: body_torque
+		!! Constant 3-by-nbody body-frame torque array.
+	integer(int32), intent(in), optional :: prescribed_body
+		!! The moving body whose absolute planar angle is prescribed.
+	procedure(linkage_prescribed_motion), optional :: prescribed_motion
+		!! The prescribed absolute planar angle as a function of time.
+	real(real64), allocatable, intent(out), optional, dimension(:,:) :: multipliers
+		!! Constraint multipliers for each completed time step. When a motion is
+		!! prescribed, the last row is the required motor torque.
 	type(variational_state), allocatable, dimension(:) :: rst
 
 	type(linkage_solve_context) :: context
 	type(variational_state) :: state
+	integer(int32) :: constraint_count
 
 	state = this%m_initial_state
 	if (present(initial_state)) state = initial_state
 	context%model => this
 	if (present(gravity)) context%gravity = gravity
+	allocate(context%body_force(3,this%get_body_count()), source = 0.0d0)
+	allocate(context%body_torque(3,this%get_body_count()), source = 0.0d0)
+	if (present(body_force)) then
+		if (any(shape(body_force) /= [3, this%get_body_count()])) &
+			error stop DYN_ARRAY_SIZE_ERROR
+		context%body_force = body_force
+	end if
+	if (present(body_torque)) then
+		if (any(shape(body_torque) /= [3, this%get_body_count()])) &
+			error stop DYN_ARRAY_SIZE_ERROR
+		context%body_torque = body_torque
+	end if
+	if (present(prescribed_body) .neqv. present(prescribed_motion)) &
+		error stop DYN_INVALID_INPUT_ERROR
+	constraint_count = this%m_constraint_count
+	if (present(prescribed_body)) then
+		if (.not.this%m_planar .or. prescribed_body < 1 .or. &
+			prescribed_body > this%get_body_count()) &
+			error stop DYN_INVALID_INPUT_ERROR
+		context%prescribed_body = prescribed_body
+		context%prescribed_motion => prescribed_motion
+		constraint_count = constraint_count + 1
+	end if
 	rst = integrator%solve(this%m_bodies, state, dt, ntime, &
-		constraint_count = this%m_constraint_count, &
+		constraint_count = constraint_count, &
 		constraint = linkage_constraints, &
-		force_function = linkage_gravity, args = context)
+		force_function = linkage_gravity, multipliers = multipliers, &
+		args = context)
 end function
 
 ! ------------------------------------------------------------------------------
@@ -235,11 +289,29 @@ subroutine linkage_constraints(state, value, args)
 
 	select type (context => args)
 	type is (linkage_solve_context)
-		value = context%model%constraint_residual(state)
+		value(1:context%model%m_constraint_count) = &
+			context%model%constraint_residual(state)
+		if (associated(context%prescribed_motion)) then
+			value(size(value)) = planar_body_angle(state, &
+				context%prescribed_body) - &
+				context%prescribed_motion(state%time)
+		end if
 	class default
 		error stop DYN_INVALID_INPUT_ERROR
 	end select
 end subroutine
+
+! ------------------------------------------------------------------------------
+function planar_body_angle(state, body) result(rst)
+	!! Gets the absolute angle of a planar body about the world z-axis.
+	type(variational_state), intent(in) :: state
+	integer(int32), intent(in) :: body
+	real(real64) :: rst
+	real(real64), dimension(3,3) :: rotation
+
+	rotation = state%orientation(body)%to_matrix()
+	rst = atan2(rotation(2,1), rotation(1,1))
+end function
 
 ! ------------------------------------------------------------------------------
 subroutine linkage_gravity(t, state, force, torque, args)
@@ -256,6 +328,8 @@ subroutine linkage_gravity(t, state, force, torque, args)
 		do i = 1, context%model%get_body_count()
 			force(:,i) = context%model%m_bodies(i)%mass * context%gravity
 		end do
+		force = force + context%body_force
+		torque = torque + context%body_torque
 	class default
 		error stop DYN_INVALID_INPUT_ERROR
 	end select
