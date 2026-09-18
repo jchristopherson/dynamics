@@ -174,6 +174,36 @@ function test_variational_graph_solver() result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+function test_variational_multiplier_history() result(rst)
+    !! Verifies that solve returns one multiplier vector for every state,
+    !! including the initial point and a look-ahead value at the final point.
+    logical :: rst
+    type(rigid_body) :: bodies(1)
+    type(variational_state) :: state
+    type(variational_state), allocatable, dimension(:) :: solution
+    type(variational_integrator) :: integrator
+    real(real64), allocatable, dimension(:,:) :: multipliers
+
+    rst = .true.
+    bodies(1) = rigid_body(2.0d0)
+    call initialize_variational_state(state, 1)
+    solution = integrator%solve(bodies, state, 0.01d0, 3, &
+        constraint_count = 3, constraint = fixed_position, &
+        force_function = constant_force, multipliers = multipliers)
+    if (.not.assert(size(multipliers,1), 3)) rst = .false.
+    if (.not.assert(size(multipliers,2), size(solution))) rst = .false.
+    if (.not.assert(multipliers(:,1), [0.0d0, 0.0d0, 19.62d0], &
+        1.0d-6)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_variational_multiplier_history - initial"
+    end if
+    if (.not.assert(multipliers(:,3), multipliers(:,2), 1.0d-6)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_variational_multiplier_history - final"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
 subroutine constant_force(t, state, force, torque, args)
     !! Supplies the constant force used by the applied-force test.
     real(real64), intent(in) :: t

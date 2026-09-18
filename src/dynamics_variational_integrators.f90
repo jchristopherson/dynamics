@@ -461,24 +461,33 @@ function vi_solve(this, bodies, state, dt, ntime, constraint_count, &
         !! An optional analytic reduced constraint Jacobian. When omitted, the
         !! Jacobian is evaluated by finite differences.
     real(real64), allocatable, intent(out), optional, dimension(:,:) :: multipliers
-        !! The converged Lagrange multipliers.
+        !! The Nconstraint-by-Ntime Lagrange multiplier history. A multiplier
+        !! computed over the interval beginning at time point i is stored in
+        !! column i because the discrete force enters through the constraint
+        !! Jacobian evaluated at that point. The final column is obtained from
+        !! one noncommitting look-ahead step beyond the requested solution.
     class(*), intent(inout), optional :: args
         !! Optional user-supplied data forwarded to all callbacks.
     type(variational_state), allocatable, dimension(:) :: rst
         !! The solution at each time step.
 
     ! Local Variables
-    integer(int32) :: i
+    integer(int32) :: i, nconstraint
     real(real64), allocatable, dimension(:) :: mult
-    type(variational_state) :: new_state
+    type(variational_state) :: new_state, look_ahead_state
 
     ! Input Checking
     if (ntime < 1) error stop DYN_INVALID_INPUT_ERROR
+	nconstraint = 0
+	if (present(constraint_count)) nconstraint = constraint_count
 
     ! Process
     allocate(rst(ntime))
     rst(1) = state  ! initial state
     new_state = state
+	if (present(multipliers)) then
+        allocate(multipliers(nconstraint, ntime))
+	end if
     do i = 2, ntime
         call this%step(bodies, new_state, dt, &
             constraint_count = constraint_count, &
@@ -490,13 +499,27 @@ function vi_solve(this, bodies, state, dt, ntime, constraint_count, &
         )
         rst(i) = new_state
         if (present(multipliers)) then
-            if (.not.allocated(multipliers)) then
-                allocate(multipliers(size(mult), ntime - 1))
-            end if
             multipliers(:,i - 1) = mult
         end if
         deallocate(mult)
     end do
+
+    ! The final state has no outgoing interval in the requested solution. Take
+    ! one additional step on a copy to determine its discrete multiplier, then
+    ! discard the predicted state.
+    if (present(multipliers)) then
+        look_ahead_state = new_state
+        call this%step(bodies, look_ahead_state, dt, &
+            constraint_count = constraint_count, &
+            constraint = constraint, &
+            force_function = force_function, &
+            constraint_jacobian = constraint_jacobian, &
+            multipliers = mult, &
+            args = args &
+        )
+        multipliers(:,ntime) = mult
+    end if
+    state = new_state
 end function
 
 ! ------------------------------------------------------------------------------

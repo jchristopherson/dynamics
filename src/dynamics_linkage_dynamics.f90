@@ -21,6 +21,7 @@ module dynamics_linkage_dynamics
 
 	public :: linkage_dynamic_model
 	public :: linkage_prescribed_motion
+	public :: joint_reaction
 
 	abstract interface
 		function linkage_prescribed_motion(t) result(rst)
@@ -42,6 +43,16 @@ module dynamics_linkage_dynamics
 		real(real64), dimension(4,4) :: child_frame
 	end type
 
+	type joint_reaction
+		!! Defines the constraint reaction exerted by a joint on its child link.
+		!! Both vectors are expressed in the world coordinate frame. The reaction
+		!! exerted on the parent link is equal and opposite.
+		real(real64), dimension(3) :: force = 0.0d0
+			!! The joint reaction force.
+		real(real64), dimension(3) :: moment = 0.0d0
+			!! The joint reaction moment about the joint center.
+	end type
+
 	type linkage_dynamic_model
 		!! Defines the variational-integrator representation of a linkage.
 		!! Body index zero in a joint descriptor denotes the fixed ground link.
@@ -52,9 +63,11 @@ module dynamics_linkage_dynamics
 		integer(int32), private :: m_constraint_count = 0
 	contains
 		procedure, public :: get_body_count => ldm_get_body_count
+		procedure, public :: get_joint_count => ldm_get_joint_count
 		procedure, public :: get_constraint_count => ldm_get_constraint_count
 		procedure, public :: get_initial_state => ldm_get_initial_state
 		procedure, public :: constraint_residual => ldm_constraint_residual
+		procedure, public :: get_joint_reactions => ldm_get_joint_reactions
 		procedure, public :: solve => ldm_solve
 	end type
 
@@ -183,6 +196,17 @@ pure function ldm_get_body_count(this) result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+pure function ldm_get_joint_count(this) result(rst)
+	!! Gets the number of joints represented by the dynamic model.
+	class(linkage_dynamic_model), intent(in) :: this
+		!! The dynamic linkage model.
+	integer(int32) :: rst
+		!! The joint count.
+
+	rst = size(this%m_joints)
+end function
+
+! ------------------------------------------------------------------------------
 pure function ldm_get_constraint_count(this) result(rst)
 	class(linkage_dynamic_model), intent(in) :: this
 	integer(int32) :: rst
@@ -217,6 +241,114 @@ function ldm_constraint_residual(this, state) result(rst)
 		call append_joint_constraints(this, state, this%m_joints(i), rst, index)
 	end do
 end function
+
+! ------------------------------------------------------------------------------
+function ldm_get_joint_reactions(this, state, multipliers) result(rst)
+	!! Converts one time step's constraint multipliers into the force and moment
+	!! exerted by every joint on its child link. Multipliers associated with the
+	!! planar-body constraints or a prescribed-motion constraint are excluded.
+	class(linkage_dynamic_model), intent(in) :: this
+		!! The dynamic linkage model.
+	type(variational_state), intent(in) :: state
+		!! The state corresponding to the supplied multipliers.
+	real(real64), intent(in), dimension(:) :: multipliers
+		!! The constraint multiplier vector returned by the integrator.
+	type(joint_reaction), allocatable, dimension(:) :: rst
+		!! One world-frame reaction wrench for each joint, in mechanism order.
+
+	integer(int32) :: i, index, nconstraint
+	real(real64), dimension(3) :: local_force, local_moment
+	real(real64), dimension(4,4) :: parent
+
+	if (size(multipliers) < this%m_constraint_count) &
+		error stop DYN_ARRAY_SIZE_ERROR
+	allocate(rst(size(this%m_joints)))
+	index = 1
+	if (this%m_planar) index = 3 * this%get_body_count() + 1
+	do i = 1, size(this%m_joints)
+		nconstraint = joint_constraint_count(this%m_joints(i)%joint_type, &
+			this%m_planar)
+		if (this%m_planar) then
+			call planar_joint_reaction(this, state, this%m_joints(i), &
+				multipliers(index:index+nconstraint-1), rst(i))
+		else
+			call spatial_joint_reaction(this%m_joints(i)%joint_type, &
+				multipliers(index:index+nconstraint-1), local_force, local_moment)
+			parent = joint_world_transform(this, state, &
+				this%m_joints(i)%parent_body, this%m_joints(i)%parent_frame)
+			rst(i)%force = matmul(parent(1:3,1:3), local_force)
+			rst(i)%moment = matmul(parent(1:3,1:3), local_moment)
+		end if
+		index = index + nconstraint
+	end do
+end function
+
+! ------------------------------------------------------------------------------
+subroutine planar_joint_reaction(model, state, descriptor, multipliers, reaction)
+	!! Maps planar joint multipliers to a world-frame reaction wrench.
+	class(linkage_dynamic_model), intent(in) :: model
+	type(variational_state), intent(in) :: state
+	type(dynamic_joint), intent(in) :: descriptor
+	real(real64), intent(in), dimension(:) :: multipliers
+	type(joint_reaction), intent(out) :: reaction
+
+	real(real64), dimension(4,4) :: parent
+	real(real64), dimension(3) :: axis, normal
+
+	reaction%force = 0.0d0
+	reaction%moment = 0.0d0
+	select case (descriptor%joint_type)
+	case (FIXED_JOINT)
+		reaction%force(1:2) = multipliers(1:2)
+		reaction%moment(3) = multipliers(3)
+	case (REVOLUTE_JOINT)
+		reaction%force(1:2) = multipliers(1:2)
+	case (PRISMATIC_JOINT)
+		parent = joint_world_transform(model, state, descriptor%parent_body, &
+			descriptor%parent_frame)
+		axis = parent(1:3,3)
+		normal = [-axis(2), axis(1), 0.0d0]
+		reaction%force = multipliers(1) * normal
+		reaction%moment(3) = multipliers(2)
+	case default
+		error stop DYN_INVALID_INPUT_ERROR
+	end select
+end subroutine
+
+! ------------------------------------------------------------------------------
+pure subroutine spatial_joint_reaction(joint_type, multipliers, force, moment)
+	!! Maps spatial joint multipliers into a wrench expressed in the parent
+	!! joint frame. The caller rotates the wrench into world coordinates.
+	integer(int32), intent(in) :: joint_type
+	real(real64), intent(in), dimension(:) :: multipliers
+	real(real64), intent(out), dimension(3) :: force, moment
+
+	force = 0.0d0
+	moment = 0.0d0
+	select case (joint_type)
+	case (FIXED_JOINT)
+		force = multipliers(1:3)
+		moment = multipliers(4:6)
+	case (REVOLUTE_JOINT)
+		force = multipliers(1:3)
+		moment(1) = multipliers(5)
+		moment(2) = -multipliers(4)
+	case (PRISMATIC_JOINT)
+		force(1:2) = multipliers(1:2)
+		moment = multipliers(3:5)
+	case (CYLINDRICAL_JOINT)
+		force(1:2) = multipliers(1:2)
+		moment(1) = multipliers(4)
+		moment(2) = -multipliers(3)
+	case (UNIVERSAL_JOINT)
+		force = multipliers(1:3)
+		moment(3) = -multipliers(4)
+	case (SPHERICAL_JOINT)
+		force = multipliers(1:3)
+	case default
+		error stop DYN_INVALID_INPUT_ERROR
+	end select
+end subroutine
 
 ! ------------------------------------------------------------------------------
 function ldm_solve(this, integrator, dt, ntime, initial_state, gravity, &
@@ -539,30 +671,40 @@ pure function sum_joint_constraints(joints, planar) result(rst)
 
 	rst = 0
 	do i = 1, size(joints)
-		if (planar) then
-			select case (joints(i)%joint_type)
-			case (FIXED_JOINT)
-				rst = rst + 3
-			case (REVOLUTE_JOINT, PRISMATIC_JOINT)
-				rst = rst + 2
-			case default
-				error stop DYN_INVALID_INPUT_ERROR
-			end select
-		else
-			select case (joints(i)%joint_type)
-			case (FIXED_JOINT)
-				rst = rst + 6
-			case (REVOLUTE_JOINT, PRISMATIC_JOINT)
-				rst = rst + 5
-			case (CYLINDRICAL_JOINT, UNIVERSAL_JOINT)
-				rst = rst + 4
-			case (SPHERICAL_JOINT)
-				rst = rst + 3
-			case default
-				error stop DYN_INVALID_INPUT_ERROR
-			end select
-		end if
+		rst = rst + joint_constraint_count(joints(i)%joint_type, planar)
 	end do
+end function
+
+! ------------------------------------------------------------------------------
+pure function joint_constraint_count(joint_type, planar) result(rst)
+	!! Gets the number of scalar multipliers associated with one joint.
+	integer(int32), intent(in) :: joint_type
+	logical, intent(in) :: planar
+	integer(int32) :: rst
+
+	if (planar) then
+		select case (joint_type)
+		case (FIXED_JOINT)
+			rst = 3
+		case (REVOLUTE_JOINT, PRISMATIC_JOINT)
+			rst = 2
+		case default
+			error stop DYN_INVALID_INPUT_ERROR
+		end select
+	else
+		select case (joint_type)
+		case (FIXED_JOINT)
+			rst = 6
+		case (REVOLUTE_JOINT, PRISMATIC_JOINT)
+			rst = 5
+		case (CYLINDRICAL_JOINT, UNIVERSAL_JOINT)
+			rst = 4
+		case (SPHERICAL_JOINT)
+			rst = 3
+		case default
+			error stop DYN_INVALID_INPUT_ERROR
+		end select
+	end if
 end function
 
 end module

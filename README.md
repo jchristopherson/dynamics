@@ -38,6 +38,7 @@ The `dynamics` module aggregates tools for analysis, modeling, and identificatio
 - Variational multibody integration
     - Structure-preserving rigid-body integration in maximal coordinates using the formulation of Brüdigam et al. (2023).
     - Direct dynamic analysis of serial, spatial parallel, and planar parallel linkages using link mass properties and joint attachment frames.
+    - World-frame joint reaction forces and moments recovered from dynamic-analysis constraint multipliers.
     - Holonomic equality constraints enforced at the position level with Lagrange multipliers.
     - Unit-quaternion orientation updates with body-frame angular velocities and inertia tensors.
     - Dense LU and graph-factorized block solvers for the coupled Newton equations.
@@ -818,12 +819,11 @@ solution = dynamic_model%solve(integrator, dt, ntime, &
     multipliers = constraint_multipliers)
 
 ! The prescribed-motion constraint is appended last, so its multiplier is
-! the required crank motor torque.
-motor_torque(2:ntime) = constraint_multipliers( &
-    size(constraint_multipliers, 1), :)
+! the required crank motor torque at every simulation point.
+motor_torque = constraint_multipliers(size(constraint_multipliers, 1), :)
 ```
 
-The output tracks the crank, coupler, and rocker angles together with the resulting motor torque required to overcome linkage inertia and gravity while satisfying all joint and loop-closure constraints.
+The output tracks the crank, coupler, and rocker angles together with the resulting motor torque required to overcome linkage inertia and gravity while satisfying all joint and loop-closure constraints. Multiplier column $i$ corresponds to simulation point $i$; the final column is evaluated using a noncommitting look-ahead step.
 
 ![Link angles and required motor torque for the prescribed-motion four-bar example](images/motor_driven_four_bar_example.png?raw=true)
 

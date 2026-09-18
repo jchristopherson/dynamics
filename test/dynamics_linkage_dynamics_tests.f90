@@ -12,6 +12,7 @@ function test_serial_linkage_dynamics() result(rst)
     logical :: rst
     real(real64), parameter :: angle = 0.4d0
     real(real64), dimension(3,3) :: inertia
+    real(real64), dimension(5) :: test_multipliers
     real(real64), allocatable, dimension(:) :: residual
     type(binary_link), dimension(1) :: links
     type(serial_linkage) :: mechanism
@@ -19,6 +20,7 @@ function test_serial_linkage_dynamics() result(rst)
     type(variational_integrator) :: integrator
     type(variational_state) :: initial
     type(variational_state), allocatable, dimension(:) :: solution
+    type(joint_reaction), allocatable, dimension(:) :: reactions
 
     rst = .true.
     inertia = 0.0d0
@@ -37,6 +39,17 @@ function test_serial_linkage_dynamics() result(rst)
     if (maxval(abs(residual)) > 1.0d-10) then
         rst = .false.
         print "(A)", "TEST FAILED: test_serial_linkage_dynamics - initial constraints"
+    end if
+
+    test_multipliers = [1.0d0, 2.0d0, 3.0d0, 4.0d0, 5.0d0]
+    reactions = model%get_joint_reactions(initial, test_multipliers)
+    if (.not.assert(reactions(1)%force, [1.0d0, 2.0d0, 3.0d0])) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_serial_linkage_dynamics - joint force"
+    end if
+    if (.not.assert(reactions(1)%moment, [5.0d0, -4.0d0, 0.0d0])) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_serial_linkage_dynamics - joint moment"
     end if
 
     solution = model%solve(integrator, 1.0d-3, 3, &
@@ -61,6 +74,7 @@ function test_parallel_linkage_dynamics() result(rst)
     real(real64), parameter :: rocker = 3.0d0
     real(real64), parameter :: ground = 4.0d0
     real(real64), dimension(4) :: q
+    real(real64), dimension(17) :: test_multipliers
     real(real64), dimension(2) :: closure_point
     real(real64), allocatable, dimension(:) :: residual
     real(real64), allocatable, dimension(:,:) :: multipliers
@@ -71,6 +85,7 @@ function test_parallel_linkage_dynamics() result(rst)
     type(variational_integrator) :: integrator
     type(variational_state) :: state
     type(variational_state), allocatable, dimension(:) :: solution
+    type(joint_reaction), allocatable, dimension(:) :: reactions
 
     rst = .true.
     allocate(links(1)%item, source = planar_dynamic_link(ground, 2.0d0))
@@ -95,6 +110,19 @@ function test_parallel_linkage_dynamics() result(rst)
         print "(A)", "TEST FAILED: test_parallel_linkage_dynamics - constraints"
     end if
 
+    test_multipliers = 0.0d0
+    test_multipliers(10:11) = [2.0d0, 3.0d0]
+    reactions = model%get_joint_reactions(state, test_multipliers)
+    if (.not.assert(model%get_joint_count(), 4)) rst = .false.
+    if (.not.assert(reactions(1)%force, [2.0d0, 3.0d0, 0.0d0])) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_parallel_linkage_dynamics - joint force"
+    end if
+    if (.not.assert(reactions(1)%moment, [0.0d0, 0.0d0, 0.0d0])) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_parallel_linkage_dynamics - joint moment"
+    end if
+
     solution = model%solve(integrator, 1.0d-4, 2, &
         gravity = [0.0d0, -9.81d0, 0.0d0])
     residual = model%constraint_residual(solution(2))
@@ -110,6 +138,15 @@ function test_parallel_linkage_dynamics() result(rst)
         model%get_constraint_count() + 1)) then
         rst = .false.
         print "(A)", "TEST FAILED: test_parallel_linkage_dynamics - motor multiplier"
+    end if
+    if (.not.assert(size(multipliers,2), size(solution))) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_parallel_linkage_dynamics - multiplier history"
+    end if
+    reactions = model%get_joint_reactions(solution(2), multipliers(:,1))
+    if (.not.assert(size(reactions), model%get_joint_count())) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_parallel_linkage_dynamics - reaction count"
     end if
 end function
 

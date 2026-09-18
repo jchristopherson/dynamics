@@ -399,6 +399,9 @@ program main
     check = test_variational_graph_solver()
     if (.not.check) flag = 133
 
+	check = test_variational_multiplier_history()
+	if (.not.check) flag = 136
+
     check = test_serial_linkage_dynamics()
     if (.not.check) flag = 134
 

@@ -44,6 +44,7 @@ program example
     type(linkage_dynamic_model) :: dynamic_model
     type(variational_integrator) :: integrator
     type(variational_state), allocatable, dimension(:) :: solution
+    type(joint_reaction), allocatable, dimension(:) :: joint_reactions
     type(multiplot) :: plt
     type(plot_2d) :: plt1, plt2, plt3, plt4
 
@@ -93,17 +94,21 @@ program example
         rotation = solution(i)%orientation(3)%to_matrix()
         rocker_angle(i) = atan2(rotation(2,1), rotation(1,1)) * 180.0d0 / pi
     end do
-    motor_torque(2:ntime) = constraint_multipliers( &
-        size(constraint_multipliers,1),:)
-    motor_torque(1) = motor_torque(2)
+    motor_torque = constraint_multipliers(size(constraint_multipliers,1),:)
 
     residual = dynamic_model%constraint_residual(solution(ntime))
+    joint_reactions = dynamic_model%get_joint_reactions(solution(ntime), &
+        constraint_multipliers(:,ntime))
     print "(A,F7.3,A)", "Simulated ", time(ntime), " seconds."
     print "(A,F9.3,A)", "Final crank angle: ", crank_angle(ntime), " deg"
     print "(A,F9.3,A)", "Peak motor torque: ", &
         maxval(abs(motor_torque)), " N m"
     print "(A,ES10.3)", "Maximum final constraint residual: ", &
         maxval(abs(residual))
+    print "(A,3F11.3)", "Final crank-bearing force [N]: ", &
+        joint_reactions(1)%force
+    print "(A,3F11.3)", "Final crank-bearing moment [N m]: ", &
+        joint_reactions(1)%moment
 
     ! Plot all moving-link angles to illustrate the coupled four-bar response.
     call plt%initialize(4, 1, width = 1400, height = 900)
