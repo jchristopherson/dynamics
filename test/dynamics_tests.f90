@@ -189,6 +189,24 @@ program main
     check = test_siso_model_fit_least_squares_multi()
     if (.not.check) flag = 41
 
+    check = test_axis_rotation_matrices()
+    if (.not.check) flag = 141
+
+    check = test_homogeneous_rotation_matrices()
+    if (.not.check) flag = 142
+
+    check = test_general_rotation_matrices()
+    if (.not.check) flag = 143
+
+    check = test_translation_matrices()
+    if (.not.check) flag = 144
+
+    check = test_rotation_angle_axis()
+    if (.not.check) flag = 145
+
+    check = test_kinematic_transform_matrices()
+    if (.not.check) flag = 146
+
     check = test_quaternion_init_1()
     if (.not.check) flag = 42
 
