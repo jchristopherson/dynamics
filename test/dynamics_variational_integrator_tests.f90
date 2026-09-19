@@ -268,7 +268,7 @@ function test_scaled_constraint_differences() result(rst)
     integrator%settings%constraint_rotation_scale = 0.25d0
     constraint_ptr => scaled_fixed_pose
     call integrator%step(bodies, state, 1.0d-3, 6, &
-        constraint_ptr, multipliers = multipliers)
+        constraint = constraint_ptr, multipliers = multipliers)
     if (maxval(abs(state%position(:,1) - scaled_target_position)) > &
         1.0d-6 .or. norm2(aimag(state%orientation(1))) > 1.0d-8) then
         rst = .false.
