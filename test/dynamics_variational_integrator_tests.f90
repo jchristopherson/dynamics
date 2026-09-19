@@ -4,9 +4,7 @@ module dynamics_variational_integrator_tests
     use dynamics
     implicit none
 
-    type scaled_constraint_data
-        real(real64), dimension(3) :: target_position
-    end type
+    real(real64), save, dimension(3) :: scaled_target_position
 
 contains
 ! ------------------------------------------------------------------------------
@@ -256,23 +254,22 @@ function test_scaled_constraint_differences() result(rst)
     type(rigid_body) :: bodies(1)
     type(variational_state) :: state
     type(variational_integrator) :: integrator
-    type(scaled_constraint_data) :: data
     real(real64), allocatable, dimension(:) :: multipliers
     procedure(variational_constraint), pointer :: constraint_ptr
 
     rst = .true.
     bodies(1) = rigid_body(1.0d0)
     call initialize_variational_state(state, 1)
-    data%target_position = [1.0d12, -1.0d12, 5.0d11]
-    state%position(:,1) = data%target_position
+    scaled_target_position = [1.0d9, -1.0d9, 5.0d8]
+    state%position(:,1) = scaled_target_position
     state%velocity(:,1) = [1.0d0, -2.0d0, 0.5d0]
     state%angular_velocity(:,1) = [0.1d0, -0.2d0, 0.3d0]
     integrator%settings%constraint_translation_scale = 1.0d3
     integrator%settings%constraint_rotation_scale = 0.25d0
     constraint_ptr => scaled_fixed_pose
     call integrator%step(bodies, state, 1.0d-3, 6, &
-        constraint_ptr, multipliers = multipliers, args = data)
-    if (maxval(abs(state%position(:,1) - data%target_position)) > &
+        constraint_ptr, multipliers = multipliers)
+    if (maxval(abs(state%position(:,1) - scaled_target_position)) > &
         1.0d-6 .or. norm2(aimag(state%orientation(1))) > 1.0d-8) then
         rst = .false.
         print "(A)", "TEST FAILED: test_scaled_constraint_differences"
@@ -343,13 +340,8 @@ subroutine scaled_fixed_pose(state, value, args)
     real(real64), intent(out), dimension(:) :: value
     class(*), intent(inout), optional :: args
 
-    select type (data => args)
-    type is (scaled_constraint_data)
-        value(1:3) = state%position(:,1) - data%target_position
-        value(4:6) = aimag(state%orientation(1))
-    class default
-        value = huge(1.0d0)
-    end select
+    value(1:3) = state%position(:,1) - scaled_target_position
+    value(4:6) = aimag(state%orientation(1))
 end subroutine
 
 end module
