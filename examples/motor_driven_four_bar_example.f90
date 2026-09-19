@@ -72,9 +72,9 @@ program example
     call mechanism%set_configuration(q)
     dynamic_model = linkage_dynamic_model(mechanism, q)
 
-        ! The base link is omitted from the moving-body array, so body 1 is the
-        ! crank. Prescribing its absolute angle adds one rheonomic constraint. The
-        ! final constraint multiplier is the motor torque required to follow it.
+    ! The base link is omitted from the moving-body array, so body 1 is the
+    ! crank. Prescribing its absolute angle adds one rheonomic constraint. The
+    ! final constraint multiplier is the motor torque required to follow it.
     integrator%settings%linear_solver = VI_DENSE_SOLVER
     solution = dynamic_model%solve(integrator, dt, ntime, &
 		gravity = [0.0d0, -9.80665d0, 0.0d0], &
