@@ -183,8 +183,11 @@ program main
     check = test_siso_model_fit_least_squares()
     if (.not.check) flag = 39
 
-    check = test_siso_model_fit_least_squares_multi()
+    check = test_siso_model_fit_least_squares_constrained()
     if (.not.check) flag = 40
+
+    check = test_siso_model_fit_least_squares_multi()
+    if (.not.check) flag = 41
 
     check = test_axis_rotation_matrices()
     if (.not.check) flag = 141
