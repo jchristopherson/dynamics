@@ -14,8 +14,7 @@ module dynamics_linkage_dynamics
 	use dynamics_quaternions, only : quaternion
 	use dynamics_helper, only : cross_product
 	use dynamics_rigid_bodies, only : rigid_body
-	use dynamics_variational_integrators, only : variational_integrator, &
-		variational_state
+	use dynamics_variational_integrators
 	use linalg, only : identity
 	implicit none
 	private
@@ -636,6 +635,8 @@ function ldm_solve(this, integrator, dt, ntime, initial_state, gravity, &
 	type(linkage_solve_context) :: context
 	type(variational_state) :: state
 	integer(int32) :: constraint_count
+	procedure(variational_force), pointer :: frc
+	procedure(variational_constraint), pointer :: constraint
 
 	state = this%m_initial_state
 	if (present(initial_state)) state = initial_state
@@ -664,10 +665,12 @@ function ldm_solve(this, integrator, dt, ntime, initial_state, gravity, &
 		context%prescribed_motion => prescribed_motion
 		constraint_count = constraint_count + 1
 	end if
+	frc => linkage_gravity
+	constraint => linkage_constraints
 	rst = integrator%solve(this%m_bodies, state, dt, ntime, &
 		constraint_count = constraint_count, &
-		constraint = linkage_constraints, &
-		force_function = linkage_gravity, multipliers = multipliers, &
+		constraint = constraint, &
+		force_function = frc, multipliers = multipliers, &
 		args = context)
 end function
 
