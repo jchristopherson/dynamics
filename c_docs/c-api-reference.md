@@ -34,8 +34,51 @@ object they own.
   pointers are output structures unless marked `const`.
 - Mechanism link, joint, and frame indices are one-based. A `c_mechanism`
   returned by a creation routine must be released with `c_free_mechanism`.
+- A `c_linkage_dynamic_model` returned by a creation routine must be released
+  with `c_free_linkage_dynamic_model`.
 - Callback arguments describe caller-supplied functions. Their callback typedef
   declarations in `dynamics.h` document the callback arguments and outputs.
+
+## Variational history conventions
+
+`c_variational_integrator_solve` and `c_linkage_dynamic_solve` use
+column-major history arrays. Translational and angular histories have shape
+`3 × nbody × ntime`, quaternion histories have shape `nbody × ntime`, and
+multiplier histories have shape `nconstraint × ntime`.
+
+The multiplier at column `i` is the discrete constraint multiplier associated
+with the interval beginning at simulation point `i`. The final multiplier is
+evaluated by a noncommitting look-ahead step so that forces and reactions are
+defined at all returned simulation points.
+
+For a prescribed planar-link motion, the total constraint count is the value
+returned by `c_linkage_dynamic_constraint_count` plus one. The last multiplier
+row is the required actuator torque. The prescribed-motion callback receives
+simulation time and the caller's `user_data` pointer.
+
+## Linkage reaction conventions
+
+`c_linkage_dynamic_joint_reactions` accepts one state and its matching
+multiplier column. It returns one `c_joint_reaction` per mechanism joint. Force
+and moment vectors are expressed in world coordinates and act on the child
+link. The equal-and-opposite wrench acts on the parent link. Multipliers for
+planar-body restrictions and prescribed motion are not reported as joint
+reactions.
+
+## Linkage force-element conventions
+
+Axial elements connect two attachment points. Body index zero denotes ground,
+with the corresponding point expressed in world coordinates; all other points
+are body-fixed coordinates. Linear spring force is positive in tension and
+negative in compression, with zero force at `free_length`. Linear damping uses
+only the attachment-point relative velocity projected onto the current element
+axis.
+
+Torsional elements reference a one-based revolute-joint index, which fixes the
+element axis to the joint axis. Linear spring torque is zero at `free_angle`,
+and linear damping uses only the relative twist rate about that axis. The
+count routines return the storage required by the matching result-query
+routines; results follow element insertion order.
 
 ## Complete routine list
 
@@ -48,6 +91,7 @@ routine list and exact signatures, grouped as follows:
 - Geometry operations
 - Serial linkage operations
 - Parallel and planar linkage operations
+- Variational and linkage dynamics
 - Transfer functions and state-space models
 
 The routine names, associated argument names and types, and return types are

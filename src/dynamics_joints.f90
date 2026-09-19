@@ -4,6 +4,8 @@ module dynamics_joints
     use iso_fortran_env
     use dynamics_error_handling
     use dynamics_kinematics, only : REVOLUTE_JOINT, PRISMATIC_JOINT
+    use dynamics_rotation, only : homogeneous_rotation_x, &
+        homogeneous_rotation_y, homogeneous_rotation_z, translate
     use linalg, only : identity
     implicit none
     private
@@ -215,72 +217,19 @@ contains
         case (FIXED_JOINT)
             rst = identity(4)
         case (REVOLUTE_JOINT)
-            rst = rotate_z(q(1))
+            rst = homogeneous_rotation_z(q(1))
         case (PRISMATIC_JOINT)
-            rst = translate_z(q(1))
+            rst = translate(0.0d0, 0.0d0, q(1))
         case (CYLINDRICAL_JOINT)
-            rst = matmul(rotate_z(q(1)), translate_z(q(2)))
+            rst = matmul(homogeneous_rotation_z(q(1)), translate(0.0d0, 0.0d0, q(2)))
         case (UNIVERSAL_JOINT)
-            rst = matmul(rotate_x(q(1)), rotate_y(q(2)))
+            rst = matmul(homogeneous_rotation_x(q(1)), homogeneous_rotation_y(q(2)))
         case (SPHERICAL_JOINT)
-            rst = matmul(rotate_z(q(1)), matmul(rotate_y(q(2)), rotate_x(q(3))))
+            rst = matmul(homogeneous_rotation_z(q(1)), &
+                matmul(homogeneous_rotation_y(q(2)), homogeneous_rotation_x(q(3))))
         case default
             error stop DYN_INVALID_INPUT_ERROR
         end select
-    end function
-
-! ------------------------------------------------------------------------------
-    pure function rotate_x(angle) result(rst)
-        ! A 4-by-4 rotation about the x-axis.
-        real(real64), intent(in) :: angle
-        real(real64) :: rst(4, 4)
-        real(real64) :: c, s
-        c = cos(angle)
-        s = sin(angle)
-        rst = identity(4)
-        rst(2,2) = c
-        rst(3,2) = s
-        rst(2,3) = -s
-        rst(3,3) = c
-    end function
-
-! ------------------------------------------------------------------------------
-    pure function rotate_y(angle) result(rst)
-        ! A 4-by-4 rotation about the y-axis.
-        real(real64), intent(in) :: angle
-        real(real64) :: rst(4, 4)
-        real(real64) :: c, s
-        c = cos(angle)
-        s = sin(angle)
-        rst = identity(4)
-        rst(1,1) = c
-        rst(3,1) = -s
-        rst(1,3) = s
-        rst(3,3) = c
-    end function
-
-! ------------------------------------------------------------------------------
-    pure function rotate_z(angle) result(rst)
-        ! A 4-by-4 rotation about the z-axis.
-        real(real64), intent(in) :: angle
-        real(real64) :: rst(4, 4)
-        real(real64) :: c, s
-        c = cos(angle)
-        s = sin(angle)
-        rst = identity(4)
-        rst(1,1) = c
-        rst(2,1) = s
-        rst(1,2) = -s
-        rst(2,2) = c
-    end function
-
-! ------------------------------------------------------------------------------
-    pure function translate_z(d) result(rst)
-        ! A 4-by-4 translation along the z-axis.
-        real(real64), intent(in) :: d
-        real(real64) :: rst(4, 4)
-        rst = identity(4)
-        rst(3,4) = d
     end function
 
 ! ------------------------------------------------------------------------------

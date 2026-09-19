@@ -6,6 +6,155 @@ module dynamics_rotation_tests
 
 contains
 ! ------------------------------------------------------------------------------
+function test_axis_rotation_matrices() result(rst)
+    !! Verifies the three Cartesian rotation matrices using known vector
+    !! rotations and orthogonality.
+    logical :: rst
+    real(real64), parameter :: half_pi = 0.5d0 * acos(-1.0d0)
+    real(real64), dimension(3,3) :: rx, ry, rz, identity
+
+    rst = .true.
+    identity = 0.0d0
+    identity(1,1) = 1.0d0
+    identity(2,2) = 1.0d0
+    identity(3,3) = 1.0d0
+    rx = rotate_x(half_pi)
+    ry = rotate_y(half_pi)
+    rz = rotate_z(half_pi)
+
+    if (.not.assert(matmul(rx, [0.0d0, 1.0d0, 0.0d0]), &
+        [0.0d0, 0.0d0, 1.0d0])) rst = .false.
+    if (.not.assert(matmul(ry, [0.0d0, 0.0d0, 1.0d0]), &
+        [1.0d0, 0.0d0, 0.0d0])) rst = .false.
+    if (.not.assert(matmul(rz, [1.0d0, 0.0d0, 0.0d0]), &
+        [0.0d0, 1.0d0, 0.0d0])) rst = .false.
+    if (.not.assert(matmul(transpose(rx), rx), identity) .or. &
+        .not.assert(matmul(transpose(ry), ry), identity) .or. &
+        .not.assert(matmul(transpose(rz), rz), identity)) rst = .false.
+    if (.not.rst) print "(A)", "TEST FAILED: test_axis_rotation_matrices"
+end function
+
+! ------------------------------------------------------------------------------
+function test_homogeneous_rotation_matrices() result(rst)
+    !! Verifies that each homogeneous rotation embeds its corresponding
+    !! three-dimensional rotation without translation.
+    logical :: rst
+    real(real64), parameter :: angle = 0.37d0
+    real(real64), dimension(4,4) :: hx, hy, hz
+    real(real64), dimension(4) :: last_row
+
+    rst = .true.
+    last_row = [0.0d0, 0.0d0, 0.0d0, 1.0d0]
+    hx = homogeneous_rotation_x(angle)
+    hy = homogeneous_rotation_y(angle)
+    hz = homogeneous_rotation_z(angle)
+    if (.not.assert(hx(1:3,1:3), rotate_x(angle)) .or. &
+        .not.assert(hy(1:3,1:3), rotate_y(angle)) .or. &
+        .not.assert(hz(1:3,1:3), rotate_z(angle))) rst = .false.
+    if (.not.assert(hx(1:3,4), [0.0d0, 0.0d0, 0.0d0]) .or. &
+        .not.assert(hy(1:3,4), [0.0d0, 0.0d0, 0.0d0]) .or. &
+        .not.assert(hz(1:3,4), [0.0d0, 0.0d0, 0.0d0])) rst = .false.
+    if (.not.assert(hx(4,:), last_row) .or. &
+        .not.assert(hy(4,:), last_row) .or. &
+        .not.assert(hz(4,:), last_row)) rst = .false.
+    if (.not.rst) print "(A)", &
+        "TEST FAILED: test_homogeneous_rotation_matrices"
+end function
+
+! ------------------------------------------------------------------------------
+function test_general_rotation_matrices() result(rst)
+    !! Verifies both general frame-rotation overloads.
+    logical :: rst
+    real(real64), dimension(3,3) :: parent, child, actual
+
+    rst = .true.
+    child = matmul(rotate_z(0.4d0), rotate_y(-0.2d0))
+    actual = rotate(child(:,1), child(:,2), child(:,3))
+    if (.not.assert(actual, child)) rst = .false.
+
+    parent = rotate_x(0.3d0)
+    actual = rotate(child(:,1), child(:,2), child(:,3), &
+        parent(:,1), parent(:,2), parent(:,3))
+    if (.not.assert(actual, matmul(transpose(parent), child))) rst = .false.
+    if (.not.rst) print "(A)", &
+        "TEST FAILED: test_general_rotation_matrices"
+end function
+
+! ------------------------------------------------------------------------------
+function test_translation_matrices() result(rst)
+    !! Verifies both homogeneous translation overloads.
+    logical :: rst
+    real(real64), dimension(3) :: displacement
+    real(real64), dimension(4,4) :: scalar_form, vector_form, identity
+
+    rst = .true.
+    displacement = [1.25d0, -2.5d0, 0.75d0]
+    identity = 0.0d0
+    identity(1,1) = 1.0d0
+    identity(2,2) = 1.0d0
+    identity(3,3) = 1.0d0
+    identity(4,4) = 1.0d0
+    scalar_form = translate(displacement(1), displacement(2), displacement(3))
+    vector_form = translate(displacement)
+    if (.not.assert(scalar_form, vector_form)) rst = .false.
+    identity(1:3,4) = displacement
+    if (.not.assert(vector_form, identity)) rst = .false.
+    if (.not.rst) print "(A)", "TEST FAILED: test_translation_matrices"
+end function
+
+! ------------------------------------------------------------------------------
+function test_rotation_angle_axis() result(rst)
+    !! Verifies direct angle-axis extraction for a known non-singular rotation.
+    logical :: rst
+    real(real64), parameter :: expected_angle = 0.63d0
+    real(real64) :: angle
+    real(real64), dimension(3) :: axis
+
+    rst = .true.
+    call to_angle_axis(rotate_z(expected_angle), angle, axis)
+    if (.not.assert(angle, expected_angle) .or. &
+        .not.assert(axis, [0.0d0, 0.0d0, 1.0d0])) rst = .false.
+    if (.not.rst) print "(A)", "TEST FAILED: test_rotation_angle_axis"
+end function
+
+! ------------------------------------------------------------------------------
+function test_kinematic_transform_matrices() result(rst)
+    !! Verifies velocity and acceleration transform matrices against their
+    !! independent vector cross-product forms at an arbitrary point.
+    logical :: rst
+    real(real64), dimension(3) :: omega, alpha, velocity, acceleration, &
+        origin, point, offset, expected_velocity, expected_acceleration
+    real(real64), dimension(4) :: homogeneous_point, transformed
+    real(real64), dimension(4,4) :: velocity_matrix, acceleration_matrix
+
+    rst = .true.
+    omega = [0.4d0, -0.2d0, 0.3d0]
+    alpha = [-0.1d0, 0.5d0, 0.2d0]
+    velocity = [1.0d0, -2.0d0, 0.5d0]
+    acceleration = [-0.7d0, 0.8d0, 1.2d0]
+    origin = [0.3d0, -0.6d0, 0.9d0]
+    point = [-0.4d0, 1.1d0, 0.2d0]
+    offset = point - origin
+    homogeneous_point = [point, 1.0d0]
+
+    velocity_matrix = velocity_transform(omega, velocity, origin)
+    transformed = matmul(velocity_matrix, homogeneous_point)
+    expected_velocity = velocity + cross_product(omega, offset)
+    if (.not.assert(transformed(1:3), expected_velocity)) rst = .false.
+    if (.not.assert(transformed(4), 0.0d0)) rst = .false.
+
+    acceleration_matrix = acceleration_transform(alpha, omega, &
+        acceleration, origin)
+    transformed = matmul(acceleration_matrix, homogeneous_point)
+    expected_acceleration = acceleration + cross_product(alpha, offset) + &
+        cross_product(omega, cross_product(omega, offset))
+    if (.not.assert(transformed(1:3), expected_acceleration)) rst = .false.
+    if (.not.assert(transformed(4), 0.0d0)) rst = .false.
+    if (.not.rst) print "(A)", &
+        "TEST FAILED: test_kinematic_transform_matrices"
+end function
+
+! ------------------------------------------------------------------------------
 function test_quaternion_init_1() result(rst)
     ! Variables
     logical :: rst

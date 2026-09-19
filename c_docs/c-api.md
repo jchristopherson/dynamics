@@ -9,6 +9,9 @@ The DYNAMICS C API is a C-compatible interface to the library. The public declar
 - Memory returned by an allocation or creation routine is owned by the caller and must be released with its corresponding `c_free_*` routine.
 - An optional pointer may be passed as `NULL` only where the function declaration or reference explicitly permits it.
 - Solver callbacks use C calling conventions and receive array dimensions as explicit arguments.
+- Variational state histories use column-major `3 × nbody × ntime` arrays;
+	multiplier histories use `nconstraint × ntime` arrays.
+- The prescribed-motion linkage callback is synchronous and not reentrant.
 
 ## Linking
 
@@ -58,6 +61,58 @@ operations. The relationships are summarized below.
 
 ![Geometry representations and operations](../images/geometry_operations.svg)
 
+## Variational and linkage dynamics
+
+The variational API supports two workflows:
+
+1. `c_variational_integrator_solve` integrates caller-defined rigid bodies in
+	maximal coordinates. C callbacks supply applied loads, equality constraints,
+	and optionally an analytic reduced constraint Jacobian.
+2. `c_create_serial_linkage_dynamic_model` and
+	`c_create_linkage_dynamic_model` convert linkage descriptions into opaque
+	dynamic-model handles. `c_linkage_dynamic_solve` then applies gravity,
+	constant body loads, and optional prescribed planar motion.
+
+Initialize `c_variational_integrator_settings` with
+`c_default_variational_integrator_settings` before changing individual fields.
+The direct and linkage solve routines write caller-owned histories using these
+column-major shapes:
+
+- position, velocity, and angular velocity: `3 × nbody × ntime`;
+- orientation: `nbody × ntime`;
+- multipliers: `nconstraint × ntime`.
+
+Multiplier column `i` belongs to simulation point `i`. The final column is
+computed with a noncommitting look-ahead step. For prescribed linkage motion,
+the prescribed-angle multiplier is appended after the linkage constraints and
+represents the required actuator torque.
+
+Use `c_linkage_dynamic_joint_reactions` to convert one state and multiplier
+column into world-frame joint forces and moments. Reactions are returned in
+mechanism joint order and act on each joint's child link. The reaction on the
+parent link is equal and opposite.
+
+Linkage dynamic models may also contain linear force elements:
+
+- `c_linear_spring` acts in tension and compression between arbitrary
+	body-fixed points. Its `free_length` defines zero force and therefore any
+	preload at the initial configuration.
+- `c_linear_damper` acts only on relative velocity along the current element
+	axis.
+- `c_torsional_spring` acts about the axis of its referenced revolute joint;
+	`free_angle` defines its zero-torque angle.
+- `c_torsional_damper` opposes only relative twist rate about that joint axis.
+
+Body index zero denotes a ground attachment whose point is expressed in world
+coordinates. Other attachment points are expressed in their body frame. Use
+the element count and result routines to query current length/rate/force or
+angle/rate/torque values.
+
+Opaque dynamic-model handles own copied linkage and mass-property data; release
+them with `c_free_linkage_dynamic_model`. Callback state views are temporary and
+must not be retained after a callback returns. The prescribed-motion callback
+bridge is synchronous and not reentrant.
+
 ## Reference
 
 The generated reference is organized by API area:
@@ -69,6 +124,7 @@ The generated reference is organized by API area:
 - [Geometry operations](./group__dynamics__geometry.html)
 - [Serial linkage operations](./group__dynamics__serial.html)
 - [Parallel and planar linkage operations](./group__dynamics__parallel.html)
+- [Variational and linkage dynamics](./group__dynamics__variational.html)
 - [Transfer functions and state-space models](./group__dynamics__state.html)
 - [Structural analysis and line elements](./group__dynamics__structural.html)
 

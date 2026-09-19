@@ -8,6 +8,7 @@
 #include "dynamics_parallel_linkage_tests.h"
 #include "dynamics_transfer_function_tests.h"
 #include "dynamics_state_space_tests.h"
+#include "dynamics_variational_tests.h"
 #include <stdbool.h>
 
 int main()
@@ -109,6 +110,9 @@ int main()
     if (!c_test_state_space_initialize()) flag = 75;
     if (!c_test_state_space_poles_zeros()) flag = 76;
     if (!c_test_state_space_to_transfer_function()) flag = 77;
+
+    if (!c_test_variational_integrator()) flag = 78;
+    if (!c_test_linkage_dynamics()) flag = 79;
 
     return flag;
 }

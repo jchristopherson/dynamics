@@ -48,6 +48,9 @@
                   <a class="nav-link" href="../lists/procedures.html">Procedures</a>
                 </li>
                 <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
+                </li>
+                <li class="nav-item">
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
                 </li>
             </ul>
@@ -69,6 +72,19 @@
 			 <thead>
 			 <tr><th>Type</th><th>Location</th><th>Extends</th><th>Description</th></tr>
 			 </thead><tbody>
+			   <tr>
+                 <td><a href='..\type\axial_element_result.html'>axial_element_result</a></td>
+                 <td><a href='..\module\dynamics_linkage_dynamics.html'>dynamics_linkage_dynamics</a></td>
+                 <td>None</td>
+                 <td><p>Defines the instantaneous state and scalar force of an axial element.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\axial_force_element.html'>axial_force_element</a></td>
+                 <td><a href='..\module\dynamics_linkage_dynamics.html'>dynamics_linkage_dynamics</a></td>
+                 <td>None</td>
+                 <td><p>Defines an extensible force element between two body-fixed points.
+Body index zero denotes a ground point expressed in world coordinates.</p></td>
+               </tr>
 			   <tr>
                  <td><a href='..\type\beam_element_2d.html'>beam_element_2d</a></td>
                  <td><a href='..\module\dynamics_line_elements.html'>dynamics_line_elements</a></td>
@@ -164,6 +180,14 @@ identified by their index within each link.  The joint is coincident
 with both frames when all of its joint variables are zero.</p></td>
                </tr>
 			   <tr>
+                 <td><a href='..\type\joint_reaction.html'>joint_reaction</a></td>
+                 <td><a href='..\module\dynamics_linkage_dynamics.html'>dynamics_linkage_dynamics</a></td>
+                 <td>None</td>
+                 <td><p>Defines the constraint reaction exerted by a joint on its child link.
+Both vectors are expressed in the world coordinate frame. The reaction
+exerted on the parent link is equal and opposite.</p></td>
+               </tr>
+			   <tr>
                  <td><a href='..\type\kinematic_mechanism.html'>kinematic_mechanism</a></td>
                  <td><a href='..\module\dynamics_parallel_linkage.html'>dynamics_parallel_linkage</a></td>
                  <td>None</td>
@@ -187,6 +211,18 @@ to each joint appear in the order in which the joints were supplied.</p></td>
                  <td><p>Defines a line element type.</p></td>
                </tr>
 			   <tr>
+                 <td><a href='..\type\linear_damper.html'>linear_damper</a></td>
+                 <td><a href='..\module\dynamics_linkage_dynamics.html'>dynamics_linkage_dynamics</a></td>
+                 <td><a href='..\type\axial_force_element.html'>axial_force_element</a></td>
+                 <td><p>Defines a linear viscous damper acting only along the element axis.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\linear_spring.html'>linear_spring</a></td>
+                 <td><a href='..\module\dynamics_linkage_dynamics.html'>dynamics_linkage_dynamics</a></td>
+                 <td><a href='..\type\axial_force_element.html'>axial_force_element</a></td>
+                 <td><p>Defines a linear axial spring supporting tension and compression.</p></td>
+               </tr>
+			   <tr>
                  <td><a href='..\type\link.html'>link</a></td>
                  <td><a href='..\module\dynamics_linkage.html'>dynamics_linkage</a></td>
                  <td><a href='..\type\rigid_body.html'>rigid_body</a></td>
@@ -200,6 +236,13 @@ attach to it.</p></td>
                  <td>None</td>
                  <td><p>A container allowing a collection of differing link types to be
 stored within a single array.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\linkage_dynamic_model.html'>linkage_dynamic_model</a></td>
+                 <td><a href='..\module\dynamics_linkage_dynamics.html'>dynamics_linkage_dynamics</a></td>
+                 <td>None</td>
+                 <td><p>Defines the variational-integrator representation of a linkage.
+Body index zero in a joint descriptor denotes the fixed ground link.</p></td>
                </tr>
 			   <tr>
                  <td><a href='..\type\material.html'>material</a></td>
@@ -314,11 +357,59 @@ traversal.</p></td>
 implementation takes the form:</p><a href="../type/state_space.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
 			   <tr>
+                 <td><a href='..\type\torsional_damper.html'>torsional_damper</a></td>
+                 <td><a href='..\module\dynamics_linkage_dynamics.html'>dynamics_linkage_dynamics</a></td>
+                 <td><a href='..\type\torsional_force_element.html'>torsional_force_element</a></td>
+                 <td><p>Defines a linear damper opposing only joint-axis twist rate.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\torsional_element_result.html'>torsional_element_result</a></td>
+                 <td><a href='..\module\dynamics_linkage_dynamics.html'>dynamics_linkage_dynamics</a></td>
+                 <td>None</td>
+                 <td><p>Defines the instantaneous twist state and torque of a torsional element.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\torsional_force_element.html'>torsional_force_element</a></td>
+                 <td><a href='..\module\dynamics_linkage_dynamics.html'>dynamics_linkage_dynamics</a></td>
+                 <td>None</td>
+                 <td><p>Defines an extensible torsional element bound to a revolute joint.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\torsional_spring.html'>torsional_spring</a></td>
+                 <td><a href='..\module\dynamics_linkage_dynamics.html'>dynamics_linkage_dynamics</a></td>
+                 <td><a href='..\type\torsional_force_element.html'>torsional_force_element</a></td>
+                 <td><p>Defines a linear torsional spring about a revolute-joint axis.</p></td>
+               </tr>
+			   <tr>
                  <td><a href='..\type\transfer_function.html'>transfer_function</a></td>
                  <td><a href='..\module\dynamics_controls.html'>dynamics_controls</a></td>
                  <td>None</td>
                  <td><p>Defines a transfer function for a continuous system of the form
 <script type="math/tex"> H(s) = \frac{Y(s)}{X(s)} </script>.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\variational_integrator.html'>variational_integrator</a></td>
+                 <td><a href='..\module\dynamics_variational_integrators.html'>dynamics_variational_integrators</a></td>
+                 <td>None</td>
+                 <td><p>Implements the maximal-coordinate variational integrator in
+Brudigam et al. (2023), equations (18)-(20). The nonlinear system is
+solved with damped Newton iterations and either dense LU or the
+paper's graph-structured block factorization.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\variational_integrator_settings.html'>variational_integrator_settings</a></td>
+                 <td><a href='..\module\dynamics_variational_integrators.html'>dynamics_variational_integrators</a></td>
+                 <td>None</td>
+                 <td><p>Defines numerical settings for the nonlinear variational step.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\variational_state.html'>variational_state</a></td>
+                 <td><a href='..\module\dynamics_variational_integrators.html'>dynamics_variational_integrators</a></td>
+                 <td>None</td>
+                 <td><p>Defines the maximal-coordinate state of a collection of rigid
+bodies. Angular velocities and inertia tensors are expressed in each
+body's frame. Positions, translational velocities, forces, and
+orientations use the world frame.</p></td>
                </tr>
 			 </tbody></table>
              
@@ -336,7 +427,7 @@ implementation takes the form:</p><a href="../type/state_space.html" class="pull
             <p class="text-end">
               Documentation generated by
               <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-09-13 13:42              </p>
+ on 2026-09-19 06:49              </p>
           </div>
         </div>
         <br>
