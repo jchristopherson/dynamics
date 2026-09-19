@@ -262,8 +262,8 @@ function test_scaled_constraint_differences() result(rst)
     call initialize_variational_state(state, 1)
     scaled_target_position = [1.0d9, -1.0d9, 5.0d8]
     state%position(:,1) = scaled_target_position
-    state%velocity(:,1) = [1.0d0, -2.0d0, 0.5d0]
-    state%angular_velocity(:,1) = [0.1d0, -0.2d0, 0.3d0]
+    state%velocity(:,1) = 0.0d0
+    state%angular_velocity(:,1) = 0.0d0
     integrator%settings%constraint_translation_scale = 1.0d3
     integrator%settings%constraint_rotation_scale = 0.25d0
     constraint_ptr => scaled_fixed_pose

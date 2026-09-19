@@ -253,6 +253,13 @@ subroutine vi_step(this, bodies, state, dt, constraint_count, constraint, &
         select case (this%settings%linear_solver)
         case (VI_DENSE_SOLVER)
             call lu_factor(jacobian, ipvt = pivot, lu = lu)
+            if (any(pivot == 0)) then
+                do i = 1, nvar
+                    jacobian(i,i) = jacobian(i,i) + this%settings%tolerance
+                end do
+                call lu_factor(jacobian, ipvt = pivot, lu = lu)
+                if (any(pivot == 0)) error stop DYN_CONVERGENCE_ERROR
+            end if
             delta = solve_lu(lu, pivot, -residual)
         case (VI_GRAPH_FACTORIZED_SOLVER)
             delta = graph_factorized_solve(jacobian, -residual, nbody, &
