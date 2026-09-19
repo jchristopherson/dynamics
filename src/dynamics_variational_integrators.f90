@@ -190,13 +190,13 @@ subroutine vi_step(this, bodies, state, dt, constraint_count, constraint, &
         !! The positive fixed time step.
     integer(int32), intent(in), optional :: constraint_count
         !! The number of scalar equality constraints. The default is zero.
-    procedure(variational_constraint), optional :: constraint
+    procedure(variational_constraint), pointer, intent(in), optional :: constraint
         !! The holonomic equality-constraint callback. It is required when
         !! constraint_count is greater than zero.
-    procedure(variational_force), optional :: force_function
+    procedure(variational_force), pointer, intent(in), optional :: force_function
         !! The external force and torque callback. When omitted, all applied
         !! forces and torques are zero.
-    procedure(variational_constraint_jacobian), optional :: constraint_jacobian
+    procedure(variational_constraint_jacobian), pointer, intent(in), optional :: constraint_jacobian
         !! An optional analytic reduced constraint Jacobian. When omitted, the
         !! Jacobian is evaluated by finite differences.
     real(real64), allocatable, intent(out), optional, dimension(:) :: multipliers
@@ -467,13 +467,13 @@ function vi_solve(this, bodies, state, dt, ntime, constraint_count, &
         !! The number of times steps to take.
     integer(int32), intent(in), optional :: constraint_count
         !! The number of scalar equality constraints. The default is zero.
-    procedure(variational_constraint), optional :: constraint
+    procedure(variational_constraint), pointer, intent(in), optional :: constraint
         !! The holonomic equality-constraint callback. It is required when
         !! constraint_count is greater than zero.
-    procedure(variational_force), optional :: force_function
+    procedure(variational_force), pointer, intent(in), optional :: force_function
         !! The external force and torque callback. When omitted, all applied
         !! forces and torques are zero.
-    procedure(variational_constraint_jacobian), optional :: constraint_jacobian
+    procedure(variational_constraint_jacobian), pointer, intent(in), optional :: constraint_jacobian
         !! An optional analytic reduced constraint Jacobian. When omitted, the
         !! Jacobian is evaluated by finite differences.
     real(real64), allocatable, intent(out), optional, dimension(:,:) :: multipliers

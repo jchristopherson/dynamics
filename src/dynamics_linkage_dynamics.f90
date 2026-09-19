@@ -626,7 +626,7 @@ function ldm_solve(this, integrator, dt, ntime, initial_state, gravity, &
 		!! Constant 3-by-nbody body-frame torque array.
 	integer(int32), intent(in), optional :: prescribed_body
 		!! The moving body whose absolute planar angle is prescribed.
-	procedure(linkage_prescribed_motion), optional :: prescribed_motion
+	procedure(linkage_prescribed_motion), pointer, intent(in), optional :: prescribed_motion
 		!! The prescribed absolute planar angle as a function of time.
 	real(real64), allocatable, intent(out), optional, dimension(:,:) :: multipliers
 		!! Constraint multipliers for each completed time step. When a motion is
