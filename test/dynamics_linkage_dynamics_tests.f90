@@ -370,6 +370,7 @@ function test_parallel_linkage_dynamics() result(rst)
     type(variational_state) :: state
     type(variational_state), allocatable, dimension(:) :: solution
     type(joint_reaction), allocatable, dimension(:) :: reactions
+    procedure(linkage_prescribed_motion), pointer :: motion_ptr
 
     rst = .true.
     allocate(links(1)%item, source = planar_dynamic_link(ground, 2.0d0))
@@ -415,8 +416,9 @@ function test_parallel_linkage_dynamics() result(rst)
         print "(A)", "TEST FAILED: test_parallel_linkage_dynamics - dynamic step"
     end if
 
+    motion_ptr => fixed_crank_motion
     solution = model%solve(integrator, 1.0d-4, 2, &
-        prescribed_body = 1, prescribed_motion = fixed_crank_motion, &
+        prescribed_body = 1, prescribed_motion = motion_ptr, &
         multipliers = multipliers)
     if (.not.assert(size(multipliers,1), &
         model%get_constraint_count() + 1)) then

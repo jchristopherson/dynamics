@@ -45,6 +45,9 @@ program example
 	type(variational_state), allocatable, dimension(:) :: solution
 	type(variational_integrator) :: integrator
 	type(double_pendulum_parameters) :: parameters
+	procedure(variational_constraint), pointer :: constraint_ptr
+	procedure(variational_force), pointer :: force_ptr
+	procedure(variational_constraint_jacobian), pointer :: jacobian_ptr
 	type(plot_2d) :: plt
     class(plot_axis), pointer :: xAxis
 	type(legend), pointer :: lgnd
@@ -74,11 +77,14 @@ program example
 	! constraint callbacks receive the model parameters through args.
 	parameters = double_pendulum_parameters(length1, length2, gravity)
 	integrator%settings%linear_solver = VI_GRAPH_FACTORIZED_SOLVER
+	constraint_ptr => pendulum_constraints
+	force_ptr => gravity_forces
+	jacobian_ptr => pendulum_constraint_jacobian
 	solution = integrator%solve(bodies, initial_state, dt, ntime, &
 		constraint_count = nconstraint, &
-		constraint = pendulum_constraints, &
-		force_function = gravity_forces, &
-		constraint_jacobian = pendulum_constraint_jacobian, &
+		constraint = constraint_ptr, &
+		force_function = force_ptr, &
+		constraint_jacobian = jacobian_ptr, &
 		args = parameters)
 
 	! Recover the two planar angles from the body-to-world rotation matrices.

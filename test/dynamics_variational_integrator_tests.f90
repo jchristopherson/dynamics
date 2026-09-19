@@ -65,15 +65,18 @@ function test_variational_applied_force() result(rst)
         !! The maximal-coordinate body state.
     type(variational_integrator) :: integrator
         !! The integrator under test.
+    procedure(variational_force), pointer :: force_ptr
+        !! The applied-force callback under test.
 
     ! Initialization
     rst = .true.
     bodies(1) = rigid_body(2.0d0)
     call initialize_variational_state(state, 1)
+    force_ptr => constant_force
 
     ! Advance one step under a constant downward force.
     call integrator%step(bodies, state, 0.01d0, &
-        force_function = constant_force)
+        force_function = force_ptr)
 
     ! Test the resulting velocity and position.
     if (.not.assert(state%velocity(:,1), &
@@ -101,16 +104,19 @@ function test_variational_position_constraint() result(rst)
         !! The integrator under test.
     real(real64), allocatable :: multipliers(:)
         !! The computed equality-constraint multipliers.
+    procedure(variational_constraint), pointer :: constraint_ptr
+        !! The center-of-mass position constraint under test.
 
     ! Initialization
     rst = .true.
     bodies(1) = rigid_body(2.0d0)
     call initialize_variational_state(state, 1)
     state%velocity(:,1) = [1.0d0, -2.0d0, 0.5d0]
+    constraint_ptr => fixed_position
 
     ! Advance while fixing all three center-of-mass coordinates.
     call integrator%step(bodies, state, 0.01d0, 3, &
-        fixed_position, multipliers = multipliers)
+        constraint_ptr, multipliers = multipliers)
 
     ! Test the constrained state and reaction multipliers.
     if (.not.assert(state%position(:,1), [0.0d0, 0.0d0, 0.0d0], &
@@ -138,13 +144,17 @@ function test_variational_analytic_constraint_jacobian() result(rst)
     type(variational_state) :: state
     type(variational_integrator) :: integrator
     real(real64), allocatable, dimension(:) :: multipliers
+    procedure(variational_constraint), pointer :: constraint_ptr
+    procedure(variational_constraint_jacobian), pointer :: jacobian_ptr
 
     rst = .true.
     bodies(1) = rigid_body(2.0d0)
     call initialize_variational_state(state, 1)
     state%velocity(:,1) = [1.0d0, -2.0d0, 0.5d0]
-    call integrator%step(bodies, state, 0.01d0, 3, fixed_position, &
-        constraint_jacobian = fixed_position_jacobian, &
+    constraint_ptr => fixed_position
+    jacobian_ptr => fixed_position_jacobian
+    call integrator%step(bodies, state, 0.01d0, 3, constraint_ptr, &
+        constraint_jacobian = jacobian_ptr, &
         multipliers = multipliers)
     if (.not.assert(state%position(:,1), [0.0d0, 0.0d0, 0.0d0], &
         1.0d-10)) then
@@ -168,6 +178,8 @@ function test_variational_graph_solver() result(rst)
         !! The dense and graph-factorized integrators.
     real(real64), allocatable :: dense_multipliers(:), graph_multipliers(:)
         !! Constraint multipliers returned by each solver.
+    procedure(variational_constraint), pointer :: constraint_ptr
+        !! The relative-position constraint under test.
 
     ! Initialization
     rst = .true.
@@ -179,12 +191,13 @@ function test_variational_graph_solver() result(rst)
     dense_state%velocity(:,2) = [-1.0d0, 0.0d0, 0.0d0]
     graph_state = dense_state
     graph_integrator%settings%linear_solver = VI_GRAPH_FACTORIZED_SOLVER
+    constraint_ptr => relative_position_constraint
 
     ! Advance both copies of the problem.
     call dense_integrator%step(bodies, dense_state, 0.01d0, 3, &
-        relative_position_constraint, multipliers = dense_multipliers)
+        constraint_ptr, multipliers = dense_multipliers)
     call graph_integrator%step(bodies, graph_state, 0.01d0, 3, &
-        relative_position_constraint, multipliers = graph_multipliers)
+        constraint_ptr, multipliers = graph_multipliers)
 
     ! The factorization strategy must not alter the nonlinear solution.
     if (.not.assert(graph_state%position, dense_state%position, 1.0d-10)) then
@@ -211,13 +224,17 @@ function test_variational_multiplier_history() result(rst)
     type(variational_state), allocatable, dimension(:) :: solution
     type(variational_integrator) :: integrator
     real(real64), allocatable, dimension(:,:) :: multipliers
+    procedure(variational_constraint), pointer :: constraint_ptr
+    procedure(variational_force), pointer :: force_ptr
 
     rst = .true.
     bodies(1) = rigid_body(2.0d0)
     call initialize_variational_state(state, 1)
+    constraint_ptr => fixed_position
+    force_ptr => constant_force
     solution = integrator%solve(bodies, state, 0.01d0, 3, &
-        constraint_count = 3, constraint = fixed_position, &
-        force_function = constant_force, multipliers = multipliers)
+        constraint_count = 3, constraint = constraint_ptr, &
+        force_function = force_ptr, multipliers = multipliers)
     if (.not.assert(size(multipliers,1), 3)) rst = .false.
     if (.not.assert(size(multipliers,2), size(solution))) rst = .false.
     if (.not.assert(multipliers(:,1), [0.0d0, 0.0d0, 19.62d0], &
@@ -241,6 +258,7 @@ function test_scaled_constraint_differences() result(rst)
     type(variational_integrator) :: integrator
     type(scaled_constraint_data) :: data
     real(real64), allocatable, dimension(:) :: multipliers
+    procedure(variational_constraint), pointer :: constraint_ptr
 
     rst = .true.
     bodies(1) = rigid_body(1.0d0)
@@ -251,8 +269,9 @@ function test_scaled_constraint_differences() result(rst)
     state%angular_velocity(:,1) = [0.1d0, -0.2d0, 0.3d0]
     integrator%settings%constraint_translation_scale = 1.0d3
     integrator%settings%constraint_rotation_scale = 0.25d0
+    constraint_ptr => scaled_fixed_pose
     call integrator%step(bodies, state, 1.0d-3, 6, &
-        scaled_fixed_pose, multipliers = multipliers, args = data)
+        constraint_ptr, multipliers = multipliers, args = data)
     if (maxval(abs(state%position(:,1) - data%target_position)) > &
         1.0d-6 .or. norm2(aimag(state%orientation(1))) > 1.0d-8) then
         rst = .false.
