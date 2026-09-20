@@ -1316,7 +1316,7 @@ function test_beam3d_shape_function_matrix() result(rst)
     b%node_1%z = z1
     b%node_2%dof = 6
     b%node_2%index = 2
-    b%node_2%x = x2
+    b%node_2%x = x2 + 1.25d0
     b%node_2%y = y2
     b%node_2%z = z2
     L = b%length()
@@ -1391,7 +1391,7 @@ function test_beam3d_strain_displacement() result(rst)
     b%node_1%z = z1
     b%node_2%dof = 6
     b%node_2%index = 2
-    b%node_2%x = x2
+    b%node_2%x = x2 + 1.25d0
     b%node_2%y = y2
     b%node_2%z = z2
     L = b%length()
