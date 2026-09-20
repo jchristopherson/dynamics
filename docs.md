@@ -6,6 +6,7 @@ author: Jason Christopherson
 src_dir: ./src
 exclude_dir: ./src/c
 output_dir: ./doc
+media_dir: ./images
 display: public
 source: true
 proc_internals: true

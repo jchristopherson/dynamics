@@ -12,6 +12,8 @@ program main
     use dynamics_geometry_tests
     use dynamics_linkage_tests
     use dynamics_parallel_linkage_tests
+    use dynamics_variational_integrator_tests
+    use dynamics_linkage_dynamics_tests
     implicit none
 
     ! Variables
@@ -175,6 +177,12 @@ program main
     check = test_ocf_form_conversion()
     if (.not.check) flag = 37
 
+    check = test_tf_feedthrough_conversion()
+    if (.not.check) flag = 150
+
+    check = test_tf_constant_conversion()
+    if (.not.check) flag = 151
+
     check = test_lti_solve()
     if (.not.check) flag = 38
 
@@ -186,6 +194,24 @@ program main
 
     check = test_siso_model_fit_least_squares_multi()
     if (.not.check) flag = 41
+
+    check = test_axis_rotation_matrices()
+    if (.not.check) flag = 141
+
+    check = test_homogeneous_rotation_matrices()
+    if (.not.check) flag = 142
+
+    check = test_general_rotation_matrices()
+    if (.not.check) flag = 143
+
+    check = test_translation_matrices()
+    if (.not.check) flag = 144
+
+    check = test_rotation_angle_axis()
+    if (.not.check) flag = 145
+
+    check = test_kinematic_transform_matrices()
+    if (.not.check) flag = 146
 
     check = test_quaternion_init_1()
     if (.not.check) flag = 42
@@ -361,6 +387,9 @@ program main
     check = test_state_space_poles_zeros()
     if (.not.check) flag = 99
 
+    check = test_state_space_pid_order()
+    if (.not.check) flag = 152
+
     check = test_state_space_to_transfer_function()
     if (.not.check) flag = 100
 
@@ -384,6 +413,42 @@ program main
 
     check = test_open_chain_equivalence()
     if (.not.check) flag = 107
+
+    check = test_variational_free_body()
+    if (.not.check) flag = 130
+
+    check = test_variational_applied_force()
+    if (.not.check) flag = 131
+
+    check = test_variational_position_constraint()
+    if (.not.check) flag = 132
+
+    check = test_variational_analytic_constraint_jacobian()
+    if (.not.check) flag = 137
+
+    check = test_variational_graph_solver()
+    if (.not.check) flag = 133
+
+	check = test_variational_multiplier_history()
+	if (.not.check) flag = 136
+
+    check = test_scaled_constraint_differences()
+    if (.not.check) flag = 140
+
+    check = test_serial_linkage_dynamics()
+    if (.not.check) flag = 134
+
+	check = test_linkage_force_elements()
+	if (.not.check) flag = 147
+
+    check = test_parallel_linkage_dynamics()
+    if (.not.check) flag = 135
+
+    check = test_spatial_joint_dynamics()
+    if (.not.check) flag = 138
+
+    check = test_fixed_and_planar_prismatic_joints()
+    if (.not.check) flag = 139
 
     ! End
     if (flag /= 0) stop flag

@@ -155,7 +155,8 @@ contains
 
         ! Local Variables
         integer(int32) :: i
-        real(real64) :: dt, tmax, p(2), ic(2), tc(2), fc(2)
+        real(real64) :: dt, tmax, p(2), ic(2), tc(2), fc(2), minp(2), maxp(2)
+        real(real64) :: weights(2 * npts + 2)
         type(dynamic_system_measurement) :: measurements(2)
         procedure(ode), pointer :: fcn
         type(ode_container) :: mdl
@@ -171,6 +172,8 @@ contains
         
         ! Generate an initial guess
         p = [2.5d2, 1.0d-1]
+        minp = [1.0d2, 1.0d-3]
+        maxp = [5.0d2, 2.0d-1]
 
 ! ------------------------------------------------------------------------------
 ! EXCITATION 1
@@ -225,11 +228,14 @@ contains
         ! Define the constraints
         tc = 0.0d0
         fc = [wn, zeta]
+        weights = 1.0d0
+        weights(2 * npts + 1:) = 1.0d8
 
         ! Set up the problem and solve
         fcn => eom
         call siso_model_fit_least_squares(fcn, measurements, ic, p, &
-            xc = tc, yc = fc, constraints = cfcn)
+            minp = minp, maxp = maxp, xc = tc, yc = fc, constraints = cfcn, &
+            weights = weights)
 
         ! Test the parameters
         if (.not.assert(wn, p(1), tol * wn)) then

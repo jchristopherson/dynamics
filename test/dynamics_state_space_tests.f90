@@ -191,6 +191,47 @@ function test_state_space_poles_zeros() result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+function test_state_space_pid_order() result(rst)
+    logical :: rst
+
+    integer(int32), parameter :: n = 3
+    real(real64), parameter :: kp = 2.0d0, ki = 3.0d0
+    real(real64), parameter :: kd = 4.0d0, tau = 2.0d0
+    real(real64) :: a(n,n), b(n,1), c(1,n), d(1,1)
+    real(real64) :: expected_a(n+2,n+2), expected_b(n+2,1)
+    real(real64) :: expected_c(1,n+2), expected_d(1,1)
+    type(state_space) :: mdl
+
+    rst = .true.
+    a = 0.0d0
+    b(:,1) = [1.0d0, 2.0d0, 3.0d0]
+    c(1,:) = [4.0d0, 5.0d0, 6.0d0]
+    d = 0.0d0
+    expected_a = 0.0d0
+    expected_b = 0.0d0
+    expected_c = 0.0d0
+    expected_d = 0.0d0
+    expected_a(1:n,1:n) = a - (kp + kd / tau) * matmul(b,c)
+    expected_a(n+1,1:n) = -c(1,:)
+    expected_a(n+2,1:n) = expected_a(n+1,1:n) / tau
+    expected_a(1:n,n+1) = ki * b(:,1)
+    expected_a(1:n,n+2) = -(kd / tau) * b(:,1)
+    expected_a(n+2,n+2) = -1.0d0 / tau
+    expected_b(1:n,1) = (kp + kd / tau) * b(:,1)
+    expected_b(n+1,1) = 1.0d0
+    expected_b(n+2,1) = 1.0d0 / tau
+    expected_c(1,1:n) = c(1,:)
+
+    mdl = state_space(kp, ki, kd, tau, a, b, c, d)
+    if (maxval(abs(mdl%A - expected_a)) > 1.0d-12) rst = .false.
+    if (maxval(abs(mdl%B - expected_b)) > 1.0d-12) rst = .false.
+    if (maxval(abs(mdl%C - expected_c)) > 1.0d-12) rst = .false.
+    if (maxval(abs(mdl%D - expected_d)) > 1.0d-12) rst = .false.
+    if (.not.rst) print "(A)", &
+        "TEST FAILED: test_state_space_pid_order"
+end function
+
+! ------------------------------------------------------------------------------
 function test_state_space_to_transfer_function() result(rst)
     logical :: rst
 

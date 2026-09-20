@@ -177,6 +177,10 @@
  * Four-point Gauss integration rule.
  */
 #define DYN_FOUR_POINT_INTEGRATION_RULE 4
+/** Dense LU solver for variational-integrator Newton systems. */
+#define DYN_VI_DENSE_SOLVER 1
+/** Graph-factorized solver for variational-integrator Newton systems. */
+#define DYN_VI_GRAPH_FACTORIZED_SOLVER 2
 /**
  * @}
  */
@@ -247,6 +251,51 @@ typedef void (*c_ode_fit)(int n, int nparam, const double *mdl, double t,
  * @param u Output input vector.
  */
 typedef void (*c_ss_excitation)(int n, double t, double *u);
+
+typedef struct c_variational_state c_variational_state;
+/**
+ * External force and torque callback for variational integration.
+ * @param state Current maximal-coordinate state. The pointed-to state and its
+ * arrays are read-only and valid only for the duration of the callback.
+ * @param force Output world-frame force array with shape 3-by-body_count in
+ * column-major storage.
+ * @param torque Output body-frame torque array with shape 3-by-body_count in
+ * column-major storage.
+ * @param user_data Opaque caller data supplied to the solve routine.
+ */
+typedef void (*c_variational_force)(const c_variational_state *state,
+    double *force, double *torque, void *user_data);
+/**
+ * Holonomic constraint callback for variational integration.
+ * @param state Trial maximal-coordinate state at which the constraints are
+ * evaluated. The pointed-to data are valid only during the callback.
+ * @param nconstraint Number of scalar constraint equations.
+ * @param value Output array of nconstraint residual values.
+ * @param user_data Opaque caller data supplied to the solve routine.
+ */
+typedef void (*c_variational_constraint)(const c_variational_state *state,
+    int nconstraint, double *value, void *user_data);
+/**
+ * Reduced constraint-Jacobian callback.
+ * @param state Current maximal-coordinate state at which the Jacobian is
+ * evaluated.
+ * @param nconstraint Number of Jacobian rows and scalar constraints.
+ * @param jacobian Output nconstraint-by-(6*body_count) matrix in column-major
+ * storage. Columns for each body are ordered as three translations followed
+ * by three local quaternion-tangent rotations.
+ * @param ldj Leading dimension of jacobian; equal to nconstraint.
+ * @param user_data Opaque caller data supplied to the solve routine.
+ */
+typedef void (*c_variational_constraint_jacobian)(
+    const c_variational_state *state, int nconstraint, double *jacobian,
+    int ldj, void *user_data);
+/**
+ * Prescribed planar-link angular motion callback.
+ * @param t Simulation time.
+ * @param user_data Opaque caller data supplied to c_linkage_dynamic_solve.
+ * @return Prescribed absolute world-z angle in radians.
+ */
+typedef double (*c_linkage_prescribed_motion)(double t, void *user_data);
 
 /**
  * @brief Iteration statistics returned by nonlinear solver routines.
@@ -656,12 +705,122 @@ typedef struct
     bool actuated;
 } c_joint;
 
+/** @brief Rigid-body mass properties for direct variational integration. */
+typedef struct {
+    /** Body mass. Must be positive. */
+    double mass;
+    /** Center-of-gravity position expressed in the body frame. */
+    double cg[3];
+    /** Body-frame 3-by-3 inertia tensor in column-major storage. */
+    double inertia[9];
+} c_rigid_body;
+
+/** @brief A non-owning view of one maximal-coordinate callback state. */
+struct c_variational_state {
+    /** Number of rigid bodies represented by the state. */
+    int body_count;
+    /** Simulation time associated with the state. */
+    double time;
+    /** World-frame center-of-mass positions, shape 3-by-body_count. */
+    const double *position;
+    /** Body-to-world unit quaternions, length body_count. */
+    const c_quaternion *orientation;
+    /** World-frame center-of-mass velocities, shape 3-by-body_count. */
+    const double *velocity;
+    /** Body-frame angular velocities, shape 3-by-body_count. */
+    const double *angular_velocity;
+};
+
+/** @brief Numerical controls for the maximal-coordinate variational integrator. */
+typedef struct {
+    /** Euclidean nonlinear-residual convergence tolerance. */
+    double tolerance;
+    /** Relative forward-difference step used for numerical Jacobians. */
+    double finite_difference_step;
+    /** Translation scale used as the absolute finite-difference floor. */
+    double constraint_translation_scale;
+    /** Dimensionless quaternion-tangent finite-difference scale. */
+    double constraint_rotation_scale;
+    /** Maximum Newton iterations allowed per time step. */
+    int maximum_iterations;
+    /** Maximum residual line-search step halvings per Newton iteration. */
+    int maximum_line_search_iterations;
+    /** DYN_VI_DENSE_SOLVER or DYN_VI_GRAPH_FACTORIZED_SOLVER. */
+    int linear_solver;
+} c_variational_integrator_settings;
+
+/** @brief World-frame joint reaction exerted on the joint's child link. */
+typedef struct {
+    /** World-frame reaction force. */
+    double force[3];
+    /** World-frame reaction moment about the joint center. */
+    double moment[3];
+} c_joint_reaction;
+
+/** @brief Linear spring between body-fixed points; body zero denotes ground. */
+typedef struct {
+    /** First moving-body index, or zero for ground. */
+    int body_1;
+    /** Second moving-body index, or zero for ground. */
+    int body_2;
+    /** First attachment in body coordinates, or world coordinates for ground. */
+    double point_1[3];
+    /** Second attachment in body coordinates, or world coordinates for ground. */
+    double point_2[3];
+    /** Linear stiffness. */
+    double stiffness;
+    /** Zero-force length; values below/above this produce compression/tension. */
+    double free_length;
+} c_linear_spring;
+
+/** @brief Axial linear viscous damper between body-fixed points. */
+typedef struct {
+    int body_1; /**< First moving-body index, or zero for ground. */
+    int body_2; /**< Second moving-body index, or zero for ground. */
+    double point_1[3]; /**< First body/world attachment point. */
+    double point_2[3]; /**< Second body/world attachment point. */
+    double damping; /**< Axial damping coefficient. */
+} c_linear_damper;
+
+/** @brief Linear torsional spring bound to a revolute-joint axis. */
+typedef struct {
+    int joint_index; /**< One-based revolute-joint index. */
+    double stiffness; /**< Torque per radian. */
+    double free_angle; /**< Zero-torque relative joint angle in radians. */
+} c_torsional_spring;
+
+/** @brief Twist-rate damper bound to a revolute-joint axis. */
+typedef struct {
+    int joint_index; /**< One-based revolute-joint index. */
+    double damping; /**< Torque per unit relative angular velocity. */
+} c_torsional_damper;
+
+/** @brief Instantaneous scalar result for an axial force element. */
+typedef struct {
+    double length; /**< Current attachment distance. */
+    double length_rate; /**< Relative velocity along the element axis. */
+    double force; /**< Signed force acting on body 1 toward body 2. */
+} c_axial_element_result;
+
+/** @brief Instantaneous scalar result for a torsional force element. */
+typedef struct {
+    double angle; /**< Signed relative revolute-joint angle in radians. */
+    double angle_rate; /**< Relative twist rate about the joint axis. */
+    double torque; /**< Signed torque acting on the child link. */
+} c_torsional_element_result;
+
 /**
  * @brief Opaque handle to a closed-loop mechanism. Create handles with
  * `c_create_parallel_linkage` or `c_create_planar_linkage`, and release them
  * with `c_free_mechanism`.
  */
 typedef void* c_mechanism;
+/**
+ * @brief Opaque linkage dynamic-model handle. Create with
+ * c_create_serial_linkage_dynamic_model or c_create_linkage_dynamic_model and
+ * release with c_free_linkage_dynamic_model.
+ */
+typedef void* c_linkage_dynamic_model;
 
 /**
  * @brief A polynomial with dynamically allocated coefficients.
@@ -2161,6 +2320,248 @@ void c_mechanism_inverse_kinematics(c_mechanism obj, const double *trg, int ldt,
 /**
  * @}
  */
+
+/**
+ * @defgroup dynamics_variational Variational and linkage dynamics
+ * @{
+ */
+/**
+ * Fill variational-integrator settings with library defaults.
+ * @param settings Output settings structure.
+ */
+void c_default_variational_integrator_settings(
+    c_variational_integrator_settings *settings);
+/**
+ * Integrate rigid bodies directly in maximal coordinates. All matrices and
+ * histories are column-major. State histories have shape 3-by-nbody-by-ntime;
+ * orientations have shape nbody-by-ntime; multipliers have shape
+ * nconstraint-by-ntime. Callback state pointers are valid only during the
+ * callback.
+ * @param nbody Number of rigid bodies; must be positive.
+ * @param bodies Array of nbody rigid-body mass-property structures.
+ * @param ntime Number of returned simulation points, including the initial
+ * state; must be positive.
+ * @param dt Positive fixed time step between simulation points.
+ * @param initial_position Initial world-frame center-of-mass positions with
+ * shape 3-by-nbody.
+ * @param initial_orientation Initial body-to-world unit quaternions, length
+ * nbody.
+ * @param initial_velocity Initial world-frame center-of-mass velocities with
+ * shape 3-by-nbody.
+ * @param initial_angular_velocity Initial body-frame angular velocities with
+ * shape 3-by-nbody.
+ * @param nconstraint Number of scalar equality constraints. Use zero for an
+ * unconstrained problem.
+ * @param force_callback Optional applied-force callback, or NULL for zero
+ * applied force and torque.
+ * @param constraint_callback Constraint callback. Required when nconstraint
+ * is greater than zero; may be NULL when nconstraint is zero.
+ * @param jacobian_callback Optional analytic reduced constraint Jacobian, or
+ * NULL to use scaled finite differences.
+ * @param user_data Opaque pointer forwarded unchanged to all callbacks; may be
+ * NULL.
+ * @param settings Integration settings, commonly initialized by
+ * c_default_variational_integrator_settings.
+ * @param position Output world-frame position history with shape
+ * 3-by-nbody-by-ntime.
+ * @param orientation Output quaternion history with shape nbody-by-ntime.
+ * @param velocity Output world-frame velocity history with shape
+ * 3-by-nbody-by-ntime.
+ * @param angular_velocity Output body-frame angular-velocity history with
+ * shape 3-by-nbody-by-ntime.
+ * @param multipliers Output constraint multipliers with shape
+ * nconstraint-by-ntime. The final column is obtained from a noncommitting
+ * look-ahead step. Storage may be omitted only when nconstraint is zero.
+ */
+void c_variational_integrator_solve(int nbody, const c_rigid_body *bodies,
+    int ntime, double dt, const double *initial_position,
+    const c_quaternion *initial_orientation, const double *initial_velocity,
+    const double *initial_angular_velocity, int nconstraint,
+    c_variational_force force_callback,
+    c_variational_constraint constraint_callback,
+    c_variational_constraint_jacobian jacobian_callback, void *user_data,
+    const c_variational_integrator_settings *settings, double *position,
+    c_quaternion *orientation, double *velocity, double *angular_velocity,
+    double *multipliers);
+/**
+ * Create a dynamic model from a serial linkage value.
+ * @param linkage Serial linkage definition. The dynamic model copies all link
+ * mass properties and does not retain the linkage pointer.
+ * @param n Number of links and joint variables.
+ * @param q Constraint-compatible initial joint variables, length n.
+ * @return Opaque dynamic-model handle, owned by the caller, or NULL on failure.
+ */
+c_linkage_dynamic_model c_create_serial_linkage_dynamic_model(
+    const c_serial_linkage *linkage, int n, const double *q);
+/**
+ * Create a dynamic model directly from parallel/planar linkage descriptors.
+ * Set planar true for a planar linkage. The q array contains all joint
+ * variables and must describe a constraint-compatible configuration.
+ * @param planar True for planar dynamics; false for spatial dynamics.
+ * @param nlinks Number of link descriptors.
+ * @param links Array of nlinks multi-frame links. Link and frame data are
+ * copied into the dynamic model.
+ * @param njoints Number of joint descriptors.
+ * @param joints Array of njoints joints using one-based link/frame indices.
+ * @param base One-based index of the fixed base link.
+ * @param nq Number of complete joint variables.
+ * @param q Constraint-compatible complete joint-variable array, length nq.
+ * @return Opaque dynamic-model handle, owned by the caller, or NULL on failure.
+ */
+c_linkage_dynamic_model c_create_linkage_dynamic_model(bool planar, int nlinks,
+    const c_mechanism_link *links, int njoints, const c_joint *joints, int base,
+    int nq, const double *q);
+/**
+ * Release a linkage dynamic-model handle.
+ * @param obj Dynamic-model handle. NULL is accepted and ignored.
+ */
+void c_free_linkage_dynamic_model(c_linkage_dynamic_model obj);
+/**
+ * Return the number of moving rigid bodies in a dynamic model. The fixed base
+ * link of a parallel mechanism is not included.
+ * @param obj Dynamic-model handle.
+ * @return Moving-body count, or zero for a NULL handle.
+ */
+int c_linkage_dynamic_body_count(c_linkage_dynamic_model obj);
+/**
+ * Return the number of joints represented by a dynamic model.
+ * @param obj Dynamic-model handle.
+ * @return Joint count, or zero for a NULL handle.
+ */
+int c_linkage_dynamic_joint_count(c_linkage_dynamic_model obj);
+/**
+ * Return the linkage constraint count before any prescribed-motion constraint
+ * is added.
+ * @param obj Dynamic-model handle.
+ * @return Base linkage constraint count, or zero for a NULL handle.
+ */
+int c_linkage_dynamic_constraint_count(c_linkage_dynamic_model obj);
+/**
+ * Add a tension/compression linear spring.
+ * @param obj Dynamic-model handle.
+ * @param element Spring attachment, stiffness, and free-length definition.
+ */
+void c_linkage_dynamic_add_linear_spring(c_linkage_dynamic_model obj,
+    const c_linear_spring *element);
+/**
+ * Add an axis-only linear viscous damper.
+ * @param obj Dynamic-model handle.
+ * @param element Damper attachment and damping-coefficient definition.
+ */
+void c_linkage_dynamic_add_linear_damper(c_linkage_dynamic_model obj,
+    const c_linear_damper *element);
+/**
+ * Add a linear torsional spring to a revolute joint.
+ * @param obj Dynamic-model handle.
+ * @param element Revolute-joint index, stiffness, and free-angle definition.
+ */
+void c_linkage_dynamic_add_torsional_spring(c_linkage_dynamic_model obj,
+    const c_torsional_spring *element);
+/**
+ * Add a twist-rate damper to a revolute joint.
+ * @param obj Dynamic-model handle.
+ * @param element Revolute-joint index and damping-coefficient definition.
+ */
+void c_linkage_dynamic_add_torsional_damper(c_linkage_dynamic_model obj,
+    const c_torsional_damper *element);
+/** @param obj Dynamic-model handle. @return Number of axial elements. */
+int c_linkage_dynamic_axial_element_count(c_linkage_dynamic_model obj);
+/** @param obj Dynamic-model handle. @return Number of torsional elements. */
+int c_linkage_dynamic_torsional_element_count(c_linkage_dynamic_model obj);
+/**
+ * Query all axial elements at one state.
+ * @param obj Dynamic-model handle.
+ * @param nbody Moving-body count.
+ * @param time State time.
+ * @param position Position array, shape 3-by-nbody.
+ * @param orientation Quaternion array, length nbody.
+ * @param velocity Velocity array, shape 3-by-nbody.
+ * @param angular_velocity Body-frame angular velocity, shape 3-by-nbody.
+ * @param results Output array sized by c_linkage_dynamic_axial_element_count.
+ */
+void c_linkage_dynamic_axial_element_results(c_linkage_dynamic_model obj,
+    int nbody, double time, const double *position,
+    const c_quaternion *orientation, const double *velocity,
+    const double *angular_velocity, c_axial_element_result *results);
+/**
+ * Query all torsional elements at one state.
+ * @param obj Dynamic-model handle.
+ * @param nbody Moving-body count.
+ * @param time State time.
+ * @param position Position array, shape 3-by-nbody.
+ * @param orientation Quaternion array, length nbody.
+ * @param velocity Velocity array, shape 3-by-nbody.
+ * @param angular_velocity Body-frame angular velocity, shape 3-by-nbody.
+ * @param results Output array sized by
+ * c_linkage_dynamic_torsional_element_count.
+ */
+void c_linkage_dynamic_torsional_element_results(c_linkage_dynamic_model obj,
+    int nbody, double time, const double *position,
+    const c_quaternion *orientation, const double *velocity,
+    const double *angular_velocity, c_torsional_element_result *results);
+/**
+ * Solve linkage dynamics. Query body and constraint counts first to allocate
+ * output arrays. When prescribed_motion is non-NULL, prescribed_body is the
+ * one-based moving-body index and multipliers needs one additional row. This
+ * callback bridge is synchronous and not reentrant.
+ * @param obj Dynamic-model handle.
+ * @param nbody Moving-body count returned by c_linkage_dynamic_body_count.
+ * @param nconstraint Total multiplier rows. Use the base constraint count, or
+ * base count plus one when prescribed_motion is non-NULL.
+ * @param settings Integration settings.
+ * @param ntime Number of returned simulation points, including the initial
+ * point.
+ * @param dt Positive fixed time step.
+ * @param gravity Uniform world-frame gravitational acceleration vector.
+ * @param body_force Constant world-frame body forces with shape 3-by-nbody.
+ * Supply zeros when unused.
+ * @param body_torque Constant body-frame torques with shape 3-by-nbody. Supply
+ * zeros when unused.
+ * @param prescribed_body One-based moving-body index whose absolute planar
+ * angle is prescribed. Ignored when prescribed_motion is NULL.
+ * @param prescribed_motion Optional prescribed-angle callback, or NULL for
+ * unconstrained actuation.
+ * @param user_data Opaque pointer forwarded to prescribed_motion; may be NULL.
+ * @param position Output position history with shape 3-by-nbody-by-ntime.
+ * @param orientation Output quaternion history with shape nbody-by-ntime.
+ * @param velocity Output velocity history with shape 3-by-nbody-by-ntime.
+ * @param angular_velocity Output angular-velocity history with shape
+ * 3-by-nbody-by-ntime.
+ * @param multipliers Output multiplier history with shape
+ * nconstraint-by-ntime. If prescribed motion is active, its required actuator
+ * torque is the last multiplier row.
+ */
+void c_linkage_dynamic_solve(c_linkage_dynamic_model obj, int nbody,
+    int nconstraint, const c_variational_integrator_settings *settings,
+    int ntime, double dt, const double gravity[3], const double *body_force,
+    const double *body_torque, int prescribed_body,
+    c_linkage_prescribed_motion prescribed_motion, void *user_data,
+    double *position, c_quaternion *orientation, double *velocity,
+    double *angular_velocity, double *multipliers);
+/**
+ * Convert one state's linkage multipliers into joint reaction wrenches. Each
+ * reaction is expressed in world coordinates and acts on the joint's child
+ * link; the parent-link reaction is equal and opposite.
+ * @param obj Dynamic-model handle.
+ * @param nbody Moving-body count returned by c_linkage_dynamic_body_count.
+ * @param nconstraint Number of multiplier values supplied. This may include a
+ * trailing prescribed-motion multiplier, which is ignored for joint reactions.
+ * @param time State time.
+ * @param position State world-frame positions with shape 3-by-nbody.
+ * @param orientation State body-to-world quaternions, length nbody.
+ * @param velocity State world-frame velocities with shape 3-by-nbody.
+ * @param angular_velocity State body-frame angular velocities with shape
+ * 3-by-nbody.
+ * @param multipliers Constraint multiplier vector, length nconstraint.
+ * @param reactions Output array of c_linkage_dynamic_joint_count(obj) reaction
+ * structures in mechanism joint order.
+ */
+void c_linkage_dynamic_joint_reactions(c_linkage_dynamic_model obj, int nbody,
+    int nconstraint, double time, const double *position,
+    const c_quaternion *orientation, const double *velocity,
+    const double *angular_velocity, const double *multipliers,
+    c_joint_reaction *reactions);
+/** @} */
 
 /**
  * @defgroup dynamics_state Transfer functions and state-space models
