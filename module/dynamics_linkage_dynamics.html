@@ -1,0 +1,1806 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+   <meta name="description" content="DYNAMICS is a library of routines used for the analysis of dynamic systems.">
+    <meta name="author" content="Jason Christopherson" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>dynamics_linkage_dynamics &ndash; DYNAMICS</title>
+
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+    <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    
+    <script src="../js/jquery-2.1.3.min.js"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html">DYNAMICS </a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li class="dropdown hidden-xs visible-sm visible-md hidden-lg">
+              <a href="#" class="dropdown-toggle"
+              data-toggle="dropdown" role="button"
+              aria-haspopup="true"
+     aria-expanded="false">Contents <span class="caret"></span></a>
+        <ul class="dropdown-menu">
+            <li><a href="../lists/files.html">Source Files</a></li>
+            <li><a href="../lists/modules.html">Modules</a></li>
+            <li><a href="../lists/procedures.html">Procedures</a></li>
+            <li><a href="../lists/absint.html">Abstract Interfaces</a></li>
+                   <li><a href="../lists/types.html">Derived Types</a></li>
+       
+            </ul>
+        
+            </li>
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/files.html">Source Files</a></li>
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/modules.html">Modules</a></li>
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/procedures.html">Procedures</a></li>
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/absint.html">Abstract Interfaces</a></li>
+                             <li class="visible-xs hidden-sm visible-lg"><a href="../lists/types.html">Derived Types</a></li>
+          </ul>
+        <form action="../search.html" class="navbar-form navbar-right" role="search">
+        <div class="form-group">
+          <input type="text" class="form-control" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+        </div>
+<!--
+        <button type="submit" class="btn btn-default">Submit</button>
+-->
+        </form>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container">
+  <div class="row">
+    <h1>dynamics_linkage_dynamics 
+    <small>Module</small>
+    
+    </h1>
+      <div class="row" id="info-bar">
+    <div class="col-lg-12">
+      <div class="well well-sm">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+
+          <li id="statements"><i class="fa fa-list-ol"></i>
+            <a data-toggle="tooltip"
+               data-placement="bottom" data-html="true"
+               title="10.6% of total for modules and submodules.">849 statements</a>
+          </li>
+
+            <li id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/dynamics_linkage_dynamics.f90"> Source File</a>
+            </li>
+        </ul>
+        <ol class="breadcrumb in-well text-right">
+              <li><a href='../sourcefile/dynamics_linkage_dynamics.f90.html'>dynamics_linkage_dynamics.f90</a></li>
+          <li class="active">dynamics_linkage_dynamics</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+  <script>
+    $(function () {
+    $('[data-toggle="tooltip"]').tooltip()
+    })
+  </script>
+
+  </div>
+  
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+      <div id="sidebar">
+      <h3>Contents</h3>
+  
+  
+  
+  
+  
+  
+  
+  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#inters-0">Interfaces</a>
+        </h3>
+      </div>
+      <div id="inters-0" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_linkage_dynamics.html#interface-linkage_dynamic_model">linkage_dynamic_model</a>
+        </div>
+      </div>
+    </div>
+
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#absints-0">Abstract Interfaces</a>
+        </h3>
+      </div>
+      <div id="absints-0" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_linkage_dynamics.html#interface-linkage_prescribed_motion">linkage_prescribed_motion</a>
+        </div>
+      </div>
+    </div>
+
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#types-0">Derived Types</a>
+        </h3>
+      </div>
+      <div id="types-0" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_linkage_dynamics.html#type-axial_element_result">axial_element_result</a>
+            <a class="list-group-item" href="../module/dynamics_linkage_dynamics.html#type-axial_force_element">axial_force_element</a>
+            <a class="list-group-item" href="../module/dynamics_linkage_dynamics.html#type-dynamic_joint">dynamic_joint</a>
+            <a class="list-group-item" href="../module/dynamics_linkage_dynamics.html#type-joint_reaction">joint_reaction</a>
+            <a class="list-group-item" href="../module/dynamics_linkage_dynamics.html#type-linear_damper">linear_damper</a>
+            <a class="list-group-item" href="../module/dynamics_linkage_dynamics.html#type-linear_spring">linear_spring</a>
+            <a class="list-group-item" href="../module/dynamics_linkage_dynamics.html#type-linkage_dynamic_model">linkage_dynamic_model</a>
+            <a class="list-group-item" href="../module/dynamics_linkage_dynamics.html#type-torsional_damper">torsional_damper</a>
+            <a class="list-group-item" href="../module/dynamics_linkage_dynamics.html#type-torsional_element_result">torsional_element_result</a>
+            <a class="list-group-item" href="../module/dynamics_linkage_dynamics.html#type-torsional_force_element">torsional_force_element</a>
+            <a class="list-group-item" href="../module/dynamics_linkage_dynamics.html#type-torsional_spring">torsional_spring</a>
+        </div>
+      </div>
+    </div>
+
+  
+  
+  
+  
+  
+  
+  
+  
+
+
+  </div>
+
+    </div>
+    
+    <div class="col-md-9" id='text'>
+    <p>Provides a maximal-coordinate dynamics adapter for serial and parallel
+linkages. Link mass properties and joint attachment frames are converted
+into the rigid bodies and holonomic constraints required by the
+variational integrator.</p>
+<br>        <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">Uses</h3>
+      </div>
+      <ul class="list-group">
+          <li class="list-group-item">
+            <ul class="list-inline">
+                <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
+                <li><a href='../module/dynamics_variational_integrators.html'>dynamics_variational_integrators</a></li>
+                <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
+                <li>linalg</li>
+                <li><a href='../module/dynamics_helper.html'>dynamics_helper</a></li>
+                <li><a href='../module/dynamics_parallel_linkage.html'>dynamics_parallel_linkage</a></li>
+                <li><a href='../module/dynamics_quaternions.html'>dynamics_quaternions</a></li>
+                <li><a href='../module/dynamics_rigid_bodies.html'>dynamics_rigid_bodies</a></li>
+                <li><a href='../module/dynamics_linkage.html'>dynamics_linkage</a></li>
+                <li><a href='../module/dynamics_kinematics.html'>dynamics_kinematics</a></li>
+                <li><a href='../module/dynamics_joints.html'>dynamics_joints</a></li>
+            </ul>
+          </li>
+      </ul>
+    </div>
+
+    
+    <br>
+
+    <section class="visible-xs visible-sm hidden-md">
+        <h3>Contents</h3>
+  
+  
+  
+  
+  
+  
+  
+  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#inters-1">Interfaces</a>
+        </h3>
+      </div>
+      <div id="inters-1" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_linkage_dynamics.html#interface-linkage_dynamic_model">linkage_dynamic_model</a>
+        </div>
+      </div>
+    </div>
+
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#absints-1">Abstract Interfaces</a>
+        </h3>
+      </div>
+      <div id="absints-1" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_linkage_dynamics.html#interface-linkage_prescribed_motion">linkage_prescribed_motion</a>
+        </div>
+      </div>
+    </div>
+
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#types-1">Derived Types</a>
+        </h3>
+      </div>
+      <div id="types-1" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_linkage_dynamics.html#type-axial_element_result">axial_element_result</a>
+            <a class="list-group-item" href="../module/dynamics_linkage_dynamics.html#type-axial_force_element">axial_force_element</a>
+            <a class="list-group-item" href="../module/dynamics_linkage_dynamics.html#type-dynamic_joint">dynamic_joint</a>
+            <a class="list-group-item" href="../module/dynamics_linkage_dynamics.html#type-joint_reaction">joint_reaction</a>
+            <a class="list-group-item" href="../module/dynamics_linkage_dynamics.html#type-linear_damper">linear_damper</a>
+            <a class="list-group-item" href="../module/dynamics_linkage_dynamics.html#type-linear_spring">linear_spring</a>
+            <a class="list-group-item" href="../module/dynamics_linkage_dynamics.html#type-linkage_dynamic_model">linkage_dynamic_model</a>
+            <a class="list-group-item" href="../module/dynamics_linkage_dynamics.html#type-torsional_damper">torsional_damper</a>
+            <a class="list-group-item" href="../module/dynamics_linkage_dynamics.html#type-torsional_element_result">torsional_element_result</a>
+            <a class="list-group-item" href="../module/dynamics_linkage_dynamics.html#type-torsional_force_element">torsional_force_element</a>
+            <a class="list-group-item" href="../module/dynamics_linkage_dynamics.html#type-torsional_spring">torsional_spring</a>
+        </div>
+      </div>
+    </div>
+
+  
+  
+  
+  
+  
+  
+  
+  
+
+
+    </section>
+    <br class="visible-xs visible-sm hidden-md">
+
+
+    
+    
+    <section>
+   <h2>Interfaces</h2>
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="interface-linkage_dynamic_model"></span>
+      <h3>public        interface <a href='../interface/linkage_dynamic_model.html'>linkage_dynamic_model</a> 
+      </h3>
+    </div>
+    <ul class="list-group">
+          <li class="list-group-item">
+                <h3>
+    private  function ldm_from_serial(mechanism, q) result(rst)  
+
+    </h3>
+  <p>Constructs a dynamic model from a serial linkage and a compatible set of
+joint variables. Every serial link is treated as a moving rigid body;
+the proximal joint of the first link is attached to ground.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(<a href='../type/serial_linkage.html'>serial_linkage</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>mechanism</strong></td>
+            <td>
+                <p>The serial linkage to convert.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>q</strong></td>
+            <td>
+                <p>One joint variable for each link.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/linkage_dynamic_model.html'>linkage_dynamic_model</a>)</small>
+    </h4>
+    <p>The resulting dynamic model.</p>
+
+          </li>
+          <li class="list-group-item">
+                <h3>
+    private  function ldm_from_parallel(mechanism, q) result(rst)  
+
+    </h3>
+  <p>Constructs a dynamic model from a parallel or planar linkage. The
+mechanism's base link remains fixed and all other links become moving
+maximal-coordinate rigid bodies.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/kinematic_mechanism.html'>kinematic_mechanism</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>mechanism</strong></td>
+            <td>
+                <p>The parallel linkage to convert.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>q</strong></td>
+            <td>
+                <p>The complete, constraint-compatible joint-variable array.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/linkage_dynamic_model.html'>linkage_dynamic_model</a>)</small>
+    </h4>
+    <p>The resulting dynamic model.</p>
+
+          </li>
+    </ul>
+  </div>
+
+    </section>
+  <br>
+
+    <section>
+     <h2>Abstract Interfaces</h2>
+       <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="interface-linkage_prescribed_motion"></span><h3>abstract interface
+        
+    </h3></div>
+    <ul class="list-group">
+      <li class="list-group-item">
+            <h3>
+    public  function linkage_prescribed_motion(t, args) result(rst)  
+
+    </h3>
+  <p>Computes a prescribed angular displacement as a function of time.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>t</strong></td>
+            <td>
+                <p>The simulation time.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(*),
+            </td>
+<td>intent(inout),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>args</strong></td>
+            <td>
+                <p>A mechanism for passing information in/out of this routine.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64)</small>
+    </h4>
+    <p>The prescribed absolute angle, in radians.</p>
+
+      </li>
+    </ul>
+  </div>
+
+    </section>
+  <br>
+    
+    <section>
+     <h2>Derived Types</h2>
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="type-axial_element_result"></span>
+      <h3>
+        type, public&nbsp;::&nbsp;
+        <a href='../type/axial_element_result.html'>axial_element_result</a>
+        
+      </h3>
+    </div>
+    <div class="panel-body">
+      <p>Defines the instantaneous state and scalar force of an axial element.</p>
+
+        <h4>Components</h4>
+          <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Visibility</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+<th></th><th>Initial</th>        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-force~6"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>force</strong></td>
+<td> =</td>
+                <td>0.0d0</td>
+            <td>
+<p>The signed force acting on body 1 toward body 2.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-length~5"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>length</strong></td>
+<td> =</td>
+                <td>0.0d0</td>
+            <td>
+<p>The current distance between attachment points.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-length_rate~4"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>length_rate</strong></td>
+<td> =</td>
+                <td>0.0d0</td>
+            <td>
+<p>The relative attachment velocity along the element axis.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+
+    </div>
+  </div>
+
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="type-axial_force_element"></span>
+      <h3>
+        type, public&nbsp;::&nbsp;
+        <a href='../type/axial_force_element.html'>axial_force_element</a>
+        
+      </h3>
+    </div>
+    <div class="panel-body">
+      <p>Defines an extensible force element between two attachment points.
+The element force acts along the line from point 1 to point 2.
+Body index zero denotes a fixed ground point whose coordinates are
+expressed in world coordinates. Subtypes override evaluate_force to
+compute a force from the current length and length rate.</p>
+
+        <h4>Components</h4>
+          <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Visibility</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+<th></th><th>Initial</th>        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-body_1~2"></span>
+              integer(kind=int32),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>body_1</strong></td>
+<td> =</td>
+                <td>0</td>
+            <td>
+<p>The one-based body index for the first attachment point, or zero
+for a ground point.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-body_2~2"></span>
+              integer(kind=int32),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>body_2</strong></td>
+<td> =</td>
+                <td>0</td>
+            <td>
+<p>The one-based body index for the second attachment point, or zero
+for a ground point.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-point_1"></span>
+              real(kind=real64),
+            </td>
+              <td>public,</td>
+            <td>
+              dimension(3)
+            </td>
+            <td>::</td>
+            <td><strong>point_1</strong></td>
+<td> =</td>
+                <td>0.0d0</td>
+            <td>
+<p>The first attachment point in body_1 coordinates, or in world
+coordinates when body_1 is zero.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-point_2"></span>
+              real(kind=real64),
+            </td>
+              <td>public,</td>
+            <td>
+              dimension(3)
+            </td>
+            <td>::</td>
+            <td><strong>point_2</strong></td>
+<td> =</td>
+                <td>0.0d0</td>
+            <td>
+<p>The second attachment point in body_2 coordinates, or in world
+coordinates when body_2 is zero.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+
+        <h4>Type-Bound Procedures</h4>
+        <table class="table table-striped varlist">
+          <tbody>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/axial_force_element.html#boundprocedure-evaluate_force'>evaluate_force</a></strong>
+ =>
+                    axial_zero_force
+<small>Function</small>                </td>
+                <td><p>Returns the signed axial force for a given element length and
+length rate. The base implementation returns zero.</p></td>
+              </tr>
+          </tbody>
+        </table>
+    </div>
+  </div>
+
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="type-dynamic_joint"></span>
+      <h3>
+        type, public&nbsp;::&nbsp;
+        <a href='../type/dynamic_joint.html'>dynamic_joint</a>
+        
+      </h3>
+    </div>
+    <div class="panel-body">
+      <p>Describes one joint constraint in maximal-coordinate body indexing.
+Body index zero denotes the fixed ground link. Each frame is a
+homogeneous transform from its associated body frame to the joint
+frame; for a ground body, the frame is expressed directly in world
+coordinates. The parent and child joint frames coincide when the
+joint constraint is satisfied.</p>
+
+        <h4>Components</h4>
+          <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Visibility</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+<th></th><th>Initial</th>        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-child_body"></span>
+              integer(kind=int32),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>child_body</strong></td>
+<td> =</td>
+                <td>0</td>
+            <td>
+<p>The one-based maximal-coordinate body index on the child side,
+or zero for the fixed ground link.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-child_frame"></span>
+              real(kind=real64),
+            </td>
+              <td>public,</td>
+            <td>
+              dimension(4,4)
+            </td>
+            <td>::</td>
+            <td><strong>child_frame</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Homogeneous transform locating and orienting the joint frame in
+the child body frame, or in world coordinates when child_body is
+zero.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-joint_type~5"></span>
+              integer(kind=int32),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>joint_type</strong></td>
+<td> =</td>
+                <td>REVOLUTE_JOINT</td>
+            <td>
+<p>The joint kind, using one of the joint-type constants from
+dynamics_joints.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-parent_body"></span>
+              integer(kind=int32),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>parent_body</strong></td>
+<td> =</td>
+                <td>0</td>
+            <td>
+<p>The one-based maximal-coordinate body index on the parent side,
+or zero for the fixed ground link.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-parent_frame"></span>
+              real(kind=real64),
+            </td>
+              <td>public,</td>
+            <td>
+              dimension(4,4)
+            </td>
+            <td>::</td>
+            <td><strong>parent_frame</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>Homogeneous transform locating and orienting the joint frame in
+the parent body frame, or in world coordinates when parent_body is
+zero.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+
+    </div>
+  </div>
+
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="type-joint_reaction"></span>
+      <h3>
+        type, public&nbsp;::&nbsp;
+        <a href='../type/joint_reaction.html'>joint_reaction</a>
+        
+      </h3>
+    </div>
+    <div class="panel-body">
+      <p>Defines the constraint reaction exerted by a joint on its child link.
+Both vectors are expressed in the world coordinate frame. The reaction
+exerted on the parent link is equal and opposite.</p>
+
+        <h4>Components</h4>
+          <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Visibility</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+<th></th><th>Initial</th>        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-force~5"></span>
+              real(kind=real64),
+            </td>
+              <td>public,</td>
+            <td>
+              dimension(3)
+            </td>
+            <td>::</td>
+            <td><strong>force</strong></td>
+<td> =</td>
+                <td>0.0d0</td>
+            <td>
+<p>The joint reaction force.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-moment~2"></span>
+              real(kind=real64),
+            </td>
+              <td>public,</td>
+            <td>
+              dimension(3)
+            </td>
+            <td>::</td>
+            <td><strong>moment</strong></td>
+<td> =</td>
+                <td>0.0d0</td>
+            <td>
+<p>The joint reaction moment about the joint center.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+
+    </div>
+  </div>
+
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="type-linear_damper"></span>
+      <h3>
+        type, public, extends(<a href='../type/axial_force_element.html'>axial_force_element</a>)&nbsp;::&nbsp;
+        <a href='../type/linear_damper.html'>linear_damper</a>
+        
+      </h3>
+    </div>
+    <div class="panel-body">
+      <p>Defines a linear viscous damper acting only along the element axis.</p>
+
+        <h4>Components</h4>
+          <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Visibility</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+<th></th><th>Initial</th>        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-body_1~2"></span>
+              integer(kind=int32),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>body_1</strong></td>
+<td> =</td>
+                <td>0</td>
+            <td>
+<p>The one-based body index for the first attachment point, or zero
+for a ground point.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-body_2~2"></span>
+              integer(kind=int32),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>body_2</strong></td>
+<td> =</td>
+                <td>0</td>
+            <td>
+<p>The one-based body index for the second attachment point, or zero
+for a ground point.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-damping"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>damping</strong></td>
+<td> =</td>
+                <td>0.0d0</td>
+            <td>
+<p>The force per unit axial relative velocity.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-point_1"></span>
+              real(kind=real64),
+            </td>
+              <td>public,</td>
+            <td>
+              dimension(3)
+            </td>
+            <td>::</td>
+            <td><strong>point_1</strong></td>
+<td> =</td>
+                <td>0.0d0</td>
+            <td>
+<p>The first attachment point in body_1 coordinates, or in world
+coordinates when body_1 is zero.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-point_2"></span>
+              real(kind=real64),
+            </td>
+              <td>public,</td>
+            <td>
+              dimension(3)
+            </td>
+            <td>::</td>
+            <td><strong>point_2</strong></td>
+<td> =</td>
+                <td>0.0d0</td>
+            <td>
+<p>The second attachment point in body_2 coordinates, or in world
+coordinates when body_2 is zero.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+
+        <h4>Type-Bound Procedures</h4>
+        <table class="table table-striped varlist">
+          <tbody>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/linear_damper.html#boundprocedure-evaluate_force~2'>evaluate_force</a></strong>
+ =>
+                    linear_damper_force
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+          </tbody>
+        </table>
+    </div>
+  </div>
+
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="type-linear_spring"></span>
+      <h3>
+        type, public, extends(<a href='../type/axial_force_element.html'>axial_force_element</a>)&nbsp;::&nbsp;
+        <a href='../type/linear_spring.html'>linear_spring</a>
+        
+      </h3>
+    </div>
+    <div class="panel-body">
+      <p>Defines a linear axial spring supporting tension and compression.</p>
+
+        <h4>Components</h4>
+          <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Visibility</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+<th></th><th>Initial</th>        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-body_1~2"></span>
+              integer(kind=int32),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>body_1</strong></td>
+<td> =</td>
+                <td>0</td>
+            <td>
+<p>The one-based body index for the first attachment point, or zero
+for a ground point.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-body_2~2"></span>
+              integer(kind=int32),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>body_2</strong></td>
+<td> =</td>
+                <td>0</td>
+            <td>
+<p>The one-based body index for the second attachment point, or zero
+for a ground point.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-free_length"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>free_length</strong></td>
+<td> =</td>
+                <td>0.0d0</td>
+            <td>
+<p>The zero-force element length, including preload definition.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-point_1"></span>
+              real(kind=real64),
+            </td>
+              <td>public,</td>
+            <td>
+              dimension(3)
+            </td>
+            <td>::</td>
+            <td><strong>point_1</strong></td>
+<td> =</td>
+                <td>0.0d0</td>
+            <td>
+<p>The first attachment point in body_1 coordinates, or in world
+coordinates when body_1 is zero.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-point_2"></span>
+              real(kind=real64),
+            </td>
+              <td>public,</td>
+            <td>
+              dimension(3)
+            </td>
+            <td>::</td>
+            <td><strong>point_2</strong></td>
+<td> =</td>
+                <td>0.0d0</td>
+            <td>
+<p>The second attachment point in body_2 coordinates, or in world
+coordinates when body_2 is zero.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-stiffness"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>stiffness</strong></td>
+<td> =</td>
+                <td>0.0d0</td>
+            <td>
+<p>The force per unit extension.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+
+        <h4>Type-Bound Procedures</h4>
+        <table class="table table-striped varlist">
+          <tbody>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/linear_spring.html#boundprocedure-evaluate_force~3'>evaluate_force</a></strong>
+ =>
+                    linear_spring_force
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+          </tbody>
+        </table>
+    </div>
+  </div>
+
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="type-linkage_dynamic_model"></span>
+      <h3>
+        type, public&nbsp;::&nbsp;
+        <a href='../type/linkage_dynamic_model.html'>linkage_dynamic_model</a>
+        
+      </h3>
+    </div>
+    <div class="panel-body">
+      <p>Defines the variational-integrator representation of a linkage.
+Body index zero in a joint descriptor denotes the fixed ground link.</p>
+
+
+        <h4>Constructor</h4>
+          
+        <table class="table table-striped varlist">
+          <tbody>
+                <tr>
+                  <td>
+                        private
+
+                    
+                    function
+                    <strong>ldm_from_serial</strong>
+                    (mechanism, q)
+                  </td>
+                  <td><p>Constructs a dynamic model from a serial linkage and a compatible set of
+joint variables. Every serial link is treated as a moving rigid body;
+the proximal joint of the first link is attached to ground.</p></td>
+                </tr>
+                <tr>
+                  <td>
+                        private
+
+                    
+                    function
+                    <strong>ldm_from_parallel</strong>
+                    (mechanism, q)
+                  </td>
+                  <td><p>Constructs a dynamic model from a parallel or planar linkage. The
+mechanism's base link remains fixed and all other links become moving
+maximal-coordinate rigid bodies.</p></td>
+                </tr>
+          </tbody>
+        </table>
+
+
+        <h4>Type-Bound Procedures</h4>
+        <table class="table table-striped varlist">
+          <tbody>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/linkage_dynamic_model.html#boundprocedure-add_axial_element'>add_axial_element</a></strong>
+ =>
+                    ldm_add_axial_element
+<small>Subroutine</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/linkage_dynamic_model.html#boundprocedure-add_linear_damper'>add_linear_damper</a></strong>
+ =>
+                    ldm_add_linear_damper
+<small>Subroutine</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/linkage_dynamic_model.html#boundprocedure-add_linear_spring'>add_linear_spring</a></strong>
+ =>
+                    ldm_add_linear_spring
+<small>Subroutine</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/linkage_dynamic_model.html#boundprocedure-add_torsional_damper'>add_torsional_damper</a></strong>
+ =>
+                    ldm_add_torsional_damper
+<small>Subroutine</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/linkage_dynamic_model.html#boundprocedure-add_torsional_element'>add_torsional_element</a></strong>
+ =>
+                    ldm_add_torsional_element
+<small>Subroutine</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/linkage_dynamic_model.html#boundprocedure-add_torsional_spring'>add_torsional_spring</a></strong>
+ =>
+                    ldm_add_torsional_spring
+<small>Subroutine</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/linkage_dynamic_model.html#boundprocedure-constraint_residual'>constraint_residual</a></strong>
+ =>
+                    ldm_constraint_residual
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/linkage_dynamic_model.html#boundprocedure-get_axial_element_count'>get_axial_element_count</a></strong>
+ =>
+                    ldm_get_axial_count
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/linkage_dynamic_model.html#boundprocedure-get_axial_element_results'>get_axial_element_results</a></strong>
+ =>
+                    ldm_get_axial_results
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/linkage_dynamic_model.html#boundprocedure-get_body_count'>get_body_count</a></strong>
+ =>
+                    ldm_get_body_count
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/linkage_dynamic_model.html#boundprocedure-get_constraint_count~2'>get_constraint_count</a></strong>
+ =>
+                    ldm_get_constraint_count
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/linkage_dynamic_model.html#boundprocedure-get_initial_state'>get_initial_state</a></strong>
+ =>
+                    ldm_get_initial_state
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/linkage_dynamic_model.html#boundprocedure-get_joint_count~2'>get_joint_count</a></strong>
+ =>
+                    ldm_get_joint_count
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/linkage_dynamic_model.html#boundprocedure-get_joint_reactions'>get_joint_reactions</a></strong>
+ =>
+                    ldm_get_joint_reactions
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/linkage_dynamic_model.html#boundprocedure-get_torsional_element_count'>get_torsional_element_count</a></strong>
+ =>
+                    ldm_get_torsional_count
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/linkage_dynamic_model.html#boundprocedure-get_torsional_element_results'>get_torsional_element_results</a></strong>
+ =>
+                    ldm_get_torsional_results
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/linkage_dynamic_model.html#boundprocedure-solve~2'>solve</a></strong>
+ =>
+                    ldm_solve
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+          </tbody>
+        </table>
+    </div>
+  </div>
+
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="type-torsional_damper"></span>
+      <h3>
+        type, public, extends(<a href='../type/torsional_force_element.html'>torsional_force_element</a>)&nbsp;::&nbsp;
+        <a href='../type/torsional_damper.html'>torsional_damper</a>
+        
+      </h3>
+    </div>
+    <div class="panel-body">
+      <p>Defines a linear damper opposing only joint-axis twist rate.</p>
+
+        <h4>Components</h4>
+          <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Visibility</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+<th></th><th>Initial</th>        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-damping~2"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>damping</strong></td>
+<td> =</td>
+                <td>0.0d0</td>
+            <td>
+<p>The torque per unit relative angular velocity.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-joint_index"></span>
+              integer(kind=int32),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>joint_index</strong></td>
+<td> =</td>
+                <td>0</td>
+            <td>
+<p>The one-based revolute-joint index whose axis the element uses.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+
+        <h4>Type-Bound Procedures</h4>
+        <table class="table table-striped varlist">
+          <tbody>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/torsional_damper.html#boundprocedure-evaluate_torque'>evaluate_torque</a></strong>
+ =>
+                    torsional_damper_torque
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+          </tbody>
+        </table>
+    </div>
+  </div>
+
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="type-torsional_element_result"></span>
+      <h3>
+        type, public&nbsp;::&nbsp;
+        <a href='../type/torsional_element_result.html'>torsional_element_result</a>
+        
+      </h3>
+    </div>
+    <div class="panel-body">
+      <p>Defines the instantaneous twist state and torque of a torsional element.</p>
+
+        <h4>Components</h4>
+          <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Visibility</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+<th></th><th>Initial</th>        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-angle~5"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>angle</strong></td>
+<td> =</td>
+                <td>0.0d0</td>
+            <td>
+<p>The signed joint angle, in radians.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-angle_rate~4"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>angle_rate</strong></td>
+<td> =</td>
+                <td>0.0d0</td>
+            <td>
+<p>The relative twist rate about the revolute-joint axis.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-torque~5"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>torque</strong></td>
+<td> =</td>
+                <td>0.0d0</td>
+            <td>
+<p>The signed torque applied to the child body about the joint axis.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+
+    </div>
+  </div>
+
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="type-torsional_force_element"></span>
+      <h3>
+        type, public&nbsp;::&nbsp;
+        <a href='../type/torsional_force_element.html'>torsional_force_element</a>
+        
+      </h3>
+    </div>
+    <div class="panel-body">
+      <p>Defines an extensible torsional element bound to a revolute joint.</p>
+
+        <h4>Components</h4>
+          <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Visibility</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+<th></th><th>Initial</th>        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-joint_index"></span>
+              integer(kind=int32),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>joint_index</strong></td>
+<td> =</td>
+                <td>0</td>
+            <td>
+<p>The one-based revolute-joint index whose axis the element uses.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+
+        <h4>Type-Bound Procedures</h4>
+        <table class="table table-striped varlist">
+          <tbody>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/torsional_force_element.html#boundprocedure-evaluate_torque~2'>evaluate_torque</a></strong>
+ =>
+                    torsional_zero_torque
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+          </tbody>
+        </table>
+    </div>
+  </div>
+
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="type-torsional_spring"></span>
+      <h3>
+        type, public, extends(<a href='../type/torsional_force_element.html'>torsional_force_element</a>)&nbsp;::&nbsp;
+        <a href='../type/torsional_spring.html'>torsional_spring</a>
+        
+      </h3>
+    </div>
+    <div class="panel-body">
+      <p>Defines a linear torsional spring about a revolute-joint axis.</p>
+
+        <h4>Components</h4>
+          <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Visibility</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+<th></th><th>Initial</th>        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-free_angle"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>free_angle</strong></td>
+<td> =</td>
+                <td>0.0d0</td>
+            <td>
+<p>The zero-torque relative joint angle, in radians.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-joint_index"></span>
+              integer(kind=int32),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>joint_index</strong></td>
+<td> =</td>
+                <td>0</td>
+            <td>
+<p>The one-based revolute-joint index whose axis the element uses.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-stiffness~2"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>stiffness</strong></td>
+<td> =</td>
+                <td>0.0d0</td>
+            <td>
+<p>The torque per unit angular displacement.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+
+        <h4>Type-Bound Procedures</h4>
+        <table class="table table-striped varlist">
+          <tbody>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/torsional_spring.html#boundprocedure-evaluate_torque~3'>evaluate_torque</a></strong>
+ =>
+                    torsional_spring_torque
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+          </tbody>
+        </table>
+    </div>
+  </div>
+
+    </section>
+  <br>
+    
+
+
+
+
+    </div>
+  </div>
+
+    <hr>    
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+      <div class="row">
+        <div class="col-xs-6 col-md-6"><p>DYNAMICS was developed by Jason Christopherson<br>&copy; 2026 
+</p>
+        </div>
+        <div class="col-xs-6 col-md-6">
+          <p class="text-right">
+            Documentation generated by 
+            <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+ on 2026-09-20 23:08            </p>
+        </div>
+      </div>
+      <br>
+      </div> <!-- /container -->    
+    </footer>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+<!--
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+-->
+    <script src="../js/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="../js/ie10-viewport-bug-workaround.js"></script>
+
+    <!-- MathJax JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+        jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+        extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+      });
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script src="../tipuesearch/tipuesearch_content.js"></script>
+    <script src="../tipuesearch/tipuesearch_set.js"></script>
+    <script src="../tipuesearch/tipuesearch.js"></script>
+    
+  </body>
+</html>

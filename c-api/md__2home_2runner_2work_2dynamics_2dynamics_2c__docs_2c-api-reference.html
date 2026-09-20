@@ -93,12 +93,12 @@ $(document).ready(function(){initNavTree('md__2home_2runner_2work_2dynamics_2dyn
   <div class="headertitle"><div class="title">DYNAMICS C API Routine Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md8"></a> The public C interface is declared in <code><a class="el" href="dynamics_8h.html" title="Public C interface to the DYNAMICS library.">src/c/dynamics.h</a></code>. Every routine is listed in the generated Doxygen reference by API group. The declaration page is the authoritative reference for the exact prototype; this page records the meaning of the argument and return-value conventions used by every routine.</p>
-<h1><a class="anchor" id="autotoc_md9"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md9"></a> The public C interface is declared in <code><a class="el" href="dynamics_8h.html" title="Public C interface to the DYNAMICS library.">src/c/dynamics.h</a></code>. Every routine is listed in the generated Doxygen reference by API group. The declaration page is the authoritative reference for the exact prototype; this page records the meaning of the argument and return-value conventions used by every routine.</p>
+<h1><a class="anchor" id="autotoc_md10"></a>
 Reading routine declarations</h1>
 <p>Each routine's declaration identifies every argument by name and C type. Input arguments are marked <code>const</code> where the routine does not modify the referenced storage. Non-const pointer and array arguments are caller-provided output or in/out storage. Their required length or matrix shape is given by the related size argument and the routine's API-group documentation.</p>
 <p>For routines returning <code>void</code>, results are written to those non-const output arguments. Routines returning <code>double</code>, <code>bool</code>, or <code>int</code> return the computed scalar or status/count value shown in the declaration. Allocation routines return an integer status and initialize the supplied object; a nonzero status indicates allocation or construction failure. <code>c_alloc_dynamic_system_measurement_array</code> returns the allocated measurement-array pointer, and linkage creation routines return a <code>c_mechanism</code> handle. Release routines return <code>void</code> and accept the object they own.</p>
-<h1><a class="anchor" id="autotoc_md10"></a>
+<h1><a class="anchor" id="autotoc_md11"></a>
 Argument conventions</h1>
 <ul>
 <li><code>n</code>, <code>m</code>, <code>k</code>, <code>nfreq</code>, and similar integer arguments specify vector lengths, matrix dimensions, counts, or numbers of samples as named by the routine.</li>
@@ -106,9 +106,22 @@ Argument conventions</h1>
 <li>Arrays marked <code>const</code> are read-only inputs. Arrays and structures without <code>const</code> are filled or updated by the routine and must have sufficient space.</li>
 <li><code><a class="el" href="structc__iteration__behavior.html" title="Iteration statistics returned by nonlinear solver routines.">c_iteration_behavior</a></code>, <code><a class="el" href="structc__regression__statistics.html" title="Regression statistics returned by fitting routines.">c_regression_statistics</a></code>, and related structure pointers are output structures unless marked <code>const</code>.</li>
 <li>Mechanism link, joint, and frame indices are one-based. A <code>c_mechanism</code> returned by a creation routine must be released with <code>c_free_mechanism</code>.</li>
+<li>A <code>c_linkage_dynamic_model</code> returned by a creation routine must be released with <code>c_free_linkage_dynamic_model</code>.</li>
 <li>Callback arguments describe caller-supplied functions. Their callback typedef declarations in <code><a class="el" href="dynamics_8h.html" title="Public C interface to the DYNAMICS library.">dynamics.h</a></code> document the callback arguments and outputs.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md11"></a>
+<h1><a class="anchor" id="autotoc_md12"></a>
+Variational history conventions</h1>
+<p><code>c_variational_integrator_solve</code> and <code>c_linkage_dynamic_solve</code> use column-major history arrays. Translational and angular histories have shape <code>3 × nbody × ntime</code>, quaternion histories have shape <code>nbody × ntime</code>, and multiplier histories have shape <code>nconstraint × ntime</code>.</p>
+<p>The multiplier at column <code>i</code> is the discrete constraint multiplier associated with the interval beginning at simulation point <code>i</code>. The final multiplier is evaluated by a noncommitting look-ahead step so that forces and reactions are defined at all returned simulation points.</p>
+<p>For a prescribed planar-link motion, the total constraint count is the value returned by <code>c_linkage_dynamic_constraint_count</code> plus one. The last multiplier row is the required actuator torque. The prescribed-motion callback receives simulation time and the caller's <code>user_data</code> pointer.</p>
+<h1><a class="anchor" id="autotoc_md13"></a>
+Linkage reaction conventions</h1>
+<p><code>c_linkage_dynamic_joint_reactions</code> accepts one state and its matching multiplier column. It returns one <code><a class="el" href="structc__joint__reaction.html" title="World-frame joint reaction exerted on the joint&#39;s child link.">c_joint_reaction</a></code> per mechanism joint. Force and moment vectors are expressed in world coordinates and act on the child link. The equal-and-opposite wrench acts on the parent link. Multipliers for planar-body restrictions and prescribed motion are not reported as joint reactions.</p>
+<h1><a class="anchor" id="autotoc_md14"></a>
+Linkage force-element conventions</h1>
+<p>Axial elements connect two attachment points. Body index zero denotes ground, with the corresponding point expressed in world coordinates; all other points are body-fixed coordinates. Linear spring force is positive in tension and negative in compression, with zero force at <code>free_length</code>. Linear damping uses only the attachment-point relative velocity projected onto the current element axis.</p>
+<p>Torsional elements reference a one-based revolute-joint index, which fixes the element axis to the joint axis. Linear spring torque is zero at <code>free_angle</code>, and linear damping uses only the relative twist rate about that axis. The count routines return the storage required by the matching result-query routines; results follow element insertion order.</p>
+<h1><a class="anchor" id="autotoc_md15"></a>
 Complete routine list</h1>
 <p>The generated pages linked from the <a class="el" href="index.html#md__2home_2runner_2work_2dynamics_2dynamics_2c__docs_2c-api">C API guide</a> provide the complete routine list and exact signatures, grouped as follows:</p>
 <ul>
@@ -118,6 +131,7 @@ Complete routine list</h1>
 <li>Geometry operations</li>
 <li>Serial linkage operations</li>
 <li>Parallel and planar linkage operations</li>
+<li>Variational and linkage dynamics</li>
 <li>Transfer functions and state-space models</li>
 </ul>
 <p>The routine names, associated argument names and types, and return types are therefore documented together in the generated declaration reference rather than duplicated here. This keeps the external C documentation synchronized with <code><a class="el" href="dynamics_8h.html" title="Public C interface to the DYNAMICS library.">dynamics.h</a></code> when the interface evolves. </p>

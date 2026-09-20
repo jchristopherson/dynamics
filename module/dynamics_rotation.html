@@ -52,6 +52,7 @@
             <li><a href="../lists/files.html">Source Files</a></li>
             <li><a href="../lists/modules.html">Modules</a></li>
             <li><a href="../lists/procedures.html">Procedures</a></li>
+            <li><a href="../lists/absint.html">Abstract Interfaces</a></li>
                    <li><a href="../lists/types.html">Derived Types</a></li>
        
             </ul>
@@ -60,6 +61,7 @@
 <li class="visible-xs hidden-sm visible-lg"><a href="../lists/files.html">Source Files</a></li>
 <li class="visible-xs hidden-sm visible-lg"><a href="../lists/modules.html">Modules</a></li>
 <li class="visible-xs hidden-sm visible-lg"><a href="../lists/procedures.html">Procedures</a></li>
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/absint.html">Abstract Interfaces</a></li>
                              <li class="visible-xs hidden-sm visible-lg"><a href="../lists/types.html">Derived Types</a></li>
           </ul>
         <form action="../search.html" class="navbar-form navbar-right" role="search">
@@ -88,7 +90,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 1.6% of total for modules and submodules.">107 statements</a>
+               title=" 2.0% of total for modules and submodules.">158 statements</a>
           </li>
 
             <li id="source-file">
@@ -132,6 +134,7 @@
       <div id="inters-0" class="panel-collapse collapse">
         <div class="list-group">
             <a class="list-group-item" href="../module/dynamics_rotation.html#interface-rotate">rotate</a>
+            <a class="list-group-item" href="../module/dynamics_rotation.html#interface-translate">translate</a>
         </div>
       </div>
     </div>
@@ -147,6 +150,9 @@
       <div id="funcs-0" class="panel-collapse collapse">
         <div class="list-group">
             <a class="list-group-item" href="../module/dynamics_rotation.html#proc-acceleration_transform">acceleration_transform</a>
+            <a class="list-group-item" href="../module/dynamics_rotation.html#proc-homogeneous_rotation_x">homogeneous_rotation_x</a>
+            <a class="list-group-item" href="../module/dynamics_rotation.html#proc-homogeneous_rotation_y">homogeneous_rotation_y</a>
+            <a class="list-group-item" href="../module/dynamics_rotation.html#proc-homogeneous_rotation_z">homogeneous_rotation_z</a>
             <a class="list-group-item" href="../module/dynamics_rotation.html#proc-rotate_x">rotate_x</a>
             <a class="list-group-item" href="../module/dynamics_rotation.html#proc-rotate_y">rotate_y</a>
             <a class="list-group-item" href="../module/dynamics_rotation.html#proc-rotate_z">rotate_z</a>
@@ -191,6 +197,7 @@
             <ul class="list-inline">
                 <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
                 <li><a href='../module/dynamics_helper.html'>dynamics_helper</a></li>
+                <li>linalg</li>
             </ul>
           </li>
       </ul>
@@ -218,6 +225,7 @@
       <div id="inters-1" class="panel-collapse collapse">
         <div class="list-group">
             <a class="list-group-item" href="../module/dynamics_rotation.html#interface-rotate">rotate</a>
+            <a class="list-group-item" href="../module/dynamics_rotation.html#interface-translate">translate</a>
         </div>
       </div>
     </div>
@@ -233,6 +241,9 @@
       <div id="funcs-1" class="panel-collapse collapse">
         <div class="list-group">
             <a class="list-group-item" href="../module/dynamics_rotation.html#proc-acceleration_transform">acceleration_transform</a>
+            <a class="list-group-item" href="../module/dynamics_rotation.html#proc-homogeneous_rotation_x">homogeneous_rotation_x</a>
+            <a class="list-group-item" href="../module/dynamics_rotation.html#proc-homogeneous_rotation_y">homogeneous_rotation_y</a>
+            <a class="list-group-item" href="../module/dynamics_rotation.html#proc-homogeneous_rotation_z">homogeneous_rotation_z</a>
             <a class="list-group-item" href="../module/dynamics_rotation.html#proc-rotate_x">rotate_x</a>
             <a class="list-group-item" href="../module/dynamics_rotation.html#proc-rotate_y">rotate_y</a>
             <a class="list-group-item" href="../module/dynamics_rotation.html#proc-rotate_z">rotate_z</a>
@@ -510,6 +521,134 @@ are properly orthogonal.</p>
     </ul>
   </div>
 
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="interface-translate"></span>
+      <h3>public        interface <a href='../interface/translate.html'>translate</a> 
+      </h3>
+    </div>
+    <ul class="list-group">
+          <li class="list-group-item">
+                <h3>
+    private pure function translate_1(x, y, z) result(rst)  
+
+    </h3>
+  <p>Computes the 4-by-4 homogeneous transformation matrix describing a
+rigid-body translation.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+                <p>The x-component of the translation.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>y</strong></td>
+            <td>
+                <p>The y-component of the translation.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>z</strong></td>
+            <td>
+                <p>The z-component of the translation.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), (4,4)</small>
+    </h4>
+    <p>The resulting 4-by-4 matrix.</p>
+
+          </li>
+          <li class="list-group-item">
+                <h3>
+    private pure function translate_2(d) result(rst)  
+
+    </h3>
+  <p>Computes the 4-by-4 homogeneous transformation matrix describing a
+rigid-body translation.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>d</strong>(3)</td>
+            <td>
+                <p>The x, y, z translation vector.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), (4,4)</small>
+    </h4>
+    <p>The resulting 4-by-4 matrix.</p>
+
+          </li>
+    </ul>
+  </div>
+
     </section>
   <br>
 
@@ -607,6 +746,145 @@ of the body in its parent coordinate frame.</p>
     <small>real(kind=real64), (4,4)</small>
     </h4>
     <p>The 4-by-4 transformation matrix.</p>
+
+    </div>
+  </div>
+
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-homogeneous_rotation_x"></span><h3>public pure function <a href='../proc/homogeneous_rotation_x.html'>homogeneous_rotation_x</a>(angle) result(rst)  
+</h3></div>
+    <div class="panel-body">
+          
+  <p>Constructs the 4-by-4 homogeneous transformation matrix describing
+a rotation about an x-axis.</p><a href="../proc/homogeneous_rotation_x.html" class="pull-right"><emph>Read more&hellip;</emph></a>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>angle</strong></td>
+            <td>
+<p>The rotation angle, in radians.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), (4,4)</small>
+    </h4>
+    <p>The resulting 4-by-4 transformation matrix.</p>
+<p>Local Variables</p>
+
+    </div>
+  </div>
+
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-homogeneous_rotation_y"></span><h3>public pure function <a href='../proc/homogeneous_rotation_y.html'>homogeneous_rotation_y</a>(angle) result(rst)  
+</h3></div>
+    <div class="panel-body">
+          
+  <p>Constructs the 4-by-4 homogeneous transformation matrix describing
+a rotation about a y-axis.</p><a href="../proc/homogeneous_rotation_y.html" class="pull-right"><emph>Read more&hellip;</emph></a>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>angle</strong></td>
+            <td>
+<p>The rotation angle, in radians.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), (4,4)</small>
+    </h4>
+    <p>The resulting 4-by-4 matrix.</p>
+
+    </div>
+  </div>
+
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-homogeneous_rotation_z"></span><h3>public pure function <a href='../proc/homogeneous_rotation_z.html'>homogeneous_rotation_z</a>(angle) result(rst)  
+</h3></div>
+    <div class="panel-body">
+          
+  <p>Constructs the 4-by-4 homogeneous transformation matrix describing
+a rotation about a y-axis.</p><a href="../proc/homogeneous_rotation_z.html" class="pull-right"><emph>Read more&hellip;</emph></a>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>angle</strong></td>
+            <td>
+<p>The rotation angle, in radians.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), (4,4)</small>
+    </h4>
+    <p>The resulting 4-by-4 matrix.</p>
 
     </div>
   </div>
@@ -931,7 +1209,7 @@ while the skew-symmetric part satisfies
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-09-13 20:05            </p>
+ on 2026-09-20 23:08            </p>
         </div>
       </div>
       <br>

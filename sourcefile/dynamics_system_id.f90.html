@@ -52,6 +52,7 @@
             <li><a href="../lists/files.html">Source Files</a></li>
             <li><a href="../lists/modules.html">Modules</a></li>
             <li><a href="../lists/procedures.html">Procedures</a></li>
+            <li><a href="../lists/absint.html">Abstract Interfaces</a></li>
                    <li><a href="../lists/types.html">Derived Types</a></li>
        
             </ul>
@@ -60,6 +61,7 @@
 <li class="visible-xs hidden-sm visible-lg"><a href="../lists/files.html">Source Files</a></li>
 <li class="visible-xs hidden-sm visible-lg"><a href="../lists/modules.html">Modules</a></li>
 <li class="visible-xs hidden-sm visible-lg"><a href="../lists/procedures.html">Procedures</a></li>
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/absint.html">Abstract Interfaces</a></li>
                              <li class="visible-xs hidden-sm visible-lg"><a href="../lists/types.html">Derived Types</a></li>
           </ul>
         <form action="../search.html" class="navbar-form navbar-right" role="search">
@@ -88,7 +90,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 4.4% of total for source files.">293 statements</a>
+               title=" 3.7% of total for source files.">293 statements</a>
           </li>
 
             <li id="source-file">
@@ -674,9 +676,9 @@
 <a id="ln-467" name="ln-467" href="#ln-467"></a><span class="w">    </span><span class="k">class</span><span class="p">(</span><span class="n">ode_integrator</span><span class="p">),</span><span class="w"> </span><span class="k">pointer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">integrator</span><span class="w"></span>
 <a id="ln-468" name="ln-468" href="#ln-468"></a><span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">linear_interpolator</span><span class="p">),</span><span class="w"> </span><span class="k">target</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">forcing_function</span><span class="w"></span>
 <a id="ln-469" name="ln-469" href="#ln-469"></a><span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">ode_container</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">mdl</span><span class="w"></span>
-<a id="ln-470" name="ln-470" href="#ln-470"></a><span class="w">    </span><span class="kt">logical</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">uses_constraints</span><span class="w"></span>
-<a id="ln-471" name="ln-471" href="#ln-471"></a><span class="w">    </span><span class="k">procedure</span><span class="p">(</span><span class="n">constraint_equations</span><span class="p">),</span><span class="w"> </span><span class="k">pointer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">constraints</span><span class="w"></span>
-<a id="ln-472" name="ln-472" href="#ln-472"></a><span class="w">    </span><span class="k">class</span><span class="p">(</span><span class="o">*</span><span class="p">),</span><span class="w"> </span><span class="k">pointer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">user_info</span><span class="w"></span>
+<a id="ln-470" name="ln-470" href="#ln-470"></a><span class="w">    </span><span class="kt">logical</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">uses_constraints</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">false</span><span class="p">.</span><span class="w"></span>
+<a id="ln-471" name="ln-471" href="#ln-471"></a><span class="w">    </span><span class="k">procedure</span><span class="p">(</span><span class="n">constraint_equations</span><span class="p">),</span><span class="w"> </span><span class="k">pointer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">constraints</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span><span class="w"></span>
+<a id="ln-472" name="ln-472" href="#ln-472"></a><span class="w">    </span><span class="k">class</span><span class="p">(</span><span class="o">*</span><span class="p">),</span><span class="w"> </span><span class="k">pointer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">user_info</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">null</span><span class="p">()</span><span class="w"></span>
 <a id="ln-473" name="ln-473" href="#ln-473"></a>
 <a id="ln-474" name="ln-474" href="#ln-474"></a><span class="w">    </span><span class="c">! Get the supplied information</span>
 <a id="ln-475" name="ln-475" href="#ln-475"></a><span class="w">    </span><span class="k">select type</span><span class="w"> </span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="w"></span>
@@ -754,7 +756,7 @@
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-09-13 20:05            </p>
+ on 2026-09-20 23:08            </p>
         </div>
       </div>
       <br>

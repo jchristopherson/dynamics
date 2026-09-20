@@ -1,5 +1,6 @@
 var annotated_dup =
 [
+    [ "c_axial_element_result", "structc__axial__element__result.html", "structc__axial__element__result" ],
     [ "c_beam_element_2d", "structc__beam__element__2d.html", "structc__beam__element__2d" ],
     [ "c_beam_element_3d", "structc__beam__element__3d.html", "structc__beam__element__3d" ],
     [ "c_binary_link", "structc__binary__link.html", "structc__binary__link" ],
@@ -11,7 +12,10 @@ var annotated_dup =
     [ "c_iteration_behavior", "structc__iteration__behavior.html", "structc__iteration__behavior" ],
     [ "c_iteration_controls", "structc__iteration__controls.html", "structc__iteration__controls" ],
     [ "c_joint", "structc__joint.html", "structc__joint" ],
+    [ "c_joint_reaction", "structc__joint__reaction.html", "structc__joint__reaction" ],
     [ "c_line", "structc__line.html", "structc__line" ],
+    [ "c_linear_damper", "structc__linear__damper.html", "structc__linear__damper" ],
+    [ "c_linear_spring", "structc__linear__spring.html", "structc__linear__spring" ],
     [ "c_lm_solver_options", "structc__lm__solver__options.html", "structc__lm__solver__options" ],
     [ "c_material", "structc__material.html", "structc__material" ],
     [ "c_mechanism_link", "structc__mechanism__link.html", "structc__mechanism__link" ],
@@ -21,7 +25,13 @@ var annotated_dup =
     [ "c_polynomial", "structc__polynomial.html", "structc__polynomial" ],
     [ "c_quaternion", "structc__quaternion.html", "structc__quaternion" ],
     [ "c_regression_statistics", "structc__regression__statistics.html", "structc__regression__statistics" ],
+    [ "c_rigid_body", "structc__rigid__body.html", "structc__rigid__body" ],
     [ "c_serial_linkage", "structc__serial__linkage.html", "structc__serial__linkage" ],
     [ "c_state_space_model", "structc__state__space__model.html", "structc__state__space__model" ],
-    [ "c_transfer_function", "structc__transfer__function.html", "structc__transfer__function" ]
+    [ "c_torsional_damper", "structc__torsional__damper.html", "structc__torsional__damper" ],
+    [ "c_torsional_element_result", "structc__torsional__element__result.html", "structc__torsional__element__result" ],
+    [ "c_torsional_spring", "structc__torsional__spring.html", "structc__torsional__spring" ],
+    [ "c_transfer_function", "structc__transfer__function.html", "structc__transfer__function" ],
+    [ "c_variational_integrator_settings", "structc__variational__integrator__settings.html", "structc__variational__integrator__settings" ],
+    [ "c_variational_state", "structc__variational__state.html", "structc__variational__state" ]
 ];

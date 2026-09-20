@@ -48,6 +48,9 @@
                   <a class="nav-link" href="../lists/procedures.html">Procedures</a>
                 </li>
                 <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
+                </li>
+                <li class="nav-item">
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
                 </li>
             </ul>
@@ -376,10 +379,39 @@ receptance model:</p><a href="../proc/fit_frf.html" class="pull-right"><emph>Rea
                  <td></td>
                </tr>
 			   <tr>
+                 <td><a href='..\proc\homogeneous_rotation_x.html'>homogeneous_rotation_x</a></td>
+                 <td><a href='..\module\dynamics_rotation.html'>dynamics_rotation</a></td>
+                 <td>Function</td>
+                 <td><p>Constructs the 4-by-4 homogeneous transformation matrix describing
+a rotation about an x-axis.</p><a href="../proc/homogeneous_rotation_x.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\proc\homogeneous_rotation_y.html'>homogeneous_rotation_y</a></td>
+                 <td><a href='..\module\dynamics_rotation.html'>dynamics_rotation</a></td>
+                 <td>Function</td>
+                 <td><p>Constructs the 4-by-4 homogeneous transformation matrix describing
+a rotation about a y-axis.</p><a href="../proc/homogeneous_rotation_y.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\proc\homogeneous_rotation_z.html'>homogeneous_rotation_z</a></td>
+                 <td><a href='..\module\dynamics_rotation.html'>dynamics_rotation</a></td>
+                 <td>Function</td>
+                 <td><p>Constructs the 4-by-4 homogeneous transformation matrix describing
+a rotation about a y-axis.</p><a href="../proc/homogeneous_rotation_z.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+               </tr>
+			   <tr>
                  <td><a href='..\proc\initialize_rigid_body.html'>initialize_rigid_body</a></td>
                  <td><a href='..\module\dynamics_rigid_bodies.html'>dynamics_rigid_bodies</a></td>
                  <td>Subroutine</td>
                  <td><p>Initializes a rigid_body object.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\proc\initialize_variational_state.html'>initialize_variational_state</a></td>
+                 <td><a href='..\module\dynamics_variational_integrators.html'>dynamics_variational_integrators</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Allocates and initializes a maximal-coordinate state. Positions and
+velocities are set to zero, and every orientation is set to the identity
+quaternion.</p></td>
                </tr>
 			   <tr>
                  <td><a href='..\proc\inverse.html'>inverse</a></td>
@@ -451,6 +483,12 @@ with the point at t = 0 coincident with the point at t = 0 on ln1.</p></td>
                  <td>Function</td>
                  <td><p>Constructs a new line from a point (defines the point where t = 0)
 and a direction vector.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\interface\linkage_dynamic_model.html'>linkage_dynamic_model</a></td>
+                 <td><a href='..\module\dynamics_linkage_dynamics.html'>dynamics_linkage_dynamics</a></td>
+                 <td>Interface</td>
+                 <td></td>
                </tr>
 			   <tr>
                  <td><a href='..\interface\log.html'>log</a></td>
@@ -704,28 +742,28 @@ to 100% of its final value and is given by the following relationship.</p><a hre
                  <td></td>
                </tr>
 			   <tr>
-                 <td><a href='..\proc\rotate_x~2.html'>rotate_x</a></td>
+                 <td><a href='..\proc\rotate_x.html'>rotate_x</a></td>
                  <td><a href='..\module\dynamics_rotation.html'>dynamics_rotation</a></td>
                  <td>Function</td>
                  <td><p>Constructs the rotation matrix describing a rotation about an
 x-axis such that 
-<script type="math/tex"> \overrightarrow{r_2} = \textbf{R}_x \overrightarrow{r_1} </script>.</p><a href="../proc/rotate_x~2.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+<script type="math/tex"> \overrightarrow{r_2} = \textbf{R}_x \overrightarrow{r_1} </script>.</p><a href="../proc/rotate_x.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
 			   <tr>
-                 <td><a href='..\proc\rotate_y~2.html'>rotate_y</a></td>
+                 <td><a href='..\proc\rotate_y.html'>rotate_y</a></td>
                  <td><a href='..\module\dynamics_rotation.html'>dynamics_rotation</a></td>
                  <td>Function</td>
                  <td><p>Constructs the rotation matrix describing a rotation about a y-axis
 such that 
-<script type="math/tex"> \overrightarrow{r_2} = \textbf{R}_y \overrightarrow{r_1} </script>.</p><a href="../proc/rotate_y~2.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+<script type="math/tex"> \overrightarrow{r_2} = \textbf{R}_y \overrightarrow{r_1} </script>.</p><a href="../proc/rotate_y.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
 			   <tr>
-                 <td><a href='..\proc\rotate_z~2.html'>rotate_z</a></td>
+                 <td><a href='..\proc\rotate_z.html'>rotate_z</a></td>
                  <td><a href='..\module\dynamics_rotation.html'>dynamics_rotation</a></td>
                  <td>Function</td>
                  <td><p>Constructs the rotation matrix describing a rotation about a y-axis
 such that 
-<script type="math/tex"> \overrightarrow{r_2} = \textbf{R}_z \overrightarrow{r_1} </script>.</p><a href="../proc/rotate_z~2.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+<script type="math/tex"> \overrightarrow{r_2} = \textbf{R}_z \overrightarrow{r_1} </script>.</p><a href="../proc/rotate_z.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
 			   <tr>
                  <td><a href='..\proc\scalar_projection.html'>scalar_projection</a></td>
@@ -828,6 +866,12 @@ skew-symmetric matrix is defined as follows.</p><a href="../proc/to_skew_symmetr
                  <td><p>Computes the inverse of a 4-by-4 homogeneous transformation matrix.</p><a href="../proc/transform_inverse.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
 			   <tr>
+                 <td><a href='..\interface\translate.html'>translate</a></td>
+                 <td><a href='..\module\dynamics_rotation.html'>dynamics_rotation</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
                  <td><a href='..\proc\vector_angle.html'>vector_angle</a></td>
                  <td><a href='..\module\dynamics_helper.html'>dynamics_helper</a></td>
                  <td>Function</td>
@@ -877,7 +921,7 @@ its parent frame.</p><a href="../proc/velocity_transform.html" class="pull-right
             <p class="text-end">
               Documentation generated by
               <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-09-13 13:42              </p>
+ on 2026-09-20 17:06              </p>
           </div>
         </div>
         <br>

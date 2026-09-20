@@ -7,6 +7,7 @@ var topics =
     [ "Geometry operations", "group__dynamics__geometry.html", "group__dynamics__geometry" ],
     [ "Serial linkage operations", "group__dynamics__serial.html", "group__dynamics__serial" ],
     [ "Parallel and planar linkage operations", "group__dynamics__parallel.html", "group__dynamics__parallel" ],
+    [ "Variational and linkage dynamics", "group__dynamics__variational.html", "group__dynamics__variational" ],
     [ "Transfer functions and state-space models", "group__dynamics__state.html", "group__dynamics__state" ],
     [ "Structural analysis and line elements", "group__dynamics__structural.html", "group__dynamics__structural" ]
 ];

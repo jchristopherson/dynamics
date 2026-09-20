@@ -1,12 +1,17 @@
 module dynamics_rotation
     use iso_fortran_env
     use dynamics_helper
+    use linalg, only : identity
     implicit none
     private
     public :: rotate_x
     public :: rotate_y
     public :: rotate_z
+    public :: homogeneous_rotation_x
+    public :: homogeneous_rotation_y
+    public :: homogeneous_rotation_z
     public :: rotate
+    public :: translate
     public :: acceleration_transform
     public :: velocity_transform
     public :: to_angle_axis
@@ -14,6 +19,11 @@ module dynamics_rotation
     interface rotate
         module procedure :: rotate_general_1
         module procedure :: rotate_general_2
+    end interface
+
+    interface translate
+        module procedure :: translate_1
+        module procedure :: translate_2
     end interface
 
 contains
@@ -41,6 +51,33 @@ pure function rotate_x(angle) result(rst)
     end function
 
 ! ------------------------------------------------------------------------------
+    pure function homogeneous_rotation_x(angle) result(rst)
+        !! Constructs the 4-by-4 homogeneous transformation matrix describing
+        !! a rotation about an x-axis.
+        !!
+        !! $$ \textbf{R}_x = \left[ \begin{matrix} 1 & 0 & 0 & 0 \\ 0 &
+        !! \cos{\theta_x} & -\sin{\theta_x} & 0 \\ 0 & \sin{\theta_x} &
+        !! \cos{\theta_x} & 0 \\ 0 & 0 & 0 & 1 \\ \right] $$
+        real(real64), intent(in) :: angle
+            !! The rotation angle, in radians.
+        real(real64) :: rst(4, 4)
+            !! The resulting 4-by-4 transformation matrix.
+
+        !! Local Variables
+        real(real64) :: c, s
+
+        ! Process
+        c = cos(angle)
+        s = sin(angle)
+        rst = reshape([ &
+            1.0d0, 0.0d0, 0.0d0, 0.0d0, &
+            0.0d0, c, s, 0.0d0, &
+            0.0d0, -s, c, 0.0d0, &
+            0.0d0, 0.0d0, 0.0d0, 1.0d0], &
+            [4, 4])
+    end function
+
+! ------------------------------------------------------------------------------
     pure function rotate_y(angle) result(rst)
         !! Constructs the rotation matrix describing a rotation about a y-axis
         !! such that 
@@ -64,6 +101,33 @@ pure function rotate_x(angle) result(rst)
     end function
 
 ! ------------------------------------------------------------------------------
+    pure function homogeneous_rotation_y(angle) result(rst)
+        !! Constructs the 4-by-4 homogeneous transformation matrix describing
+        !! a rotation about a y-axis.
+        !!
+        !! $$ \textbf{R}_y = \left[ \begin{matrix} \cos{\theta_y} & 0 & 
+        !! \sin{\theta_y} & 0 \\ 0 & 1 & 0 & 0 \\ -\sin{\theta_y} & 0 & 
+        !! \cos{\theta_y} & 0 \\ 0 & 0 & 0 & 1 \\ \end{matrix} \right] $$
+        real(real64), intent(in) :: angle
+            !! The rotation angle, in radians.
+        real(real64) :: rst(4, 4)
+            !! The resulting 4-by-4 matrix.
+
+        ! Local Variables
+        real(real64) :: c, s
+
+        ! Process
+        c = cos(angle)
+        s = sin(angle)
+        rst = reshape([ &
+            c, 0.0d0, -s, 0.0d0, &
+            0.0d0, 1.0d0, 0.0d0, 0.0d0, &
+            s, 0.0d0, c, 0.0d0, &
+            0.0d0, 0.0d0, 0.0d0, 1.0d0], &
+            [4, 4])
+    end function
+
+! ------------------------------------------------------------------------------
     pure function rotate_z(angle) result(rst)
         !! Constructs the rotation matrix describing a rotation about a y-axis
         !! such that 
@@ -84,6 +148,32 @@ pure function rotate_x(angle) result(rst)
         c = cos(angle)
         s = sin(angle)
         rst = reshape([c, s, 0.0d0, -s, c, 0.0d0, 0.0d0, 0.0d0, 1.0d0], [3, 3])
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function homogeneous_rotation_z(angle) result(rst)
+        !! Constructs the 4-by-4 homogeneous transformation matrix describing
+        !! a rotation about a y-axis.
+        !!
+        !! $$ \textbf{R}_z = \left[ \begin{matrix} \cos{\theta_z} & 
+        !! -\sin{\theta_z} & 0 & 0 \\ \sin{\theta_z} & \cos{\theta_z} & 0 & 0 \\
+        !! 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 1 \\ \end{matrix} \right] $$
+        real(real64), intent(in) :: angle
+            !! The rotation angle, in radians.
+        real(real64) :: rst(4, 4)
+            !! The resulting 4-by-4 matrix.
+
+        ! Local Variables
+        real(real64) :: c, s
+
+        ! Process
+        c = cos(angle)
+        s = sin(angle)
+        rst = reshape([c, s, 0.0d0, 0.0d0, &
+            -s, c, 0.0d0, 0.0d0, &
+            0.0d0, 0.0d0, 1.0d0, 0.0d0, &
+            0.0d0, 0.0d0, 0.0d0, 1.0d0], &
+            [4, 4])
     end function
 
 ! ------------------------------------------------------------------------------
@@ -171,6 +261,40 @@ pure function rotate_x(angle) result(rst)
 
         rst = rotate_general_1(i, j, k, [1.0d0, 0.0d0, 0.0d0], &
             [0.0d0, 1.0d0, 0.0d0], [0.0d0, 0.0d0, 1.0d0])
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function translate_1(x, y, z) result(rst)
+        !! Computes the 4-by-4 homogeneous transformation matrix describing a
+        !! rigid-body translation.
+        real(real64), intent(in) :: x
+            !! The x-component of the translation.
+        real(real64), intent(in) :: y
+            !! The y-component of the translation.
+        real(real64), intent(in) :: z
+            !! The z-component of the translation.
+        real(real64) :: rst(4, 4)
+            !! The resulting 4-by-4 matrix.
+
+        rst = identity(4)
+        rst(1,4) = x
+        rst(2,4) = y
+        rst(3,4) = z
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function translate_2(d) result(rst)
+        !! Computes the 4-by-4 homogeneous transformation matrix describing a
+        !! rigid-body translation.
+        real(real64), intent(in) :: d(3)
+            !! The x, y, z translation vector.
+        real(real64) :: rst(4, 4)
+            !! The resulting 4-by-4 matrix.
+
+        rst = identity(4)
+        rst(1,4) = d(1)
+        rst(2,4) = d(2)
+        rst(3,4) = d(3)
     end function
 
 ! ------------------------------------------------------------------------------

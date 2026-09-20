@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['operations_0',['operations',['../group__dynamics__geometry.html',1,'Geometry operations'],['../group__dynamics__parallel.html',1,'Parallel and planar linkage operations'],['../group__dynamics__quaternion.html',1,'Quaternion operations'],['../group__dynamics__serial.html',1,'Serial linkage operations']]]
+  ['matrix_20and_20general_20kinematics_0',['Matrix and general kinematics',['../group__dynamics__matrix.html',1,'']]],
+  ['models_1',['Transfer functions and state-space models',['../group__dynamics__state.html',1,'']]]
 ];

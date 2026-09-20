@@ -467,9 +467,9 @@ subroutine nlsq_fun(t, p, f, check, args)
     class(ode_integrator), pointer :: integrator
     type(linear_interpolator), target :: forcing_function
     type(ode_container) :: mdl
-    logical :: uses_constraints
-    procedure(constraint_equations), pointer :: constraints
-    class(*), pointer :: user_info
+    logical :: uses_constraints = .false.
+    procedure(constraint_equations), pointer :: constraints => null()
+    class(*), pointer :: user_info => null()
 
     ! Get the supplied information
     select type (args)

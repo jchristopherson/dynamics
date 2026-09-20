@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['line_20elements_0',['Structural analysis and line elements',['../group__dynamics__structural.html',1,'']]],
-  ['linkage_20operations_1',['linkage operations',['../group__dynamics__parallel.html',1,'Parallel and planar linkage operations'],['../group__dynamics__serial.html',1,'Serial linkage operations']]]
+  ['kinematics_0',['Matrix and general kinematics',['../group__dynamics__matrix.html',1,'']]]
 ];

@@ -102,6 +102,8 @@ Conventions</h1>
 <li>Memory returned by an allocation or creation routine is owned by the caller and must be released with its corresponding <code>c_free_*</code> routine.</li>
 <li>An optional pointer may be passed as <code>NULL</code> only where the function declaration or reference explicitly permits it.</li>
 <li>Solver callbacks use C calling conventions and receive array dimensions as explicit arguments.</li>
+<li>Variational state histories use column-major <code>3 × nbody × ntime</code> arrays; multiplier histories use <code>nconstraint × ntime</code> arrays.</li>
+<li>The prescribed-motion linkage callback is synchronous and not reentrant.</li>
 </ul>
 <h1><a class="anchor" id="autotoc_md2"></a>
 Linking</h1>
@@ -116,17 +118,50 @@ Example</h1>
 <h1><a class="anchor" id="autotoc_md4"></a>
 Beam coordinates</h1>
 <p>The beam element APIs use the local element coordinate system shown below. The local x-axis runs from node 1 to node 2. For a 3D beam, the orientation point defines the local z-axis and the local y-axis completes the right-handed frame.</p>
-<p><img src="../images/beam_coordinate_system.svg" alt="Beam element coordinate systems" style="pointer-events: none;" class="inline"/></p>
-<h1><a class="anchor" id="autotoc_md5"></a>
+<div class="image">
+<object type="image/svg+xml" data="beam_coordinate_system.svg" style="pointer-events: none;"></object>
+<div class="caption">
+Beam element coordinate systems</div></div>
+    <h1><a class="anchor" id="autotoc_md5"></a>
 Denavit-Hartenberg parameters</h1>
 <p>The <code><a class="el" href="structc__dh__parameter__set.html" title="One Denavit-Hartenberg parameter set.">c_dh_parameter_set</a></code> structure follows the standard Denavit-Hartenberg convention used by the kinematics API. The transform maps coordinates from frame <code>i</code> into frame <code>i-1</code> as</p>
 <p><code>Rz(joint_angle) Tz(link_offset) Tx(link_length) Rx(link_twist)</code>.</p>
-<p><img src="../images/dh_parameter_set.svg" alt="Standard Denavit-Hartenberg parameters" style="pointer-events: none;" class="inline"/></p>
-<h1><a class="anchor" id="autotoc_md6"></a>
+<div class="image">
+<object type="image/svg+xml" data="dh_parameter_set.svg" style="pointer-events: none;"></object>
+<div class="caption">
+Standard Denavit-Hartenberg parameters</div></div>
+    <h1><a class="anchor" id="autotoc_md6"></a>
 Geometry operations</h1>
 <p>The geometry API provides point, line, plane, and Plucker-line representations, along with projection, distance, parallelism, intersection, and common-normal operations. The relationships are summarized below.</p>
-<p><img src="../images/geometry_operations.svg" alt="Geometry representations and operations" style="pointer-events: none;" class="inline"/></p>
-<h1><a class="anchor" id="autotoc_md7"></a>
+<div class="image">
+<object type="image/svg+xml" data="geometry_operations.svg" style="pointer-events: none;"></object>
+<div class="caption">
+Geometry representations and operations</div></div>
+    <h1><a class="anchor" id="autotoc_md7"></a>
+Variational and linkage dynamics</h1>
+<p>The variational API supports two workflows:</p>
+<ol type="1">
+<li><code>c_variational_integrator_solve</code> integrates caller-defined rigid bodies in maximal coordinates. C callbacks supply applied loads, equality constraints, and optionally an analytic reduced constraint Jacobian.</li>
+<li><code>c_create_serial_linkage_dynamic_model</code> and <code>c_create_linkage_dynamic_model</code> convert linkage descriptions into opaque dynamic-model handles. <code>c_linkage_dynamic_solve</code> then applies gravity, constant body loads, and optional prescribed planar motion.</li>
+</ol>
+<p>Initialize <code><a class="el" href="structc__variational__integrator__settings.html" title="Numerical controls for the maximal-coordinate variational integrator.">c_variational_integrator_settings</a></code> with <code>c_default_variational_integrator_settings</code> before changing individual fields. The direct and linkage solve routines write caller-owned histories using these column-major shapes:</p>
+<ul>
+<li>position, velocity, and angular velocity: <code>3 × nbody × ntime</code>;</li>
+<li>orientation: <code>nbody × ntime</code>;</li>
+<li>multipliers: <code>nconstraint × ntime</code>.</li>
+</ul>
+<p>Multiplier column <code>i</code> belongs to simulation point <code>i</code>. The final column is computed with a noncommitting look-ahead step. For prescribed linkage motion, the prescribed-angle multiplier is appended after the linkage constraints and represents the required actuator torque.</p>
+<p>Use <code>c_linkage_dynamic_joint_reactions</code> to convert one state and multiplier column into world-frame joint forces and moments. Reactions are returned in mechanism joint order and act on each joint's child link. The reaction on the parent link is equal and opposite.</p>
+<p>Linkage dynamic models may also contain linear force elements:</p>
+<ul>
+<li><code><a class="el" href="structc__linear__spring.html" title="Linear spring between body-fixed points; body zero denotes ground.">c_linear_spring</a></code> acts in tension and compression between arbitrary body-fixed points. Its <code>free_length</code> defines zero force and therefore any preload at the initial configuration.</li>
+<li><code><a class="el" href="structc__linear__damper.html" title="Axial linear viscous damper between body-fixed points.">c_linear_damper</a></code> acts only on relative velocity along the current element axis.</li>
+<li><code><a class="el" href="structc__torsional__spring.html" title="Linear torsional spring bound to a revolute-joint axis.">c_torsional_spring</a></code> acts about the axis of its referenced revolute joint; <code>free_angle</code> defines its zero-torque angle.</li>
+<li><code><a class="el" href="structc__torsional__damper.html" title="Twist-rate damper bound to a revolute-joint axis.">c_torsional_damper</a></code> opposes only relative twist rate about that joint axis.</li>
+</ul>
+<p>Body index zero denotes a ground attachment whose point is expressed in world coordinates. Other attachment points are expressed in their body frame. Use the element count and result routines to query current length/rate/force or angle/rate/torque values.</p>
+<p>Opaque dynamic-model handles own copied linkage and mass-property data; release them with <code>c_free_linkage_dynamic_model</code>. Callback state views are temporary and must not be retained after a callback returns. The prescribed-motion callback bridge is synchronous and not reentrant.</p>
+<h1><a class="anchor" id="autotoc_md8"></a>
 Reference</h1>
 <p>The generated reference is organized by API area:</p>
 <ul>
@@ -137,6 +172,7 @@ Reference</h1>
 <li><a href="./group__dynamics__geometry.html">Geometry operations</a></li>
 <li><a href="./group__dynamics__serial.html">Serial linkage operations</a></li>
 <li><a href="./group__dynamics__parallel.html">Parallel and planar linkage operations</a></li>
+<li><a href="./group__dynamics__variational.html">Variational and linkage dynamics</a></li>
 <li><a href="./group__dynamics__state.html">Transfer functions and state-space models</a></li>
 <li><a href="./group__dynamics__structural.html">Structural analysis and line elements</a></li>
 </ul>

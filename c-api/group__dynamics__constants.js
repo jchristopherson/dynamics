@@ -36,5 +36,7 @@ var group__dynamics__constants =
     [ "DYN_ONE_POINT_INTEGRATION_RULE", "group__dynamics__constants.html#ga6d26ad12e9c965bdc9b8266f531919f5", null ],
     [ "DYN_TWO_POINT_INTEGRATION_RULE", "group__dynamics__constants.html#ga932be870f743625bfe0b1d2b141e4e59", null ],
     [ "DYN_THREE_POINT_INTEGRATION_RULE", "group__dynamics__constants.html#ga1ae8002b3e872942f43d9dc12903b7d3", null ],
-    [ "DYN_FOUR_POINT_INTEGRATION_RULE", "group__dynamics__constants.html#gabad42fb283c14ced4ec5a3e45893c73b", null ]
+    [ "DYN_FOUR_POINT_INTEGRATION_RULE", "group__dynamics__constants.html#gabad42fb283c14ced4ec5a3e45893c73b", null ],
+    [ "DYN_VI_DENSE_SOLVER", "group__dynamics__constants.html#ga099c2c21f08d73002fb973f5c65d8044", null ],
+    [ "DYN_VI_GRAPH_FACTORIZED_SOLVER", "group__dynamics__constants.html#gae005626cdb791603e4e211fec92d6545", null ]
 ];

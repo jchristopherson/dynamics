@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="680" viewBox="0 0 1200 680" role="img" aria-labelledby="title desc">
+  <title id="title">Beam element coordinate systems</title>
+  <desc id="desc">Two-dimensional and three-dimensional beam element local coordinate systems. The local x axis runs from node 1 to node 2. The 3D orientation point defines the local z axis.</desc>
+  <defs>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1d5fa7"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#b0443e"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2c8050"/>
+    </marker>
+    <style>
+      .title { font: 700 26px sans-serif; fill: #17212b; }
+      .label { font: 18px sans-serif; fill: #17212b; }
+      .small { font: 16px sans-serif; fill: #43515c; }
+      .node { fill: #17212b; }
+      .beam { stroke: #17212b; stroke-width: 18; stroke-linecap: round; }
+      .axis-x { stroke: #1d5fa7; stroke-width: 4; marker-end: url(#arrow-blue); }
+      .axis-y { stroke: #b0443e; stroke-width: 4; marker-end: url(#arrow-red); }
+      .axis-z { stroke: #2c8050; stroke-width: 4; marker-end: url(#arrow-green); }
+      .panel { fill: #f7f9fb; stroke: #c9d2da; stroke-width: 2; }
+      .guide { stroke: #aab6bf; stroke-width: 2; stroke-dasharray: 7 7; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="680" fill="#ffffff"/>
+  <text x="600" y="42" text-anchor="middle" class="title">Beam element local coordinate systems</text>
+
+  <rect x="35" y="75" width="550" height="550" rx="8" class="panel"/>
+  <text x="310" y="120" text-anchor="middle" class="title">2D beam element</text>
+  <text x="310" y="148" text-anchor="middle" class="small">x follows node 1 to node 2; z is out of the page</text>
+
+  <line x1="125" y1="365" x2="480" y2="365" class="beam"/>
+  <circle cx="125" cy="365" r="12" class="node"/>
+  <circle cx="480" cy="365" r="12" class="node"/>
+  <text x="125" y="415" text-anchor="middle" class="label">node 1</text>
+  <text x="480" y="415" text-anchor="middle" class="label">node 2</text>
+  <text x="302" y="350" text-anchor="middle" class="label">element x</text>
+
+  <line x1="125" y1="365" x2="245" y2="365" class="axis-x"/>
+  <line x1="125" y1="365" x2="125" y2="225" class="axis-y"/>
+  <text x="258" y="356" class="label" fill="#1d5fa7">+x</text>
+  <text x="135" y="220" class="label" fill="#b0443e">+y</text>
+  <circle cx="125" cy="500" r="24" fill="none" stroke="#2c8050" stroke-width="4"/>
+  <circle cx="125" cy="500" r="5" class="node"/>
+  <text x="160" y="507" class="label" fill="#2c8050">+z out of page</text>
+
+  <text x="90" y="555" class="small">At each node: [u, v, theta<tspan baseline-shift="sub">z</tspan>]</text>
+  <line x1="100" y1="565" x2="300" y2="565" class="guide"/>
+
+  <rect x="615" y="75" width="550" height="550" rx="8" class="panel"/>
+  <text x="890" y="120" text-anchor="middle" class="title">3D beam element</text>
+  <text x="890" y="148" text-anchor="middle" class="small">orientation point defines the local z direction</text>
+
+  <line x1="700" y1="410" x2="1010" y2="320" class="beam"/>
+  <circle cx="700" cy="410" r="12" class="node"/>
+  <circle cx="1010" cy="320" r="12" class="node"/>
+  <text x="700" y="460" text-anchor="middle" class="label">node 1</text>
+  <text x="1010" y="370" text-anchor="middle" class="label">node 2</text>
+  <text x="860" y="350" text-anchor="middle" class="label">element x</text>
+
+  <line x1="700" y1="410" x2="845" y2="368" class="axis-x"/>
+  <line x1="700" y1="410" x2="700" y2="250" class="axis-z"/>
+  <line x1="700" y1="410" x2="820" y2="485" class="axis-y"/>
+  <text x="850" y="368" class="label" fill="#1d5fa7">+x</text>
+  <text x="705" y="242" class="label" fill="#2c8050">+z</text>
+  <text x="825" y="500" class="label" fill="#b0443e">+y</text>
+
+  <circle cx="700" cy="250" r="7" fill="#2c8050"/>
+  <line x1="700" y1="410" x2="700" y2="250" class="guide"/>
+  <text x="720" y="278" class="small">orientation point</text>
+  <text x="680" y="555" class="small">At each node: [u, v, w, theta<tspan baseline-shift="sub">x</tspan>, theta<tspan baseline-shift="sub">y</tspan>, theta<tspan baseline-shift="sub">z</tspan>]</text>
+
+  <line x1="85" y1="650" x2="1115" y2="650" stroke="#c9d2da" stroke-width="2"/>
+  <text x="600" y="672" text-anchor="middle" class="small">Results such as strain, stress, shear force, and moment are reported in the element coordinate system.</text>
+</svg>
