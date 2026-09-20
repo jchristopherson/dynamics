@@ -132,6 +132,26 @@ contains
 ! ******************************************************************************
 ! STATE_SPACE
 ! ------------------------------------------------------------------------------
+pure subroutine validate_state_space(this)
+    !! Validates allocation and matrix dimensions for a state-space model.
+    class(state_space), intent(in) :: this
+        !! The state-space model to validate.
+
+    integer(int32) :: n, m, p
+
+    if (.not.allocated(this%A) .or. .not.allocated(this%B) .or. &
+        .not.allocated(this%C) .or. .not.allocated(this%D)) &
+        error stop DYN_INVALID_INPUT_ERROR
+    n = size(this%A, 1)
+    m = size(this%B, 2)
+    p = size(this%C, 1)
+    if (size(this%A, 2) /= n .or. m < 1 .or. p < 1 .or. &
+        size(this%B, 1) /= n .or. size(this%C, 2) /= n .or. &
+        size(this%D, 1) /= p .or. size(this%D, 2) /= m) &
+        error stop DYN_INVALID_INPUT_ERROR
+end subroutine
+
+! ------------------------------------------------------------------------------
 pure function state_space_init(m, b, k, n_out) result(rst)
     !! Initializes the state space model.
     !! For the second-order mechanical system
@@ -160,10 +180,12 @@ pure function state_space_init(m, b, k, n_out) result(rst)
 
     ! Initialization
     p = size(m, 1)
+    if (p < 1 .or. size(m, 2) /= p) &
+        error stop DYN_INVALID_INPUT_ERROR
     n = 2 * p
     q = 1
     if (present(n_out)) q = n_out
-    if (q <= 1) q = 1
+    if (q < 1) error stop DYN_INVALID_INPUT_ERROR
     allocate( &
         rst%A(n, n), &
         rst%B(n, p), &
@@ -175,6 +197,7 @@ pure function state_space_init(m, b, k, n_out) result(rst)
 
     ! Workspace
     call dgetri(p, rst%b(p+1:n,:), p, pvt, temp, -1, info)
+    if (info /= 0) error stop DYN_INVALID_INPUT_ERROR
     lwork = int(temp(1), int32)
     allocate(work(lwork))
 
@@ -190,11 +213,15 @@ pure function state_space_init(m, b, k, n_out) result(rst)
     rst%A(p+1:n,1:p) = -k
     rst%A(p+1:n,p+1:n) = -b
     call dgetrf(p, p, rst%B(p+1:n,1:p), p, pvt, info)
+    if (info /= 0) error stop DYN_INVALID_INPUT_ERROR
     call dgetrs('N', p, p, rst%B(p+1:n,1:p), p, pvt, rst%A(p+1:n,1:p), p, &
         info)
+    if (info /= 0) error stop DYN_INVALID_INPUT_ERROR
     call dgetrs('N', p, p, rst%B(p+1:n,1:p), p, pvt, rst%A(p+1:n,p+1:n), &
         p, info)
+    if (info /= 0) error stop DYN_INVALID_INPUT_ERROR
     call dgetri(p, rst%B(p+1:n,1:p), p, pvt, work, lwork, info)
+    if (info /= 0) error stop DYN_INVALID_INPUT_ERROR
 end function
 
 ! ------------------------------------------------------------------------------
@@ -215,6 +242,8 @@ pure function state_space_init_scalar(m, b, k) result(rst)
         !! The stiffness.
     type(state_space) :: rst
         !! The [[state_space]] model.
+
+    if (m <= 0.0d0) error stop DYN_INVALID_INPUT_ERROR
 
     ! Process
     allocate( &
@@ -245,6 +274,11 @@ pure function state_space_init_matrices(a, b, c, d) result(rst)
         !! The P-by-M feedthrough matrix.
     type(state_space) :: rst
         !! The resulting [[state_space]] object.
+
+    if (size(a, 1) < 1 .or. size(a, 2) /= size(a, 1) .or. &
+        size(b, 1) /= size(a, 1) .or. size(c, 2) /= size(a, 1) .or. &
+        size(d, 1) /= size(c, 1) .or. size(d, 2) /= size(b, 2)) &
+        error stop DYN_INVALID_INPUT_ERROR
 
     allocate(rst%A, source = a)
     allocate(rst%B, source = b)
@@ -277,8 +311,8 @@ pure function state_space_init_pid(kp, ki, kd, tau, a, b, c, d) result(rst)
     !! \beta K_{i} B & -\frac{\beta K_{d}}{\tau} B \\ 
     !! -C + \alpha \beta D C & -\beta K_{i} D & \frac{\beta K_{d}}{\tau} D 
     !! \\ \frac{1}{\tau}\left(-C + \alpha \beta D C \right) & 
-    !! -\frac{\beta K_{i}}{\tau} D & \frac{1}{\tau} \left( 
-    !! 1 + \frac{\beta K_{d}}{\tau^{2}} D \right) \end{matrix} \right] $$
+    !! -\frac{\beta K_{i}}{\tau} D & -\frac{1}{\tau} + 
+    !! \frac{\beta K_{d}}{\tau^{2}} D \end{matrix} \right] $$
     !! $$ B_{cl} = \left[ \begin{matrix} \alpha \beta B \\ 1 - 
     !! \alpha \beta D \\ \frac{1}{\tau} \left( 1 - \alpha \beta D \right) 
     !! \end{matrix} \right] $$
@@ -310,6 +344,10 @@ pure function state_space_init_pid(kp, ki, kd, tau, a, b, c, d) result(rst)
     real(real64) :: alpha, beta, ab
     real(real64), allocatable, dimension(:,:) :: dc
 
+    if (tau <= 0.0d0 .or. size(a, 1) < 1 .or. &
+        size(a, 2) /= size(a, 1) .or. size(b, 1) /= size(a, 1) .or. &
+        size(c, 2) /= size(a, 1)) error stop DYN_INVALID_INPUT_ERROR
+
     ! Initialization
     n = size(a, 1)
     n1 = n + 1
@@ -318,7 +356,8 @@ pure function state_space_init_pid(kp, ki, kd, tau, a, b, c, d) result(rst)
         rst%A(n2, n2), &
         rst%B(n2, 1), &
         rst%C(1, n2), &
-        rst%D(1, 1) &
+        rst%D(1, 1), &
+        source = 0.0d0 &
     )
     dc = matmul(d, c)
 
@@ -327,16 +366,19 @@ pure function state_space_init_pid(kp, ki, kd, tau, a, b, c, d) result(rst)
     if (d(1,1) == 0.0d0) then
         beta = 1.0d0
     else
+        if (abs(1.0d0 + alpha * d(1,1)) <= &
+            sqrt(epsilon(1.0d0)) * max(1.0d0, abs(alpha * d(1,1)))) &
+            error stop DYN_INVALID_INPUT_ERROR
         beta = 1.0d0 / (1.0d0 + alpha * d(1,1))
     end if
     ab = alpha * beta
     rst%A(1:n,1:n) = a - ab * matmul(b, c)
     rst%A(n1,1:n) = -c(1,1:n) + ab * dc(1,1:n)
-    rst%A(4,1:n) = (1.0d0 / tau) * rst%A(3,1:2)
+    rst%A(n2,1:n) = (1.0d0 / tau) * rst%A(n1,1:n)
 
     rst%A(1:n,n1) = beta * ki * b(1:n,1)
     rst%A(n1,n1) = -beta * ki * d(1,1)
-    rst%A(n2,n1) = rst%A(3,3) / tau
+    rst%A(n2,n1) = rst%A(n1,n1) / tau
 
     rst%A(1:n,n2) = -(beta * kd / tau) * b(1:n,1)
     rst%A(n1,n2) = beta * kd * d(1,1) / tau
@@ -344,7 +386,7 @@ pure function state_space_init_pid(kp, ki, kd, tau, a, b, c, d) result(rst)
 
     rst%B(1:n,1) = ab * b(1:n,1)
     rst%B(n1,1) = 1.0d0 - ab * d(1,1)
-    rst%B(n2,1) = (1.0d0 / tau) * rst%B(3,1)
+    rst%B(n2,1) = (1.0d0 / tau) * rst%B(n1,1)
 
     rst%C(1,1:n) = c(1,1:n) - ab * dc(1,1:n)
     rst%C(1,n1) = beta * ki * d(1,1)
@@ -418,6 +460,7 @@ pure function ss_eval_deriv(this, u, x) result(rst)
     real(real64), allocatable, dimension(:) :: rst
         !! The N-element state time derivative vector.
 
+    call validate_state_space(this)
     rst = matmul(this%A, x) + matmul(this%B, u)
 end function
 
@@ -434,6 +477,7 @@ pure function ss_eval_output(this, u, x) result(rst)
     real(real64), allocatable, dimension(:) :: rst
         !! The P-element output array.
 
+    call validate_state_space(this)
     rst = matmul(this%C, x) + matmul(this%D, u)
 end function
 
@@ -450,6 +494,8 @@ pure function ss_poles(this) result(rst)
     ! Local Variables
     integer(int32) :: n
     real(real64), allocatable, dimension(:,:) :: ac
+
+    call validate_state_space(this)
 
     ! Process
     n = size(this%A, 1)
@@ -473,6 +519,8 @@ pure function ss_zeros(this) result(rst)
     integer(int32) :: i, j, n, m, p, nz
     real(real64), allocatable, dimension(:,:) :: Az, Bz
     complex(real64), allocatable, dimension(:) :: buffer, trimmed
+
+    call validate_state_space(this)
 
     ! Initialization
     n = size(this%A, 1)
@@ -526,6 +574,8 @@ pure function ss_transfer_fcn(this, s) result(rst)
     complex(real64), allocatable, dimension(:) :: work, Bj
     complex(real64), allocatable, dimension(:,:) :: A, Ac
 
+    call validate_state_space(this)
+
     ! Initialization
     n = size(this%A, 1)
     ninput = size(this%B, 2)
@@ -535,6 +585,7 @@ pure function ss_transfer_fcn(this, s) result(rst)
 
     ! Determine DGELS workspace requirements
     call zgels('N', n, n, 1, Ac, n, Bj, n, temp, -1, info)
+    if (info /= 0) error stop DYN_INVALID_INPUT_ERROR
     lwork = int(temp(1), int32)
     allocate(work(lwork))
 
@@ -551,6 +602,7 @@ pure function ss_transfer_fcn(this, s) result(rst)
         if (j /= 1) A = Ac  ! We need a copy as A will be overwritten
         Bj = this%B(:,j)
         call zgels('N', n, n, 1, A, n, Bj, n, work, lwork, info)
+        if (info /= 0) error stop DYN_INVALID_INPUT_ERROR
         rst(:,j) = matmul(this%C, Bj) + this%D(:,j)
     end do
 end function
@@ -664,6 +716,8 @@ pure function init_tf_array(y, x) result(rst)
     type(transfer_function) :: rst
         !! The resulting [[transfer_function]].
 
+    if (size(y) < 1 .or. size(x) < 1) error stop DYN_INVALID_INPUT_ERROR
+
     ! Process
     call rst%Y%initialize(y)
     call rst%X%initialize(x)
@@ -681,6 +735,8 @@ pure elemental function tf_eval_s(this, s) result(rst)
         !! The value of the transfer function.
 
     ! Process
+    if (this%X%evaluate(s) == (0.0d0, 0.0d0)) &
+        error stop DYN_INVALID_INPUT_ERROR
     rst = this%Y%evaluate(s) / this%X%evaluate(s)
 end function
 
@@ -744,15 +800,19 @@ pure function tf_to_ccf_statespace(this) result(rst)
         !! The resulting state-space object.
 
     ! Local Variables
-    integer(int32) :: i, order, n, norder
+    integer(int32) :: i, order, norder
     real(real64) :: a
 
     ! Process
     order = this%X%order()
-    n = order + 1
+    norder = this%Y%order()
+    if (norder > order) error stop DYN_INVALID_INPUT_ERROR
     allocate(rst%A(order, order), rst%B(order, 1), rst%C(1, order), &
         rst%D(1, 1), source = 0.0d0)
-    a = this%X%get(n)
+    a = this%X%get(order + 1)
+    if (a == 0.0d0) error stop DYN_INVALID_INPUT_ERROR
+    if (norder == order) rst%D(1,1) = this%Y%get(order + 1) / a
+    if (order == 0) return
     do i = 1, order
         rst%A(order,i) = -this%X%get(i) / a
     end do
@@ -761,9 +821,8 @@ pure function tf_to_ccf_statespace(this) result(rst)
     end do
     rst%B(order, 1) = 1.0d0
 
-    norder = this%Y%order()
     do i = 1, min(norder + 1, order)
-        rst%C(1,i) = this%Y%get(i) / a
+        rst%C(1,i) = (this%Y%get(i) - rst%D(1,1) * this%X%get(i)) / a
     end do
 end function
 
@@ -780,15 +839,19 @@ pure function tf_to_ocf_statespace(this) result(rst)
         !! The resulting state-space object.
 
     ! Local Variables
-    integer(int32) :: i, order, n, norder
+    integer(int32) :: i, order, norder
     real(real64) :: a
 
     ! Process
     order = this%X%order()
-    n = order + 1
+    norder = this%Y%order()
+    if (norder > order) error stop DYN_INVALID_INPUT_ERROR
     allocate(rst%A(order, order), rst%B(order, 1), rst%C(1, order), &
         rst%D(1, 1), source = 0.0d0)
-    a = this%X%get(n)
+    a = this%X%get(order + 1)
+    if (a == 0.0d0) error stop DYN_INVALID_INPUT_ERROR
+    if (norder == order) rst%D(1,1) = this%Y%get(order + 1) / a
+    if (order == 0) return
     do i = 1, order
         rst%A(i,order) = -this%X%get(i) / a
     end do
@@ -796,9 +859,8 @@ pure function tf_to_ocf_statespace(this) result(rst)
         rst%A(i+1,i) = 1.0d0
     end do
 
-    norder = this%Y%order()
     do i = 1, min(norder + 1, order)
-        rst%B(i,1) = this%Y%get(i) / a
+        rst%B(i,1) = (this%Y%get(i) - rst%D(1,1) * this%X%get(i)) / a
     end do
 
     rst%C(1,order) = 1.0d0

@@ -177,6 +177,12 @@ program main
     check = test_ocf_form_conversion()
     if (.not.check) flag = 37
 
+    check = test_tf_feedthrough_conversion()
+    if (.not.check) flag = 150
+
+    check = test_tf_constant_conversion()
+    if (.not.check) flag = 151
+
     check = test_lti_solve()
     if (.not.check) flag = 38
 
@@ -380,6 +386,9 @@ program main
 
     check = test_state_space_poles_zeros()
     if (.not.check) flag = 99
+
+    check = test_state_space_pid_order()
+    if (.not.check) flag = 152
 
     check = test_state_space_to_transfer_function()
     if (.not.check) flag = 100

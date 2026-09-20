@@ -245,4 +245,54 @@ function test_ocf_form_conversion() result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+function test_tf_feedthrough_conversion() result(rst)
+    logical :: rst
+
+    real(real64), parameter :: tol = 1.0d-8
+    real(real64) :: expected_a(1,1), expected_b(1,1), expected_c(1,1)
+    real(real64) :: expected_d(1,1)
+    type(transfer_function) :: tf
+    type(state_space) :: ccf, ocf
+
+    rst = .true.
+    tf = transfer_function([3.0d0, 4.0d0], [2.0d0, 5.0d0])
+    expected_a(1,1) = -2.0d0 / 5.0d0
+    expected_b(1,1) = 1.0d0
+    expected_c(1,1) = (3.0d0 - (4.0d0 / 5.0d0) * 2.0d0) / 5.0d0
+    expected_d(1,1) = 4.0d0 / 5.0d0
+    ccf = tf%to_ccf_state_space()
+    ocf = tf%to_ocf_state_space()
+    if (.not.assert(ccf%A, expected_a, tol)) rst = .false.
+    if (.not.assert(ccf%B, expected_b, tol)) rst = .false.
+    if (.not.assert(ccf%C, expected_c, tol)) rst = .false.
+    if (.not.assert(ccf%D, expected_d, tol)) rst = .false.
+    if (.not.assert(ocf%A, expected_a, tol)) rst = .false.
+    if (.not.assert(ocf%B, expected_c, tol)) rst = .false.
+    if (.not.assert(ocf%C, expected_b, tol)) rst = .false.
+    if (.not.assert(ocf%D, expected_d, tol)) rst = .false.
+    if (.not.rst) print "(A)", &
+        "TEST FAILED: test_tf_feedthrough_conversion"
+end function
+
+! ------------------------------------------------------------------------------
+function test_tf_constant_conversion() result(rst)
+    logical :: rst
+    type(transfer_function) :: tf
+    type(state_space) :: ccf, ocf
+
+    rst = .true.
+    tf = transfer_function([6.0d0], [3.0d0])
+    ccf = tf%to_ccf_state_space()
+    ocf = tf%to_ocf_state_space()
+    if (size(ccf%A,1) /= 0 .or. size(ccf%A,2) /= 0 .or. &
+        size(ccf%B,1) /= 0 .or. size(ccf%C,2) /= 0 .or. &
+        ccf%D(1,1) /= 2.0d0) rst = .false.
+    if (size(ocf%A,1) /= 0 .or. size(ocf%A,2) /= 0 .or. &
+        size(ocf%B,1) /= 0 .or. size(ocf%C,2) /= 0 .or. &
+        ocf%D(1,1) /= 2.0d0) rst = .false.
+    if (.not.rst) print "(A)", &
+        "TEST FAILED: test_tf_constant_conversion"
+end function
+
+! ------------------------------------------------------------------------------
 end module
