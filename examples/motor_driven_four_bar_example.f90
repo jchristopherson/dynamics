@@ -148,12 +148,14 @@ program example
 
 contains
 ! ------------------------------------------------------------------------------
-pure function crank_motion(t) result(rst)
+function crank_motion(t, args) result(rst)
     !! Prescribes one cycle of sinusoidal crank motion centered at 40 degrees
     !! with an amplitude of 10 degrees. The cosine phase starts the mechanism
     !! at its lower displacement limit with zero commanded velocity.
     real(real64), intent(in) :: t
         !! The simulation time.
+    class(*), intent(inout), optional :: args
+        !! Optional, user-defined communication argument.
     real(real64) :: rst
         !! The prescribed absolute crank angle, in radians.
 

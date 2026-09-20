@@ -32,11 +32,13 @@ module dynamics_linkage_dynamics
     public :: torsional_element_result
 
     abstract interface
-        function linkage_prescribed_motion(t) result(rst)
+        function linkage_prescribed_motion(t, args) result(rst)
             !! Computes a prescribed angular displacement as a function of time.
             import :: real64
             real(real64), intent(in) :: t
                 !! The simulation time.
+			class(*), intent(inout), optional :: args
+				!! A mechanism for passing information in/out of this routine.
             real(real64) :: rst
                 !! The prescribed absolute angle, in radians.
         end function
@@ -233,6 +235,8 @@ module dynamics_linkage_dynamics
             prescribed_motion => null()
             !! The callback defining the prescribed body's absolute angle, or a
             !! null pointer when no prescribed motion is active.
+		class(*), pointer :: user_args
+			!! User-specified data to pass along.
     end type
 
 contains
@@ -734,8 +738,8 @@ end subroutine
 
 ! ------------------------------------------------------------------------------
 function ldm_solve(this, integrator, dt, ntime, initial_state, gravity, &
-    body_force, body_torque, prescribed_body, prescribed_motion, multipliers) &
-    result(rst)
+    body_force, body_torque, prescribed_body, prescribed_motion, multipliers, &
+	args) result(rst)
     !! Integrates the linkage dynamics under an optional uniform world-frame
     !! gravitational acceleration and optional constant body loads.
     class(linkage_dynamic_model), intent(in), target :: this
@@ -762,6 +766,9 @@ function ldm_solve(this, integrator, dt, ntime, initial_state, gravity, &
     real(real64), allocatable, intent(out), optional, dimension(:,:) :: multipliers
         !! Constraint multipliers for each completed time step. When a motion is
         !! prescribed, the last row is the required motor torque.
+	class(*), intent(inout), target, optional :: args
+		!! A mechanism for the caller to pass information to/from the 
+		!! user-defined routines (e.g. presribed_motion).
     type(variational_state), allocatable, dimension(:) :: rst
             !! The state at the initial time followed by the state after each
             !! completed integration step.
@@ -775,6 +782,8 @@ function ldm_solve(this, integrator, dt, ntime, initial_state, gravity, &
     state = this%m_initial_state
     if (present(initial_state)) state = initial_state
     context%model => this
+	context%user_args => null()
+	if (present(args)) context%user_args => args
     if (present(gravity)) context%gravity = gravity
     allocate(context%body_force(3,this%get_body_count()), source = 0.0d0)
     allocate(context%body_torque(3,this%get_body_count()), source = 0.0d0)
@@ -825,9 +834,15 @@ subroutine linkage_constraints(state, value, args)
         value(1:context%model%m_constraint_count) = &
             context%model%constraint_residual(state)
         if (associated(context%prescribed_motion)) then
-            value(size(value)) = planar_body_angle(state, &
-                context%prescribed_body) - &
-                context%prescribed_motion(state%time)
+			if (associated(context%user_args)) then
+				value(size(value)) = planar_body_angle(state, &
+					context%prescribed_body) - &
+					context%prescribed_motion(state%time, context%user_args)
+			else
+				value(size(value)) = planar_body_angle(state, &
+					context%prescribed_body) - &
+					context%prescribed_motion(state%time)
+			end if
         end if
     class default
         error stop DYN_INVALID_INPUT_ERROR

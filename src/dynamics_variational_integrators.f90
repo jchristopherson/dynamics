@@ -209,10 +209,11 @@ subroutine vi_step(this, bodies, state, dt, constraint_count, constraint, &
     integer(int32), allocatable, dimension(:) :: pivot
     real(real64) :: alpha, trial_norm, residual_norm
     real(real64), allocatable, dimension(:) :: unknown, trial, residual, &
-        trial_residual, delta
+        trial_residual, delta, perturbed, perturbed_value, &
+        base_constraint_value, constraint_value
     real(real64), allocatable, dimension(:,:) :: jacobian, lu, &
-        constraint_gradient
-    type(variational_state) :: accepted_state
+        constraint_gradient, applied_force, applied_torque
+    type(variational_state) :: accepted_state, next_state, perturbed_state
 
     ! Input Checking
     nbody = size(bodies)
@@ -225,7 +226,12 @@ subroutine vi_step(this, bodies, state, dt, constraint_count, constraint, &
     ! equality-constraint impulses.
     nvar = 6 * nbody + nconstraint
     allocate(unknown(nvar), trial(nvar), residual(nvar), &
-        trial_residual(nvar), jacobian(nvar, nvar))
+        trial_residual(nvar), jacobian(nvar, nvar), &
+        perturbed(nvar), perturbed_value(nvar), &
+        applied_force(3,nbody), applied_torque(3,nbody), &
+        constraint_value(max(1,nconstraint)))
+    next_state = state
+    perturbed_state = state
     do i = 1, nbody
         unknown(6*i-5:6*i-3) = state%velocity(:,i)
         unknown(6*i-2:6*i) = state%angular_velocity(:,i)
@@ -235,7 +241,8 @@ subroutine vi_step(this, bodies, state, dt, constraint_count, constraint, &
     ! The reduced constraint Jacobian is evaluated at the current state and is
     ! constant throughout the Newton iterations for this discrete step.
     if (nconstraint > 0) then
-        allocate(constraint_gradient(nconstraint, 6*nbody))
+        allocate(constraint_gradient(nconstraint, 6*nbody), &
+            base_constraint_value(nconstraint))
         if (present(constraint_jacobian)) then
             call constraint_jacobian(state, constraint_gradient, args)
         else
@@ -306,13 +313,8 @@ contains
         type(variational_state) :: next_state
         integer(int32) :: body_index, first
         real(real64), dimension(3) :: omega1, omega2, momentum1, momentum2
-        real(real64), allocatable, dimension(:,:) :: applied_force, &
-            applied_torque
-        real(real64), allocatable, dimension(:) :: constraint_value
-
         ! Evaluate external loading at the current discrete state. This is the
         ! left-endpoint discrete force convention used by the paper.
-        allocate(applied_force(3,nbody), applied_torque(3,nbody))
         applied_force = 0.0d0
         applied_torque = 0.0d0
         if (present(force_function)) then
@@ -344,7 +346,6 @@ contains
             ! Apply constraint forces through the reduced configuration Jacobian
             ! and append the position-level constraints at the new configuration.
         if (nconstraint > 0) then
-            allocate(constraint_value(nconstraint))
             call constraint(next_state, constraint_value, args)
             value(1:6*nbody) = value(1:6*nbody) - matmul( &
                 transpose(constraint_gradient), x(6*nbody+1:nvar))
@@ -391,10 +392,7 @@ contains
         ! Local Variables
         integer(int32) :: column
         real(real64) :: step_size
-        real(real64), allocatable, dimension(:) :: perturbed, perturbed_value
-
         ! Perturb each unknown by a scale-aware step with an absolute floor.
-        allocate(perturbed(size(x)), perturbed_value(size(value)))
         do column = 1, size(x)
             step_size = this%settings%finite_difference_step * &
                 max(1.0d0, abs(x(column)))
@@ -416,11 +414,8 @@ contains
         type(quaternion) :: perturbation
         integer(int32) :: body_index, component, column
         real(real64) :: rotation_step, translation_step
-        real(real64), allocatable, dimension(:) :: base_value, perturbed_value
-
         ! Evaluate the unperturbed constraint once for all forward differences.
-        allocate(base_value(nconstraint), perturbed_value(nconstraint))
-        call constraint(state, base_value, args)
+        call constraint(state, base_constraint_value, args)
 		rotation_step = this%settings%finite_difference_step * &
 			this%settings%constraint_rotation_scale
         do body_index = 1, nbody
@@ -434,8 +429,10 @@ contains
                 perturbed_state%position(component,body_index) = &
                     perturbed_state%position(component,body_index) + &
 					translation_step
-                call constraint(perturbed_state, perturbed_value, args)
-                derivative(:,column) = (perturbed_value - base_value) / &
+                call constraint(perturbed_state, &
+                    perturbed_value(1:nconstraint), args)
+                derivative(:,column) = (perturbed_value(1:nconstraint) - &
+                    base_constraint_value) / &
 					translation_step
 
                 ! Local quaternion-vector tangent direction. The scalar part
@@ -448,8 +445,10 @@ contains
                     merge(rotation_step, 0.0d0, component == 3)])
                 perturbed_state%orientation(body_index) = &
                     state%orientation(body_index) * perturbation
-                call constraint(perturbed_state, perturbed_value, args)
-                derivative(:,column) = (perturbed_value - base_value) / &
+                call constraint(perturbed_state, &
+                    perturbed_value(1:nconstraint), args)
+                derivative(:,column) = (perturbed_value(1:nconstraint) - &
+                    base_constraint_value) / &
 					rotation_step
             end do
         end do

@@ -512,8 +512,10 @@ subroutine c_vi_torsional_results(obj,nbody,time,p,q,v,w,r) &
     end do
 end subroutine
 
-function motion_bridge(t) result(rst)
-    real(real64), intent(in) :: t; real(real64) :: rst
+function motion_bridge(t, args) result(rst)
+    real(real64), intent(in) :: t
+    class(*), intent(inout), optional :: args
+    real(real64) :: rst
     rst=active_motion(t,active_motion_data)
 end function
 

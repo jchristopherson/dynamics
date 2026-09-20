@@ -441,8 +441,9 @@ The [`motor_driven_four_bar_example`](examples/motor_driven_four_bar_example.f90
 Rather than applying a specified torque or using closed-loop control, the example prescribes a sinusoidal absolute crank angle. The additional rheonomic constraint enforces this motion directly, and its Lagrange multiplier gives the motor torque required to produce the commanded trajectory:
 
 ```fortran
-pure function crank_motion(t) result(rst)
+function crank_motion(t, args) result(rst)
     real(real64), intent(in) :: t
+    class(*), intent(inout), optional :: args
     real(real64) :: rst
 
     rst = motion_center - motion_amplitude * &

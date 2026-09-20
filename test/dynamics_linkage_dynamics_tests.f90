@@ -437,9 +437,10 @@ function test_parallel_linkage_dynamics() result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
-pure function fixed_crank_motion(t) result(rst)
+function fixed_crank_motion(t, args) result(rst)
     !! Supplies the fixed crank angle used to exercise prescribed motion.
     real(real64), intent(in) :: t
+    class(*), intent(inout), optional :: args
     real(real64) :: rst
 
     rst = 0.7d0
