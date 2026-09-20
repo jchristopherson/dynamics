@@ -740,7 +740,7 @@ contains
             !! An M-element array containing the frequency points at which the 
             !! solution should be computed.  Notice, whatever units are utilized
             !! for this array are also the units of the excitation_frequency
-            !! property in sys.  Additionally, this array cannot contain any
+            !! property in fcn.  Additionally, this array cannot contain any
             !! zero-valued elements as the ODE solution time for each frequency 
             !! is determined by the period of oscillation and number of cycles.
         real(real64), intent(in), dimension(:) :: iv
