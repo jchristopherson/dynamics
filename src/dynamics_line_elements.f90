@@ -17,7 +17,7 @@ module dynamics_line_elements
     type, extends(line_element) :: beam_element_2d
         !! Defines a two-dimensional Bernoulli-Euler beam element.
         !!
-        !! ![Beam element coordinate systems](../../images/beam_coordinate_system.svg)
+        !! ![Beam element coordinate systems](|media|/beam_coordinate_system.svg)
         !!
         !! The local x-axis runs from node 1 to node 2. The local z-axis is
         !! normal to the 2D element plane.
@@ -53,7 +53,7 @@ module dynamics_line_elements
     type, extends(line_element) :: beam_element_3d
         !! Defines a three-dimensional Bernoulli-Euler beam element.
         !!
-        !! ![Beam element coordinate systems](../../images/beam_coordinate_system.svg)
+        !! ![Beam element coordinate systems](|media|/beam_coordinate_system.svg)
         !!
         !! The local x-axis runs from node 1 to node 2. The orientation point
         !! defines the local z-axis; the local y-axis completes the right-handed

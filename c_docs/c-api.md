@@ -41,7 +41,7 @@ The beam element APIs use the local element coordinate system shown below. The
 local x-axis runs from node 1 to node 2. For a 3D beam, the orientation point
 defines the local z-axis and the local y-axis completes the right-handed frame.
 
-![Beam element coordinate systems](../images/beam_coordinate_system.svg)
+![Beam element coordinate systems](beam_coordinate_system.svg)
 
 ## Denavit-Hartenberg parameters
 
@@ -51,7 +51,7 @@ frame `i` into frame `i-1` as
 
 `Rz(joint_angle) Tz(link_offset) Tx(link_length) Rx(link_twist)`.
 
-![Standard Denavit-Hartenberg parameters](../images/dh_parameter_set.svg)
+![Standard Denavit-Hartenberg parameters](dh_parameter_set.svg)
 
 ## Geometry operations
 
@@ -59,7 +59,7 @@ The geometry API provides point, line, plane, and Plucker-line representations,
 along with projection, distance, parallelism, intersection, and common-normal
 operations. The relationships are summarized below.
 
-![Geometry representations and operations](../images/geometry_operations.svg)
+![Geometry representations and operations](geometry_operations.svg)
 
 ## Variational and linkage dynamics
 

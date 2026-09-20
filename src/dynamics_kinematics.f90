@@ -72,7 +72,7 @@ module dynamics_kinematics
     type dh_parameter_set
         !! Describes a set of Denavit-Hartenberg parameters for a single joint.
         !!
-        !! ![Denavit-Hartenberg parameters](../../images/dh_parameter_set.svg)
+        !! ![Denavit-Hartenberg parameters](|media|/dh_parameter_set.svg)
         !!
         !! The parameters follow the standard convention used by
         !! [[dh_matrix]]: the transform maps coordinates from frame i into
