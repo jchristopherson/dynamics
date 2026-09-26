@@ -4,27 +4,27 @@ set(dir ${CMAKE_CURRENT_SOURCE_DIR})
 # Define the source files
 set(DYNAMICS_SOURCES
     ${dir}/dynamics.f90
-    ${dir}/dynamics_error_handling.f90
-    ${dir}/dynamics_frequency_response.f90
-    ${dir}/dynamics_rotation.f90
-    ${dir}/dynamics_structural.f90
-    ${dir}/dynamics_kinematics.f90
-    ${dir}/dynamics_vibrations.f90
-    ${dir}/dynamics_helper.f90
-    ${dir}/dynamics_stability.f90
-    ${dir}/dynamics_controls.f90
-    ${dir}/dynamics_system_id.f90
-    ${dir}/dynamics_quaternions.f90
-    ${dir}/dynamics_maps.f90
-    ${dir}/dynamics_geometry.f90
-    ${dir}/dynamics_rigid_bodies.f90
-    ${dir}/dynamics_graph.f90
-    ${dir}/dynamics_joints.f90
-    ${dir}/dynamics_linkage.f90
-    ${dir}/dynamics_parallel_linkage.f90
-    ${dir}/dynamics_line_elements.f90
-    ${dir}/dynamics_variational_integrators.f90
-    ${dir}/dynamics_linkage_dynamics.f90
+    ${dir}/support/dynamics_error_handling.f90
+    ${dir}/frequency/dynamics_frequency_response.f90
+    ${dir}/rigid_bodies/dynamics_rotation.f90
+    ${dir}/structural/dynamics_structural.f90
+    ${dir}/rigid_bodies/dynamics_kinematics.f90
+    ${dir}/vibrations/dynamics_vibrations.f90
+    ${dir}/support/dynamics_helper.f90
+    ${dir}/vibrations/dynamics_stability.f90
+    ${dir}/controls/dynamics_controls.f90
+    ${dir}/system_id/dynamics_system_id.f90
+    ${dir}/rigid_bodies/dynamics_quaternions.f90
+    ${dir}/vibrations/dynamics_maps.f90
+    ${dir}/support/dynamics_geometry.f90
+    ${dir}/rigid_bodies/dynamics_rigid_bodies.f90
+    ${dir}/rigid_bodies/dynamics_graph.f90
+    ${dir}/rigid_bodies/dynamics_joints.f90
+    ${dir}/rigid_bodies/dynamics_linkage.f90
+    ${dir}/rigid_bodies/dynamics_parallel_linkage.f90
+    ${dir}/structural/dynamics_line_elements.f90
+    ${dir}/solvers/dynamics_variational_integrators.f90
+    ${dir}/rigid_bodies/dynamics_linkage_dynamics.f90
 )
 
 # C API
