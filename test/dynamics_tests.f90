@@ -36,6 +36,17 @@ program main
     ! Initialization
     flag = 0
 
+    if (command_argument_count() > 0) then
+        block
+            character(32) :: selection
+            call get_command_argument(1, selection)
+            if (selection == "generalized-alpha") then
+                if (.not.test_generalized_alpha_integrator()) stop 152
+                stop
+            end if
+        end block
+    end if
+
     ! Tests
     check = test_frf_sweep()
     if (.not.check) flag = 1
@@ -96,6 +107,9 @@ program main
 
     check = test_global_assembly()
     if (.not.check) flag = 118
+
+    check = test_generalized_alpha_integrator()
+    if (.not.check) flag = 152
 
     check = test_forward_kinematics()
     if (.not.check) flag = 12

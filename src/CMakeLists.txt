@@ -25,6 +25,7 @@ set(DYNAMICS_SOURCES
     ${dir}/structural/dynamics_line_elements.f90
     ${dir}/solvers/dynamics_variational_integrators.f90
     ${dir}/rigid_bodies/dynamics_linkage_dynamics.f90
+    ${dir}/solvers/dynamics_linear_structural_solvers.f90
 )
 
 # C API

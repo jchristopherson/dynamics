@@ -55,6 +55,7 @@ The `dynamics` module aggregates tools for analysis, modeling, and identificatio
     - Position-dependent beam shear-force and bending-moment extraction in 2D and 3D.
     - Connectivity matrix construction and boundary-condition application.
     - Sparse/CSR-oriented structural assembly helpers.
+    - Generalized-alpha time stepping for linear structural systems with dense or CSR mass, damping, and stiffness matrices.
 - Stability analysis
     - Local fixed-point stability classification helpers.
 
