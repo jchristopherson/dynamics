@@ -52,6 +52,7 @@ The `dynamics` module aggregates tools for analysis, modeling, and identificatio
     - Vector helper routines such as cross products and skew-symmetric forms.
 - Structural dynamics
     - 2D/3D beam element utilities and material/node/element abstractions, with local-coordinate [beam system documentation](images/beam_coordinate_system.svg).
+    - 2D/3D axial truss elements with consistent mass and no rotational degrees of freedom.
     - Position-dependent beam shear-force and bending-moment extraction in 2D and 3D.
     - Connectivity matrix construction and boundary-condition application.
     - Sparse/CSR-oriented structural assembly helpers.

@@ -1,6 +1,7 @@
 program harmonic_truss_example
     use iso_fortran_env, only : int32, real64
-    use dynamics, only : dense_generalized_alpha_integrator, apply_boundary_conditions
+    use dynamics, only : dense_generalized_alpha_integrator, apply_boundary_conditions, &
+        assemble_dynamic_system, material, node, truss_element_2d
     use fplot_core
     implicit none
 
@@ -25,23 +26,28 @@ program harmonic_truss_example
 
     integer(int32) :: bar, time_index, apex_y, middle_y, middle_x, right_x
     integer(int32) :: restrained(3)
-    real(real64) :: mass(ndof,ndof), stiffness(ndof,ndof)
-    real(real64), allocatable, dimension(:,:) :: reduced_mass, reduced_stiffness, damping
+    real(real64), allocatable, dimension(:,:) :: mass, stiffness, reduced_mass, reduced_stiffness, damping
     real(real64), allocatable, dimension(:) :: displacement, velocity, acceleration
     real(real64), allocatable, dimension(:) :: force_current, force_next
     real(real64) :: time(nsteps+1), apex_motion(nsteps+1), middle_motion(nsteps+1)
     real(real64) :: middle_horizontal(nsteps+1), right_horizontal(nsteps+1)
+    type(material) :: truss_material
+    type(node), dimension(nnode) :: nodes
+    type(truss_element_2d), dimension(nbar) :: bars
     type(dense_generalized_alpha_integrator) :: integrator
     type(multiplot) :: plt
     type(plot_2d) :: plt1, plt2
     class(legend), pointer :: lgnd
 
-    mass = 0.0d0
-    stiffness = 0.0d0
-    do bar = 1, nbar
-        call assemble_bar(ends(1,bar), ends(2,bar), positions, &
-            elastic_modulus, density, area, mass, stiffness)
+    truss_material = material(elastic_modulus, 0.3d0, density)
+    do bar = 1, nnode
+        nodes(bar) = node(bar, 2, positions(1,bar), positions(2,bar), 0.0d0)
     end do
+    do bar = 1, nbar
+        bars(bar) = truss_element_2d(truss_material, area, &
+            nodes(ends(1,bar)), nodes(ends(2,bar)))
+    end do
+    call assemble_dynamic_system(ndof, bars, nodes, mass, stiffness)
 
     restrained = [1, 2, 6]
     reduced_mass = apply_boundary_conditions(restrained, mass)
@@ -102,41 +108,5 @@ program harmonic_truss_example
     call plt%set(2, 1, plt2)
 
     call plt%draw()
-
-contains
-
-subroutine assemble_bar(first, second, xy, modulus, material_density, cross_section, m, k)
-    integer(int32), intent(in) :: first, second
-    real(real64), intent(in), dimension(:,:) :: xy
-    real(real64), intent(in) :: modulus, material_density, cross_section
-    real(real64), intent(inout), dimension(:,:) :: m, k
-    integer(int32) :: local_row, local_col, global_dof(4)
-    real(real64) :: length, direction(2), axial(4), element_mass
-
-    direction = xy(:,second) - xy(:,first)
-    length = norm2(direction)
-    direction = direction / length
-    axial = [-direction(1), -direction(2), direction(1), direction(2)]
-    global_dof = [2*first-1, 2*first, 2*second-1, 2*second]
-    element_mass = material_density * cross_section * length / 6.0d0
-
-    do local_col = 1, 4
-        do local_row = 1, 4
-            k(global_dof(local_row),global_dof(local_col)) = &
-                k(global_dof(local_row),global_dof(local_col)) + &
-                modulus * cross_section / length * axial(local_row) * axial(local_col)
-        end do
-    end do
-    do local_row = 1, 2
-        m(global_dof(local_row),global_dof(local_row)) = &
-            m(global_dof(local_row),global_dof(local_row)) + 2.0d0 * element_mass
-        m(global_dof(local_row+2),global_dof(local_row+2)) = &
-            m(global_dof(local_row+2),global_dof(local_row+2)) + 2.0d0 * element_mass
-        m(global_dof(local_row),global_dof(local_row+2)) = &
-            m(global_dof(local_row),global_dof(local_row+2)) + element_mass
-        m(global_dof(local_row+2),global_dof(local_row)) = &
-            m(global_dof(local_row+2),global_dof(local_row)) + element_mass
-    end do
-end subroutine
 
 end program

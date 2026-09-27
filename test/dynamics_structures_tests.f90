@@ -1864,6 +1864,95 @@ function test_beam3d_mass_matrix() result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+function test_truss_elements() result(rst)
+    logical :: rst
+    integer(int32) :: row, col
+    real(real64), parameter :: tol = 1.0d-12
+    real(real64), dimension(4) :: axial_2d
+    real(real64), dimension(6) :: axial_3d
+    real(real64), dimension(4,4) :: expected_k2, expected_m2
+    real(real64), dimension(6,6) :: expected_k3, expected_m3
+    real(real64), allocatable, dimension(:) :: strain_result
+    real(real64), allocatable, dimension(:,:) :: mass, stiffness
+    type(material) :: mat
+    type(node), dimension(2) :: nodes_2d, nodes_3d
+    type(truss_element_2d), dimension(1) :: bars_2d
+    type(truss_element_3d), dimension(1) :: bars_3d
+
+    rst = .true.
+    mat = material(100.0d0, 0.3d0, 6.0d0)
+    nodes_2d(1) = node(1, 2, 0.0d0, 0.0d0, 0.0d0)
+    nodes_2d(2) = node(2, 2, 3.0d0, 4.0d0, 0.0d0)
+    bars_2d(1) = truss_element_2d(mat, 0.02d0, nodes_2d(1), nodes_2d(2))
+    axial_2d = [-0.6d0, -0.8d0, 0.6d0, 0.8d0]
+    expected_k2 = 0.0d0
+    expected_m2 = 0.0d0
+    do col = 1, 4
+        do row = 1, 4
+            expected_k2(row,col) = 0.4d0 * axial_2d(row) * axial_2d(col)
+        end do
+        expected_m2(col,col) = 0.2d0
+    end do
+    expected_m2(1,3) = 0.1d0
+    expected_m2(3,1) = 0.1d0
+    expected_m2(2,4) = 0.1d0
+    expected_m2(4,2) = 0.1d0
+    call assemble_dynamic_system(4, bars_2d, nodes_2d, mass, stiffness)
+    strain_result = bars_2d(1)%strain([0.0d0, 0.0d0, 0.006d0, 0.008d0], [0.0d0])
+    if (maxval(abs(stiffness - expected_k2)) > tol .or. &
+        maxval(abs(mass - expected_m2)) > tol .or. &
+        abs(bars_2d(1)%length() - 5.0d0) > tol .or. &
+        abs(strain_result(1) - 0.002d0) > tol) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_truss_elements - 2D"
+    end if
+
+    nodes_3d(1) = node(1, 3, 0.0d0, 0.0d0, 0.0d0)
+    nodes_3d(2) = node(2, 3, 0.0d0, 0.0d0, 2.0d0)
+    bars_3d(1) = truss_element_3d(mat, 0.02d0, nodes_3d(1), nodes_3d(2))
+    axial_3d = [0.0d0, 0.0d0, -1.0d0, 0.0d0, 0.0d0, 1.0d0]
+    expected_k3 = 0.0d0
+    expected_m3 = 0.0d0
+    do col = 1, 6
+        do row = 1, 6
+            expected_k3(row,col) = 1.0d0 * axial_3d(row) * axial_3d(col)
+        end do
+        expected_m3(col,col) = 0.08d0
+    end do
+    expected_m3(1,4) = 0.04d0
+    expected_m3(4,1) = 0.04d0
+    expected_m3(2,5) = 0.04d0
+    expected_m3(5,2) = 0.04d0
+    expected_m3(3,6) = 0.04d0
+    expected_m3(6,3) = 0.04d0
+    call assemble_dynamic_system(6, bars_3d, nodes_3d, mass, stiffness)
+    if (maxval(abs(stiffness - expected_k3)) > tol .or. &
+        maxval(abs(mass - expected_m3)) > tol .or. &
+        abs(bars_3d(1)%length() - 2.0d0) > tol) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_truss_elements - 3D"
+    end if
+
+    nodes_3d(2) = node(2, 3, 3.0d0, 4.0d0, 12.0d0)
+    bars_3d(1) = truss_element_3d(mat, 0.02d0, nodes_3d(1), nodes_3d(2))
+    axial_3d = [-3.0d0, -4.0d0, -12.0d0, 3.0d0, 4.0d0, 12.0d0] / 13.0d0
+    do col = 1, 6
+        do row = 1, 6
+            expected_k3(row,col) = 2.0d0 / 13.0d0 * axial_3d(row) * axial_3d(col)
+        end do
+    end do
+    strain_result = bars_3d(1)%strain([0.0d0, 0.0d0, 0.0d0, &
+        0.003d0, 0.004d0, 0.012d0], [0.0d0])
+    call assemble_dynamic_system(6, bars_3d, nodes_3d, mass, stiffness)
+    if (maxval(abs(stiffness - expected_k3)) > tol .or. &
+        abs(strain_result(1) - 0.001d0) > tol .or. &
+        abs(bars_3d(1)%length() - 13.0d0) > tol) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_truss_elements - oblique 3D"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
 function test_generalized_alpha_integrator() result(rst)
     use linalg, only : dense_to_csr
     logical :: rst

@@ -108,6 +108,9 @@ program main
     check = test_global_assembly()
     if (.not.check) flag = 118
 
+    check = test_truss_elements()
+    if (.not.check) flag = 153
+
     check = test_generalized_alpha_integrator()
     if (.not.check) flag = 152
 

@@ -243,6 +243,15 @@ target_link_libraries(motor_driven_four_bar_example ${PROJECT_NAME} ${FPLOT_LIBR
 
 if (${BUILD_SHARED_LIBS} AND WIN32)
     add_custom_command(
+        TARGET harmonic_truss_example
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+        $<TARGET_RUNTIME_DLLS:harmonic_truss_example>
+        $<TARGET_FILE_DIR:harmonic_truss_example>
+        COMMAND_EXPAND_LISTS
+    )
+
+    add_custom_command(
         TARGET frf_sweep_example_1
         POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy 

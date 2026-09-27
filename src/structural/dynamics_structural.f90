@@ -112,7 +112,7 @@ module dynamics_structural
         procedure, public :: strain => e_strain
         procedure, public :: stress => e_stress
     end type
-    
+
 ! ------------------------------------------------------------------------------
     type, extends(element), abstract :: line_element
         !! Defines a line element type.
@@ -230,28 +230,25 @@ module dynamics_structural
         end function
 
         pure subroutine line_element_get_terminal(this, i1, i2)
-            !! Defines the signature of a routine for returning the terminal
-            !! node numbers.
-            use iso_fortran_env, only : int32
-            import line_element
+            !! Defines the signature for returning the terminal node numbers.
+            import :: line_element, int32
             class(line_element), intent(in) :: this
                 !! The line_element object.
             integer(int32), intent(out) :: i1
-                !! The index of the node at the head of the element.
+                !! The index of the first terminal node.
             integer(int32), intent(out) :: i2
-                !! The index of the node at the tail of the element.
+                !! The index of the second terminal node.
         end subroutine
 
         pure function line_element_const_matrix_function(this) result(rst)
-            !! Defines the signature of a routine for returning a matrix
-            !! associated with the line_element.
-            use iso_fortran_env, only : real64
-            import line_element
+            !! Defines the signature for a line-element matrix function.
+            import :: line_element, real64
             class(line_element), intent(in) :: this
                 !! The line_element object.
             real(real64), allocatable, dimension(:,:) :: rst
                 !! The resulting matrix.
         end function
+
     end interface
 
 ! ******************************************************************************
@@ -1556,12 +1553,10 @@ pure function le_length(this) result(rst)
     real(real64) :: rst
         !! The length of the line element.
 
-    ! Local Variables
     real(real64) :: dx, dy, dz
     integer(int32) :: i1, i2
     type(node) :: n1, n2
 
-    ! Process
     call this%get_terminal_nodes(i1, i2)
     n1 = this%get_node(i1)
     n2 = this%get_node(i2)
@@ -1577,28 +1572,14 @@ pure function le_stiffness_matrix(this, rule) result(rst)
     class(line_element), intent(in) :: this
         !! The line_element object.
     integer(int32), intent(in), optional :: rule
-        !! The integration rule.  The rule must be one of the following:
-        !!
-        !! - MECH_ONE_POINT_INTEGRATION_RULE
-        !!
-        !! - MECH_TWO_POINT_INTEGRATION_RULE
-        !!
-        !! - MECH_THREE_POINT_INTEGRATION_RULE
-        !!
-        !! - MECH_FOUR_POINT_INTEGRATION_RULE
-        !!
-        !! The default integration rule is MECH_TWO_POINT_INTEGRATION_RULE.
+        !! The optional numerical integration rule.
     real(real64), allocatable, dimension(:,:) :: rst
         !! The resulting matrix.
 
-    ! Local Variables
     real(real64), allocatable, dimension(:,:) :: T, Tt
 
-    ! Compute the rotation matrix
     T = this%rotation_matrix()
     Tt = transpose(T)
-
-    ! Compute the stiffness matrix and apply the rotation transformation
     rst = e_stiffness_matrix(this, rule)
     rst = matmul(Tt, matmul(rst, T))
 end function
@@ -1609,62 +1590,33 @@ pure function le_mass_matrix(this, rule) result(rst)
     class(line_element), intent(in) :: this
         !! The line_element object.
     integer(int32), intent(in), optional :: rule
-        !! The integration rule.  The rule must be one of the following:
-        !!
-        !! - MECH_ONE_POINT_INTEGRATION_RULE
-        !!
-        !! - MECH_TWO_POINT_INTEGRATION_RULE
-        !!
-        !! - MECH_THREE_POINT_INTEGRATION_RULE
-        !!
-        !! - MECH_FOUR_POINT_INTEGRATION_RULE
-        !!
-        !! The default integration rule is MECH_TWO_POINT_INTEGRATION_RULE.
+        !! The optional numerical integration rule.
     real(real64), allocatable, dimension(:,:) :: rst
         !! The resulting matrix.
 
-    ! Local Variables
     real(real64), allocatable, dimension(:,:) :: T, Tt
 
-    ! Compute the rotation matrix
     T = this%rotation_matrix()
     Tt = transpose(T)
-
-    ! Compute the mass matrix and apply the rotation transformation
     rst = e_mass_matrix(this, rule)
     rst = this%area * matmul(Tt, matmul(rst, T))
 end function
 
 ! ------------------------------------------------------------------------------
 pure function le_ext_force_vector(this, q, rule) result(rst)
-    !! Computes the mass matrix for the element.
+    !! Computes the external force vector for the element.
     class(line_element), intent(in) :: this
         !! The line_element object.
     real(real64), intent(in), dimension(:) :: q
-        !! The surface traction forces vector or body force vector.  
-        !! For instance, a 2D problem this vector would look like [qx, qy]**T.
+        !! The surface traction or body-force vector.
     integer(int32), intent(in), optional :: rule
-        !! The integration rule.  The rule must be one of the following:
-        !!
-        !! - DYN_ONE_POINT_INTEGRATION_RULE
-        !!
-        !! - DYN_TWO_POINT_INTEGRATION_RULE
-        !!
-        !! - DYN_THREE_POINT_INTEGRATION_RULE
-        !!
-        !! - DYN_FOUR_POINT_INTEGRATION_RULE
-        !!
-        !! The default integration rule is DYN_TWO_POINT_INTEGRATION_RULE.
+        !! The optional numerical integration rule.
     real(real64), allocatable, dimension(:) :: rst
         !! The resulting vector.
 
-    ! Local Variables
     real(real64), allocatable, dimension(:,:) :: T
 
-    ! Compute the rotation matrix
     T = this%rotation_matrix()
-
-    ! Compute the force vector
     rst = e_ext_force_vector(this, q, rule)
     rst = matmul(T, rst)
 end function
