@@ -395,6 +395,31 @@ DAMPING TERM:
 ```
 ![](images/siso_least_squares_fit_example.png?raw=true)
 
+## Harmonic Truss Example
+
+The [`harmonic_truss_example`](examples/harmonic_truss_example.f90) models a four-node, five-bar pin-jointed truss with a pinned support and a roller. It assembles axial stiffness and consistent translational mass matrices, applies the support constraints, and advances the response to a vertical 20 Hz load at the apex with `dense_generalized_alpha_integrator`. Fplot saves vertical apex and midspan motion and horizontal midspan and roller motion to `harmonic_truss_response.png` in the process's working directory. Build the `harmonic_truss_example` CMake target with examples enabled, then run it from the build's examples directory.
+
+After assembling and reducing the mass and stiffness matrices, the time-stepping core is:
+
+```fortran
+call integrator%initialize(reduced_mass, damping, reduced_stiffness, rho_infinity = 0.7d0)
+do time_index = 1, nsteps + 1
+    time(time_index) = (time_index - 1) * dt
+    apex_motion(time_index) = 1.0d3 * displacement(apex_y)
+    middle_motion(time_index) = 1.0d3 * displacement(middle_y)
+    if (time_index > nsteps) exit
+
+    force_next = 0.0d0
+    force_next(apex_y) = -force_amplitude * &
+        sin(2.0d0 * pi * frequency * real(time_index, real64) * dt)
+    call integrator%step(force_current, force_next, dt, &
+        displacement, velocity, acceleration)
+    force_current = force_next
+end do
+```
+
+![Forced response of the simple truss example](images/harmonic_truss_example.png?raw=true)
+
 ## Variational Integrator Example
 The [`variational_integrator_example`](examples/variational_integrator_example.f90) simulates a planar double pendulum in maximal coordinates. Both connecting rods have distributed mass, finite cross-section inertia, and gravity loading at their centers of mass. Six holonomic constraints pin the first rod to ground and join the two rod endpoints.
 

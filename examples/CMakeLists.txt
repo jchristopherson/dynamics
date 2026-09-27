@@ -229,6 +229,10 @@ endif()
 add_executable(structural_example structural_example.f90)
 target_link_libraries(structural_example ${PROJECT_NAME} ${FPLOT_LIBRARIES})
 
+# Harmonic Truss Example
+add_executable(harmonic_truss_example harmonic_truss_example.f90)
+target_link_libraries(harmonic_truss_example ${PROJECT_NAME} ${FPLOT_LIBRARIES})
+
 # Variational Integrator Example
 add_executable(variational_integrator_example variational_integrator_example.f90)
 target_link_libraries(variational_integrator_example ${PROJECT_NAME} ${FPLOT_LIBRARIES})
