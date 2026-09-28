@@ -13,6 +13,7 @@
 ! fitness for a particular purpose and noninfringement.
 module dynamics_geometry_tests
     use iso_fortran_env
+    use diffeq, only : ode_container, bdf
     use fortran_test_helper
     use dynamics
     use dynamics_maps, only : poincare_map, POINCARE_ONE_SIDED_FROM_FRONT, &
@@ -149,6 +150,83 @@ function test_poincare_map() result(rst)
         print "(A)", "TEST FAILED: test_poincare_map empty trajectory"
     end if
 end function
+
+! ------------------------------------------------------------------------------
+function test_poincare_map_ode() result(rst)
+    logical :: rst
+    real(real64), allocatable, dimension(:,:) :: points
+    type(ode_container) :: model
+    type(bdf) :: integrator
+
+    rst = .false.
+    model%fcn => linear_section_ode
+    points = poincare_map(model, [0.0d0, 4.0d0], [0.0d0, 0.0d0, -2.0d0], &
+        9, solver = integrator, chunk_size = 4)
+    if (size(points,1) /= 1) then
+        print "(A)", "TEST FAILED: test_poincare_map_ode sampled chunk boundary"
+        return
+    end if
+    if (maxval(abs(points(1,:) - [2.0d0, 4.0d0, 0.0d0])) > 1.0d-4) then
+        print "(A)", "TEST FAILED: test_poincare_map_ode sampled point"
+        return
+    end if
+
+    points = poincare_map(model, [0.0d0, 4.0d0], [0.0d0, 0.0d0, -1.75d0], &
+        9, solver = integrator, chunk_size = 1)
+    if (size(points,1) /= 1) then
+        print "(A)", "TEST FAILED: test_poincare_map_ode interpolated crossing"
+        return
+    end if
+    if (maxval(abs(points(1,:) - [1.75d0, 3.5d0, 0.0d0])) > 1.0d-4) then
+        print "(A)", "TEST FAILED: test_poincare_map_ode interpolated point"
+        return
+    end if
+
+    points = poincare_map(model, [0.0d0, 4.0d0], [0.0d0, 0.0d0, -2.0d0], &
+        9, chunk_size = 2, coordinates = tangent_section_coordinates)
+    if (size(points,1) /= 0) then
+        print "(A)", "TEST FAILED: test_poincare_map_ode chunk boundary tangent"
+        return
+    end if
+
+    points = poincare_map(model, [0.0d0, 4.0d0], [0.0d0, 0.0d0, -2.0d0], &
+        17, side = POINCARE_ONE_SIDED_FROM_BACK, chunk_size = 4, &
+        coordinates = periodic_section_coordinates)
+    if (size(points,1) /= 2) then
+        print "(A)", "TEST FAILED: test_poincare_map_ode periodic crossings"
+        return
+    end if
+    if (maxval(abs(points(:,1) - [2.0d0, 4.0d0])) > 1.0d-4) then
+        print "(A)", "TEST FAILED: test_poincare_map_ode periodic points"
+        return
+    end if
+    rst = .true.
+end function
+
+subroutine linear_section_ode(t, state, derivative, args)
+    real(real64), intent(in) :: t
+    real(real64), intent(in), dimension(:) :: state
+    real(real64), intent(out), dimension(:) :: derivative
+    class(*), intent(inout), optional :: args
+
+    derivative = [1.0d0, 2.0d0, 1.0d0]
+end subroutine
+
+subroutine tangent_section_coordinates(t, state, coordinates_out)
+    real(real64), intent(in) :: t
+    real(real64), intent(in), dimension(:) :: state
+    real(real64), intent(out), dimension(3) :: coordinates_out
+
+    coordinates_out = [state(1), state(2), (t - 2.0d0)**2]
+end subroutine
+
+subroutine periodic_section_coordinates(t, state, coordinates_out)
+    real(real64), intent(in) :: t
+    real(real64), intent(in), dimension(:) :: state
+    real(real64), intent(out), dimension(3) :: coordinates_out
+
+    coordinates_out = [state(1), state(2), sin(acos(-1.0d0) * t)]
+end subroutine
 
 ! ------------------------------------------------------------------------------
 function test_line_from_2_points() result(rst)

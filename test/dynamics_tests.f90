@@ -318,6 +318,9 @@ program main
     check = test_poincare_map()
     if (.not.check) flag = 154
 
+    check = test_poincare_map_ode()
+    if (.not.check) flag = 155
+
     check = test_plane_from_3_points()
     if (.not.check) flag = 66
 
