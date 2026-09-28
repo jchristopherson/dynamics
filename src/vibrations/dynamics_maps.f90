@@ -14,6 +14,7 @@
 module dynamics_maps
     use iso_fortran_env
     use dynamics_geometry
+    use dynamics_error_handling, only : DYN_INVALID_INPUT_ERROR
     implicit none
     private
     public :: POINCARE_TWO_SIDED
@@ -46,6 +47,11 @@ contains
         !! $$ \boldsymbol{p}(t)=\boldsymbol{p}_1+t(\boldsymbol{p}_2-\boldsymbol{p}_1),
         !! \quad 0\leq t\leq1, $$
         !! and the section point satisfies \(a x(t)+b y(t)+c z(t)+d=0\).
+        !! A crossing at an exactly sampled point is returned once, provided
+        !! the nearest non-section samples on either side lie on opposite
+        !! sides of the plane. Tangencies and runs of samples on the plane are
+        !! not crossings and are ignored. A final sample on the plane is
+        !! returned once if the preceding segment approaches it.
         real(real64), intent(in), dimension(:) :: x
             !! The x-coordinates of the trajectory.
         real(real64), intent(in), dimension(size(x)) :: y
@@ -80,15 +86,20 @@ contains
             !! columns respectively.
 
         ! Local Variables
-        logical :: from_back
+        logical :: from_back, keep
         integer(int32) :: i, j, n, s
-        real(real64) :: t, pt0(3), pt1(3), pt2(3), v(3), pt(3)
+        real(real64) :: t, pt(3), normal(3), normal_norm, offset, tol, scale
+        real(real64), allocatable, dimension(:) :: signed_distance
         real(real64), allocatable, dimension(:,:) :: buffer
         type(plane) :: p
         
         ! Initialization
         n = size(x)
-        allocate(buffer(n, 3))
+        allocate(buffer(max(0, n - 1), 3))
+        if (n == 0) then
+            rst = buffer
+            return
+        end if
         if (present(pln)) then
             p = pln
         else
@@ -104,92 +115,74 @@ contains
             end if
         end if
 
+        normal = [p%a, p%b, p%c]
+        normal_norm = norm2(normal)
+        if (normal_norm <= tiny(normal_norm)) error stop DYN_INVALID_INPUT_ERROR
+        normal = normal / normal_norm
+        offset = p%d / normal_norm
+        scale = max(1.0d0, abs(offset), maxval(abs(x)), maxval(abs(y)), maxval(abs(z)))
+        tol = 1.0d1 * epsilon(1.0d0) * scale
+        allocate(signed_distance(n))
+        do i = 1, n
+            signed_distance(i) = dot_product(normal, [x(i), y(i), z(i)]) + offset
+        end do
+
         ! Process
         j = 0
-        pt1 = [x(1), y(1), z(1)]
-        do i = 2, n
-            ! Construct a line between the two points
-            pt2 = [x(i), y(i), z(i)]
-            v = pt2 - pt1
-
-            ! Determine the intersection with the plane by determining the
-            ! parameter t.  If the parameter t lies between 0 and 1 the point
-            ! of intersection is between the two points and we can keep; else, 
-            ! it's not and we cannot keep
-            t = -(p%a * pt1(1) + p%b * pt1(2) + p%c * pt1(3) + p%d) / &
-                dot_product(plane_normal(p), v)
-            if (t >= 0.0d0 .and. t <= 1.0d0) then
-                pt = pt1 + t * v
-                if (s == POINCARE_TWO_SIDED) then
-                    j = j + 1
-                    buffer(j,:) = pt
-                else
-                    if (j > 2) then
-                        from_back = approach_from_behind(p, pt1, pt0)
-                    else
-                        from_back = approach_from_behind(p, pt1)
-                    end if
-                    if (from_back .and. s == POINCARE_ONE_SIDED_FROM_BACK) then
-                        ! One sided - from back
-                        j = j + 1
-                        buffer(j,:) = pt
-                    else if (.not.from_back .and. s == POINCARE_ONE_SIDED_FROM_FRONT) then
-                        ! One sided - from front
-                        j = j + 1
-                        buffer(j,:) = pt
+        do i = 1, n - 1
+            keep = .false.
+            if (abs(signed_distance(i)) <= tol) then
+                ! An isolated sampled hit belongs to the map only when the
+                ! trajectory changes sides across that sample.
+                if (i > 1 .and. i < n) then
+                    if (abs(signed_distance(i-1)) > tol .and. &
+                        abs(signed_distance(i+1)) > tol) then
+                        if ((signed_distance(i-1) < 0.0d0 .and. &
+                            signed_distance(i+1) > 0.0d0) .or. &
+                            (signed_distance(i-1) > 0.0d0 .and. &
+                            signed_distance(i+1) < 0.0d0)) then
+                            from_back = signed_distance(i-1) < 0.0d0
+                            keep = accepts_side(s, from_back)
+                            pt = [x(i), y(i), z(i)]
+                        end if
                     end if
                 end if
+            else if (abs(signed_distance(i+1)) > tol) then
+                ! Strict opposite signs give a unique segment crossing.
+                if ((signed_distance(i) < 0.0d0 .and. &
+                    signed_distance(i+1) > 0.0d0) .or. &
+                    (signed_distance(i) > 0.0d0 .and. &
+                    signed_distance(i+1) < 0.0d0)) then
+                    t = signed_distance(i) / &
+                        (signed_distance(i) - signed_distance(i+1))
+                    pt = [x(i), y(i), z(i)] + t * &
+                        ([x(i+1), y(i+1), z(i+1)] - [x(i), y(i), z(i)])
+                    from_back = signed_distance(i) < 0.0d0
+                    keep = accepts_side(s, from_back)
+                end if
+            else if (i == n - 1 .and. abs(signed_distance(i)) > tol) then
+                ! The final sample has no outgoing segment, but its incoming
+                ! direction is known and the endpoint is a valid section hit.
+                from_back = signed_distance(i) < 0.0d0
+                keep = accepts_side(s, from_back)
+                pt = [x(n), y(n), z(n)]
             end if
-
-            ! Update the next point
-            pt0 = pt1
-            pt1 = pt2
+            if (keep) then
+                j = j + 1
+                buffer(j,:) = pt
+            end if
         end do
         rst = buffer(1:j,:)
     end function
 
 ! ------------------------------------------------------------------------------
-    pure function approach_from_behind(pln, x1, x2) result(rst)
-        !! Determines if the trajectory approaches the sectioning plane from
-        !! behind (true) or not (false) given the most recent point in the
-        !! trajectory and the point prior.  The point prior.
-        class(plane), intent(in) :: pln
-            !! The plane.
-        real(real64), intent(in) :: x1(3)
-            !! The most recent point in the trajectory prior to the trajectory
-            !! intersecting the plane.
-        real(real64), intent(in), optional :: x2(3)
-            !! The point previos to x1 that is used only if x1 lies on the plane
-            !! such that direction is indeterminate.
-        logical :: rst
-            !! Returns true if the trajectory approaches the plane from behind;
-            !! else, false if the trajectory approaches the plane from in front.
-            !! The signed plane function
-            !! $$ \sigma(\boldsymbol{x})=\boldsymbol{n}\cdot\boldsymbol{x}+d $$
-            !! determines the side of the section because \(\sigma<0\) is behind
-            !! the plane normal.
+    pure logical function accepts_side(side, from_back) result(rst)
+        integer(int32), intent(in) :: side
+        logical, intent(in) :: from_back
 
-        ! Local Variables
-        real(real64) :: val, tol
-
-        ! Initialization
-        tol = 1.0d1 * epsilon(tol)  ! tolerance for a point on the plane
-
-        ! Process
-        val = pln%a * x1(1) + pln%b * x1(2) + pln%c * x1(3) + pln%d
-        if (abs(val) < tol) then
-            ! The point lies on the plane
-            if (present(x2)) then
-                ! Use the point previous to determine which side
-                val = pln%a * x2(1) + pln%b * x2(2) + pln%c * x2(3) + pln%d
-                rst = val < 0.0d0
-            else
-                rst = .false.   ! default to this case in the event x2 is not given
-            end if
-        else
-            rst = val < 0.0d0   ! the point approaches the plane from the side 
-                                ! opposite the normal (from behind) if true
-        end if
+        rst = side == POINCARE_TWO_SIDED .or. &
+            (side == POINCARE_ONE_SIDED_FROM_BACK .and. from_back) .or. &
+            (side == POINCARE_ONE_SIDED_FROM_FRONT .and. .not.from_back)
     end function
 
 ! ------------------------------------------------------------------------------

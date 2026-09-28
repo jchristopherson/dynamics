@@ -35,4 +35,5 @@ module dynamics
     use dynamics_variational_integrators
     use dynamics_linkage_dynamics
     use dynamics_linear_structural_solvers
+    use dynamics_maps
 end module

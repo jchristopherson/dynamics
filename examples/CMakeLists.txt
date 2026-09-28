@@ -163,6 +163,18 @@ target_link_libraries(
     ${DIFFEQ_LIBRARIES}
 )
 
+# Duffing Poincare Example
+add_executable(
+    duffing_poincare_example
+    duffing_poincare_example.f90
+)
+target_link_libraries(
+    duffing_poincare_example
+    ${PROJECT_NAME}
+    ${FPLOT_LIBRARIES}
+    ${DIFFEQ_LIBRARIES}
+)
+
 # C DH_Table Example
 if (${BUILD_DYNAMICS_C_INTERFACE})
     add_executable(
@@ -242,6 +254,15 @@ add_executable(motor_driven_four_bar_example motor_driven_four_bar_example.f90)
 target_link_libraries(motor_driven_four_bar_example ${PROJECT_NAME} ${FPLOT_LIBRARIES})
 
 if (${BUILD_SHARED_LIBS} AND WIN32)
+    add_custom_command(
+        TARGET duffing_poincare_example
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+        $<TARGET_RUNTIME_DLLS:duffing_poincare_example>
+        $<TARGET_FILE_DIR:duffing_poincare_example>
+        COMMAND_EXPAND_LISTS
+    )
+
     add_custom_command(
         TARGET harmonic_truss_example
         POST_BUILD

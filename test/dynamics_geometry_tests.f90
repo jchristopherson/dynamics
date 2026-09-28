@@ -15,10 +15,141 @@ module dynamics_geometry_tests
     use iso_fortran_env
     use fortran_test_helper
     use dynamics
+    use dynamics_maps, only : poincare_map, POINCARE_ONE_SIDED_FROM_FRONT, &
+        POINCARE_ONE_SIDED_FROM_BACK
     use dynamics_helper
     implicit none
 
 contains
+! ------------------------------------------------------------------------------
+function test_poincare_map() result(rst)
+    logical :: rst
+    real(real64), parameter :: tol = 1.0d-12
+    real(real64), dimension(0) :: empty
+    real(real64), dimension(2) :: x, y, z
+    real(real64), allocatable, dimension(:,:) :: points
+    type(plane) :: section
+
+    rst = .true.
+    x = [0.0d0, 2.0d0]
+    y = [0.0d0, 4.0d0]
+    z = [-1.0d0, 1.0d0]
+    points = poincare_map(x, y, z)
+    if (size(points,1) /= 1) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_poincare_map interpolated crossing"
+        return
+    end if
+    if (maxval(abs(points(1,:) - [1.0d0, 2.0d0, 0.0d0])) > tol) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_poincare_map interpolated point"
+        return
+    end if
+
+    section%a = 0.0d0
+    section%b = 0.0d0
+    section%c = 5.0d0
+    section%d = 0.0d0
+    points = poincare_map(x, y, z, section)
+    if (size(points,1) /= 1) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_poincare_map scaled plane"
+        return
+    end if
+    if (maxval(abs(points(1,:) - [1.0d0, 2.0d0, 0.0d0])) > tol) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_poincare_map scaled plane point"
+        return
+    end if
+
+    z = [1.0d0, 1.0d0]
+    points = poincare_map(x, y, z)
+    if (size(points,1) /= 0) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_poincare_map parallel segment"
+        return
+    end if
+
+    z = 0.0d0
+    points = poincare_map(x, y, z)
+    if (size(points,1) /= 0) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_poincare_map coplanar segment"
+        return
+    end if
+
+    x = [0.0d0, 1.0d0]
+    y = 0.0d0
+    z = [-1.0d0, 0.0d0]
+    points = poincare_map(x, y, z)
+    if (size(points,1) /= 1) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_poincare_map final endpoint"
+        return
+    end if
+    if (maxval(abs(points(1,:) - [1.0d0, 0.0d0, 0.0d0])) > tol) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_poincare_map final endpoint point"
+        return
+    end if
+
+    block
+        real(real64), dimension(3) :: tx, ty, tz
+        tx = [0.0d0, 1.0d0, 2.0d0]
+        ty = 0.0d0
+        tz = [-1.0d0, 0.0d0, 1.0d0]
+        points = poincare_map(tx, ty, tz)
+        if (size(points,1) /= 1) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_poincare_map sampled crossing"
+            return
+        end if
+        if (maxval(abs(points(1,:) - [1.0d0, 0.0d0, 0.0d0])) > tol) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_poincare_map sampled crossing point"
+            return
+        end if
+        points = poincare_map(tx, ty, tz, side = POINCARE_ONE_SIDED_FROM_BACK)
+        if (size(points,1) /= 1) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_poincare_map back-side crossing"
+            return
+        end if
+        points = poincare_map(tx, ty, tz, side = POINCARE_ONE_SIDED_FROM_FRONT)
+        if (size(points,1) /= 0) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_poincare_map front-side rejection"
+            return
+        end if
+        tz = [1.0d0, 0.0d0, -1.0d0]
+        points = poincare_map(tx, ty, tz, side = POINCARE_ONE_SIDED_FROM_FRONT)
+        if (size(points,1) /= 1) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_poincare_map front-side crossing"
+            return
+        end if
+        points = poincare_map(tx, ty, tz, side = POINCARE_ONE_SIDED_FROM_BACK)
+        if (size(points,1) /= 0) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_poincare_map back-side rejection"
+            return
+        end if
+        tz = [1.0d0, 0.0d0, 1.0d0]
+        points = poincare_map(tx, ty, tz)
+        if (size(points,1) /= 0) then
+            rst = .false.
+            print "(A)", "TEST FAILED: test_poincare_map tangent contact"
+            return
+        end if
+    end block
+
+    points = poincare_map(empty, empty, empty)
+    if (size(points,1) /= 0 .or. size(points,2) /= 3) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_poincare_map empty trajectory"
+    end if
+end function
+
 ! ------------------------------------------------------------------------------
 function test_line_from_2_points() result(rst)
     logical :: rst
