@@ -255,6 +255,134 @@ Notice that the linkage is drawn by querying the mechanism itself.  The `body_tr
 
 ![](images/four_bar_example_1.png?raw=true)
 
+## Motor-Driven Parallel Linkage Example
+The linkage dynamics analysis capabilities also allow the addition of motors to drive motion, along with spring and damper elements.  The [`four_bar_example_2`](examples/four_bar_example_2.f90) analyzes a four-bar linkage driven at the crank by a motor, and utilizes a torsional spring and damper at the rocker-ground revolute joint.  The analysis illustrates how, given the motor motion, to extract the motor torque required to achieve the motion, along with the joint reaction forces in terms of the world coordinate frame.  The solver always places prescribed-motion constraints after all the joint constraints; therefore, the motor torque is the last row in the Lagrange multiplier output.  For this example, the motor torque is the required torque to overcome the inertia of the mechanism, and the spring and damper at the rocker-ground revolute joint.
+
+```fortran
+type(link_container) :: links(4)
+type(joint) :: joints(4)
+type(planar_linkage) :: mechanism
+type(linkage_dynamic_model) :: model
+procedure(linkage_prescribed_motion), pointer :: motor_motion
+type(torsional_spring) :: spring
+type(torsional_damper) :: damper
+real(real64) :: g(3), R(3,3)
+type(variational_integrator) :: integrator
+type(variational_state), allocatable, dimension(:) :: solution
+real(real64), allocatable, dimension(:,:) :: constraint_multipliers
+type(joint_reaction) :: joint_reactions(4)
+
+! Connect the links via revolute joints
+joints(1) = joint( &
+    REVOLUTE_JOINT, &       ! joint type
+    1, &                    ! parent link index (ground link)
+    2, &                    ! child link index (crank link)
+    1, &                    ! parent coordinate frame index (interfaces to joint #1 on the ground link)
+    1, &                    ! child coordinate frame index  (interfaces to joint #1 on the crank link)
+    actuated = .true. &     ! we're going to drive this joint with a motor
+)
+joints(2) = joint( &
+    REVOLUTE_JOINT, &       ! joint type
+    2, &                    ! parent link index (crank link)
+    3, &                    ! child link index (coupler link)
+    2, &                    ! parent coordinate frame index (interfaces to joint #2 on the crank)
+    1 &                     ! child coordinate frame index (interfaces to joint #1 on the coupler)
+)
+joints(3) = joint( &
+    REVOLUTE_JOINT, &       ! joint type
+    3, &                    ! parent link index (coupler link)
+    4, &                    ! child link index (rocker link)
+    2, &                    ! parent coordinate frame index (interfaces to joint #2 on the coupler)
+    2 &                     ! child coordinate frame index (interfaces to joint #2 on the rocker)
+)
+joints(4) = joint( &
+    REVOLUTE_JOINT, &       ! joint type
+    4, &                    ! parent link index (rocker link)
+    1, &                    ! child link index (ground link)
+    1, &                    ! parent coordinate frame index (interfaces to joint #1 on the rocker)
+    2 &                     ! child coordinate frame index (interfaces to joint #2 on the ground link)
+)
+
+! Construct the mechanism
+mechanism = planar_linkage( &
+    links, &                ! the list of link objects
+    joints, &               ! the list of joint objects
+    base = 1, &             ! the index of the base link (ground)
+    effector = 3 &          ! the index of the end-effector link (coupler)
+)
+
+! Define the dynamic model
+model = linkage_dynamic_model( &
+    mechanism, &                        ! the mechanism
+    mechanism%get_configuration() &     ! the initial configuration
+)
+
+! Now we can define the necessary routines for the integrator
+motor_motion => crank_motor
+
+! Add a spring and damper element
+spring%free_angle = 0.0d0
+spring%joint_index = 4      ! the spring is tied to the rocker-ground connection
+spring%stiffness = torsional_spring_rate
+call model%add_torsional_spring(spring)
+
+damper%joint_index = 4      ! the damper is tied to the rocker-ground connection
+damper%damping = torsional_damping_rate
+call model%add_torsional_damper(damper)
+
+! Define the gravitational vector
+g = [0.0d0, -gc, 0.0d0]     ! gravity in -y direction
+
+! Set up the integrator & solve
+integrator%settings%linear_solver = VI_DENSE_SOLVER ! define the solver type
+solution = model%solve( &
+    integrator, &                           ! the integrator to utilize
+    dt, &                                   ! time step size
+    ntime, &                                ! # of time steps
+    gravity = g, &                          ! gravitational vector
+    prescribed_body = 1, &                  ! the index of the driven body - ground is ignored in this instance, so the driving body is the crank and thus index 1
+    prescribed_motion = motor_motion, &     ! motor motion routine
+    multipliers = constraint_multipliers &  ! Lagrange multiplier values - use to get motor torque
+)
+
+! Extract the solution components
+do i = 1, ntime
+    time(i) = solution(i)%time
+
+    ! Crank Angle
+    R = solution(i)%orientation(1)%to_matrix()
+    crank_angle(i) = atan2(R(2,1), R(1,1)) * 1.8d2 / pi
+
+    ! Rocker Pivot Angle
+    R = solution(i)%orientation(3)%to_matrix()
+    rocker_angle(i) = atan2(R(2,1), R(1,1)) * 1.8d2 / pi
+
+    ! Joint Reactions
+    joint_reactions = model%get_joint_reactions( &
+        solution(i), &
+        constraint_multipliers(:,i) &
+    )
+    
+    Fx1(i) = joint_reactions(1)%force(1)
+    Fy1(i) = joint_reactions(1)%force(2)
+
+    Fx2(i) = joint_reactions(2)%force(1)
+    Fy2(i) = joint_reactions(2)%force(2)
+
+    Fx3(i) = joint_reactions(3)%force(1)
+    Fy3(i) = joint_reactions(3)%force(2)
+
+    Fx4(i) = joint_reactions(4)%force(1)
+    Fy4(i) = joint_reactions(4)%force(2)
+end do
+
+! Get the motor torque
+nmult = size(constraint_multipliers, 1)
+torque = constraint_multipliers(nmult,:)    ! motor torque
+```
+![](images/four_bar_example_2a.png?raw=true)
+![](images/four_bar_example_2b.png?raw=true)
+
 ## Frequency Response Example
 Consider the following 3 DOF system. The [`frf_proportional_example_1`](examples/frf_proportional_example_1.f90) example illustrates how to use this library to compute the frequency response functions for this system.
 

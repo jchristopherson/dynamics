@@ -82,6 +82,13 @@ add_executable(
 )
 target_link_libraries(four_bar_example_1 ${PROJECT_NAME} ${FPLOT_LIBRARIES})
 
+# Four-Bar Linkage Example 2
+add_executable(
+    four_bar_example_2
+    four_bar_example_2.f90
+)
+target_link_libraries(four_bar_example_2 ${PROJECT_NAME} ${FPLOT_LIBRARIES})
+
 # SISO FRF Example 1
 add_executable(
     siso_frf_example_1
