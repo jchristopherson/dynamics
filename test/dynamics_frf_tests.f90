@@ -92,7 +92,7 @@ function test_frf_sweep() result(rst)
     real(real64) :: df, freq(npts), omega(npts)
     real(real64), allocatable, dimension(:) :: mag1, mag2, magans1, magans2, &
         ratio1, ratio2, ref
-    type(frf) :: sol
+    type(frf) :: sol, bounded_sol
     complex(real64), allocatable, dimension(:) :: tf1, tf2, s
 
     ! Initialization
@@ -104,6 +104,12 @@ function test_frf_sweep() result(rst)
 
     ! Compute the FRF's
     sol = frequency_sweep(fcn, freq, [0.0d0, 0.0d0], inHz = .true.)
+    bounded_sol = frequency_sweep(fcn, npts, fmin, fmax, [0.0d0, 0.0d0], inHz = .true.)
+    if (maxval(abs(bounded_sol%frequency - sol%frequency)) > epsilon(0.0d0) .or. &
+        maxval(abs(bounded_sol%responses - sol%responses)) > 1.0d-10) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_frf_sweep bounded frequency overload"
+    end if
     mag1 = abs(sol%responses(:,1))
     mag2 = abs(sol%responses(:,2))
 

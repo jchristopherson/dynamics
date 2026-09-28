@@ -27,6 +27,8 @@ set(DYNAMICS_SOURCES
     ${dir}/solvers/dynamics_variational_integrators.f90
     ${dir}/rigid_bodies/dynamics_linkage_dynamics.f90
     ${dir}/solvers/dynamics_linear_structural_solvers.f90
+    ${dir}/frequency/dynamics_frequency_sweep.f90
+    ${dir}/frequency/dynamics_modal_analysis.f90
 )
 
 # C API

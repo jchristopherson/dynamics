@@ -13,6 +13,8 @@
 ! fitness for a particular purpose and noninfringement.
 module dynamics
     use dynamics_frequency_response
+    use dynamics_frequency_sweep
+    use dynamics_modal_analysis
     use dynamics_rotation
     use dynamics_structural
     use dynamics_kinematics
