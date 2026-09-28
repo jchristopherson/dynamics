@@ -16,6 +16,7 @@ set(DYNAMICS_C_SOURCES
     ${dir}/dynamics_c_parallel_linkage.f90
     ${dir}/dynamics_c_controls.f90
     ${dir}/dynamics_c_structural.f90
+    ${dir}/dynamics_c_structural_solvers.f90
     ${dir}/dynamics_c_vibrations.f90
     ${dir}/dynamics_c_variational.f90
     ${dir}/dynamics.c

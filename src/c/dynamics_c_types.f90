@@ -87,6 +87,24 @@ module dynamics_c_types
             real(c_double), intent(out) :: u(n)
         end subroutine
 
+        subroutine c_ode_equations(n, t, x, dxdt) &
+            bind(C, name = "c_ode_equations")
+            use iso_c_binding
+            integer(c_int), intent(in), value :: n
+            real(c_double), intent(in), value :: t
+            real(c_double), intent(in) :: x(n)
+            real(c_double), intent(out) :: dxdt(n)
+        end subroutine
+
+        subroutine c_poincare_coordinates(n, t, x, coordinates) &
+            bind(C, name = "c_poincare_coordinates")
+            use iso_c_binding
+            integer(c_int), intent(in), value :: n
+            real(c_double), intent(in), value :: t
+            real(c_double), intent(in) :: x(n)
+            real(c_double), intent(out) :: coordinates(3)
+        end subroutine
+
     end interface
 
     type c_vecfcn_container
@@ -108,6 +126,10 @@ module dynamics_c_types
 
     type c_ss_excitation_container
         procedure(c_ss_excitation), pointer, nopass :: fcn
+    end type
+
+    type c_ode_equations_container
+        procedure(c_ode_equations), pointer, nopass :: fcn
     end type
 
     type, bind(C) :: c_iteration_behavior
@@ -307,6 +329,67 @@ module dynamics_c_types
         type(c_node) :: node_1
         type(c_node) :: node_2
         real(c_double) :: orientation_point(3)
+    end type
+
+    type, bind(C) :: c_truss_element_2d
+        type(c_material) :: material
+        real(c_double) :: area
+        type(c_node) :: node_1
+        type(c_node) :: node_2
+    end type
+
+    type, bind(C) :: c_truss_element_3d
+        type(c_material) :: material
+        real(c_double) :: area
+        type(c_node) :: node_1
+        type(c_node) :: node_2
+    end type
+
+    type, bind(C) :: c_spring_element_2d
+        real(c_double) :: stiffness
+        type(c_node) :: node_1
+        type(c_node) :: node_2
+        real(c_double) :: direction(2)
+        logical(c_bool) :: use_direction
+    end type
+
+    type, bind(C) :: c_spring_element_3d
+        real(c_double) :: stiffness
+        type(c_node) :: node_1
+        type(c_node) :: node_2
+        real(c_double) :: direction(3)
+        logical(c_bool) :: use_direction
+    end type
+
+    type, bind(C) :: c_damper_element_2d
+        real(c_double) :: damping_coefficient
+        type(c_node) :: node_1
+        type(c_node) :: node_2
+        real(c_double) :: direction(2)
+        logical(c_bool) :: use_direction
+    end type
+
+    type, bind(C) :: c_damper_element_3d
+        real(c_double) :: damping_coefficient
+        type(c_node) :: node_1
+        type(c_node) :: node_2
+        real(c_double) :: direction(3)
+        logical(c_bool) :: use_direction
+    end type
+
+    type, bind(C) :: c_mass_element_2d
+        real(c_double) :: mass
+        type(c_node) :: node_1
+    end type
+
+    type, bind(C) :: c_mass_element_3d
+        real(c_double) :: mass
+        type(c_node) :: node_1
+    end type
+
+    type :: c_structural_integrator_container
+        ! The object referenced by an opaque structural integrator handle.
+        class(structural_integrator), allocatable :: item
     end type
 
     interface assignment(=)

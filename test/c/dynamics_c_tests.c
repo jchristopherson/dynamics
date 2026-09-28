@@ -9,6 +9,7 @@
 #include "dynamics_transfer_function_tests.h"
 #include "dynamics_state_space_tests.h"
 #include "dynamics_variational_tests.h"
+#include "dynamics_structural_tests.h"
 #include <stdbool.h>
 
 int main()
@@ -113,6 +114,11 @@ int main()
 
     if (!c_test_variational_integrator()) flag = 78;
     if (!c_test_linkage_dynamics()) flag = 79;
+
+    if (!c_test_truss_elements()) flag = 80;
+    if (!c_test_discrete_elements()) flag = 81;
+    if (!c_test_generalized_alpha_integrator()) flag = 82;
+    if (!c_test_poincare_map_ode()) flag = 83;
 
     return flag;
 }

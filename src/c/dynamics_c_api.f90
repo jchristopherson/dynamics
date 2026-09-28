@@ -27,5 +27,6 @@ module dynamics_c_api
     use dynamics_c_parallel_linkage
     use dynamics_c_controls
     use dynamics_c_structural
+    use dynamics_c_structural_solvers
     implicit none
 end module

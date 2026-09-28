@@ -30,6 +30,16 @@ subroutine c_cross_product(x, y, z) bind(C, name = "c_cross_product")
 end subroutine
 
 ! ------------------------------------------------------------------------------
+function c_is_symmetric(m, n, a, lda) result(rst) &
+    bind(C, name = "c_is_symmetric")
+    integer(c_int), intent(in), value :: m, n, lda
+    real(c_double), intent(in) :: a(lda,n)
+    logical(c_bool) :: rst
+    if (lda < m) error stop DYN_INVALID_INPUT_ERROR
+    rst = logical(is_symmetric(a(1:m,1:n)), c_bool)
+end function
+
+! ------------------------------------------------------------------------------
 subroutine c_to_skew_symmetric(x, y, ldy) bind(C, name = "c_to_skew_symmetric")
     real(c_double), intent(in) :: x(3)
     integer(c_int), intent(in), value :: ldy
