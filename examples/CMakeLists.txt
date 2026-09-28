@@ -175,6 +175,18 @@ target_link_libraries(
     ${DIFFEQ_LIBRARIES}
 )
 
+# Discrete Structural Example
+add_executable(
+    discrete_structural_example
+    discrete_structural_example.f90
+)
+target_link_libraries(
+    discrete_structural_example
+    ${PROJECT_NAME}
+    ${FPLOT_LIBRARIES}
+    ${DIFFEQ_LIBRARIES}
+)
+
 # C DH_Table Example
 if (${BUILD_DYNAMICS_C_INTERFACE})
     add_executable(

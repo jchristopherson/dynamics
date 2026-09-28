@@ -27,6 +27,7 @@ program main
     use dynamics_parallel_linkage_tests
     use dynamics_variational_integrator_tests
     use dynamics_linkage_dynamics_tests
+    use dynamics_discrete_elements_tests
     implicit none
 
     ! Variables
@@ -113,6 +114,21 @@ program main
 
     check = test_generalized_alpha_integrator()
     if (.not.check) flag = 152
+
+    check = test_spring_elements()
+    if (.not.check) flag = 156
+
+    check = test_damper_elements()
+    if (.not.check) flag = 157
+
+    check = test_mass_elements()
+    if (.not.check) flag = 158
+
+    check = test_discrete_element_system()
+    if (.not.check) flag = 159
+
+    check = test_assemble_discrete_system()
+    if (.not.check) flag = 160
 
     check = test_forward_kinematics()
     if (.not.check) flag = 12

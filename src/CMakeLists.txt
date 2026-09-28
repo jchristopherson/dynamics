@@ -24,6 +24,7 @@ set(DYNAMICS_SOURCES
     ${dir}/rigid_bodies/dynamics_parallel_linkage.f90
     ${dir}/structural/dynamics_beam_elements.f90
     ${dir}/structural/dynamics_truss_elements.f90
+    ${dir}/structural/dynamics_discrete_elements.f90
     ${dir}/solvers/dynamics_variational_integrators.f90
     ${dir}/rigid_bodies/dynamics_linkage_dynamics.f90
     ${dir}/solvers/dynamics_linear_structural_solvers.f90

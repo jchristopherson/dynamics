@@ -15,6 +15,7 @@ set(dynamics_test_sources
     dynamics_parallel_linkage_tests.f90
     dynamics_variational_integrator_tests.f90
     dynamics_linkage_dynamics_tests.f90
+    dynamics_discrete_elements_tests.f90
 )
 
 # Dependencies
