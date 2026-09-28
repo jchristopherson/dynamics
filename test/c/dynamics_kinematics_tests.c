@@ -4,7 +4,8 @@
 #include <math.h>
 #include <stdio.h>
 
-void inverse_fcn(int njoints, int neqn, const double *x, double *f);
+void inverse_fcn(int njoints, int neqn, const double *x, double *f,
+    void *user_data);
 
 bool c_test_forward_kinematics()
 {
@@ -110,7 +111,7 @@ bool c_test_inverse_kinematics()
     // Solver the inverse problem
     fptr = inverse_fcn;
     c_solve_inverse_kinematics(3, 6, fptr, qo, constraints, qmax, qmin,
-        q, resid, &ib);
+        q, resid, &ib, NULL);
 
     // Test
     if (!compare_arrays(3, ans, q, tol))
@@ -121,7 +122,7 @@ bool c_test_inverse_kinematics()
 
     // Try the conjugate gradient solver
     c_solve_inverse_kinematics(3, 6, fptr, qo, constraints, qmax, qmin,
-        q, resid, &ib);
+        q, resid, &ib, NULL);
     if (!compare_arrays(3, ans, q, tol))
     {
         rst = false;
@@ -132,7 +133,8 @@ bool c_test_inverse_kinematics()
     return rst;
 }
 
-void inverse_fcn(int njoints, int neqn, const double *x, double *f)
+void inverse_fcn(int njoints, int neqn, const double *x, double *f,
+    void *user_data)
 {
     // Local Variables
     const double L1 = 1.25;

@@ -35,7 +35,9 @@ function c_is_symmetric(m, n, a, lda) result(rst) &
     integer(c_int), intent(in), value :: m, n, lda
     real(c_double), intent(in) :: a(lda,n)
     logical(c_bool) :: rst
-    if (lda < m) error stop DYN_INVALID_INPUT_ERROR
+    rst = .false.
+    if (c_api_error(lda < m, DYN_INVALID_INPUT_ERROR, &
+        "c_is_symmetric: lda must be >= m.")) return
     rst = logical(is_symmetric(a(1:m,1:n)), c_bool)
 end function
 
@@ -44,7 +46,8 @@ subroutine c_to_skew_symmetric(x, y, ldy) bind(C, name = "c_to_skew_symmetric")
     real(c_double), intent(in) :: x(3)
     integer(c_int), intent(in), value :: ldy
     real(c_double), intent(out) :: y(ldy,3)
-    if (ldy < 3) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldy < 3, DYN_INVALID_INPUT_ERROR, &
+        "c_to_skew_symmetric: ldy must be >= 3.")) return
     y(1:3,1:3) = to_skew_symmetric(x)
 end subroutine
 

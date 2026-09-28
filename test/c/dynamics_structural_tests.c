@@ -263,15 +263,17 @@ bool c_test_generalized_alpha_integrator()
     return rst;
 }
 
-static void oscillator(int n, double t, const double *x, double *dxdt)
+static void oscillator(int n, double t, const double *x, double *dxdt,
+    void *user_data)
 {
+    const double wn = *(const double*)user_data;
     dxdt[0] = x[1];
-    dxdt[1] = -x[0];
+    dxdt[1] = -wn * wn * x[0];
     dxdt[2] = 1.0;
 }
 
 static void identity_coordinates(int n, double t, const double *x,
-    double coordinates[3])
+    double coordinates[3], void *user_data)
 {
     coordinates[0] = x[0];
     coordinates[1] = x[1];
@@ -291,6 +293,7 @@ bool c_test_poincare_map_ode()
     double pt[3] = {0.0, 0.0, 0.0};
     double nrm[3] = {0.0, 1.0, 0.0};
     double xb[10], yb[10], zb[10];
+    double wn = 1.0;
     c_plane pln;
 
     // Initialization
@@ -303,7 +306,7 @@ bool c_test_poincare_map_ode()
         c_poincare_map_ode(oscillator, tspan, 3, iv, 10001, &pln,
             DYN_POINCARE_TWO_SIDED, DYN_RUNGE_KUTTA_45,
             (pass == 0) ? NULL : identity_coordinates, nbuffer, xb, yb, zb,
-            &nactual);
+            &nactual, &wn);
         if (nactual != 3)
         {
             rst = false;
@@ -326,5 +329,65 @@ bool c_test_poincare_map_ode()
     }
 
     // End
+    return rst;
+}
+
+static void count_errors(int code, const char *message, void *user_data)
+{
+    int *count = (int*)user_data;
+    if (message && message[0] != '\0') *count += 1;
+}
+
+bool c_test_error_reporting()
+{
+    // Local Variables
+    bool rst;
+    int count;
+    char msg[16];
+    double k[16], f = 0.0, u = 0.0, v = 0.0, a = 0.0;
+    c_truss_element_2d bar;
+
+    // Initialization
+    rst = true;
+    count = 0;
+    bar.material.modulus = 1.0;
+    bar.material.density = 1.0;
+    bar.material.poissons_ratio = 0.3;
+    bar.area = 1.0;
+    bar.node_1 = make_node(1, 2, 0.0, 0.0, 0.0);
+    bar.node_2 = make_node(2, 2, 1.0, 0.0, 0.0);
+    c_clear_error();
+    c_set_error_handler(count_errors, &count);
+
+    // An undersized leading dimension must be reported, not terminate
+    c_truss_element_2d_stiffness_matrix(&bar, k, 2);
+    if (c_get_last_error() != DYN_INVALID_INPUT_ERROR || count != 1 ||
+        c_get_last_error_message((int)sizeof(msg), msg) < (int)sizeof(msg) ||
+        msg[sizeof(msg) - 1] != '\0')
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_error_reporting - leading dimension\n");
+    }
+
+    // A NULL handle must be reported
+    c_structural_integrator_step(NULL, 1, &f, &f, 0.1, &u, &v, &a);
+    if (c_get_last_error() != DYN_NULL_POINTER_ERROR || count != 2)
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_error_reporting - null handle\n");
+    }
+
+    // Clearing resets the error; valid calls do not record one
+    c_clear_error();
+    c_truss_element_2d_stiffness_matrix(&bar, k, 4);
+    if (c_get_last_error() != DYN_NO_ERROR || count != 2 ||
+        c_get_last_error_message((int)sizeof(msg), msg) != 0)
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_error_reporting - clear\n");
+    }
+
+    // End
+    c_set_error_handler(NULL, NULL);
     return rst;
 }

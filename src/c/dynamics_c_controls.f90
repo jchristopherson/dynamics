@@ -89,9 +89,9 @@ subroutine c_create_state_space_model(n, n_out, m, ldm, b, ldb, k, ldk, mdl) &
     real(c_double), intent(in) :: m(ldm,n), b(ldb,n), k(ldk,n)
     type(c_state_space_model), intent(out) :: mdl
     type(state_space) :: ss
-    if (ldm < n) error stop DYN_INVALID_INPUT_ERROR
-    if (ldb < n) error stop DYN_INVALID_INPUT_ERROR
-    if (ldk < n) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldm < n .or. ldb < n .or. ldk < n, &
+        DYN_INVALID_INPUT_ERROR, &
+        "c_create_state_space_model: ldm, ldb, and ldk must be >= n.")) return
     ss = state_space(m(1:n,:), b(1:n,:), k(1:n,:), n_out)
     mdl = ss
 end subroutine
@@ -134,14 +134,15 @@ subroutine c_scale_transfer_function(x, tf1, tf) &
 end subroutine
 
 ! ------------------------------------------------------------------------------
-subroutine c_lti_solve(mdl, u, n, t, ndof, ic, solver, nout, y, ldy) &
-    bind(C, name = "c_lti_solve")
+subroutine c_lti_solve(mdl, u, n, t, ndof, ic, solver, nout, y, ldy, &
+    user_data) bind(C, name = "c_lti_solve")
     type(c_state_space_model), intent(in) :: mdl
     type(c_funptr), intent(in), value :: u
     integer(c_int), intent(in), value :: n, ndof, ldy, solver, nout
     real(c_double), intent(in) :: t(n)
     real(c_double), intent(in) :: ic(ndof)
     real(c_double), intent(out) :: y(ldy,nout)
+    type(c_ptr), intent(in), value :: user_data
 
     type(c_ss_excitation_container) :: arg
     procedure(c_ss_excitation), pointer :: fptr
@@ -159,11 +160,16 @@ subroutine c_lti_solve(mdl, u, n, t, ndof, ic, solver, nout, y, ldy) &
     type(tsitouras_54), target :: t54
     type(state_space) :: fmdl
 
-    if (n <= 2) error stop DYN_INVALID_INPUT_ERROR
-    if (ldy < n) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(n <= 2, DYN_INVALID_INPUT_ERROR, &
+        "c_lti_solve: n must be > 2.")) return
+    if (c_api_error(ldy < n, DYN_INVALID_INPUT_ERROR, &
+        "c_lti_solve: ldy must be >= n.")) return
+    if (c_api_error(.not.c_associated(u), DYN_NULL_POINTER_ERROR, &
+        "c_lti_solve: u must not be NULL.")) return
 
     call c_f_procpointer(u, fptr)
     arg%fcn => fptr
+    arg%user_data = user_data
     ptr => c_lti_solver_routine
 
     fmdl = mdl
@@ -204,7 +210,7 @@ subroutine c_lti_solver_routine(t, u, args)
     n = size(u)
     select type (args)
     class is (c_ss_excitation_container)
-        call args%fcn(n, t, u)
+        call args%fcn(n, t, u, args%user_data)
     end select
 end subroutine
 
@@ -253,9 +259,14 @@ subroutine c_state_space_transfer_function(mdl, nin, nout, n, s, z, ldz) &
 
     fmdl = mdl
 
-    if (nin /= size(fmdl%B, 2)) error stop DYN_INVALID_INPUT_ERROR
-    if (nout /= size(fmdl%C, 1)) error stop DYN_INVALID_INPUT_ERROR
-    if (ldz < nin) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(nin /= size(fmdl%B, 2), DYN_INVALID_INPUT_ERROR, &
+        "c_state_space_transfer_function: nin does not match the model.")) &
+        return
+    if (c_api_error(nout /= size(fmdl%C, 1), DYN_INVALID_INPUT_ERROR, &
+        "c_state_space_transfer_function: nout does not match the model.")) &
+        return
+    if (c_api_error(ldz < nin, DYN_INVALID_INPUT_ERROR, &
+        "c_state_space_transfer_function: ldz must be >= nin.")) return
 
     z(1:nin,:,:) = fmdl%transfer_function(s)
 end subroutine

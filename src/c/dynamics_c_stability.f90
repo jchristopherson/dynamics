@@ -19,7 +19,9 @@ subroutine c_determine_local_stability(n, a, lda, ev, flag) &
     complex(c_double), intent(out) :: ev(n)
     integer(c_int), intent(out) :: flag
     
-    if (lda < n) error stop DYN_INVALID_INPUT_ERROR
+    flag = 0
+    if (c_api_error(lda < n, DYN_INVALID_INPUT_ERROR, &
+        "c_determine_local_stability: lda must be >= n.")) return
     flag = determine_local_stability(a(1:n,1:n), ev = ev)
 end subroutine
 

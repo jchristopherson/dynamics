@@ -45,7 +45,8 @@ subroutine c_serial_linkage_forward_kinematics(n, lnk, q, T, ldt) &
 
     type(serial_linkage) :: f_lnk
 
-    if (ldt < 4) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldt < 4, DYN_INVALID_INPUT_ERROR, &
+        "c_serial_linkage_forward_kinematics: ldt must be >= 4.")) return
 
     f_lnk = lnk
     T(1:4,1:4) = f_lnk%forward_kinematics(q)
@@ -61,7 +62,8 @@ subroutine c_serial_linkage_jacobian(n, lnk, q, J, ldj) &
     
     type(serial_linkage) :: f_lnk
 
-    if (ldj < 6) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldj < 6, DYN_INVALID_INPUT_ERROR, &
+        "c_serial_linkage_jacobian: ldj must be >= 6.")) return
 
     f_lnk = lnk
     J(1:6,1:n) = f_lnk%jacobian(q)
@@ -80,7 +82,8 @@ subroutine c_serial_linkage_inverse_kinematics(n, lnk, qo, trg, ldt, q, ib) &
     type(serial_linkage) :: f_lnk
     type(iteration_behavior) :: fib
 
-    if (ldt < 4) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldt < 4, DYN_INVALID_INPUT_ERROR, &
+        "c_serial_linkage_inverse_kinematics: ldt must be >= 4.")) return
 
     f_lnk = lnk
     q = f_lnk%inverse_kinematics(qo, trg(1:4,1:4), fib)

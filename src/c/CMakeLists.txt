@@ -2,6 +2,7 @@ set(dir ${CMAKE_CURRENT_LIST_DIR})
 
 set(DYNAMICS_C_SOURCES
     ${dir}/dynamics_c_api.f90
+    ${dir}/dynamics_c_errors.f90
     ${dir}/dynamics_c_types.f90
     ${dir}/dynamics_c_support.f90
     ${dir}/dynamics_c_rotation.f90

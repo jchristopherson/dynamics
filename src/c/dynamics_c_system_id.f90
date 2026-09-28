@@ -13,7 +13,7 @@ contains
 
 subroutine c_siso_model_fit_least_squares(nsets, nparams, neqns, fcn, x, ic, &
     p, integrator, ind, maxp, minp, controls, opts, nconstraints, xc, yc, &
-    constraints, nweights, weights, stats, info) &
+    constraints, nweights, weights, stats, info, user_data) &
     bind(C, name = "c_siso_model_fit_least_squares")
     integer(c_int), intent(in), value :: nsets
     integer(c_int), intent(in), value :: nparams
@@ -36,6 +36,7 @@ subroutine c_siso_model_fit_least_squares(nsets, nparams, neqns, fcn, x, ic, &
     real(c_double), intent(in) :: weights(nweights)
     type(c_regression_statistics), intent(out) :: stats(nparams)
     type(c_iteration_behavior), intent(out) :: info
+    type(c_ptr), intent(in), value :: user_data
 
     ! Variables
     logical :: uses_constraints, uses_weights
@@ -70,8 +71,11 @@ subroutine c_siso_model_fit_least_squares(nsets, nparams, neqns, fcn, x, ic, &
     end if
 
     ! Establish function pointers
+    if (c_api_error(.not.c_associated(fcn), DYN_NULL_POINTER_ERROR, &
+        "c_siso_model_fit_least_squares: fcn must not be NULL.")) return
     call c_f_procpointer(fcn, f_ode)
     args%odefcn => f_ode
+    args%user_data = user_data
     odeptr => siso_fit_ode
     if (uses_constraints) then
         call c_f_procpointer(constraints, f_constraints)
@@ -88,7 +92,9 @@ subroutine c_siso_model_fit_least_squares(nsets, nparams, neqns, fcn, x, ic, &
         do i = 1, nsets
             nw = nw + x(i)%npts
         end do
-        if (nweights /= nw) error stop DYN_INVALID_INPUT_ERROR
+        if (c_api_error(nweights /= nw, DYN_INVALID_INPUT_ERROR, &
+            "c_siso_model_fit_least_squares: nweights must equal the " // &
+            "total number of measurement points.")) return
     end if
 
     ! Convert the inputs
@@ -206,7 +212,8 @@ subroutine siso_fit_ode(t, x, dxdt, args)
         frc = args%excitation%interpolate_value(t)
         select type (ptr)
         class is (c_siso_fit_container)
-            call ptr%odefcn(size(x), size(mdl), mdl, t, x, frc, dxdt)
+            call ptr%odefcn(size(x), size(mdl), mdl, t, x, frc, dxdt, &
+                ptr%user_data)
         end select
     end select
 end subroutine
@@ -222,7 +229,8 @@ subroutine siso_constraint_equations(xg, fg, xc, p, fc, args)
 
     select type (args)
     class is (c_siso_fit_container)
-        call args%constraints(size(xg), size(xc), size(p), xg, fg, xc, p, fc)
+        call args%constraints(size(xg), size(xc), size(p), xg, fg, xc, p, fc, &
+            args%user_data)
     end select
 end subroutine
 

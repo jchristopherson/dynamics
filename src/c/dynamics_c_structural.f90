@@ -72,7 +72,8 @@ subroutine c_beam_element_2d_stiffness_matrix(elem, rule, k, ldk) &
     integer(c_int), intent(in), value :: ldk
     real(c_double), intent(out) :: k(ldk,6)
     type(beam_element_2d) :: e
-    if (ldk < 6) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldk < 6, DYN_INVALID_INPUT_ERROR, &
+        "c_beam_element_2d_stiffness_matrix: ldk must be >= 6.")) return
     e = c_to_beam_element_2d(elem)
     if (rule > 0) then
         k(1:6,1:6) = e%stiffness_matrix(rule)
@@ -89,7 +90,8 @@ subroutine c_beam_element_2d_mass_matrix(elem, rule, m, ldm) &
     integer(c_int), intent(in), value :: ldm
     real(c_double), intent(out) :: m(ldm,6)
     type(beam_element_2d) :: e
-    if (ldm < 6) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldm < 6, DYN_INVALID_INPUT_ERROR, &
+        "c_beam_element_2d_mass_matrix: ldm must be >= 6.")) return
     e = c_to_beam_element_2d(elem)
     if (rule > 0) then
         m(1:6,1:6) = e%mass_matrix(rule)
@@ -105,7 +107,8 @@ subroutine c_beam_element_2d_rotation_matrix(elem, r, ldr) &
     integer(c_int), intent(in), value :: ldr
     real(c_double), intent(out) :: r(ldr,6)
     type(beam_element_2d) :: e
-    if (ldr < 6) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldr < 6, DYN_INVALID_INPUT_ERROR, &
+        "c_beam_element_2d_rotation_matrix: ldr must be >= 6.")) return
     e = c_to_beam_element_2d(elem)
     r(1:6,1:6) = e%rotation_matrix()
 end subroutine
@@ -192,7 +195,8 @@ subroutine c_beam_element_3d_stiffness_matrix(elem, rule, k, ldk) &
     integer(c_int), intent(in), value :: ldk
     real(c_double), intent(out) :: k(ldk,12)
     type(beam_element_3d) :: e
-    if (ldk < 12) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldk < 12, DYN_INVALID_INPUT_ERROR, &
+        "c_beam_element_3d_stiffness_matrix: ldk must be >= 12.")) return
     e = c_to_beam_element_3d(elem)
     if (rule > 0) then
         k(1:12,1:12) = e%stiffness_matrix(rule)
@@ -209,7 +213,8 @@ subroutine c_beam_element_3d_mass_matrix(elem, rule, m, ldm) &
     integer(c_int), intent(in), value :: ldm
     real(c_double), intent(out) :: m(ldm,12)
     type(beam_element_3d) :: e
-    if (ldm < 12) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldm < 12, DYN_INVALID_INPUT_ERROR, &
+        "c_beam_element_3d_mass_matrix: ldm must be >= 12.")) return
     e = c_to_beam_element_3d(elem)
     if (rule > 0) then
         m(1:12,1:12) = e%mass_matrix(rule)
@@ -225,7 +230,8 @@ subroutine c_beam_element_3d_rotation_matrix(elem, r, ldr) &
     integer(c_int), intent(in), value :: ldr
     real(c_double), intent(out) :: r(ldr,12)
     type(beam_element_3d) :: e
-    if (ldr < 12) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldr < 12, DYN_INVALID_INPUT_ERROR, &
+        "c_beam_element_3d_rotation_matrix: ldr must be >= 12.")) return
     e = c_to_beam_element_3d(elem)
     r(1:12,1:12) = e%rotation_matrix()
 end subroutine
@@ -307,7 +313,8 @@ subroutine c_assemble_static_system_beam_2d(gdof, n, elements, nn, nodes, &
     type(node), allocatable, dimension(:) :: fnodes
     real(real64), allocatable, dimension(:,:) :: kf
 
-    if (ldk < gdof) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldk < gdof, DYN_INVALID_INPUT_ERROR, &
+        "c_assemble_static_system_beam_2d: ldk must be >= gdof.")) return
 
     allocate(felements(n), fnodes(nn))
     do i = 1, n
@@ -339,8 +346,9 @@ subroutine c_assemble_dynamic_system_beam_2d(gdof, n, elements, nn, nodes, &
     type(node), allocatable, dimension(:) :: fnodes
     real(real64), allocatable, dimension(:,:) :: mf, kf
 
-    if (ldm < gdof) error stop DYN_INVALID_INPUT_ERROR
-    if (ldk < gdof) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldm < gdof .or. ldk < gdof, DYN_INVALID_INPUT_ERROR, &
+        "c_assemble_dynamic_system_beam_2d: ldm and ldk must be >= gdof.")) &
+        return
 
     allocate(felements(n), fnodes(nn))
     do i = 1, n
@@ -372,7 +380,8 @@ subroutine c_assemble_static_system_beam_3d(gdof, n, elements, nn, nodes, &
     type(node), allocatable, dimension(:) :: fnodes
     real(real64), allocatable, dimension(:,:) :: kf
 
-    if (ldk < gdof) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldk < gdof, DYN_INVALID_INPUT_ERROR, &
+        "c_assemble_static_system_beam_3d: ldk must be >= gdof.")) return
 
     allocate(felements(n), fnodes(nn))
     do i = 1, n
@@ -404,8 +413,9 @@ subroutine c_assemble_dynamic_system_beam_3d(gdof, n, elements, nn, nodes, &
     type(node), allocatable, dimension(:) :: fnodes
     real(real64), allocatable, dimension(:,:) :: mf, kf
 
-    if (ldm < gdof) error stop DYN_INVALID_INPUT_ERROR
-    if (ldk < gdof) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldm < gdof .or. ldk < gdof, DYN_INVALID_INPUT_ERROR, &
+        "c_assemble_dynamic_system_beam_3d: ldm and ldk must be >= gdof.")) &
+        return
 
     allocate(felements(n), fnodes(nn))
     do i = 1, n
@@ -435,8 +445,8 @@ subroutine c_apply_boundary_conditions_mtx(n, nbc, gdof, x, ldx, rst, ldr) &
     integer(int32), allocatable, dimension(:) :: fgdof
     real(real64), allocatable, dimension(:,:) :: frst
 
-    if (ldx < n) error stop DYN_INVALID_INPUT_ERROR
-    if (ldr < n - nbc) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldx < n .or. ldr < n - nbc, DYN_INVALID_INPUT_ERROR, &
+        "c_apply_boundary_conditions_mtx: ldx or ldr is too small.")) return
 
     fgdof = gdof
     frst = apply_boundary_conditions(fgdof, x(1:n,1:n))
@@ -486,7 +496,8 @@ subroutine c_apply_displacement_constraint_dense(dof, val, n, k, ldk, f) &
     real(c_double), intent(inout) :: k(ldk,n)
     real(c_double), intent(inout) :: f(n)
 
-    if (ldk < n) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldk < n, DYN_INVALID_INPUT_ERROR, &
+        "c_apply_displacement_constraint_dense: ldk must be >= n.")) return
 
     call apply_displacement_constraint(dof, val, k(1:n,1:n), f)
 end subroutine
@@ -499,7 +510,8 @@ subroutine c_solve_static_system_dense(n, k, ldk, f, u) &
     real(c_double), intent(in) :: f(n)
     real(c_double), intent(out) :: u(n)
 
-    if (ldk < n) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldk < n, DYN_INVALID_INPUT_ERROR, &
+        "c_solve_static_system_dense: ldk must be >= n.")) return
 
     u = solve_static_system(k(1:n,1:n), f)
 end subroutine
@@ -541,7 +553,8 @@ subroutine c_truss_element_2d_stiffness_matrix(elem, k, ldk) &
     integer(c_int), intent(in), value :: ldk
     real(c_double), intent(out) :: k(ldk,4)
     type(truss_element_2d) :: e
-    if (ldk < 4) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldk < 4, DYN_INVALID_INPUT_ERROR, &
+        "c_truss_element_2d_stiffness_matrix: ldk must be >= 4.")) return
     e = c_to_truss_element_2d(elem)
     k(1:4,1:4) = e%stiffness_matrix()
 end subroutine
@@ -554,7 +567,8 @@ subroutine c_truss_element_2d_mass_matrix(elem, rule, m, ldm) &
     integer(c_int), intent(in), value :: ldm
     real(c_double), intent(out) :: m(ldm,4)
     type(truss_element_2d) :: e
-    if (ldm < 4) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldm < 4, DYN_INVALID_INPUT_ERROR, &
+        "c_truss_element_2d_mass_matrix: ldm must be >= 4.")) return
     e = c_to_truss_element_2d(elem)
     if (rule > 0) then
         m(1:4,1:4) = e%mass_matrix(rule)
@@ -570,7 +584,8 @@ subroutine c_truss_element_2d_rotation_matrix(elem, r, ldr) &
     integer(c_int), intent(in), value :: ldr
     real(c_double), intent(out) :: r(ldr,4)
     type(truss_element_2d) :: e
-    if (ldr < 4) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldr < 4, DYN_INVALID_INPUT_ERROR, &
+        "c_truss_element_2d_rotation_matrix: ldr must be >= 4.")) return
     e = c_to_truss_element_2d(elem)
     r(1:4,1:4) = e%rotation_matrix()
 end subroutine
@@ -634,7 +649,8 @@ subroutine c_truss_element_3d_stiffness_matrix(elem, k, ldk) &
     integer(c_int), intent(in), value :: ldk
     real(c_double), intent(out) :: k(ldk,6)
     type(truss_element_3d) :: e
-    if (ldk < 6) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldk < 6, DYN_INVALID_INPUT_ERROR, &
+        "c_truss_element_3d_stiffness_matrix: ldk must be >= 6.")) return
     e = c_to_truss_element_3d(elem)
     k(1:6,1:6) = e%stiffness_matrix()
 end subroutine
@@ -647,7 +663,8 @@ subroutine c_truss_element_3d_mass_matrix(elem, rule, m, ldm) &
     integer(c_int), intent(in), value :: ldm
     real(c_double), intent(out) :: m(ldm,6)
     type(truss_element_3d) :: e
-    if (ldm < 6) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldm < 6, DYN_INVALID_INPUT_ERROR, &
+        "c_truss_element_3d_mass_matrix: ldm must be >= 6.")) return
     e = c_to_truss_element_3d(elem)
     if (rule > 0) then
         m(1:6,1:6) = e%mass_matrix(rule)
@@ -663,7 +680,8 @@ subroutine c_truss_element_3d_rotation_matrix(elem, r, ldr) &
     integer(c_int), intent(in), value :: ldr
     real(c_double), intent(out) :: r(ldr,6)
     type(truss_element_3d) :: e
-    if (ldr < 6) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldr < 6, DYN_INVALID_INPUT_ERROR, &
+        "c_truss_element_3d_rotation_matrix: ldr must be >= 6.")) return
     e = c_to_truss_element_3d(elem)
     r(1:6,1:6) = e%rotation_matrix()
 end subroutine
@@ -723,7 +741,8 @@ subroutine c_assemble_static_system_truss_2d(gdof, n, elements, nn, nodes, &
     type(node), allocatable, dimension(:) :: fnodes
     real(real64), allocatable, dimension(:,:) :: kf
 
-    if (ldk < gdof) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldk < gdof, DYN_INVALID_INPUT_ERROR, &
+        "c_assemble_static_system_truss_2d: ldk must be >= gdof.")) return
 
     allocate(felements(n), fnodes(nn))
     do i = 1, n
@@ -751,8 +770,9 @@ subroutine c_assemble_dynamic_system_truss_2d(gdof, n, elements, nn, nodes, &
     type(node), allocatable, dimension(:) :: fnodes
     real(real64), allocatable, dimension(:,:) :: mf, kf
 
-    if (ldm < gdof) error stop DYN_INVALID_INPUT_ERROR
-    if (ldk < gdof) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldm < gdof .or. ldk < gdof, DYN_INVALID_INPUT_ERROR, &
+        "c_assemble_dynamic_system_truss_2d: ldm and ldk must be >= gdof.")) &
+        return
 
     allocate(felements(n), fnodes(nn))
     do i = 1, n
@@ -784,7 +804,8 @@ subroutine c_assemble_static_system_truss_3d(gdof, n, elements, nn, nodes, &
     type(node), allocatable, dimension(:) :: fnodes
     real(real64), allocatable, dimension(:,:) :: kf
 
-    if (ldk < gdof) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldk < gdof, DYN_INVALID_INPUT_ERROR, &
+        "c_assemble_static_system_truss_3d: ldk must be >= gdof.")) return
 
     allocate(felements(n), fnodes(nn))
     do i = 1, n
@@ -812,8 +833,9 @@ subroutine c_assemble_dynamic_system_truss_3d(gdof, n, elements, nn, nodes, &
     type(node), allocatable, dimension(:) :: fnodes
     real(real64), allocatable, dimension(:,:) :: mf, kf
 
-    if (ldm < gdof) error stop DYN_INVALID_INPUT_ERROR
-    if (ldk < gdof) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldm < gdof .or. ldk < gdof, DYN_INVALID_INPUT_ERROR, &
+        "c_assemble_dynamic_system_truss_3d: ldm and ldk must be >= gdof.")) &
+        return
 
     allocate(felements(n), fnodes(nn))
     do i = 1, n
@@ -913,7 +935,8 @@ subroutine c_spring_element_2d_stiffness_matrix(elem, k, ldk) &
     integer(c_int), intent(in), value :: ldk
     real(c_double), intent(out) :: k(ldk,4)
     type(spring_element_2d) :: e
-    if (ldk < 4) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldk < 4, DYN_INVALID_INPUT_ERROR, &
+        "c_spring_element_2d_stiffness_matrix: ldk must be >= 4.")) return
     e = c_to_spring_element_2d(elem)
     k(1:4,1:4) = e%stiffness_matrix()
 end subroutine
@@ -938,7 +961,8 @@ subroutine c_spring_element_3d_stiffness_matrix(elem, k, ldk) &
     integer(c_int), intent(in), value :: ldk
     real(c_double), intent(out) :: k(ldk,6)
     type(spring_element_3d) :: e
-    if (ldk < 6) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldk < 6, DYN_INVALID_INPUT_ERROR, &
+        "c_spring_element_3d_stiffness_matrix: ldk must be >= 6.")) return
     e = c_to_spring_element_3d(elem)
     k(1:6,1:6) = e%stiffness_matrix()
 end subroutine
@@ -963,7 +987,8 @@ subroutine c_damper_element_2d_damping_matrix(elem, c, ldc) &
     integer(c_int), intent(in), value :: ldc
     real(c_double), intent(out) :: c(ldc,4)
     type(damper_element_2d) :: e
-    if (ldc < 4) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldc < 4, DYN_INVALID_INPUT_ERROR, &
+        "c_damper_element_2d_damping_matrix: ldc must be >= 4.")) return
     e = c_to_damper_element_2d(elem)
     c(1:4,1:4) = e%damping_matrix()
 end subroutine
@@ -988,7 +1013,8 @@ subroutine c_damper_element_3d_damping_matrix(elem, c, ldc) &
     integer(c_int), intent(in), value :: ldc
     real(c_double), intent(out) :: c(ldc,6)
     type(damper_element_3d) :: e
-    if (ldc < 6) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldc < 6, DYN_INVALID_INPUT_ERROR, &
+        "c_damper_element_3d_damping_matrix: ldc must be >= 6.")) return
     e = c_to_damper_element_3d(elem)
     c(1:6,1:6) = e%damping_matrix()
 end subroutine
@@ -1013,7 +1039,8 @@ subroutine c_mass_element_2d_mass_matrix(elem, m, ldm) &
     integer(c_int), intent(in), value :: ldm
     real(c_double), intent(out) :: m(ldm,2)
     type(mass_element_2d) :: e
-    if (ldm < 2) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldm < 2, DYN_INVALID_INPUT_ERROR, &
+        "c_mass_element_2d_mass_matrix: ldm must be >= 2.")) return
     e = c_to_mass_element_2d(elem)
     m(1:2,1:2) = e%mass_matrix()
 end subroutine
@@ -1025,7 +1052,8 @@ subroutine c_mass_element_3d_mass_matrix(elem, m, ldm) &
     integer(c_int), intent(in), value :: ldm
     real(c_double), intent(out) :: m(ldm,3)
     type(mass_element_3d) :: e
-    if (ldm < 3) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldm < 3, DYN_INVALID_INPUT_ERROR, &
+        "c_mass_element_3d_mass_matrix: ldm must be >= 3.")) return
     e = c_to_mass_element_3d(elem)
     m(1:3,1:3) = e%mass_matrix()
 end subroutine
@@ -1050,8 +1078,10 @@ subroutine c_assemble_discrete_system_2d(gdof, nm, masses, nd, dampers, &
     type(node), allocatable, dimension(:) :: fnodes
     real(real64), allocatable, dimension(:,:) :: mf, cf, kf
 
-    if (ldm < gdof .or. ldc < gdof .or. ldk < gdof) &
-        error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldm < gdof .or. ldc < gdof .or. ldk < gdof, &
+        DYN_INVALID_INPUT_ERROR, &
+        "c_assemble_discrete_system_2d: ldm, ldc, and ldk must be >= gdof.")) &
+        return
 
     allocate(fmasses(nm), fdampers(nd), fsprings(ns), fnodes(nn))
     do i = 1, nm
@@ -1094,8 +1124,10 @@ subroutine c_assemble_discrete_system_3d(gdof, nm, masses, nd, dampers, &
     type(node), allocatable, dimension(:) :: fnodes
     real(real64), allocatable, dimension(:,:) :: mf, cf, kf
 
-    if (ldm < gdof .or. ldc < gdof .or. ldk < gdof) &
-        error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldm < gdof .or. ldc < gdof .or. ldk < gdof, &
+        DYN_INVALID_INPUT_ERROR, &
+        "c_assemble_discrete_system_3d: ldm, ldc, and ldk must be >= gdof.")) &
+        return
 
     allocate(fmasses(nm), fdampers(nd), fsprings(ns), fnodes(nn))
     do i = 1, nm

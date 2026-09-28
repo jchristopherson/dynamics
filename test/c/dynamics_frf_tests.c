@@ -5,7 +5,8 @@
 #include <stdio.h>
 #include <float.h>
 
-void c_modal_forcing_term(int n, double freq, double complex *f)
+void c_modal_forcing_term(int n, double freq, double complex *f,
+    void *user_data)
 {
     const double complex one = 1.0 + 0.0 * I;
     const double complex zero = 0.0 + 0.0 * I;
@@ -79,7 +80,7 @@ bool c_test_frequency_response()
 
     // Compute the FRF's along with the modal information
     c_frequency_response(3, nfreq, m, 3, k, 3, alpha, beta, omega, fcn, modes, 
-        shapes, 3, rsp, nfreq);
+        shapes, 3, rsp, nfreq, NULL);
     if (!compare_arrays(3, ans1, modes, tol))
     {
         rst = false;
@@ -185,15 +186,16 @@ bool c_test_modal_response()
 
 
 void c_example_2nd_order_sweep(int n, double freq, double t, const double *x,
-    double *dxdt)
+    double *dxdt, void *user_data)
 {
     // Local Variables
     const double pi = 2.0 * acos(0.0);
     const double z = 1.0e-1;
     const double wn = 2.0 * pi * 50.0;
+    const double amplitude = *(const double*)user_data;
     double f;
 
-    f = 1.0e3 * sin(2.0 * pi * freq * t);
+    f = amplitude * sin(2.0 * pi * freq * t);
     dxdt[0] = x[1];
     dxdt[1] = f - (2.0 * z * wn * x[1] + wn * wn * x[0]);
 }
@@ -209,6 +211,7 @@ bool c_test_frf_sweep()
     const double pi = 2.0 * acos(0.0);
     const double z = 1.0e-1;
     const double wn = 2.0 * pi * 50.0;
+    double amplitude = 1.0e3;
     c_frequency_sweep_controls opts;
     int i;
     double df, freq[npts], omega[npts], mag1, mag2, magans1[npts],
@@ -233,7 +236,7 @@ bool c_test_frf_sweep()
     for (i = 0; i < npts; ++i)
     {
         s = I * omega[i];
-        tf1 = 1.0e3 / (s * s + 2.0 * z * wn * s + wn * wn);
+        tf1 = amplitude / (s * s + 2.0 * z * wn * s + wn * wn);
         tf2 = tf1 * s;
         magans1[i] = cabs(tf1);
         magans2[i] = cabs(tf2);
@@ -241,7 +244,7 @@ bool c_test_frf_sweep()
 
     // Perform the sweep operation
     c_frf_sweep(2, npts, c_example_2nd_order_sweep, freq, init_vals, 
-        DYN_RUNGE_KUTTA_45, rsp, npts, &opts);
+        DYN_RUNGE_KUTTA_45, rsp, npts, &opts, &amplitude);
     for (i = 0; i < npts; ++i)
     {
         mag1 = cabs(rsp[INDEX(i,0,npts)]);
@@ -338,7 +341,7 @@ bool c_test_frf_fit()
 
     // Compute the frequency response functions
     c_frequency_response(3, nfreq, m, 3, k, 3, alpha, beta, freq, fcn,
-        modes, modeshapes, 3, nrmrsp, nfreq);
+        modes, modeshapes, 3, nrmrsp, nfreq, NULL);
 
     // Normalize the response
     val = nrmrsp[0];
@@ -371,13 +374,14 @@ bool c_test_frf_fit()
 }
 
 
-double hamming_window(int n, int j)
+double hamming_window(int n, int j, void *user_data)
 {
     const double pi = 2.0 * acos(0.0);
     return 0.54 - 0.46 * cos(2.0 * pi * j / n);
 }
 
-void single_dof_forcing_term(int n, double freq, double complex *f)
+void single_dof_forcing_term(int n, double freq, double complex *f,
+    void *user_data)
 {
     const double complex one = 1.0 + 0.0 * I;
     f[0] = one;
@@ -420,7 +424,7 @@ bool c_test_siso_frf()
 
     // Compute the FRF & normalize the amplitude term
     c_siso_frequency_response(npts, nfreq, y, x, 1.0 / dt, winsize, 
-        hamming_window, DYN_H1, freq, tf);
+        hamming_window, DYN_H1, freq, tf, NULL);
     for (i = 0; i < nfreq; ++i)
     {
         mag[i] = cabs(tf[i]);
@@ -431,7 +435,7 @@ bool c_test_siso_frf()
 
     // Compute a solution FRF
     c_frequency_response(1, nfreq, m, 1, k, 1, alpha, beta, omega, 
-        single_dof_forcing_term, modes, modeshapes, 1, tfans, nfreq);
+        single_dof_forcing_term, modes, modeshapes, 1, tfans, nfreq, NULL);
     for (i = 0; i < nfreq; ++i)
     {
         ans[i] = cabs(tfans[i]);
@@ -452,7 +456,7 @@ bool c_test_siso_frf()
 
 
 void siso_lsq_fit_ode(int neqn, int nparam, const double *mdl, double t, 
-    const double *x, double F, double *dxdt)
+    const double *x, double F, double *dxdt, void *user_data)
 {
     double wn, zeta, Y;
     wn = mdl[0];
@@ -463,7 +467,8 @@ void siso_lsq_fit_ode(int neqn, int nparam, const double *mdl, double t,
 }
 
 void siso_lsq_constraints(int n, int neqn, int nparam, const double *xg,
-    const double *fg, const double *xc, const double *p, double *fc)
+    const double *fg, const double *xc, const double *p, double *fc,
+    void *user_data)
 {
     fc[0] = xc[0] - p[0];
 }
@@ -535,7 +540,7 @@ bool c_test_siso_lsq_fit()
     // Fit the model
     c_siso_model_fit_least_squares(nsets, 3, 2, fcn, x, ic, p,
         DYN_ROSENBROCK, 1, maxp, minp, &controls, &opts, 1, xc, yc,
-        cnst, 0, NULL, stats, &info);
+        cnst, 0, NULL, stats, &info, NULL);
 
     // Test
     if (fabs(p[0] - wn) > tol * wn)

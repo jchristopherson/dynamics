@@ -12,7 +12,7 @@ module dynamics_c_frequency
 contains
 
 subroutine c_frequency_response(n, nfreq, mass, ldm, stiff, ldk, alpha, beta, &
-    freq, frc, modes, modeshapes, ldms, rsp, ldr) &
+    freq, frc, modes, modeshapes, ldms, rsp, ldr, user_data) &
     bind(C, name = "c_frequency_response")
     integer(c_int), intent(in), value :: n
     integer(c_int), intent(in), value :: nfreq
@@ -29,6 +29,7 @@ subroutine c_frequency_response(n, nfreq, mass, ldm, stiff, ldk, alpha, beta, &
     real(real64), intent(out) :: modes(n)
     real(real64), intent(out) :: modeshapes(ldms,n)
     complex(real64), intent(out) :: rsp(ldr,n)
+    type(c_ptr), intent(in), value :: user_data
 
     type(frf) :: frsp
     type(c_modal_excite_container) :: arg
@@ -37,13 +38,17 @@ subroutine c_frequency_response(n, nfreq, mass, ldm, stiff, ldk, alpha, beta, &
     real(real64), allocatable, dimension(:) :: mds
     real(real64), allocatable, dimension(:,:) :: ms
 
-    if (ldm < n) error stop DYN_INVALID_INPUT_ERROR
-    if (ldk < n) error stop DYN_INVALID_INPUT_ERROR
-    if (ldms < n) error stop DYN_INVALID_INPUT_ERROR
-    if (ldr < nfreq) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldm < n .or. ldk < n .or. ldms < n, &
+        DYN_INVALID_INPUT_ERROR, &
+        "c_frequency_response: ldm, ldk, and ldms must be >= n.")) return
+    if (c_api_error(ldr < nfreq, DYN_INVALID_INPUT_ERROR, &
+        "c_frequency_response: ldr must be >= nfreq.")) return
+    if (c_api_error(.not.c_associated(frc), DYN_NULL_POINTER_ERROR, &
+        "c_frequency_response: frc must not be NULL.")) return
 
     call c_f_procpointer(frc, fptr)
     arg%fcn => fptr
+    arg%user_data = user_data
     fcn => cfr_fcn
     
     frsp = frequency_response(mass(1:n,1:n), stiff(1:n,1:n), alpha, beta, &
@@ -60,7 +65,7 @@ subroutine cfr_fcn(freq, frc, args)
     class(*), intent(inout), optional :: args
     select type (args)
     class is (c_modal_excite_container)
-        call args%fcn(size(frc), freq, frc)
+        call args%fcn(size(frc), freq, frc, args%user_data)
     end select
 end subroutine
 
@@ -100,9 +105,9 @@ subroutine c_modal_response(n, mass, ldm, stiff, ldk, freqs, modeshapes, ldms) &
     real(real64), allocatable, dimension(:) :: mds
     real(real64), allocatable, dimension(:,:) :: ms
 
-    if (ldm < n) error stop DYN_INVALID_INPUT_ERROR
-    if (ldk < n) error stop DYN_INVALID_INPUT_ERROR
-    if (ldms < n) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldm < n .or. ldk < n .or. ldms < n, &
+        DYN_INVALID_INPUT_ERROR, &
+        "c_modal_response: ldm, ldk, and ldms must be >= n.")) return
 
     
     call modal_response(mass(1:n,1:n), stiff(1:n,1:n), mds, ms)
@@ -116,13 +121,14 @@ subroutine c_normalize_mode_shapes(n, x, ldx) &
     integer(c_int), intent(in), value :: n
     integer(c_int), intent(in), value :: ldx
     real(c_double), intent(inout) :: x(ldx,n)
-    if (ldx < n) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldx < n, DYN_INVALID_INPUT_ERROR, &
+        "c_normalize_mode_shapes: ldx must be >= n.")) return
     call normalize_mode_shapes(x(1:n,1:n))
 end subroutine
 
 ! ------------------------------------------------------------------------------
-subroutine c_frf_sweep(n, nfreq, fcn, freq, iv, solver, rsp, ldr, opts) &
-    bind(C, name = "c_frf_sweep")
+subroutine c_frf_sweep(n, nfreq, fcn, freq, iv, solver, rsp, ldr, opts, &
+    user_data) bind(C, name = "c_frf_sweep")
     integer(c_int), intent(in), value :: n
     integer(c_int), intent(in), value :: nfreq
     integer(c_int), intent(in), value :: ldr
@@ -132,6 +138,7 @@ subroutine c_frf_sweep(n, nfreq, fcn, freq, iv, solver, rsp, ldr, opts) &
     integer(c_int), intent(in), value :: solver
     complex(c_double), intent(out) :: rsp(ldr,n)
     type(c_frequency_sweep_controls), intent(in) :: opts
+    type(c_ptr), intent(in), value :: user_data
 
     type(c_harmonic_ode_container) :: arg
     procedure(c_harmonic_ode), pointer :: fptr
@@ -149,10 +156,14 @@ subroutine c_frf_sweep(n, nfreq, fcn, freq, iv, solver, rsp, ldr, opts) &
 
     type(frf) :: frsp
 
-    if (ldr < nfreq) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldr < nfreq, DYN_INVALID_INPUT_ERROR, &
+        "c_frf_sweep: ldr must be >= nfreq.")) return
+    if (c_api_error(.not.c_associated(fcn), DYN_NULL_POINTER_ERROR, &
+        "c_frf_sweep: fcn must not be NULL.")) return
 
     call c_f_procpointer(fcn, fptr)
     arg%fcn => fptr
+    arg%user_data = user_data
     odefcn => cfrf_sweep_fcn
     
 
@@ -195,7 +206,7 @@ subroutine cfrf_sweep_fcn(freq, t, x, dxdt, args)
 
     select type (args)
     class is (c_harmonic_ode_container)
-        call args%fcn(size(x), freq, t, x, dxdt)
+        call args%fcn(size(x), freq, t, x, dxdt, args%user_data)
     end select
 end subroutine
 
@@ -288,7 +299,7 @@ end subroutine
 
 ! ------------------------------------------------------------------------------
 subroutine c_siso_frequency_response(n, nf, x, y, fs, winsize, winfun, method, &
-    freq, rsp) bind(C, name = "c_siso_frequency_response")
+    freq, rsp, user_data) bind(C, name = "c_siso_frequency_response")
     integer(c_int), intent(in), value :: n
     integer(c_int), intent(in), value :: nf
     real(c_double), intent(in) :: x(n)
@@ -299,6 +310,7 @@ subroutine c_siso_frequency_response(n, nf, x, y, fs, winsize, winfun, method, &
     integer(c_int), intent(in), value :: method
     real(c_double), intent(out) :: freq(nf)
     complex(c_double), intent(out) :: rsp(nf)
+    type(c_ptr), intent(in), value :: user_data
 
     type(c_window) :: win
     type(frf) :: frsp
@@ -311,11 +323,15 @@ subroutine c_siso_frequency_response(n, nf, x, y, fs, winsize, winfun, method, &
     else
         m = (winsize + 1) / 2
     end if
-    if (nf /= m) return
+    if (c_api_error(nf /= m, DYN_ARRAY_SIZE_ERROR, &
+        "c_siso_frequency_response: nf is inconsistent with winsize.")) return
+    if (c_api_error(.not.c_associated(winfun), DYN_NULL_POINTER_ERROR, &
+        "c_siso_frequency_response: winfun must not be NULL.")) return
 
     call c_f_procpointer(winfun, cfcn)
     win%size = winsize
     win%fcn => cfcn
+    win%user_data = user_data
 
     frsp = frequency_response(x, y, fs, win = win, method = method)
     freq = frsp%frequency

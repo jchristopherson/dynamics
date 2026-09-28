@@ -12,7 +12,8 @@ module dynamics_c_maps
     ! The active C coordinate callback; the Fortran interface has no user data.
     procedure(c_poincare_coordinates), pointer, private :: &
         active_coordinates => null()
-    !$omp threadprivate(active_coordinates)
+    type(c_ptr), private :: active_user_data = c_null_ptr
+    !$omp threadprivate(active_coordinates, active_user_data)
 
 contains
 
@@ -49,7 +50,7 @@ end subroutine
 
 ! ------------------------------------------------------------------------------
 subroutine c_poincare_map_ode(fcn, tspan, n, iv, sample_count, pln, side, &
-    solver, coordinates, nbuffer, xbuff, ybuff, zbuff, nactual) &
+    solver, coordinates, nbuffer, xbuff, ybuff, zbuff, nactual, user_data) &
     bind(C, name = "c_poincare_map_ode")
     type(c_funptr), intent(in), value :: fcn
     real(c_double), intent(in) :: tspan(2)
@@ -65,6 +66,7 @@ subroutine c_poincare_map_ode(fcn, tspan, n, iv, sample_count, pln, side, &
     real(c_double), intent(out) :: ybuff(nbuffer)
     real(c_double), intent(out) :: zbuff(nbuffer)
     integer(c_int), intent(out) :: nactual
+    type(c_ptr), intent(in), value :: user_data
 
     ! Local Variables
     integer(int32) :: i
@@ -84,10 +86,26 @@ subroutine c_poincare_map_ode(fcn, tspan, n, iv, sample_count, pln, side, &
     class(ode_integrator), pointer :: integrator_obj
     real(real64), allocatable, dimension(:,:) :: rst
 
+    ! Input Checking
+    nactual = 0
+    if (c_api_error(.not.c_associated(fcn), DYN_NULL_POINTER_ERROR, &
+        "c_poincare_map_ode: fcn must not be NULL.")) return
+    if (c_api_error(sample_count < 2, DYN_INVALID_INPUT_ERROR, &
+        "c_poincare_map_ode: sample_count must be >= 2.")) return
+    if (c_api_error(tspan(2) <= tspan(1), DYN_INVALID_INPUT_ERROR, &
+        "c_poincare_map_ode: tspan must be increasing.")) return
+    if (c_api_error(n < 1 .or. (n < 3 .and. .not.c_associated(coordinates)), &
+        DYN_INVALID_INPUT_ERROR, &
+        "c_poincare_map_ode: n must be >= 3 unless coordinates is given.")) &
+        return
+    if (c_api_error(pln%a == 0.0d0 .and. pln%b == 0.0d0 .and. &
+        pln%c == 0.0d0, DYN_INVALID_INPUT_ERROR, &
+        "c_poincare_map_ode: the plane normal must be non-zero.")) return
+
     ! Initialization
-    if (.not.c_associated(fcn)) error stop DYN_NULL_POINTER_ERROR
     call c_f_procpointer(fcn, fptr)
     arg%fcn => fptr
+    arg%user_data = user_data
     sys%fcn => cpm_ode_fcn
     p = pln
 
@@ -117,10 +135,12 @@ subroutine c_poincare_map_ode(fcn, tspan, n, iv, sample_count, pln, side, &
     ! Process
     if (c_associated(coordinates)) then
         call c_f_procpointer(coordinates, active_coordinates)
+        active_user_data = user_data
         rst = poincare_map(sys, tspan, iv, sample_count, pln = p, &
             side = side, solver = integrator_obj, &
             coordinates = cpm_coordinates, args = arg)
         active_coordinates => null()
+        active_user_data = c_null_ptr
     else
         rst = poincare_map(sys, tspan, iv, sample_count, pln = p, &
             side = side, solver = integrator_obj, args = arg)
@@ -141,7 +161,7 @@ subroutine cpm_ode_fcn(x, y, dydx, args)
     class(*), intent(inout), optional :: args
     select type (args)
     class is (c_ode_equations_container)
-        call args%fcn(size(y), x, y, dydx)
+        call args%fcn(size(y), x, y, dydx, args%user_data)
     end select
 end subroutine
 
@@ -150,7 +170,8 @@ subroutine cpm_coordinates(t, state, coordinates_out)
     real(real64), intent(in) :: t
     real(real64), intent(in), dimension(:) :: state
     real(real64), intent(out), dimension(3) :: coordinates_out
-    call active_coordinates(size(state), t, state, coordinates_out)
+    call active_coordinates(size(state), t, state, coordinates_out, &
+        active_user_data)
 end subroutine
 
 end module

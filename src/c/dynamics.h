@@ -12,6 +12,16 @@
  * corresponding `c_free_*` routine. Unless documented otherwise, pointer
  * arguments must refer to storage large enough for the dimensions supplied to
  * the routine.
+ *
+ * Argument errors detected by this interface (for example, an undersized
+ * leading dimension or a NULL callback) do not terminate the process.  The
+ * routine records the error, invokes any handler registered with
+ * `c_set_error_handler`, and returns without computing a result; outputs are
+ * then unspecified.  Query the error with `c_get_last_error`.  Errors detected
+ * deeper inside the Fortran library still terminate the process.
+ *
+ * Every callback receives the `user_data` pointer supplied to the routine that
+ * invoked it, allowing callers to pass state without globals.
  */
 
 #include <complex.h>
@@ -181,25 +191,50 @@
 #define DYN_VI_DENSE_SOLVER 1
 /** Graph-factorized solver for variational-integrator Newton systems. */
 #define DYN_VI_GRAPH_FACTORIZED_SOLVER 2
+
+/** No error has been recorded. */
+#define DYN_NO_ERROR 0
+/** A memory allocation failed. */
+#define DYN_MEMORY_ERROR 10000
+/** A required pointer or handle was NULL or invalid. */
+#define DYN_NULL_POINTER_ERROR 10001
+/** An input argument was invalid. */
+#define DYN_INVALID_INPUT_ERROR 10004
+/** A matrix was incorrectly sized. */
+#define DYN_MATRIX_SIZE_ERROR 100100
+/** An array was incorrectly sized. */
+#define DYN_ARRAY_SIZE_ERROR 100105
 /**
  * @}
  */
 
+/**
+ * Error handler callback.
+ * @param code Error code (one of the DYN_*_ERROR constants).
+ * @param message Null-terminated description, valid only during the call.
+ * @param user_data Opaque pointer supplied to c_set_error_handler.
+ */
+typedef void (*c_error_handler)(int code, const char *message,
+    void *user_data);
 /**
  * Nonlinear vector function callback.
  * @param nvar Number of variables.
  * @param neqn Number of equations.
  * @param x Input variables.
  * @param f Output residual vector.
+ * @param user_data Opaque caller data.
  */
-typedef void (*c_vecfcn)(int nvar, int neqn, const double *x, double *f);
+typedef void (*c_vecfcn)(int nvar, int neqn, const double *x, double *f,
+    void *user_data);
 /**
  * Modal force callback used by frequency-response routines.
  * @param n Modal count.
  * @param freq Frequency.
  * @param f Output modal force.
+ * @param user_data Opaque caller data.
  */
-typedef void (*c_modal_excite)(int n, double freq, double complex *f);
+typedef void (*c_modal_excite)(int n, double freq, double complex *f,
+    void *user_data);
 /**
  * Harmonic ordinary-differential-equation callback.
  * @param n State dimension.
@@ -207,16 +242,18 @@ typedef void (*c_modal_excite)(int n, double freq, double complex *f);
  * @param t Time.
  * @param x State vector.
  * @param dxdt Output state derivative.
+ * @param user_data Opaque caller data.
  */
 typedef void (*c_harmonic_ode)(int n, double freq, double t, const double *x,
-    double *dxdt);
+    double *dxdt, void *user_data);
 /**
  * Window function callback used by SISO frequency analysis.
  * @param n Window length.
  * @param bin Zero-based sample index.
+ * @param user_data Opaque caller data.
  * @return Window coefficient.
  */
-typedef double (*c_window_function)(int n, int bin);
+typedef double (*c_window_function)(int n, int bin, void *user_data);
 /**
  * Constraint callback used by least-squares system identification.
  * @param n Data-set index or count.
@@ -227,10 +264,11 @@ typedef double (*c_window_function)(int n, int bin);
  * @param xc Constraint inputs.
  * @param p Model parameters.
  * @param fc Output constraint residuals.
+ * @param user_data Opaque caller data.
  */
 typedef void (*c_constraint_equations)(int n, int neqn, int nparam, 
     const double *xg, const double *fg, const double *xc, const double *p,
-    double *fc);
+    double *fc, void *user_data);
 /**
  * ODE model callback used by system identification.
  * @param n State dimension.
@@ -240,17 +278,19 @@ typedef void (*c_constraint_equations)(int n, int neqn, int nparam,
  * @param x State vector.
  * @param F Input or forcing value.
  * @param dxdt Output state derivative.
+ * @param user_data Opaque caller data.
  */
 typedef void (*c_ode_fit)(int n, int nparam, const double *mdl, double t, 
-    const double *x, double F, double *dxdt);
+    const double *x, double F, double *dxdt, void *user_data);
 
 /**
  * State-space input callback used by c_lti_solve.
  * @param n Input count.
  * @param t Time.
  * @param u Output input vector.
+ * @param user_data Opaque caller data.
  */
-typedef void (*c_ss_excitation)(int n, double t, double *u);
+typedef void (*c_ss_excitation)(int n, double t, double *u, void *user_data);
 
 /**
  * Ordinary-differential-equation callback.
@@ -258,9 +298,10 @@ typedef void (*c_ss_excitation)(int n, double t, double *u);
  * @param t Independent variable (time).
  * @param x State vector.
  * @param dxdt Output state derivative.
+ * @param user_data Opaque caller data.
  */
 typedef void (*c_ode_equations)(int n, double t, const double *x,
-    double *dxdt);
+    double *dxdt, void *user_data);
 
 /**
  * Poincare section coordinate callback.  Maps a sampled ODE state onto the
@@ -269,9 +310,10 @@ typedef void (*c_ode_equations)(int n, double t, const double *x,
  * @param t Time at which the state was sampled.
  * @param x State vector.
  * @param coordinates Output 3-element [x, y, z] section coordinates.
+ * @param user_data Opaque caller data.
  */
 typedef void (*c_poincare_coordinates)(int n, double t, const double *x,
-    double coordinates[3]);
+    double coordinates[3], void *user_data);
 
 typedef struct c_variational_state c_variational_state;
 /**
@@ -1242,6 +1284,38 @@ extern "C" {
 #endif
 
 /**
+ * @defgroup dynamics_errors Error reporting
+ * @{
+ */
+/**
+ * Register a handler invoked whenever the C interface records an error on
+ * the calling thread.
+ * @param fcn Handler, or NULL to remove the current handler.
+ * @param user_data Opaque pointer forwarded to fcn.
+ */
+void c_set_error_handler(c_error_handler fcn, void *user_data);
+/**
+ * Get the most recent error recorded on the calling thread.  The value is
+ * retained until c_clear_error is called; successful calls do not reset it.
+ * @return The error code, or DYN_NO_ERROR if no error has been recorded.
+ */
+int c_get_last_error(void);
+/**
+ * Copy the message for the most recent error on the calling thread.
+ * @param n Capacity of buffer, including the terminating null character.
+ * @param buffer Output null-terminated message; truncated to fit.
+ * @return The full length of the message, excluding the null character.
+ */
+int c_get_last_error_message(int n, char *buffer);
+/**
+ * Clear the error recorded on the calling thread.
+ */
+void c_clear_error(void);
+/**
+ * @}
+ */
+
+/**
  * @defgroup dynamics_matrix Matrix and general kinematics
  * @{
  */
@@ -1560,11 +1634,12 @@ void c_jacobian_generating_vector(const double *d, const double *k,
  * @param jvar Output joint variables.
  * @param resid Output residual.
  * @param ib Output iteration statistics.
+ * @param user_data Opaque caller data forwarded to mdl.
  */
 void c_solve_inverse_kinematics(int njoints, int neqn, const c_vecfcn mdl,
     const double *qo, const double *constraints, const double *qmax,
     const double *qmin, double *jvar, double *resid,
-    c_iteration_behavior *ib);
+    c_iteration_behavior *ib, void *user_data);
 /**
  * Convert a rotation matrix to angle-axis form.
  * @param r Rotation matrix.
@@ -1598,11 +1673,12 @@ void c_to_angle_axis(const double *r, int ldr, double *angle, double axis[3]);
  * @param ldms Leading dimension of modeshapes.
  * @param rsp Output complex response.
  * @param ldr Leading dimension of rsp.
+ * @param user_data Opaque caller data forwarded to frc.
  */
 void c_frequency_response(int n, int nfreq, const double *mass, int ldm,
     const double *stiff, int ldk, double alpha, double beta, const double *freq,
     const c_modal_excite frc, double *modes, double *modeshapes, int ldms,
-    double complex *rsp, int ldr);
+    double complex *rsp, int ldr, void *user_data);
 /**
  * Compute modal damping from Rayleigh coefficients.
  * @param lambda Modal eigenvalue.
@@ -1652,10 +1728,11 @@ void c_normalize_mode_shapes(int n, double *x, int ldx);
  * @param rsp Output complex response.
  * @param ldr Leading dimension of rsp.
  * @param opts Sweep controls.
+ * @param user_data Opaque caller data forwarded to fcn.
  */
 void c_frf_sweep(int n, int nfreq, c_harmonic_ode fcn, const double *freq,
     const double *iv, int solver, double complex *rsp, int ldr, 
-    const c_frequency_sweep_controls *opts);
+    const c_frequency_sweep_controls *opts, void *user_data);
 /**
  * Fill frequency-sweep controls with defaults.
  * @param x Controls updated in place.
@@ -1715,10 +1792,11 @@ void c_fit_frf(int n, int norder, int method, const double *freq,
  * @param method H1 or H2 estimator.
  * @param freq Output frequencies.
  * @param rsp Output complex response.
+ * @param user_data Opaque caller data forwarded to winfun.
  */
 void c_siso_frequency_response(int n, int nf, const double *x, const double *y,
     double fs, int winsize, c_window_function winfun, int method, double *freq,
-    double complex *rsp);
+    double complex *rsp, void *user_data);
 
 /**
  * Compute the cross product of two three-vectors.
@@ -1809,6 +1887,7 @@ bool c_is_symmetric(int m, int n, const double *a, int lda);
  * @param weights Residual weights.
  * @param stats Output regression statistics.
  * @param info Output iteration statistics.
+ * @param user_data Opaque caller data forwarded to fcn and constraints.
  */
 void c_siso_model_fit_least_squares(int nsets, int nparams, int neqns, 
     const c_ode_fit fcn, const c_dynamic_system_measurement *x, 
@@ -1817,7 +1896,7 @@ void c_siso_model_fit_least_squares(int nsets, int nparams, int neqns,
     const c_lm_solver_options *opts, int nconstraints, const double *xc, 
     const double *yc, const c_constraint_equations constraints, int nweights,
     const double *weights, c_regression_statistics *stats, 
-    c_iteration_behavior *info);
+    c_iteration_behavior *info, void *user_data);
 /**
  * Fill Levenberg-Marquardt options with defaults.
  * @param x Options updated in place.
@@ -2238,7 +2317,8 @@ void c_poincare_map(int n, const double *x, const double *y, const double *z,
 /**
  * Compute a Poincare section map by integrating an ODE and intersecting
  * uniformly spaced solution samples with a plane.  The coordinate callback
- * is not thread-safe across concurrent calls from the same thread.
+ * is held per thread for the duration of the call, so this routine must not
+ * be re-entered from within its own callbacks.
  * @param fcn ODE callback.
  * @param tspan Increasing start and end times.
  * @param n State dimension.  At least 3 if coordinates is NULL.
@@ -2255,11 +2335,13 @@ void c_poincare_map(int n, const double *x, const double *y, const double *z,
  * @param ybuffer Output section y values.
  * @param zbuffer Output section z values.
  * @param nactual Output number of intersections stored, at most nbuffer.
+ * @param user_data Opaque caller data forwarded to fcn and coordinates.
  */
 void c_poincare_map_ode(c_ode_equations fcn, const double tspan[2], int n,
     const double *iv, int sample_count, const c_plane *pln, int side,
     int solver, c_poincare_coordinates coordinates, int nbuffer,
-    double *xbuffer, double *ybuffer, double *zbuffer, int *nactual);
+    double *xbuffer, double *ybuffer, double *zbuffer, int *nactual,
+    void *user_data);
 /**
  * @}
  */
@@ -2962,10 +3044,11 @@ void c_scale_transfer_function(double x, const c_transfer_function *tf1,
  * @param nout Output count.
  * @param y Output samples.
  * @param ldy Leading dimension of y.
+ * @param user_data Opaque caller data forwarded to u.
  */
 void c_lti_solve(const c_state_space_model *mdl, const c_ss_excitation u,
     int n, const double *t, int ndof, const double *ic, int solver, 
-    int nout, double *y, int ldy);
+    int nout, double *y, int ldy, void *user_data);
 /**
  * Compute state-space poles.
  * @param mdl State-space model.

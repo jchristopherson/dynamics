@@ -47,10 +47,12 @@ function build_mechanism(planar, nlinks, links, njoints, joints, base, &
     type(planar_linkage) :: flat
 
     ! Convert the links
+    rst = c_null_ptr
     allocate(f_links(nlinks))
     do i = 1, nlinks
         nf = int(links(i)%frame_count, int32)
-        if (nf < 1) error stop DYN_INVALID_INPUT_ERROR
+        if (c_api_error(nf < 1, DYN_INVALID_INPUT_ERROR, &
+            "Each mechanism link must define at least one frame.")) return
         call c_f_pointer(links(i)%frames, fptr, [16 * nf])
         frames = reshape(fptr, [4, 4, nf])
         allocate(f_links(i)%item, source = multi_joint_link(frames, &
@@ -75,7 +77,8 @@ function build_mechanism(planar, nlinks, links, njoints, joints, base, &
         T(i,i) = 1.0d0
     end do
     if (c_associated(tool)) then
-        if (ldt < 4) error stop DYN_INVALID_INPUT_ERROR
+        if (c_api_error(ldt < 4, DYN_INVALID_INPUT_ERROR, &
+            "The tool leading dimension ldt must be >= 4.")) return
         call c_f_pointer(tool, tptr, [int(ldt, int32), 4])
         T = tptr(1:4,1:4)
     end if
@@ -257,9 +260,10 @@ subroutine c_mechanism_link_frame(obj, i, k, T, ldt) &
     class(kinematic_mechanism), pointer :: mech
     class(link), pointer :: lnk
 
-    if (ldt < 4) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldt < 4, DYN_INVALID_INPUT_ERROR, &
+        "c_mechanism_link_frame: ldt must be >= 4.")) return
     mech => get_mechanism(obj)
-    if (.not.associated(mech)) error stop DYN_NULL_POINTER_ERROR
+    if (invalid_mechanism(mech, "c_mechanism_link_frame")) return
     lnk => mech%get_link(int(i, int32))
     T(1:4,1:4) = lnk%get_joint_frame(int(k, int32))
 end subroutine
@@ -274,7 +278,7 @@ subroutine c_mechanism_get_configuration(obj, n, q) &
     class(kinematic_mechanism), pointer :: mech
 
     mech => get_mechanism(obj)
-    if (.not.associated(mech)) error stop DYN_NULL_POINTER_ERROR
+    if (invalid_mechanism(mech, "c_mechanism_get_configuration")) return
     q = mech%get_configuration()
 end subroutine
 
@@ -288,7 +292,7 @@ subroutine c_mechanism_set_configuration(obj, n, q) &
     class(kinematic_mechanism), pointer :: mech
 
     mech => get_mechanism(obj)
-    if (.not.associated(mech)) error stop DYN_NULL_POINTER_ERROR
+    if (invalid_mechanism(mech, "c_mechanism_set_configuration")) return
     call mech%set_configuration(q)
 end subroutine
 
@@ -302,9 +306,10 @@ subroutine c_mechanism_body_transform(obj, i, n, q, T, ldt) &
 
     class(kinematic_mechanism), pointer :: mech
 
-    if (ldt < 4) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldt < 4, DYN_INVALID_INPUT_ERROR, &
+        "c_mechanism_body_transform: ldt must be >= 4.")) return
     mech => get_mechanism(obj)
-    if (.not.associated(mech)) error stop DYN_NULL_POINTER_ERROR
+    if (invalid_mechanism(mech, "c_mechanism_body_transform")) return
     T(1:4,1:4) = mech%body_transform(int(i, int32), q)
 end subroutine
 
@@ -318,9 +323,10 @@ subroutine c_mechanism_end_effector_transform(obj, n, q, T, ldt) &
 
     class(kinematic_mechanism), pointer :: mech
 
-    if (ldt < 4) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldt < 4, DYN_INVALID_INPUT_ERROR, &
+        "c_mechanism_end_effector_transform: ldt must be >= 4.")) return
     mech => get_mechanism(obj)
-    if (.not.associated(mech)) error stop DYN_NULL_POINTER_ERROR
+    if (invalid_mechanism(mech, "c_mechanism_end_effector_transform")) return
     T(1:4,1:4) = mech%end_effector_transform(q)
 end subroutine
 
@@ -335,7 +341,7 @@ subroutine c_mechanism_constraints(obj, n, q, nc, f) &
     class(kinematic_mechanism), pointer :: mech
 
     mech => get_mechanism(obj)
-    if (.not.associated(mech)) error stop DYN_NULL_POINTER_ERROR
+    if (invalid_mechanism(mech, "c_mechanism_constraints")) return
     f = mech%constraints(q)
 end subroutine
 
@@ -351,9 +357,11 @@ subroutine c_mechanism_constraint_jacobian(obj, n, q, jac, ldj) &
     class(kinematic_mechanism), pointer :: mech
 
     mech => get_mechanism(obj)
-    if (.not.associated(mech)) error stop DYN_NULL_POINTER_ERROR
+    if (invalid_mechanism(mech, "c_mechanism_constraint_jacobian")) return
     nc = mech%get_constraint_count()
-    if (ldj < nc) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldj < nc, DYN_INVALID_INPUT_ERROR, &
+        "c_mechanism_constraint_jacobian: ldj must be >= the constraint " // &
+        "count.")) return
     jac(1:nc,1:n) = mech%constraint_jacobian(q)
 end subroutine
 
@@ -370,7 +378,7 @@ subroutine c_mechanism_solve_configuration(obj, na, qa, n, q, ib) &
     type(iteration_behavior) :: fib
 
     mech => get_mechanism(obj)
-    if (.not.associated(mech)) error stop DYN_NULL_POINTER_ERROR
+    if (invalid_mechanism(mech, "c_mechanism_solve_configuration")) return
     q = mech%solve_configuration(qa, ib = fib)
     ib = fib
 end subroutine
@@ -387,9 +395,10 @@ subroutine c_mechanism_forward_kinematics(obj, na, qa, T, ldt, ib) &
     class(kinematic_mechanism), pointer :: mech
     type(iteration_behavior) :: fib
 
-    if (ldt < 4) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldt < 4, DYN_INVALID_INPUT_ERROR, &
+        "c_mechanism_forward_kinematics: ldt must be >= 4.")) return
     mech => get_mechanism(obj)
-    if (.not.associated(mech)) error stop DYN_NULL_POINTER_ERROR
+    if (invalid_mechanism(mech, "c_mechanism_forward_kinematics")) return
     T(1:4,1:4) = mech%forward_kinematics(qa, ib = fib)
     ib = fib
 end subroutine
@@ -406,9 +415,10 @@ subroutine c_mechanism_jacobian(obj, na, qa, jac, ldj) &
     class(kinematic_mechanism), pointer :: mech
 
     mech => get_mechanism(obj)
-    if (.not.associated(mech)) error stop DYN_NULL_POINTER_ERROR
+    if (invalid_mechanism(mech, "c_mechanism_jacobian")) return
     nd = mech%get_space_dimension()
-    if (ldj < nd) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldj < nd, DYN_INVALID_INPUT_ERROR, &
+        "c_mechanism_jacobian: ldj must be >= the space dimension.")) return
     jac(1:nd,1:na) = mech%jacobian(qa)
 end subroutine
 
@@ -424,11 +434,22 @@ subroutine c_mechanism_inverse_kinematics(obj, trg, ldt, na, qa, ib) &
     class(kinematic_mechanism), pointer :: mech
     type(iteration_behavior) :: fib
 
-    if (ldt < 4) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldt < 4, DYN_INVALID_INPUT_ERROR, &
+        "c_mechanism_inverse_kinematics: ldt must be >= 4.")) return
     mech => get_mechanism(obj)
-    if (.not.associated(mech)) error stop DYN_NULL_POINTER_ERROR
+    if (invalid_mechanism(mech, "c_mechanism_inverse_kinematics")) return
     qa = mech%inverse_kinematics(trg(1:4,1:4), ib = fib)
     ib = fib
 end subroutine
+
+! ------------------------------------------------------------------------------
+function invalid_mechanism(mech, routine) result(rst)
+    ! Reports a null or empty mechanism handle.
+    class(kinematic_mechanism), intent(in), pointer :: mech
+    character(len = *), intent(in) :: routine
+    logical :: rst
+    rst = c_api_error(.not.associated(mech), DYN_NULL_POINTER_ERROR, &
+        routine // ": invalid mechanism handle.")
+end function
 
 end module

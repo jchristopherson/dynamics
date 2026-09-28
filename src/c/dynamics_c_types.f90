@@ -19,25 +19,30 @@ module dynamics_c_types
     use spectrum, only : window
     use dynamics_error_handling
     use nonlin
+    use dynamics_c_errors
     implicit none
 
     interface
-        subroutine c_vecfcn(nvar, neqn, x, f) bind(C, name = "c_vecfcn")
+        subroutine c_vecfcn(nvar, neqn, x, f, user_data) &
+            bind(C, name = "c_vecfcn")
             use iso_c_binding
             integer(c_int), intent(in), value :: nvar
             integer(c_int), intent(in), value :: neqn
             real(c_double), intent(in) :: x(nvar)
             real(c_double), intent(out) :: f(neqn)
+            type(c_ptr), intent(in), value :: user_data
         end subroutine
 
-        subroutine c_modal_excite(n, freq, f) bind(C, name = "c_modal_excite")
+        subroutine c_modal_excite(n, freq, f, user_data) &
+            bind(C, name = "c_modal_excite")
             use iso_c_binding
             integer(c_int), intent(in), value :: n
             real(c_double), intent(in), value :: freq
             complex(c_double), intent(out) :: f(n)
+            type(c_ptr), intent(in), value :: user_data
         end subroutine
 
-        subroutine c_harmonic_ode(n, freq, t, x, dxdt) &
+        subroutine c_harmonic_ode(n, freq, t, x, dxdt, user_data) &
             bind(C, name = "c_harmonic_ode")
             use iso_c_binding
             integer(c_int), intent(in), value :: n
@@ -45,18 +50,20 @@ module dynamics_c_types
             real(c_double), intent(in), value :: t
             real(c_double), intent(in) :: x(n)
             real(c_double), intent(out) :: dxdt(n)
+            type(c_ptr), intent(in), value :: user_data
         end subroutine
 
-        pure function c_window_function(n, bin) result(rst) &
+        pure function c_window_function(n, bin, user_data) result(rst) &
             bind(C, name = "c_window_function")
             use iso_c_binding
             integer(c_int), intent(in), value :: n
             integer(c_int), intent(in), value :: bin
+            type(c_ptr), intent(in), value :: user_data
             real(c_double) :: rst
         end function
 
         subroutine c_constraint_equations(n, neqn, nparam, xg, fg, xc, p, &
-            fc) bind(C, name = "c_constraint_equations")
+            fc, user_data) bind(C, name = "c_constraint_equations")
             use iso_c_binding
             integer(c_int), intent(in), value :: n
             integer(c_int), intent(in), value :: neqn
@@ -66,9 +73,10 @@ module dynamics_c_types
             real(c_double), intent(in) :: xc(neqn)
             real(c_double), intent(in) :: p(nparam)
             real(c_double), intent(out) :: fc(neqn)
+            type(c_ptr), intent(in), value :: user_data
         end subroutine
 
-        subroutine c_ode_fit(neqn, nparam, mdl, t, x, F, dxdt) &
+        subroutine c_ode_fit(neqn, nparam, mdl, t, x, F, dxdt, user_data) &
             bind(C, name = "c_ode_fit")
             use iso_c_binding
             integer(c_int), intent(in), value :: neqn
@@ -78,58 +86,69 @@ module dynamics_c_types
             real(c_double), intent(in) :: x(neqn)
             real(c_double), intent(in), value :: F
             real(c_double), intent(out) :: dxdt(neqn)
+            type(c_ptr), intent(in), value :: user_data
         end subroutine
 
-        subroutine c_ss_excitation(n, t, u) bind(C, name = "c_ss_excitation")
+        subroutine c_ss_excitation(n, t, u, user_data) &
+            bind(C, name = "c_ss_excitation")
             use iso_c_binding
             integer(c_int), intent(in), value :: n
             real(c_double), intent(in), value :: t
             real(c_double), intent(out) :: u(n)
+            type(c_ptr), intent(in), value :: user_data
         end subroutine
 
-        subroutine c_ode_equations(n, t, x, dxdt) &
+        subroutine c_ode_equations(n, t, x, dxdt, user_data) &
             bind(C, name = "c_ode_equations")
             use iso_c_binding
             integer(c_int), intent(in), value :: n
             real(c_double), intent(in), value :: t
             real(c_double), intent(in) :: x(n)
             real(c_double), intent(out) :: dxdt(n)
+            type(c_ptr), intent(in), value :: user_data
         end subroutine
 
-        subroutine c_poincare_coordinates(n, t, x, coordinates) &
+        subroutine c_poincare_coordinates(n, t, x, coordinates, user_data) &
             bind(C, name = "c_poincare_coordinates")
             use iso_c_binding
             integer(c_int), intent(in), value :: n
             real(c_double), intent(in), value :: t
             real(c_double), intent(in) :: x(n)
             real(c_double), intent(out) :: coordinates(3)
+            type(c_ptr), intent(in), value :: user_data
         end subroutine
 
     end interface
 
     type c_vecfcn_container
         procedure(c_vecfcn), pointer, nopass :: fcn
+        type(c_ptr) :: user_data = c_null_ptr
     end type
 
     type c_modal_excite_container
         procedure(c_modal_excite), pointer, nopass :: fcn
+        type(c_ptr) :: user_data = c_null_ptr
     end type
 
     type c_harmonic_ode_container
         procedure(c_harmonic_ode), pointer, nopass :: fcn
+        type(c_ptr) :: user_data = c_null_ptr
     end type
 
     type c_siso_fit_container
         procedure(c_ode_fit), pointer, nopass :: odefcn
         procedure(c_constraint_equations), pointer, nopass :: constraints
+        type(c_ptr) :: user_data = c_null_ptr
     end type
 
     type c_ss_excitation_container
         procedure(c_ss_excitation), pointer, nopass :: fcn
+        type(c_ptr) :: user_data = c_null_ptr
     end type
 
     type c_ode_equations_container
         procedure(c_ode_equations), pointer, nopass :: fcn
+        type(c_ptr) :: user_data = c_null_ptr
     end type
 
     type, bind(C) :: c_iteration_behavior
@@ -175,6 +194,7 @@ module dynamics_c_types
 
     type, extends(window) :: c_window
         procedure(c_window_function), pointer, nopass :: fcn
+        type(c_ptr) :: user_data = c_null_ptr
     contains
         procedure, public :: evaluate => cw_eval
     end type
@@ -500,7 +520,7 @@ pure function cw_eval(this, bin) result(rst)
     class(c_window), intent(in) :: this
     integer(int32), intent(in) :: bin
     real(real64) :: rst
-    rst = this%fcn(this%size, bin)
+    rst = this%fcn(this%size, bin, this%user_data)
 end function
 
 

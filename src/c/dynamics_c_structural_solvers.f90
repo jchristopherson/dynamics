@@ -48,7 +48,18 @@ function c_create_dense_generalized_alpha_integrator(n, m, ldm, c, ldc, k, &
     type(c_structural_integrator_container), pointer :: cont
     type(dense_generalized_alpha_integrator) :: integrator
 
-    if (ldm < n .or. ldc < n .or. ldk < n) error stop DYN_INVALID_INPUT_ERROR
+    rst = c_null_ptr
+    if (c_api_error(n < 1, DYN_INVALID_INPUT_ERROR, &
+        "c_create_dense_generalized_alpha_integrator: n must be >= 1.")) &
+        return
+    if (c_api_error(ldm < n .or. ldc < n .or. ldk < n, &
+        DYN_INVALID_INPUT_ERROR, &
+        "c_create_dense_generalized_alpha_integrator: ldm, ldc, and ldk " // &
+        "must be >= n.")) return
+    if (c_api_error(.not.(rho_infinity >= 0.0d0 .and. &
+        rho_infinity <= 1.0d0), DYN_INVALID_INPUT_ERROR, &
+        "c_create_dense_generalized_alpha_integrator: rho_infinity must " // &
+        "lie in [0, 1].")) return
 
     call integrator%initialize(m(1:n,1:n), c(1:n,1:n), k(1:n,1:n), &
         rho_infinity)
@@ -86,7 +97,12 @@ subroutine c_structural_integrator_step(obj, n, force_current, force_next, &
     class(structural_integrator), pointer :: integrator
 
     integrator => get_structural_integrator(obj)
-    if (.not.associated(integrator)) error stop DYN_NULL_POINTER_ERROR
+    if (c_api_error(.not.associated(integrator), DYN_NULL_POINTER_ERROR, &
+        "c_structural_integrator_step: invalid integrator handle.")) return
+    if (c_api_error(.not.(dt > 0.0d0 .and. dt <= huge(dt)), &
+        DYN_INVALID_INPUT_ERROR, &
+        "c_structural_integrator_step: dt must be positive and finite.")) &
+        return
     call integrator%step(force_current, force_next, dt, displacement, &
         velocity, acceleration)
 end subroutine
@@ -105,9 +121,17 @@ subroutine c_structural_integrator_solve(obj, n, npts, forces, ldf, dt, &
 
     class(structural_integrator), pointer :: integrator
 
-    if (ldf < n) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldf < n, DYN_INVALID_INPUT_ERROR, &
+        "c_structural_integrator_solve: ldf must be >= n.")) return
+    if (c_api_error(npts < 2, DYN_INVALID_INPUT_ERROR, &
+        "c_structural_integrator_solve: npts must be >= 2.")) return
+    if (c_api_error(.not.(dt > 0.0d0 .and. dt <= huge(dt)), &
+        DYN_INVALID_INPUT_ERROR, &
+        "c_structural_integrator_solve: dt must be positive and finite.")) &
+        return
     integrator => get_structural_integrator(obj)
-    if (.not.associated(integrator)) error stop DYN_NULL_POINTER_ERROR
+    if (c_api_error(.not.associated(integrator), DYN_NULL_POINTER_ERROR, &
+        "c_structural_integrator_solve: invalid integrator handle.")) return
     call integrator%solve(forces(1:n,:), dt, displacement, velocity, &
         acceleration)
 end subroutine

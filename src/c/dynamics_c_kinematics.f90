@@ -17,7 +17,8 @@ subroutine c_dh_forward_kinematics_table(tbl, T, ldt) &
     integer(c_int), intent(in), value :: ldt
     real(c_double), intent(out) :: T(ldt, 4)
     type(dh_table) :: ftbl
-    if (ldt < 4) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldt < 4, DYN_INVALID_INPUT_ERROR, &
+        "c_dh_forward_kinematics_table: ldt must be >= 4.")) return
     ftbl = tbl
     T(1:4,1:4) = dh_forward_kinematics(ftbl)
 end subroutine
@@ -32,7 +33,8 @@ subroutine c_dh_forward_kinematics(n, alpha, a, theta, d, T, ldt) &
     real(c_double), intent(in) :: d(n)
     integer(c_int), intent(in), value :: ldt
     real(c_double), intent(out) :: T(ldt,4)
-    if (ldt < 4) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldt < 4, DYN_INVALID_INPUT_ERROR, &
+        "c_dh_forward_kinematics: ldt must be >= 4.")) return
     T(1:4,1:4) = dh_forward_kinematics(alpha, a, theta, d)
 end subroutine
 
@@ -45,9 +47,9 @@ subroutine c_dh_forward_kinematics_2(T1, ldt1, T2, ldt2, T, ldt) &
     real(c_double), intent(in) :: T1(ldt1,4)
     real(c_double), intent(in) :: T2(ldt2,4)
     real(c_double), intent(out) :: T(ldt,4)
-    if (ldt1 < 4) error stop DYN_INVALID_INPUT_ERROR
-    if (ldt2 < 4) error stop DYN_INVALID_INPUT_ERROR
-    if (ldt < 4) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldt1 < 4 .or. ldt2 < 4 .or. ldt < 4, &
+        DYN_INVALID_INPUT_ERROR, &
+        "c_dh_forward_kinematics_2: leading dimensions must be >= 4.")) return
     T(1:4,1:4) = dh_forward_kinematics(T1(1:4,1:4), T2(1:4,1:4))
 end subroutine
 
@@ -62,10 +64,9 @@ subroutine c_dh_forward_kinematics_3(T1, ldt1, T2, ldt2, T3, ldt3, T, ldt) &
     real(c_double), intent(in) :: T2(ldt2,4)
     real(c_double), intent(in) :: T3(ldt3,4)
     real(c_double), intent(out) :: T(ldt,4)
-    if (ldt1 < 4) error stop DYN_INVALID_INPUT_ERROR
-    if (ldt2 < 4) error stop DYN_INVALID_INPUT_ERROR
-    if (ldt3 < 4) error stop DYN_INVALID_INPUT_ERROR
-    if (ldt < 4) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldt1 < 4 .or. ldt2 < 4 .or. ldt3 < 4 .or. ldt < 4, &
+        DYN_INVALID_INPUT_ERROR, &
+        "c_dh_forward_kinematics_3: leading dimensions must be >= 4.")) return
     T(1:4,1:4) = dh_forward_kinematics(T1(1:4,1:4), T2(1:4,1:4), T3(1:4,1:4))
 end subroutine
 
@@ -83,11 +84,9 @@ subroutine c_dh_forward_kinematics_4(T1, ldt1, T2, ldt2, T3, ldt3, T4, ldt4, &
     real(c_double), intent(in) :: T3(ldt3,4)
     real(c_double), intent(in) :: T4(ldt4,4)
     real(c_double), intent(out) :: T(ldt,4)
-    if (ldt1 < 4) error stop DYN_INVALID_INPUT_ERROR
-    if (ldt2 < 4) error stop DYN_INVALID_INPUT_ERROR
-    if (ldt3 < 4) error stop DYN_INVALID_INPUT_ERROR
-    if (ldt4 < 4) error stop DYN_INVALID_INPUT_ERROR
-    if (ldt < 4) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldt1 < 4 .or. ldt2 < 4 .or. ldt3 < 4 .or. ldt4 < 4 .or. &
+        ldt < 4, DYN_INVALID_INPUT_ERROR, &
+        "c_dh_forward_kinematics_4: leading dimensions must be >= 4.")) return
     T(1:4,1:4) = dh_forward_kinematics(T1(1:4,1:4), T2(1:4,1:4), T3(1:4,1:4), &
         T4(1:4,1:4))
 end subroutine
@@ -108,12 +107,9 @@ subroutine c_dh_forward_kinematics_5(T1, ldt1, T2, ldt2, T3, ldt3, T4, ldt4, &
     real(c_double), intent(in) :: T4(ldt4,4)
     real(c_double), intent(in) :: T5(ldt5,4)
     real(c_double), intent(out) :: T(ldt,4)
-    if (ldt1 < 4) error stop DYN_INVALID_INPUT_ERROR
-    if (ldt2 < 4) error stop DYN_INVALID_INPUT_ERROR
-    if (ldt3 < 4) error stop DYN_INVALID_INPUT_ERROR
-    if (ldt4 < 4) error stop DYN_INVALID_INPUT_ERROR
-    if (ldt5 < 4) error stop DYN_INVALID_INPUT_ERROR
-    if (ldt < 4) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldt1 < 4 .or. ldt2 < 4 .or. ldt3 < 4 .or. ldt4 < 4 .or. &
+        ldt5 < 4 .or. ldt < 4, DYN_INVALID_INPUT_ERROR, &
+        "c_dh_forward_kinematics_5: leading dimensions must be >= 4.")) return
     T(1:4,1:4) = dh_forward_kinematics(T1(1:4,1:4), T2(1:4,1:4), T3(1:4,1:4), &
         T4(1:4,1:4), T5(1:4,1:4))
 end subroutine
@@ -136,13 +132,9 @@ subroutine c_dh_forward_kinematics_6(T1, ldt1, T2, ldt2, T3, ldt3, T4, ldt4, &
     real(c_double), intent(in) :: T5(ldt5,4)
     real(c_double), intent(in) :: T6(ldt6,4)
     real(c_double), intent(out) :: T(ldt,4)
-    if (ldt1 < 4) error stop DYN_INVALID_INPUT_ERROR
-    if (ldt2 < 4) error stop DYN_INVALID_INPUT_ERROR
-    if (ldt3 < 4) error stop DYN_INVALID_INPUT_ERROR
-    if (ldt4 < 4) error stop DYN_INVALID_INPUT_ERROR
-    if (ldt5 < 4) error stop DYN_INVALID_INPUT_ERROR
-    if (ldt6 < 4) error stop DYN_INVALID_INPUT_ERROR
-    if (ldt < 4) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldt1 < 4 .or. ldt2 < 4 .or. ldt3 < 4 .or. ldt4 < 4 .or. &
+        ldt5 < 4 .or. ldt6 < 4 .or. ldt < 4, DYN_INVALID_INPUT_ERROR, &
+        "c_dh_forward_kinematics_6: leading dimensions must be >= 4.")) return
     T(1:4,1:4) = dh_forward_kinematics(T1(1:4,1:4), T2(1:4,1:4), T3(1:4,1:4), &
         T4(1:4,1:4), T5(1:4,1:4), T6(1:4,1:4))
 end subroutine
@@ -167,14 +159,10 @@ subroutine c_dh_forward_kinematics_7(T1, ldt1, T2, ldt2, T3, ldt3, T4, ldt4, &
     real(c_double), intent(in) :: T6(ldt6,4)
     real(c_double), intent(in) :: T7(ldt7,4)
     real(c_double), intent(out) :: T(ldt,4)
-    if (ldt1 < 4) error stop DYN_INVALID_INPUT_ERROR
-    if (ldt2 < 4) error stop DYN_INVALID_INPUT_ERROR
-    if (ldt3 < 4) error stop DYN_INVALID_INPUT_ERROR
-    if (ldt4 < 4) error stop DYN_INVALID_INPUT_ERROR
-    if (ldt5 < 4) error stop DYN_INVALID_INPUT_ERROR
-    if (ldt6 < 4) error stop DYN_INVALID_INPUT_ERROR
-    if (ldt7 < 4) error stop DYN_INVALID_INPUT_ERROR
-    if (ldt < 4) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldt1 < 4 .or. ldt2 < 4 .or. ldt3 < 4 .or. ldt4 < 4 .or. &
+        ldt5 < 4 .or. ldt6 < 4 .or. ldt7 < 4 .or. ldt < 4, &
+        DYN_INVALID_INPUT_ERROR, &
+        "c_dh_forward_kinematics_7: leading dimensions must be >= 4.")) return
     T(1:4,1:4) = dh_forward_kinematics(T1(1:4,1:4), T2(1:4,1:4), T3(1:4,1:4), &
         T4(1:4,1:4), T5(1:4,1:4), T6(1:4,1:4), T7(1:4,1:4))
 end subroutine
@@ -201,15 +189,10 @@ subroutine c_dh_forward_kinematics_8(T1, ldt1, T2, ldt2, T3, ldt3, T4, ldt4, &
     real(c_double), intent(in) :: T7(ldt7,4)
     real(c_double), intent(in) :: T8(ldt8,4)
     real(c_double), intent(out) :: T(ldt,4)
-    if (ldt1 < 4) error stop DYN_INVALID_INPUT_ERROR
-    if (ldt2 < 4) error stop DYN_INVALID_INPUT_ERROR
-    if (ldt3 < 4) error stop DYN_INVALID_INPUT_ERROR
-    if (ldt4 < 4) error stop DYN_INVALID_INPUT_ERROR
-    if (ldt5 < 4) error stop DYN_INVALID_INPUT_ERROR
-    if (ldt6 < 4) error stop DYN_INVALID_INPUT_ERROR
-    if (ldt7 < 4) error stop DYN_INVALID_INPUT_ERROR
-    if (ldt8 < 4) error stop DYN_INVALID_INPUT_ERROR
-    if (ldt < 4) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldt1 < 4 .or. ldt2 < 4 .or. ldt3 < 4 .or. ldt4 < 4 .or. &
+        ldt5 < 4 .or. ldt6 < 4 .or. ldt7 < 4 .or. ldt8 < 4 .or. ldt < 4, &
+        DYN_INVALID_INPUT_ERROR, &
+        "c_dh_forward_kinematics_8: leading dimensions must be >= 4.")) return
     T(1:4,1:4) = dh_forward_kinematics(T1(1:4,1:4), T2(1:4,1:4), T3(1:4,1:4), &
         T4(1:4,1:4), T5(1:4,1:4), T6(1:4,1:4), T7(1:4,1:4), T8(1:4,1:4))
 end subroutine
@@ -225,7 +208,8 @@ subroutine c_dh_jacobian(n, alpha, a, theta, d, jtypes, jac, ldjac) &
     real(c_double), intent(in) :: d(n)
     integer(c_int), intent(in) :: jtypes(n)
     real(c_double), intent(out) :: jac(ldjac,n)
-    if (ldjac < 6) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldjac < 6, DYN_INVALID_INPUT_ERROR, &
+        "c_dh_jacobian: ldjac must be >= 6.")) return
     jac(1:6,1:n) = dh_jacobian(alpha, a, theta, d, jtypes)
 end subroutine
 
@@ -238,7 +222,8 @@ subroutine c_dh_matrix(alpha, a, theta, d, T, ldt) &
     real(c_double), intent(in), value :: d
     integer(c_int), intent(in), value :: ldt
     real(c_double), intent(out) :: T(ldt,4)
-    if (ldt < 4) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldt < 4, DYN_INVALID_INPUT_ERROR, &
+        "c_dh_matrix: ldt must be >= 4.")) return
     T(1:4,1:4) = dh_matrix(alpha, a, theta, d)
 end subroutine
 
@@ -248,7 +233,8 @@ subroutine c_dh_rotate_x(alpha, T, ldt) &
     real(c_double), intent(in), value :: alpha
     integer(c_int), intent(in), value :: ldt
     real(c_double), intent(out) :: T(ldt,4)
-    if (ldt < 4) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldt < 4, DYN_INVALID_INPUT_ERROR, &
+        "c_dh_rotate_x: ldt must be >= 4.")) return
     T(1:4,1:4) = dh_rotate_x(alpha)
 end subroutine
 
@@ -258,7 +244,8 @@ subroutine c_dh_rotate_z(theta, T, ldt) &
     real(c_double), intent(in), value :: theta
     integer(c_int), intent(in), value :: ldt
     real(c_double), intent(out) :: T(ldt,4)
-    if (ldt < 4) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldt < 4, DYN_INVALID_INPUT_ERROR, &
+        "c_dh_rotate_z: ldt must be >= 4.")) return
     T(1:4,1:4) = dh_rotate_z(theta)
 end subroutine
 
@@ -268,7 +255,8 @@ subroutine c_dh_translate_x(a, T, ldt) &
     real(c_double), intent(in), value :: a
     integer(c_int), intent(in), value :: ldt
     real(c_double), intent(out) :: T(ldt,4)
-    if (ldt < 4) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldt < 4, DYN_INVALID_INPUT_ERROR, &
+        "c_dh_translate_x: ldt must be >= 4.")) return
     T(1:4,1:4) = dh_translate_x(a)
 end subroutine
 
@@ -278,7 +266,8 @@ subroutine c_dh_translate_z(d, T, ldt) &
     real(c_double), intent(in), value :: d
     integer(c_int), intent(in), value :: ldt
     real(c_double), intent(out) :: T(ldt,4)
-    if (ldt < 4) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldt < 4, DYN_INVALID_INPUT_ERROR, &
+        "c_dh_translate_z: ldt must be >= 4.")) return
     T(1:4,1:4) = dh_translate_z(d)
 end subroutine
 
@@ -291,13 +280,14 @@ subroutine c_jacobian_generating_vector(d, k, R, ldr, jtype, jvec) &
     real(c_double), intent(in) :: R(ldr,3)
     integer(c_int), intent(in), value :: jtype
     real(c_double), intent(out) :: jvec(6)
-    if (ldr < 3) error stop DYN_INVALID_INPUT_ERROR
+    if (c_api_error(ldr < 3, DYN_INVALID_INPUT_ERROR, &
+        "c_jacobian_generating_vector: ldr must be >= 3.")) return
     jvec = jacobian_generating_vector(d, k, R(1:3,1:3), jtype)
 end subroutine
 
 ! ------------------------------------------------------------------------------
 subroutine c_solve_inverse_kinematics(njoints, neqn, mdl, qo, constraints, &
-    qmax, qmin, jvar, resid, ib) &
+    qmax, qmin, jvar, resid, ib, user_data) &
     bind(C, name = "c_solve_inverse_kinematics")
     integer(c_int), intent(in), value :: njoints
     integer(c_int), intent(in), value :: neqn
@@ -309,13 +299,17 @@ subroutine c_solve_inverse_kinematics(njoints, neqn, mdl, qo, constraints, &
     real(c_double), intent(out) :: jvar(njoints)
     real(c_double), intent(out) :: resid(neqn)
     type(c_iteration_behavior), intent(out) :: ib
+    type(c_ptr), intent(in), value :: user_data
     type(iteration_behavior) :: iter
     procedure(vecfcn), pointer :: fcn
     procedure(c_vecfcn), pointer :: fptr
     type(c_vecfcn_container) :: arg
+    if (c_api_error(.not.c_associated(mdl), DYN_NULL_POINTER_ERROR, &
+        "c_solve_inverse_kinematics: mdl must not be NULL.")) return
     call c_f_procpointer(mdl, fptr)
     fcn => sik_fcn
     arg%fcn => fptr
+    arg%user_data = user_data
     
     jvar = solve_inverse_kinematics(fcn, qo, constraints, df = resid, &
         qmax = qmax, qmin = qmin, ib = iter, args = arg)
@@ -329,7 +323,7 @@ subroutine sik_fcn(x, f, args)
     class(*), intent(inout), optional :: args
     select type (args)
     class is (c_vecfcn_container)
-        call args%fcn(size(x), size(f), x, f)
+        call args%fcn(size(x), size(f), x, f, args%user_data)
     end select
 end subroutine
 

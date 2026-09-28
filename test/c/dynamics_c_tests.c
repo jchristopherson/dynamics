@@ -119,6 +119,7 @@ int main()
     if (!c_test_discrete_elements()) flag = 81;
     if (!c_test_generalized_alpha_integrator()) flag = 82;
     if (!c_test_poincare_map_ode()) flag = 83;
+    if (!c_test_error_reporting()) flag = 84;
 
     return flag;
 }
