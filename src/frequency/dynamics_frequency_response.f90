@@ -1042,15 +1042,62 @@ end function
         type(frf) :: rst
             !! The resulting frequency responses.
 
+        ! Parallel Threshold
+        integer(int32), parameter :: parallel_threshold = 1000
+
+        ! Local Variables
+        integer(int32) :: m, n, check
+
+        ! Initialization
+        m = size(freq)
+        n = size(mass, 1)
+        check = m * n**3
+
+        ! Determine whether this problem should be solved in parallel
+        if (check > parallel_threshold) then
+            rst = frf_general_damp_parallel(mass, damp, stiff, freq, frc, ranks, args)
+        else
+            rst = frf_general_damp_serial(mass, damp, stiff, freq, frc, ranks, args)
+        end if
+    end function
+
+! --------------------
+    function frf_general_damp_serial(mass, damp, stiff, freq, frc, ranks, args) result(rst)
+        !! Computes the frequency response functions for a multi-degree-of-freedom
+        !! system that has a general damping matrix, and is not necessarily 
+        !! symmetric.  The problem is treated as the solution to the linear
+        !! system \( \left( K - \omega^{2} M + j \omega C \right) H(\omega) = 
+        !! F(\omega) \).
+        real(real64), intent(in), dimension(:,:) :: mass
+            !! The N-by-N mass matrix.
+        real(real64), intent(in), dimension(:,:) :: damp
+            !! The N-by-N damping matrix.
+        real(real64), intent(in), dimension(:,:) :: stiff
+            !! The N-by-N stiffness matrix.
+        real(real64), intent(in), dimension(:) :: freq
+            !! An M-element array of frequency values at which to evaluate the
+            !! frequency response functions, in units of rad/s.
+        procedure(modal_excite), pointer, intent(in) :: frc
+            !! A pointer to a routine used to compute the modal forcing 
+            !! function.
+        integer(int32), intent(out), optional, dimension(:) :: ranks
+            !! Provides information on the rank of the dynamic stiffness matrix
+            !! for each frequency.  If provided, this array must be the same
+            !! length as freq.
+        class(*), intent(inout), optional :: args
+            !! An optional argument that can be used to communicate with
+            !! the outside world.
+        type(frf) :: rst
+            !! The resulting frequency responses.
+
         ! Parameters
         complex(real64), parameter :: zero = (0.0d0, 0.0d0)
         complex(real64), parameter :: j = (0.0d0, 1.0d0)
 
         ! Local Variables
-        character :: jobu, jobvt
         integer(int32) :: i, m, n, lwork, lrwork, rnk, info
         integer(int32), allocatable, dimension(:) :: jpvt
-        real(real64) :: rcond, rdummy(1)
+        real(real64) :: rcond
         real(real64), allocatable, dimension(:) :: rwork
         complex(real64), allocatable, dimension(:) :: work
         complex(real64), allocatable, dimension(:,:) :: K_dyn
@@ -1103,6 +1150,135 @@ end function
                 ranks(i) = rnk
             end if
         end do
+    end function
+
+! --------------------
+    function frf_general_damp_parallel(mass, damp, stiff, freq, frc, ranks, &
+        args) result(rst)
+        !! Computes the frequency response functions for a multi-degree-of-freedom
+        !! system that has a general damping matrix, and is not necessarily 
+        !! symmetric.  The problem is treated as the solution to the linear
+        !! system \( \left( K - \omega^{2} M + j \omega C \right) H(\omega) = 
+        !! F(\omega) \).
+        real(real64), intent(in), dimension(:,:) :: mass
+            !! The N-by-N mass matrix.
+        real(real64), intent(in), dimension(:,:) :: damp
+            !! The N-by-N damping matrix.
+        real(real64), intent(in), dimension(:,:) :: stiff
+            !! The N-by-N stiffness matrix.
+        real(real64), intent(in), dimension(:) :: freq
+            !! An M-element array of frequency values at which to evaluate the
+            !! frequency response functions, in units of rad/s.
+        procedure(modal_excite), pointer, intent(in) :: frc
+            !! A pointer to a routine used to compute the modal forcing 
+            !! function.
+        integer(int32), intent(out), optional, dimension(:) :: ranks
+            !! Provides information on the rank of the dynamic stiffness matrix
+            !! for each frequency.  If provided, this array must be the same
+            !! length as freq.
+        class(*), intent(inout), optional :: args
+            !! An optional argument that can be used to communicate with
+            !! the outside world.
+        type(frf) :: rst
+            !! The resulting frequency responses.
+
+        ! Parameters
+        complex(real64), parameter :: zero = (0.0d0, 0.0d0)
+        complex(real64), parameter :: j = (0.0d0, 1.0d0)
+
+        ! Local Variables
+        logical :: return_rank
+        integer(int32) :: i, m, n, lwork, lrwork, rnk, info, idummy(1)
+        integer(int32), allocatable, dimension(:) :: jpvt
+        real(real64) :: rcond, rdummy(1)
+        real(real64), allocatable, dimension(:) :: rwork
+        complex(real64), allocatable, dimension(:) :: work, f
+        complex(real64), allocatable, dimension(:,:) :: K_dyn
+        complex(real64) :: dummy(1), temp(1)
+
+        ! Input Checking
+        m = size(freq)
+        n = size(mass, 1)
+        if (size(mass, 2) /= n) error stop DYN_NONSQUARE_MATRIX_ERROR
+        if (size(damp, 1) /= n .or. size(damp, 2) /= n) error stop DYN_MATRIX_SIZE_ERROR
+        if (size(stiff, 1) /= n .or. size(stiff, 2) /= n) error stop DYN_MATRIX_SIZE_ERROR
+        if (present(ranks)) then
+            if (size(ranks) /= m) error stop DYN_ARRAY_SIZE_ERROR
+        end if
+
+        ! Initialization
+        lrwork = 2 * n
+        rcond = epsilon(rcond)
+        return_rank = present(ranks)
+
+        ! Memory Allocations
+        allocate(rst%frequency(m), source = freq)
+        allocate(rst%responses(m, n))
+
+        ! Determine an appropriate workspace
+        call ZGELSY(n, n, 1, dummy, n, dummy, n, idummy, rcond, rnk, temp, &
+            -1, rdummy, info)
+        lwork = int(temp(1), kind = int32)
+        allocate(work(lwork))
+
+        ! Process
+        if (present(args)) then
+            !$omp parallel do private(f, jpvt, K_dyn, work, rwork, rnk, info, args)
+            do i = 1, m
+                ! Memory Allocations
+                if (.not.allocated(f)) allocate(f(n))
+                if (.not.allocated(jpvt)) allocate(jpvt(n))
+                if (.not.allocated(K_dyn)) allocate(K_dyn(n, n))
+                if (.not.allocated(work)) allocate(work(lwork))
+                if (.not.allocated(rwork)) allocate(rwork(lrwork))
+
+                ! Evaluate the forcing function
+                call frc(freq(i), f, args)
+
+                ! Evaluate the dynamic stiffness
+                call dynamic_stiffness(freq(i), mass, damp, stiff, K_dyn)
+
+                ! Solve the linear system
+                jpvt = 0
+                call ZGELSY(n, n, 1, K_dyn, n, f, n, jpvt, rcond, rnk, work, &
+                    lwork, rwork, info)
+                
+                ! Store the output
+                rst%responses(i,:) = f
+                if (return_rank) then
+                    ranks(i) = rnk
+                end if
+            end do
+            !$omp end parallel do
+        else
+            !$omp parallel do private(f, jpvt, K_dyn, work, rwork, rnk, info)
+            do i = 1, m
+                ! Memory Allocations
+                if (.not.allocated(f)) allocate(f(n))
+                if (.not.allocated(jpvt)) allocate(jpvt(n))
+                if (.not.allocated(K_dyn)) allocate(K_dyn(n, n))
+                if (.not.allocated(work)) allocate(work(lwork))
+                if (.not.allocated(rwork)) allocate(rwork(lrwork))
+
+                ! Evaluate the forcing function
+                call frc(freq(i), f)
+
+                ! Evaluate the dynamic stiffness
+                call dynamic_stiffness(freq(i), mass, damp, stiff, K_dyn)
+
+                ! Solve the linear system
+                jpvt = 0
+                call ZGELSY(n, n, 1, K_dyn, n, f, n, jpvt, rcond, rnk, work, &
+                    lwork, rwork, info)
+                
+                ! Store the output
+                rst%responses(i,:) = f
+                if (return_rank) then
+                    ranks(i) = rnk
+                end if
+            end do
+            !$omp end parallel do
+        end if
     end function
 
 ! ------------------------------------------------------------------------------
