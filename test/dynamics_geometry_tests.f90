@@ -164,12 +164,14 @@ function test_poincare_map_ode() result(rst)
     type(ode_container) :: model
     type(bdf) :: integrator
     type(poincare_progress_test_data) :: progress
+    procedure(poincare_map_progress), pointer :: fptr
 
     rst = .false.
     model%fcn => linear_section_ode
+    fptr => record_poincare_progress
     points = poincare_map(model, [0.0d0, 4.0d0], [0.0d0, 0.0d0, -2.0d0], &
         9, solver = integrator, chunk_size = 4, args = progress, &
-        progress_callback = record_poincare_progress)
+        progress_callback = fptr)
     if (progress%notification_count /= 2 .or. &
         any(progress%completed_samples /= [5, 9]) .or. &
         maxval(abs(progress%time - [2.0d0, 4.0d0])) > 1.0d-12) then
