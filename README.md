@@ -122,7 +122,7 @@ Add `dynamics` to your `fpm.toml` dependencies:
 
 ```toml
 [dependencies]
-dynamics = { git = "https://github.com/jchristopherson/dynamics.git", tag = "v1.4.2" }
+dynamics = { git = "https://github.com/jchristopherson/dynamics.git" }
 ```
 
 Then build and run your project:
