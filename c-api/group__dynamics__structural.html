@@ -179,6 +179,96 @@ Functions</h2></td></tr>
 <tr class="memitem:ga666cc6b0f64a9894a9634f1c57262381" id="r_ga666cc6b0f64a9894a9634f1c57262381"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga666cc6b0f64a9894a9634f1c57262381">c_solve_static_system_dense</a> (int n, const double *k, int ldk, const double *f, double *u)</td></tr>
 <tr class="memdesc:ga666cc6b0f64a9894a9634f1c57262381"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve the static system K*u = f for a dense stiffness matrix.  <br /></td></tr>
 <tr class="separator:ga666cc6b0f64a9894a9634f1c57262381"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0a30e075886b0d73bc5ade45c3c8991a" id="r_ga0a30e075886b0d73bc5ade45c3c8991a"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga0a30e075886b0d73bc5ade45c3c8991a">c_truss_element_2d_length</a> (const <a class="el" href="structc__truss__element__2d.html">c_truss_element_2d</a> *elem)</td></tr>
+<tr class="memdesc:ga0a30e075886b0d73bc5ade45c3c8991a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the length of a 2D truss element.  <br /></td></tr>
+<tr class="separator:ga0a30e075886b0d73bc5ade45c3c8991a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga09735b7e5cd3e41b66686217854df48e" id="r_ga09735b7e5cd3e41b66686217854df48e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga09735b7e5cd3e41b66686217854df48e">c_truss_element_2d_stiffness_matrix</a> (const <a class="el" href="structc__truss__element__2d.html">c_truss_element_2d</a> *elem, double *k, int ldk)</td></tr>
+<tr class="memdesc:ga09735b7e5cd3e41b66686217854df48e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the 4-by-4 global stiffness matrix of a 2D truss element.  <br /></td></tr>
+<tr class="separator:ga09735b7e5cd3e41b66686217854df48e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7e2059f58d33499f437fe4395aabf606" id="r_ga7e2059f58d33499f437fe4395aabf606"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga7e2059f58d33499f437fe4395aabf606">c_truss_element_2d_mass_matrix</a> (const <a class="el" href="structc__truss__element__2d.html">c_truss_element_2d</a> *elem, int rule, double *m, int ldm)</td></tr>
+<tr class="memdesc:ga7e2059f58d33499f437fe4395aabf606"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the 4-by-4 consistent mass matrix of a 2D truss element.  <br /></td></tr>
+<tr class="separator:ga7e2059f58d33499f437fe4395aabf606"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaecfc57ac4fcb2390b5bc9fc2b2d354f3" id="r_gaecfc57ac4fcb2390b5bc9fc2b2d354f3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#gaecfc57ac4fcb2390b5bc9fc2b2d354f3">c_truss_element_2d_rotation_matrix</a> (const <a class="el" href="structc__truss__element__2d.html">c_truss_element_2d</a> *elem, double *r, int ldr)</td></tr>
+<tr class="memdesc:gaecfc57ac4fcb2390b5bc9fc2b2d354f3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the 4-by-4 rotation matrix of a 2D truss element.  <br /></td></tr>
+<tr class="separator:gaecfc57ac4fcb2390b5bc9fc2b2d354f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga85139c82c798b8665f3fea7be428f7f8" id="r_ga85139c82c798b8665f3fea7be428f7f8"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga85139c82c798b8665f3fea7be428f7f8">c_truss_element_2d_strain</a> (const <a class="el" href="structc__truss__element__2d.html">c_truss_element_2d</a> *elem, const double displacement[4])</td></tr>
+<tr class="memdesc:ga85139c82c798b8665f3fea7be428f7f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the axial strain in a 2D truss element.  <br /></td></tr>
+<tr class="separator:ga85139c82c798b8665f3fea7be428f7f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga934d588f6b28aa144684d1c667bf7a04" id="r_ga934d588f6b28aa144684d1c667bf7a04"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga934d588f6b28aa144684d1c667bf7a04">c_truss_element_2d_axial_force</a> (const <a class="el" href="structc__truss__element__2d.html">c_truss_element_2d</a> *elem, const double displacement[4])</td></tr>
+<tr class="memdesc:ga934d588f6b28aa144684d1c667bf7a04"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the axial force (positive in tension) in a 2D truss element.  <br /></td></tr>
+<tr class="separator:ga934d588f6b28aa144684d1c667bf7a04"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga530434d2aaeef33ba6a738f92dd638c5" id="r_ga530434d2aaeef33ba6a738f92dd638c5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga530434d2aaeef33ba6a738f92dd638c5">c_truss_element_2d_external_force_vector</a> (const <a class="el" href="structc__truss__element__2d.html">c_truss_element_2d</a> *elem, const double q[2], int rule, double f[4])</td></tr>
+<tr class="memdesc:ga530434d2aaeef33ba6a738f92dd638c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the equivalent nodal force vector for a distributed load on a 2D truss element.  <br /></td></tr>
+<tr class="separator:ga530434d2aaeef33ba6a738f92dd638c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga700028e9d279b286f39aeee383ac97d9" id="r_ga700028e9d279b286f39aeee383ac97d9"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga700028e9d279b286f39aeee383ac97d9">c_truss_element_3d_length</a> (const <a class="el" href="structc__truss__element__3d.html">c_truss_element_3d</a> *elem)</td></tr>
+<tr class="memdesc:ga700028e9d279b286f39aeee383ac97d9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the length of a 3D truss element.  <br /></td></tr>
+<tr class="separator:ga700028e9d279b286f39aeee383ac97d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga62e48a7cf82626a18a6ee77b9e1a1973" id="r_ga62e48a7cf82626a18a6ee77b9e1a1973"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga62e48a7cf82626a18a6ee77b9e1a1973">c_truss_element_3d_stiffness_matrix</a> (const <a class="el" href="structc__truss__element__3d.html">c_truss_element_3d</a> *elem, double *k, int ldk)</td></tr>
+<tr class="memdesc:ga62e48a7cf82626a18a6ee77b9e1a1973"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the 6-by-6 global stiffness matrix of a 3D truss element.  <br /></td></tr>
+<tr class="separator:ga62e48a7cf82626a18a6ee77b9e1a1973"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0db03509a01913b45a0e96de3d403052" id="r_ga0db03509a01913b45a0e96de3d403052"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga0db03509a01913b45a0e96de3d403052">c_truss_element_3d_mass_matrix</a> (const <a class="el" href="structc__truss__element__3d.html">c_truss_element_3d</a> *elem, int rule, double *m, int ldm)</td></tr>
+<tr class="memdesc:ga0db03509a01913b45a0e96de3d403052"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the 6-by-6 consistent mass matrix of a 3D truss element.  <br /></td></tr>
+<tr class="separator:ga0db03509a01913b45a0e96de3d403052"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad3c45d9158b65d468f7e116913079048" id="r_gad3c45d9158b65d468f7e116913079048"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#gad3c45d9158b65d468f7e116913079048">c_truss_element_3d_rotation_matrix</a> (const <a class="el" href="structc__truss__element__3d.html">c_truss_element_3d</a> *elem, double *r, int ldr)</td></tr>
+<tr class="memdesc:gad3c45d9158b65d468f7e116913079048"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the 6-by-6 rotation matrix of a 3D truss element.  <br /></td></tr>
+<tr class="separator:gad3c45d9158b65d468f7e116913079048"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga44d22fdeda54216014b874b4faeb5975" id="r_ga44d22fdeda54216014b874b4faeb5975"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga44d22fdeda54216014b874b4faeb5975">c_truss_element_3d_strain</a> (const <a class="el" href="structc__truss__element__3d.html">c_truss_element_3d</a> *elem, const double displacement[6])</td></tr>
+<tr class="memdesc:ga44d22fdeda54216014b874b4faeb5975"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the axial strain in a 3D truss element.  <br /></td></tr>
+<tr class="separator:ga44d22fdeda54216014b874b4faeb5975"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4f72caa3e961b0759eada02ef22d070e" id="r_ga4f72caa3e961b0759eada02ef22d070e"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga4f72caa3e961b0759eada02ef22d070e">c_truss_element_3d_axial_force</a> (const <a class="el" href="structc__truss__element__3d.html">c_truss_element_3d</a> *elem, const double displacement[6])</td></tr>
+<tr class="memdesc:ga4f72caa3e961b0759eada02ef22d070e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the axial force (positive in tension) in a 3D truss element.  <br /></td></tr>
+<tr class="separator:ga4f72caa3e961b0759eada02ef22d070e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gabb2235c9f2245e0c82469e957fa0c990" id="r_gabb2235c9f2245e0c82469e957fa0c990"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#gabb2235c9f2245e0c82469e957fa0c990">c_truss_element_3d_external_force_vector</a> (const <a class="el" href="structc__truss__element__3d.html">c_truss_element_3d</a> *elem, const double q[3], int rule, double f[6])</td></tr>
+<tr class="memdesc:gabb2235c9f2245e0c82469e957fa0c990"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the equivalent nodal force vector for a distributed load on a 3D truss element.  <br /></td></tr>
+<tr class="separator:gabb2235c9f2245e0c82469e957fa0c990"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga424bde00bd960be330576f9ef5717504" id="r_ga424bde00bd960be330576f9ef5717504"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga424bde00bd960be330576f9ef5717504">c_assemble_static_system_truss_2d</a> (int gdof, int n, const <a class="el" href="structc__truss__element__2d.html">c_truss_element_2d</a> *elements, int nn, const <a class="el" href="structc__node.html">c_node</a> *nodes, double *k, int ldk)</td></tr>
+<tr class="memdesc:ga424bde00bd960be330576f9ef5717504"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assemble a dense global stiffness matrix from 2D truss elements.  <br /></td></tr>
+<tr class="separator:ga424bde00bd960be330576f9ef5717504"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga74a11dd63e7a2f2949d4f82944e5f27a" id="r_ga74a11dd63e7a2f2949d4f82944e5f27a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga74a11dd63e7a2f2949d4f82944e5f27a">c_assemble_dynamic_system_truss_2d</a> (int gdof, int n, const <a class="el" href="structc__truss__element__2d.html">c_truss_element_2d</a> *elements, int nn, const <a class="el" href="structc__node.html">c_node</a> *nodes, int rule, double *m, int ldm, double *k, int ldk)</td></tr>
+<tr class="memdesc:ga74a11dd63e7a2f2949d4f82944e5f27a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assemble dense global mass and stiffness matrices from 2D truss elements.  <br /></td></tr>
+<tr class="separator:ga74a11dd63e7a2f2949d4f82944e5f27a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gafc9498e97e052501e81de4e0ce0b9168" id="r_gafc9498e97e052501e81de4e0ce0b9168"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#gafc9498e97e052501e81de4e0ce0b9168">c_assemble_static_system_truss_3d</a> (int gdof, int n, const <a class="el" href="structc__truss__element__3d.html">c_truss_element_3d</a> *elements, int nn, const <a class="el" href="structc__node.html">c_node</a> *nodes, double *k, int ldk)</td></tr>
+<tr class="memdesc:gafc9498e97e052501e81de4e0ce0b9168"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assemble a dense global stiffness matrix from 3D truss elements.  <br /></td></tr>
+<tr class="separator:gafc9498e97e052501e81de4e0ce0b9168"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8cc0defff74902c40188e6c465c26b08" id="r_ga8cc0defff74902c40188e6c465c26b08"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga8cc0defff74902c40188e6c465c26b08">c_assemble_dynamic_system_truss_3d</a> (int gdof, int n, const <a class="el" href="structc__truss__element__3d.html">c_truss_element_3d</a> *elements, int nn, const <a class="el" href="structc__node.html">c_node</a> *nodes, int rule, double *m, int ldm, double *k, int ldk)</td></tr>
+<tr class="memdesc:ga8cc0defff74902c40188e6c465c26b08"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assemble dense global mass and stiffness matrices from 3D truss elements.  <br /></td></tr>
+<tr class="separator:ga8cc0defff74902c40188e6c465c26b08"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad3f08b76328c99d72d9be25b7b7a6384" id="r_gad3f08b76328c99d72d9be25b7b7a6384"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#gad3f08b76328c99d72d9be25b7b7a6384">c_spring_element_2d_stiffness_matrix</a> (const <a class="el" href="structc__spring__element__2d.html">c_spring_element_2d</a> *elem, double *k, int ldk)</td></tr>
+<tr class="memdesc:gad3f08b76328c99d72d9be25b7b7a6384"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the 4-by-4 global stiffness matrix of a 2D spring element.  <br /></td></tr>
+<tr class="separator:gad3f08b76328c99d72d9be25b7b7a6384"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf6a3c34bd9490929d61a87b777dc25f4" id="r_gaf6a3c34bd9490929d61a87b777dc25f4"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#gaf6a3c34bd9490929d61a87b777dc25f4">c_spring_element_2d_force</a> (const <a class="el" href="structc__spring__element__2d.html">c_spring_element_2d</a> *elem, const double displacement[4])</td></tr>
+<tr class="memdesc:gaf6a3c34bd9490929d61a87b777dc25f4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the spring force (positive in tension) in a 2D spring element.  <br /></td></tr>
+<tr class="separator:gaf6a3c34bd9490929d61a87b777dc25f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa00ba80bd41bba5efb7679faeb7e7664" id="r_gaa00ba80bd41bba5efb7679faeb7e7664"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#gaa00ba80bd41bba5efb7679faeb7e7664">c_spring_element_3d_stiffness_matrix</a> (const <a class="el" href="structc__spring__element__3d.html">c_spring_element_3d</a> *elem, double *k, int ldk)</td></tr>
+<tr class="memdesc:gaa00ba80bd41bba5efb7679faeb7e7664"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the 6-by-6 global stiffness matrix of a 3D spring element.  <br /></td></tr>
+<tr class="separator:gaa00ba80bd41bba5efb7679faeb7e7664"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga491ee5739825658ce968bf529a4c2143" id="r_ga491ee5739825658ce968bf529a4c2143"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga491ee5739825658ce968bf529a4c2143">c_spring_element_3d_force</a> (const <a class="el" href="structc__spring__element__3d.html">c_spring_element_3d</a> *elem, const double displacement[6])</td></tr>
+<tr class="memdesc:ga491ee5739825658ce968bf529a4c2143"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the spring force (positive in tension) in a 3D spring element.  <br /></td></tr>
+<tr class="separator:ga491ee5739825658ce968bf529a4c2143"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7b66a6308bdd82acbea4d06598a648ce" id="r_ga7b66a6308bdd82acbea4d06598a648ce"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga7b66a6308bdd82acbea4d06598a648ce">c_damper_element_2d_damping_matrix</a> (const <a class="el" href="structc__damper__element__2d.html">c_damper_element_2d</a> *elem, double *c, int ldc)</td></tr>
+<tr class="memdesc:ga7b66a6308bdd82acbea4d06598a648ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the 4-by-4 global damping matrix of a 2D damper element.  <br /></td></tr>
+<tr class="separator:ga7b66a6308bdd82acbea4d06598a648ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga78d005a1e56137f9d23322d263bdc33b" id="r_ga78d005a1e56137f9d23322d263bdc33b"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga78d005a1e56137f9d23322d263bdc33b">c_damper_element_2d_force</a> (const <a class="el" href="structc__damper__element__2d.html">c_damper_element_2d</a> *elem, const double velocity[4])</td></tr>
+<tr class="memdesc:ga78d005a1e56137f9d23322d263bdc33b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the damper force (positive in tension) in a 2D damper element.  <br /></td></tr>
+<tr class="separator:ga78d005a1e56137f9d23322d263bdc33b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga648e6bbc3b79c4b2f9ade74feec39a13" id="r_ga648e6bbc3b79c4b2f9ade74feec39a13"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga648e6bbc3b79c4b2f9ade74feec39a13">c_damper_element_3d_damping_matrix</a> (const <a class="el" href="structc__damper__element__3d.html">c_damper_element_3d</a> *elem, double *c, int ldc)</td></tr>
+<tr class="memdesc:ga648e6bbc3b79c4b2f9ade74feec39a13"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the 6-by-6 global damping matrix of a 3D damper element.  <br /></td></tr>
+<tr class="separator:ga648e6bbc3b79c4b2f9ade74feec39a13"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1b33c2b53cdf01cd6675d10c8daa5dc7" id="r_ga1b33c2b53cdf01cd6675d10c8daa5dc7"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga1b33c2b53cdf01cd6675d10c8daa5dc7">c_damper_element_3d_force</a> (const <a class="el" href="structc__damper__element__3d.html">c_damper_element_3d</a> *elem, const double velocity[6])</td></tr>
+<tr class="memdesc:ga1b33c2b53cdf01cd6675d10c8daa5dc7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the damper force (positive in tension) in a 3D damper element.  <br /></td></tr>
+<tr class="separator:ga1b33c2b53cdf01cd6675d10c8daa5dc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaacee443d7c60c19eb3233a238febc302" id="r_gaacee443d7c60c19eb3233a238febc302"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#gaacee443d7c60c19eb3233a238febc302">c_mass_element_2d_mass_matrix</a> (const <a class="el" href="structc__mass__element__2d.html">c_mass_element_2d</a> *elem, double *m, int ldm)</td></tr>
+<tr class="memdesc:gaacee443d7c60c19eb3233a238febc302"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the 2-by-2 mass matrix of a 2D point mass element.  <br /></td></tr>
+<tr class="separator:gaacee443d7c60c19eb3233a238febc302"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga10f1fe038b7c4881d4de66517d96e623" id="r_ga10f1fe038b7c4881d4de66517d96e623"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga10f1fe038b7c4881d4de66517d96e623">c_mass_element_3d_mass_matrix</a> (const <a class="el" href="structc__mass__element__3d.html">c_mass_element_3d</a> *elem, double *m, int ldm)</td></tr>
+<tr class="memdesc:ga10f1fe038b7c4881d4de66517d96e623"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the 3-by-3 mass matrix of a 3D point mass element.  <br /></td></tr>
+<tr class="separator:ga10f1fe038b7c4881d4de66517d96e623"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gacb2dbe9e9df60b6cd32b6c13c77ac477" id="r_gacb2dbe9e9df60b6cd32b6c13c77ac477"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#gacb2dbe9e9df60b6cd32b6c13c77ac477">c_assemble_discrete_system_2d</a> (int gdof, int nm, const <a class="el" href="structc__mass__element__2d.html">c_mass_element_2d</a> *masses, int nd, const <a class="el" href="structc__damper__element__2d.html">c_damper_element_2d</a> *dampers, int ns, const <a class="el" href="structc__spring__element__2d.html">c_spring_element_2d</a> *springs, int nn, const <a class="el" href="structc__node.html">c_node</a> *nodes, double *m, int ldm, double *c, int ldc, double *k, int ldk)</td></tr>
+<tr class="memdesc:gacb2dbe9e9df60b6cd32b6c13c77ac477"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assemble dense global mass, damping, and stiffness matrices for a 2D system composed of discrete elements.  <br /></td></tr>
+<tr class="separator:gacb2dbe9e9df60b6cd32b6c13c77ac477"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga24a54d4ce5cc15283f3898dce0a0394b" id="r_ga24a54d4ce5cc15283f3898dce0a0394b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga24a54d4ce5cc15283f3898dce0a0394b">c_assemble_discrete_system_3d</a> (int gdof, int nm, const <a class="el" href="structc__mass__element__3d.html">c_mass_element_3d</a> *masses, int nd, const <a class="el" href="structc__damper__element__3d.html">c_damper_element_3d</a> *dampers, int ns, const <a class="el" href="structc__spring__element__3d.html">c_spring_element_3d</a> *springs, int nn, const <a class="el" href="structc__node.html">c_node</a> *nodes, double *m, int ldm, double *c, int ldc, double *k, int ldk)</td></tr>
+<tr class="memdesc:ga24a54d4ce5cc15283f3898dce0a0394b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assemble dense global mass, damping, and stiffness matrices for a 3D system composed of discrete elements.  <br /></td></tr>
+<tr class="separator:ga24a54d4ce5cc15283f3898dce0a0394b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <h2 class="groupheader">Function Documentation</h2>
@@ -1675,6 +1765,1594 @@ Functions</h2></td></tr>
     <tr><td class="paramname">ldk</td><td>Leading dimension of k. </td></tr>
     <tr><td class="paramname">f</td><td>n-element external force vector. </td></tr>
     <tr><td class="paramname">u</td><td>Output n-element solution vector. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ga0a30e075886b0d73bc5ade45c3c8991a" name="ga0a30e075886b0d73bc5ade45c3c8991a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga0a30e075886b0d73bc5ade45c3c8991a">&#9670;&#160;</a></span>c_truss_element_2d_length()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double c_truss_element_2d_length </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structc__truss__element__2d.html">c_truss_element_2d</a> *&#160;</td>
+          <td class="paramname"><em>elem</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute the length of a 2D truss element. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">elem</td><td>Truss element. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Element length. </dd></dl>
+
+</div>
+</div>
+<a id="ga09735b7e5cd3e41b66686217854df48e" name="ga09735b7e5cd3e41b66686217854df48e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga09735b7e5cd3e41b66686217854df48e">&#9670;&#160;</a></span>c_truss_element_2d_stiffness_matrix()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void c_truss_element_2d_stiffness_matrix </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structc__truss__element__2d.html">c_truss_element_2d</a> *&#160;</td>
+          <td class="paramname"><em>elem</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>k</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldk</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute the 4-by-4 global stiffness matrix of a 2D truss element. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">elem</td><td>Truss element. </td></tr>
+    <tr><td class="paramname">k</td><td>Output stiffness matrix. </td></tr>
+    <tr><td class="paramname">ldk</td><td>Leading dimension of k. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ga7e2059f58d33499f437fe4395aabf606" name="ga7e2059f58d33499f437fe4395aabf606"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga7e2059f58d33499f437fe4395aabf606">&#9670;&#160;</a></span>c_truss_element_2d_mass_matrix()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void c_truss_element_2d_mass_matrix </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structc__truss__element__2d.html">c_truss_element_2d</a> *&#160;</td>
+          <td class="paramname"><em>elem</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>rule</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>m</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldm</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute the 4-by-4 consistent mass matrix of a 2D truss element. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">elem</td><td>Truss element. </td></tr>
+    <tr><td class="paramname">rule</td><td>Integration rule, or zero to use the default rule. </td></tr>
+    <tr><td class="paramname">m</td><td>Output mass matrix. </td></tr>
+    <tr><td class="paramname">ldm</td><td>Leading dimension of m. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="gaecfc57ac4fcb2390b5bc9fc2b2d354f3" name="gaecfc57ac4fcb2390b5bc9fc2b2d354f3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaecfc57ac4fcb2390b5bc9fc2b2d354f3">&#9670;&#160;</a></span>c_truss_element_2d_rotation_matrix()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void c_truss_element_2d_rotation_matrix </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structc__truss__element__2d.html">c_truss_element_2d</a> *&#160;</td>
+          <td class="paramname"><em>elem</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>r</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldr</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute the 4-by-4 rotation matrix of a 2D truss element. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">elem</td><td>Truss element. </td></tr>
+    <tr><td class="paramname">r</td><td>Output rotation matrix. </td></tr>
+    <tr><td class="paramname">ldr</td><td>Leading dimension of r. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ga85139c82c798b8665f3fea7be428f7f8" name="ga85139c82c798b8665f3fea7be428f7f8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga85139c82c798b8665f3fea7be428f7f8">&#9670;&#160;</a></span>c_truss_element_2d_strain()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double c_truss_element_2d_strain </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structc__truss__element__2d.html">c_truss_element_2d</a> *&#160;</td>
+          <td class="paramname"><em>elem</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double&#160;</td>
+          <td class="paramname"><em>displacement</em>[4]&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute the axial strain in a 2D truss element. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">elem</td><td>Truss element. </td></tr>
+    <tr><td class="paramname">displacement</td><td>4-element global element displacement vector. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Axial strain. </dd></dl>
+
+</div>
+</div>
+<a id="ga934d588f6b28aa144684d1c667bf7a04" name="ga934d588f6b28aa144684d1c667bf7a04"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga934d588f6b28aa144684d1c667bf7a04">&#9670;&#160;</a></span>c_truss_element_2d_axial_force()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double c_truss_element_2d_axial_force </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structc__truss__element__2d.html">c_truss_element_2d</a> *&#160;</td>
+          <td class="paramname"><em>elem</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double&#160;</td>
+          <td class="paramname"><em>displacement</em>[4]&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute the axial force (positive in tension) in a 2D truss element. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">elem</td><td>Truss element. </td></tr>
+    <tr><td class="paramname">displacement</td><td>4-element global element displacement vector. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Axial force. </dd></dl>
+
+</div>
+</div>
+<a id="ga530434d2aaeef33ba6a738f92dd638c5" name="ga530434d2aaeef33ba6a738f92dd638c5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga530434d2aaeef33ba6a738f92dd638c5">&#9670;&#160;</a></span>c_truss_element_2d_external_force_vector()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void c_truss_element_2d_external_force_vector </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structc__truss__element__2d.html">c_truss_element_2d</a> *&#160;</td>
+          <td class="paramname"><em>elem</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double&#160;</td>
+          <td class="paramname"><em>q</em>[2], </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>rule</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>f</em>[4]&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute the equivalent nodal force vector for a distributed load on a 2D truss element. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">elem</td><td>Truss element. </td></tr>
+    <tr><td class="paramname">q</td><td>2-element distributed load vector in the element coordinate system. </td></tr>
+    <tr><td class="paramname">rule</td><td>Integration rule, or zero to use the default rule. </td></tr>
+    <tr><td class="paramname">f</td><td>Output 4-element nodal force vector. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ga700028e9d279b286f39aeee383ac97d9" name="ga700028e9d279b286f39aeee383ac97d9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga700028e9d279b286f39aeee383ac97d9">&#9670;&#160;</a></span>c_truss_element_3d_length()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double c_truss_element_3d_length </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structc__truss__element__3d.html">c_truss_element_3d</a> *&#160;</td>
+          <td class="paramname"><em>elem</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute the length of a 3D truss element. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">elem</td><td>Truss element. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Element length. </dd></dl>
+
+</div>
+</div>
+<a id="ga62e48a7cf82626a18a6ee77b9e1a1973" name="ga62e48a7cf82626a18a6ee77b9e1a1973"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga62e48a7cf82626a18a6ee77b9e1a1973">&#9670;&#160;</a></span>c_truss_element_3d_stiffness_matrix()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void c_truss_element_3d_stiffness_matrix </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structc__truss__element__3d.html">c_truss_element_3d</a> *&#160;</td>
+          <td class="paramname"><em>elem</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>k</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldk</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute the 6-by-6 global stiffness matrix of a 3D truss element. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">elem</td><td>Truss element. </td></tr>
+    <tr><td class="paramname">k</td><td>Output stiffness matrix. </td></tr>
+    <tr><td class="paramname">ldk</td><td>Leading dimension of k. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ga0db03509a01913b45a0e96de3d403052" name="ga0db03509a01913b45a0e96de3d403052"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga0db03509a01913b45a0e96de3d403052">&#9670;&#160;</a></span>c_truss_element_3d_mass_matrix()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void c_truss_element_3d_mass_matrix </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structc__truss__element__3d.html">c_truss_element_3d</a> *&#160;</td>
+          <td class="paramname"><em>elem</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>rule</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>m</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldm</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute the 6-by-6 consistent mass matrix of a 3D truss element. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">elem</td><td>Truss element. </td></tr>
+    <tr><td class="paramname">rule</td><td>Integration rule, or zero to use the default rule. </td></tr>
+    <tr><td class="paramname">m</td><td>Output mass matrix. </td></tr>
+    <tr><td class="paramname">ldm</td><td>Leading dimension of m. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="gad3c45d9158b65d468f7e116913079048" name="gad3c45d9158b65d468f7e116913079048"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gad3c45d9158b65d468f7e116913079048">&#9670;&#160;</a></span>c_truss_element_3d_rotation_matrix()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void c_truss_element_3d_rotation_matrix </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structc__truss__element__3d.html">c_truss_element_3d</a> *&#160;</td>
+          <td class="paramname"><em>elem</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>r</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldr</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute the 6-by-6 rotation matrix of a 3D truss element. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">elem</td><td>Truss element. </td></tr>
+    <tr><td class="paramname">r</td><td>Output rotation matrix. </td></tr>
+    <tr><td class="paramname">ldr</td><td>Leading dimension of r. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ga44d22fdeda54216014b874b4faeb5975" name="ga44d22fdeda54216014b874b4faeb5975"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga44d22fdeda54216014b874b4faeb5975">&#9670;&#160;</a></span>c_truss_element_3d_strain()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double c_truss_element_3d_strain </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structc__truss__element__3d.html">c_truss_element_3d</a> *&#160;</td>
+          <td class="paramname"><em>elem</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double&#160;</td>
+          <td class="paramname"><em>displacement</em>[6]&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute the axial strain in a 3D truss element. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">elem</td><td>Truss element. </td></tr>
+    <tr><td class="paramname">displacement</td><td>6-element global element displacement vector. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Axial strain. </dd></dl>
+
+</div>
+</div>
+<a id="ga4f72caa3e961b0759eada02ef22d070e" name="ga4f72caa3e961b0759eada02ef22d070e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga4f72caa3e961b0759eada02ef22d070e">&#9670;&#160;</a></span>c_truss_element_3d_axial_force()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double c_truss_element_3d_axial_force </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structc__truss__element__3d.html">c_truss_element_3d</a> *&#160;</td>
+          <td class="paramname"><em>elem</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double&#160;</td>
+          <td class="paramname"><em>displacement</em>[6]&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute the axial force (positive in tension) in a 3D truss element. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">elem</td><td>Truss element. </td></tr>
+    <tr><td class="paramname">displacement</td><td>6-element global element displacement vector. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Axial force. </dd></dl>
+
+</div>
+</div>
+<a id="gabb2235c9f2245e0c82469e957fa0c990" name="gabb2235c9f2245e0c82469e957fa0c990"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gabb2235c9f2245e0c82469e957fa0c990">&#9670;&#160;</a></span>c_truss_element_3d_external_force_vector()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void c_truss_element_3d_external_force_vector </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structc__truss__element__3d.html">c_truss_element_3d</a> *&#160;</td>
+          <td class="paramname"><em>elem</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double&#160;</td>
+          <td class="paramname"><em>q</em>[3], </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>rule</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>f</em>[6]&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute the equivalent nodal force vector for a distributed load on a 3D truss element. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">elem</td><td>Truss element. </td></tr>
+    <tr><td class="paramname">q</td><td>3-element distributed load vector in the element coordinate system. </td></tr>
+    <tr><td class="paramname">rule</td><td>Integration rule, or zero to use the default rule. </td></tr>
+    <tr><td class="paramname">f</td><td>Output 6-element nodal force vector. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ga424bde00bd960be330576f9ef5717504" name="ga424bde00bd960be330576f9ef5717504"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga424bde00bd960be330576f9ef5717504">&#9670;&#160;</a></span>c_assemble_static_system_truss_2d()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void c_assemble_static_system_truss_2d </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>gdof</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structc__truss__element__2d.html">c_truss_element_2d</a> *&#160;</td>
+          <td class="paramname"><em>elements</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>nn</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structc__node.html">c_node</a> *&#160;</td>
+          <td class="paramname"><em>nodes</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>k</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldk</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Assemble a dense global stiffness matrix from 2D truss elements. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">gdof</td><td>Total number of global degrees of freedom. </td></tr>
+    <tr><td class="paramname">n</td><td>Element count. </td></tr>
+    <tr><td class="paramname">elements</td><td>Truss elements. </td></tr>
+    <tr><td class="paramname">nn</td><td>Node count. </td></tr>
+    <tr><td class="paramname">nodes</td><td>Global node list. </td></tr>
+    <tr><td class="paramname">k</td><td>Output gdof-by-gdof stiffness matrix. </td></tr>
+    <tr><td class="paramname">ldk</td><td>Leading dimension of k. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ga74a11dd63e7a2f2949d4f82944e5f27a" name="ga74a11dd63e7a2f2949d4f82944e5f27a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga74a11dd63e7a2f2949d4f82944e5f27a">&#9670;&#160;</a></span>c_assemble_dynamic_system_truss_2d()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void c_assemble_dynamic_system_truss_2d </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>gdof</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structc__truss__element__2d.html">c_truss_element_2d</a> *&#160;</td>
+          <td class="paramname"><em>elements</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>nn</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structc__node.html">c_node</a> *&#160;</td>
+          <td class="paramname"><em>nodes</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>rule</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>m</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>k</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldk</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Assemble dense global mass and stiffness matrices from 2D truss elements. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">gdof</td><td>Total number of global degrees of freedom. </td></tr>
+    <tr><td class="paramname">n</td><td>Element count. </td></tr>
+    <tr><td class="paramname">elements</td><td>Truss elements. </td></tr>
+    <tr><td class="paramname">nn</td><td>Node count. </td></tr>
+    <tr><td class="paramname">nodes</td><td>Global node list. </td></tr>
+    <tr><td class="paramname">rule</td><td>Integration rule, or zero to use the default rule. </td></tr>
+    <tr><td class="paramname">m</td><td>Output gdof-by-gdof mass matrix. </td></tr>
+    <tr><td class="paramname">ldm</td><td>Leading dimension of m. </td></tr>
+    <tr><td class="paramname">k</td><td>Output gdof-by-gdof stiffness matrix. </td></tr>
+    <tr><td class="paramname">ldk</td><td>Leading dimension of k. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="gafc9498e97e052501e81de4e0ce0b9168" name="gafc9498e97e052501e81de4e0ce0b9168"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gafc9498e97e052501e81de4e0ce0b9168">&#9670;&#160;</a></span>c_assemble_static_system_truss_3d()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void c_assemble_static_system_truss_3d </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>gdof</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structc__truss__element__3d.html">c_truss_element_3d</a> *&#160;</td>
+          <td class="paramname"><em>elements</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>nn</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structc__node.html">c_node</a> *&#160;</td>
+          <td class="paramname"><em>nodes</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>k</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldk</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Assemble a dense global stiffness matrix from 3D truss elements. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">gdof</td><td>Total number of global degrees of freedom. </td></tr>
+    <tr><td class="paramname">n</td><td>Element count. </td></tr>
+    <tr><td class="paramname">elements</td><td>Truss elements. </td></tr>
+    <tr><td class="paramname">nn</td><td>Node count. </td></tr>
+    <tr><td class="paramname">nodes</td><td>Global node list. </td></tr>
+    <tr><td class="paramname">k</td><td>Output gdof-by-gdof stiffness matrix. </td></tr>
+    <tr><td class="paramname">ldk</td><td>Leading dimension of k. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ga8cc0defff74902c40188e6c465c26b08" name="ga8cc0defff74902c40188e6c465c26b08"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga8cc0defff74902c40188e6c465c26b08">&#9670;&#160;</a></span>c_assemble_dynamic_system_truss_3d()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void c_assemble_dynamic_system_truss_3d </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>gdof</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structc__truss__element__3d.html">c_truss_element_3d</a> *&#160;</td>
+          <td class="paramname"><em>elements</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>nn</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structc__node.html">c_node</a> *&#160;</td>
+          <td class="paramname"><em>nodes</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>rule</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>m</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>k</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldk</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Assemble dense global mass and stiffness matrices from 3D truss elements. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">gdof</td><td>Total number of global degrees of freedom. </td></tr>
+    <tr><td class="paramname">n</td><td>Element count. </td></tr>
+    <tr><td class="paramname">elements</td><td>Truss elements. </td></tr>
+    <tr><td class="paramname">nn</td><td>Node count. </td></tr>
+    <tr><td class="paramname">nodes</td><td>Global node list. </td></tr>
+    <tr><td class="paramname">rule</td><td>Integration rule, or zero to use the default rule. </td></tr>
+    <tr><td class="paramname">m</td><td>Output gdof-by-gdof mass matrix. </td></tr>
+    <tr><td class="paramname">ldm</td><td>Leading dimension of m. </td></tr>
+    <tr><td class="paramname">k</td><td>Output gdof-by-gdof stiffness matrix. </td></tr>
+    <tr><td class="paramname">ldk</td><td>Leading dimension of k. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="gad3f08b76328c99d72d9be25b7b7a6384" name="gad3f08b76328c99d72d9be25b7b7a6384"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gad3f08b76328c99d72d9be25b7b7a6384">&#9670;&#160;</a></span>c_spring_element_2d_stiffness_matrix()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void c_spring_element_2d_stiffness_matrix </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structc__spring__element__2d.html">c_spring_element_2d</a> *&#160;</td>
+          <td class="paramname"><em>elem</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>k</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldk</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute the 4-by-4 global stiffness matrix of a 2D spring element. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">elem</td><td>Spring element. </td></tr>
+    <tr><td class="paramname">k</td><td>Output stiffness matrix. </td></tr>
+    <tr><td class="paramname">ldk</td><td>Leading dimension of k. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="gaf6a3c34bd9490929d61a87b777dc25f4" name="gaf6a3c34bd9490929d61a87b777dc25f4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaf6a3c34bd9490929d61a87b777dc25f4">&#9670;&#160;</a></span>c_spring_element_2d_force()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double c_spring_element_2d_force </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structc__spring__element__2d.html">c_spring_element_2d</a> *&#160;</td>
+          <td class="paramname"><em>elem</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double&#160;</td>
+          <td class="paramname"><em>displacement</em>[4]&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute the spring force (positive in tension) in a 2D spring element. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">elem</td><td>Spring element. </td></tr>
+    <tr><td class="paramname">displacement</td><td>4-element global element displacement vector. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Spring force. </dd></dl>
+
+</div>
+</div>
+<a id="gaa00ba80bd41bba5efb7679faeb7e7664" name="gaa00ba80bd41bba5efb7679faeb7e7664"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaa00ba80bd41bba5efb7679faeb7e7664">&#9670;&#160;</a></span>c_spring_element_3d_stiffness_matrix()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void c_spring_element_3d_stiffness_matrix </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structc__spring__element__3d.html">c_spring_element_3d</a> *&#160;</td>
+          <td class="paramname"><em>elem</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>k</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldk</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute the 6-by-6 global stiffness matrix of a 3D spring element. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">elem</td><td>Spring element. </td></tr>
+    <tr><td class="paramname">k</td><td>Output stiffness matrix. </td></tr>
+    <tr><td class="paramname">ldk</td><td>Leading dimension of k. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ga491ee5739825658ce968bf529a4c2143" name="ga491ee5739825658ce968bf529a4c2143"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga491ee5739825658ce968bf529a4c2143">&#9670;&#160;</a></span>c_spring_element_3d_force()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double c_spring_element_3d_force </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structc__spring__element__3d.html">c_spring_element_3d</a> *&#160;</td>
+          <td class="paramname"><em>elem</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double&#160;</td>
+          <td class="paramname"><em>displacement</em>[6]&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute the spring force (positive in tension) in a 3D spring element. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">elem</td><td>Spring element. </td></tr>
+    <tr><td class="paramname">displacement</td><td>6-element global element displacement vector. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Spring force. </dd></dl>
+
+</div>
+</div>
+<a id="ga7b66a6308bdd82acbea4d06598a648ce" name="ga7b66a6308bdd82acbea4d06598a648ce"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga7b66a6308bdd82acbea4d06598a648ce">&#9670;&#160;</a></span>c_damper_element_2d_damping_matrix()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void c_damper_element_2d_damping_matrix </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structc__damper__element__2d.html">c_damper_element_2d</a> *&#160;</td>
+          <td class="paramname"><em>elem</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>c</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldc</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute the 4-by-4 global damping matrix of a 2D damper element. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">elem</td><td>Damper element. </td></tr>
+    <tr><td class="paramname">c</td><td>Output damping matrix. </td></tr>
+    <tr><td class="paramname">ldc</td><td>Leading dimension of c. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ga78d005a1e56137f9d23322d263bdc33b" name="ga78d005a1e56137f9d23322d263bdc33b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga78d005a1e56137f9d23322d263bdc33b">&#9670;&#160;</a></span>c_damper_element_2d_force()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double c_damper_element_2d_force </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structc__damper__element__2d.html">c_damper_element_2d</a> *&#160;</td>
+          <td class="paramname"><em>elem</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double&#160;</td>
+          <td class="paramname"><em>velocity</em>[4]&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute the damper force (positive in tension) in a 2D damper element. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">elem</td><td>Damper element. </td></tr>
+    <tr><td class="paramname">velocity</td><td>4-element global element velocity vector. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Damper force. </dd></dl>
+
+</div>
+</div>
+<a id="ga648e6bbc3b79c4b2f9ade74feec39a13" name="ga648e6bbc3b79c4b2f9ade74feec39a13"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga648e6bbc3b79c4b2f9ade74feec39a13">&#9670;&#160;</a></span>c_damper_element_3d_damping_matrix()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void c_damper_element_3d_damping_matrix </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structc__damper__element__3d.html">c_damper_element_3d</a> *&#160;</td>
+          <td class="paramname"><em>elem</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>c</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldc</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute the 6-by-6 global damping matrix of a 3D damper element. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">elem</td><td>Damper element. </td></tr>
+    <tr><td class="paramname">c</td><td>Output damping matrix. </td></tr>
+    <tr><td class="paramname">ldc</td><td>Leading dimension of c. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ga1b33c2b53cdf01cd6675d10c8daa5dc7" name="ga1b33c2b53cdf01cd6675d10c8daa5dc7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga1b33c2b53cdf01cd6675d10c8daa5dc7">&#9670;&#160;</a></span>c_damper_element_3d_force()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double c_damper_element_3d_force </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structc__damper__element__3d.html">c_damper_element_3d</a> *&#160;</td>
+          <td class="paramname"><em>elem</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double&#160;</td>
+          <td class="paramname"><em>velocity</em>[6]&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute the damper force (positive in tension) in a 3D damper element. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">elem</td><td>Damper element. </td></tr>
+    <tr><td class="paramname">velocity</td><td>6-element global element velocity vector. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Damper force. </dd></dl>
+
+</div>
+</div>
+<a id="gaacee443d7c60c19eb3233a238febc302" name="gaacee443d7c60c19eb3233a238febc302"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaacee443d7c60c19eb3233a238febc302">&#9670;&#160;</a></span>c_mass_element_2d_mass_matrix()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void c_mass_element_2d_mass_matrix </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structc__mass__element__2d.html">c_mass_element_2d</a> *&#160;</td>
+          <td class="paramname"><em>elem</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>m</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldm</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute the 2-by-2 mass matrix of a 2D point mass element. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">elem</td><td>Mass element. </td></tr>
+    <tr><td class="paramname">m</td><td>Output mass matrix. </td></tr>
+    <tr><td class="paramname">ldm</td><td>Leading dimension of m. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ga10f1fe038b7c4881d4de66517d96e623" name="ga10f1fe038b7c4881d4de66517d96e623"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga10f1fe038b7c4881d4de66517d96e623">&#9670;&#160;</a></span>c_mass_element_3d_mass_matrix()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void c_mass_element_3d_mass_matrix </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structc__mass__element__3d.html">c_mass_element_3d</a> *&#160;</td>
+          <td class="paramname"><em>elem</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>m</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldm</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute the 3-by-3 mass matrix of a 3D point mass element. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">elem</td><td>Mass element. </td></tr>
+    <tr><td class="paramname">m</td><td>Output mass matrix. </td></tr>
+    <tr><td class="paramname">ldm</td><td>Leading dimension of m. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="gacb2dbe9e9df60b6cd32b6c13c77ac477" name="gacb2dbe9e9df60b6cd32b6c13c77ac477"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gacb2dbe9e9df60b6cd32b6c13c77ac477">&#9670;&#160;</a></span>c_assemble_discrete_system_2d()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void c_assemble_discrete_system_2d </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>gdof</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>nm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structc__mass__element__2d.html">c_mass_element_2d</a> *&#160;</td>
+          <td class="paramname"><em>masses</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>nd</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structc__damper__element__2d.html">c_damper_element_2d</a> *&#160;</td>
+          <td class="paramname"><em>dampers</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ns</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structc__spring__element__2d.html">c_spring_element_2d</a> *&#160;</td>
+          <td class="paramname"><em>springs</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>nn</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structc__node.html">c_node</a> *&#160;</td>
+          <td class="paramname"><em>nodes</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>m</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>c</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>k</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldk</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Assemble dense global mass, damping, and stiffness matrices for a 2D system composed of discrete elements. </p>
+<p>Any element count may be zero, in which case the corresponding array pointer may be NULL. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">gdof</td><td>Total number of global degrees of freedom. </td></tr>
+    <tr><td class="paramname">nm</td><td>Mass element count. </td></tr>
+    <tr><td class="paramname">masses</td><td>Mass elements. </td></tr>
+    <tr><td class="paramname">nd</td><td>Damper element count. </td></tr>
+    <tr><td class="paramname">dampers</td><td>Damper elements. </td></tr>
+    <tr><td class="paramname">ns</td><td>Spring element count. </td></tr>
+    <tr><td class="paramname">springs</td><td>Spring elements. </td></tr>
+    <tr><td class="paramname">nn</td><td>Node count. </td></tr>
+    <tr><td class="paramname">nodes</td><td>Global node list. </td></tr>
+    <tr><td class="paramname">m</td><td>Output gdof-by-gdof mass matrix. </td></tr>
+    <tr><td class="paramname">ldm</td><td>Leading dimension of m. </td></tr>
+    <tr><td class="paramname">c</td><td>Output gdof-by-gdof damping matrix. </td></tr>
+    <tr><td class="paramname">ldc</td><td>Leading dimension of c. </td></tr>
+    <tr><td class="paramname">k</td><td>Output gdof-by-gdof stiffness matrix. </td></tr>
+    <tr><td class="paramname">ldk</td><td>Leading dimension of k. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ga24a54d4ce5cc15283f3898dce0a0394b" name="ga24a54d4ce5cc15283f3898dce0a0394b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga24a54d4ce5cc15283f3898dce0a0394b">&#9670;&#160;</a></span>c_assemble_discrete_system_3d()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void c_assemble_discrete_system_3d </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>gdof</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>nm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structc__mass__element__3d.html">c_mass_element_3d</a> *&#160;</td>
+          <td class="paramname"><em>masses</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>nd</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structc__damper__element__3d.html">c_damper_element_3d</a> *&#160;</td>
+          <td class="paramname"><em>dampers</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ns</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structc__spring__element__3d.html">c_spring_element_3d</a> *&#160;</td>
+          <td class="paramname"><em>springs</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>nn</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structc__node.html">c_node</a> *&#160;</td>
+          <td class="paramname"><em>nodes</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>m</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>c</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>k</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldk</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Assemble dense global mass, damping, and stiffness matrices for a 3D system composed of discrete elements. </p>
+<p>Any element count may be zero, in which case the corresponding array pointer may be NULL. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">gdof</td><td>Total number of global degrees of freedom. </td></tr>
+    <tr><td class="paramname">nm</td><td>Mass element count. </td></tr>
+    <tr><td class="paramname">masses</td><td>Mass elements. </td></tr>
+    <tr><td class="paramname">nd</td><td>Damper element count. </td></tr>
+    <tr><td class="paramname">dampers</td><td>Damper elements. </td></tr>
+    <tr><td class="paramname">ns</td><td>Spring element count. </td></tr>
+    <tr><td class="paramname">springs</td><td>Spring elements. </td></tr>
+    <tr><td class="paramname">nn</td><td>Node count. </td></tr>
+    <tr><td class="paramname">nodes</td><td>Global node list. </td></tr>
+    <tr><td class="paramname">m</td><td>Output gdof-by-gdof mass matrix. </td></tr>
+    <tr><td class="paramname">ldm</td><td>Leading dimension of m. </td></tr>
+    <tr><td class="paramname">c</td><td>Output gdof-by-gdof damping matrix. </td></tr>
+    <tr><td class="paramname">ldc</td><td>Leading dimension of c. </td></tr>
+    <tr><td class="paramname">k</td><td>Output gdof-by-gdof stiffness matrix. </td></tr>
+    <tr><td class="paramname">ldk</td><td>Leading dimension of k. </td></tr>
   </table>
   </dd>
 </dl>

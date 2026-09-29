@@ -38,5 +38,11 @@ var group__dynamics__constants =
     [ "DYN_THREE_POINT_INTEGRATION_RULE", "group__dynamics__constants.html#ga1ae8002b3e872942f43d9dc12903b7d3", null ],
     [ "DYN_FOUR_POINT_INTEGRATION_RULE", "group__dynamics__constants.html#gabad42fb283c14ced4ec5a3e45893c73b", null ],
     [ "DYN_VI_DENSE_SOLVER", "group__dynamics__constants.html#ga099c2c21f08d73002fb973f5c65d8044", null ],
-    [ "DYN_VI_GRAPH_FACTORIZED_SOLVER", "group__dynamics__constants.html#gae005626cdb791603e4e211fec92d6545", null ]
+    [ "DYN_VI_GRAPH_FACTORIZED_SOLVER", "group__dynamics__constants.html#gae005626cdb791603e4e211fec92d6545", null ],
+    [ "DYN_NO_ERROR", "group__dynamics__constants.html#ga67954a29bb83de7dd7eda58454e37dc7", null ],
+    [ "DYN_MEMORY_ERROR", "group__dynamics__constants.html#ga215e6bfaf75ed380e8778279dc8d184c", null ],
+    [ "DYN_NULL_POINTER_ERROR", "group__dynamics__constants.html#gaa632dc0027b9ea7260a57058ff8db098", null ],
+    [ "DYN_INVALID_INPUT_ERROR", "group__dynamics__constants.html#gae38094af9fbd09b61800148e0275fbf8", null ],
+    [ "DYN_MATRIX_SIZE_ERROR", "group__dynamics__constants.html#gab707e7105775f9da06e5e0cb506f484b", null ],
+    [ "DYN_ARRAY_SIZE_ERROR", "group__dynamics__constants.html#ga747234c1aff3363fc32ecd89dd38ae7d", null ]
 ];

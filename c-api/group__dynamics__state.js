@@ -15,7 +15,7 @@ var group__dynamics__state =
     [ "c_create_pid_state_space_model", "group__dynamics__state.html#ga60b1f41760874eb565867db9a3741751", null ],
     [ "c_transfer_function_multiply", "group__dynamics__state.html#ga13aeeb26cf592e91ad2d03007dd75e8e", null ],
     [ "c_scale_transfer_function", "group__dynamics__state.html#ga16e14308ba96fac1de57846ea77c81cb", null ],
-    [ "c_lti_solve", "group__dynamics__state.html#ga92583ee76f474e2bda2a6395a63fd90a", null ],
+    [ "c_lti_solve", "group__dynamics__state.html#gafb943048b56a1e5a0b284f836f5ef11d", null ],
     [ "c_state_space_poles", "group__dynamics__state.html#ga17d7f0b250853d347246fced0893918b", null ],
     [ "c_state_space_zeros", "group__dynamics__state.html#ga30fbc97a022110c4d5210aba1bfc8caa", null ],
     [ "c_state_space_transfer_function", "group__dynamics__state.html#ga1d8e20df8ef095e2a7c0c023ae57f940", null ]

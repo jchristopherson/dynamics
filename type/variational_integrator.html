@@ -90,7 +90,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title="<p> 1.1% of total for derived types.</p>Including implementation: 209 statements,  6.3% of total for derived types.">6 statements</a>
+               title="<p> 0.9% of total for derived types.</p>Including implementation: 287 statements,  5.1% of total for derived types.">6 statements</a>
           </li>
 
             <li id="source-file">
@@ -155,8 +155,8 @@
       </div>
       <div id="boundprocs-0" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../type/variational_integrator.html#boundprocedure-solve">solve</a>
-            <a class="list-group-item" href="../type/variational_integrator.html#boundprocedure-step">step</a>
+            <a class="list-group-item" href="../type/variational_integrator.html#boundprocedure-solve~2">solve</a>
+            <a class="list-group-item" href="../type/variational_integrator.html#boundprocedure-step~4">step</a>
         </div>
       </div>
     </div>
@@ -215,8 +215,8 @@ paper's graph-structured block factorization.</p>
       </div>
       <div id="boundprocs-1" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../type/variational_integrator.html#boundprocedure-solve">solve</a>
-            <a class="list-group-item" href="../type/variational_integrator.html#boundprocedure-step">step</a>
+            <a class="list-group-item" href="../type/variational_integrator.html#boundprocedure-solve~2">solve</a>
+            <a class="list-group-item" href="../type/variational_integrator.html#boundprocedure-step~4">step</a>
         </div>
       </div>
     </div>
@@ -267,7 +267,7 @@ paper's graph-structured block factorization.</p>
       <section>
         <h2>Type-Bound Procedures</h2>
             <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-solve"></span><h3>procedure, public :: <strong>solve</strong>  => vi_solve         
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-solve~2"></span><h3>procedure, public :: <strong>solve</strong>  => vi_solve         
     </h3></div>
       <div class="panel-body">
         
@@ -276,7 +276,7 @@ paper's graph-structured block factorization.</p>
     <ul class="list-group">
         <li class="list-group-item">
                   <h3>
-    private  function vi_solve(this, bodies, state, dt, ntime, constraint_count, constraint, force_function, constraint_jacobian, multipliers, args) result(rst)  
+    private  function vi_solve(this, bodies, state, dt, ntime, constraint_count, constraint, force_function, constraint_jacobian, multipliers, args, info) result(rst)  
 </h3>
   <p>Computes the solution for the rigid-body system for the specified number
 of sequential time steps.</p>
@@ -334,7 +334,7 @@ of sequential time steps.</p>
             <td>::</td>
             <td><strong>state</strong></td>
             <td>
-                <p>On input, the current state; on output, the converged next state.</p>
+                <p>On input, the initial state; on output, the final completed state.</p>
             </td>
         </tr>
         <tr>
@@ -442,11 +442,12 @@ Jacobian is evaluated by finite differences.</p>
             <td>::</td>
             <td><strong>multipliers</strong></td>
             <td>
-                <p>The Nconstraint-by-Ntime Lagrange multiplier history. A multiplier
-computed over the interval beginning at time point i is stored in
-column i because the discrete force enters through the constraint
-Jacobian evaluated at that point. The final column is obtained from
-one noncommitting look-ahead step beyond the requested solution.</p>
+                <p>The Nconstraint-by-Ntime Lagrange multiplier history on success. On
+recoverable failure, contains only multipliers for completed steps;
+the final column requires a successful noncommitting look-ahead.
+A multiplier for the interval beginning at time point i is in column
+i because the discrete force uses the constraint Jacobian at that
+point.</p>
             </td>
         </tr>
         <tr>
@@ -464,6 +465,23 @@ one noncommitting look-ahead step beyond the requested solution.</p>
                 <p>Optional user-supplied data forwarded to all callbacks.</p>
             </td>
         </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(<a href='../type/variational_integrator_info.html'>variational_integrator_info</a>),
+            </td>
+<td>intent(out),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>info</strong></td>
+            <td>
+                <p>Optional diagnostics; iterations are summed over attempted steps,
+including the look-ahead when multipliers are requested. On failure,
+rst contains the initial state and all completed steps.</p>
+            </td>
+        </tr>
     </tbody>
   </table>
 
@@ -478,7 +496,7 @@ one noncommitting look-ahead step beyond the requested solution.</p>
   </div>
 
             <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-step"></span><h3>procedure, public :: <strong>step</strong>  => vi_step         
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-step~4"></span><h3>procedure, public :: <strong>step</strong>  => vi_step         
     </h3></div>
       <div class="panel-body">
         
@@ -487,7 +505,7 @@ one noncommitting look-ahead step beyond the requested solution.</p>
     <ul class="list-group">
         <li class="list-group-item">
                   <h3>
-    private  subroutine vi_step(this, bodies, state, dt, constraint_count, constraint, force_function, constraint_jacobian, multipliers, args)  
+    private  subroutine vi_step(this, bodies, state, dt, constraint_count, constraint, force_function, constraint_jacobian, multipliers, args, info)  
 </h3>
   <p>Advances a rigid-body system by one fixed time step. The unknown vector
 contains the next translational and body-frame angular velocities,
@@ -551,7 +569,8 @@ h\omega_{k+1}/2\right).</script>
             <td>::</td>
             <td><strong>state</strong></td>
             <td>
-                <p>On input, the current state; on output, the converged next state.</p>
+                <p>On input, the current state; on output, the converged next state.
+On recoverable failure, the state is unchanged.</p>
             </td>
         </tr>
         <tr>
@@ -644,7 +663,8 @@ Jacobian is evaluated by finite differences.</p>
             <td>::</td>
             <td><strong>multipliers</strong></td>
             <td>
-                <p>The converged Lagrange multipliers.</p>
+                <p>The converged Lagrange multipliers; unallocated on recoverable
+failure.</p>
             </td>
         </tr>
         <tr>
@@ -660,6 +680,23 @@ Jacobian is evaluated by finite differences.</p>
             <td><strong>args</strong></td>
             <td>
                 <p>Optional user-supplied data forwarded to all callbacks.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(<a href='../type/variational_integrator_info.html'>variational_integrator_info</a>),
+            </td>
+<td>intent(out),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>info</strong></td>
+            <td>
+                <p>Optional convergence diagnostics. When present, convergence failures
+are returned instead of terminating execution; when absent, the
+legacy error-stop behavior is retained.</p>
             </td>
         </tr>
     </tbody>
@@ -688,7 +725,7 @@ Jacobian is evaluated by finite differences.</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-09-23 10:50            </p>
+ on 2026-09-29 11:35            </p>
         </div>
       </div>
       <br>

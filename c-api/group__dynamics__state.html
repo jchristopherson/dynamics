@@ -143,9 +143,9 @@ Functions</h2></td></tr>
 <tr class="memitem:ga16e14308ba96fac1de57846ea77c81cb" id="r_ga16e14308ba96fac1de57846ea77c81cb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__state.html#ga16e14308ba96fac1de57846ea77c81cb">c_scale_transfer_function</a> (double x, const <a class="el" href="structc__transfer__function.html">c_transfer_function</a> *tf1, <a class="el" href="structc__transfer__function.html">c_transfer_function</a> *tf)</td></tr>
 <tr class="memdesc:ga16e14308ba96fac1de57846ea77c81cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scale a transfer function.  <br /></td></tr>
 <tr class="separator:ga16e14308ba96fac1de57846ea77c81cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga92583ee76f474e2bda2a6395a63fd90a" id="r_ga92583ee76f474e2bda2a6395a63fd90a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__state.html#ga92583ee76f474e2bda2a6395a63fd90a">c_lti_solve</a> (const <a class="el" href="structc__state__space__model.html">c_state_space_model</a> *mdl, const <a class="el" href="dynamics_8h.html#a84a392919636d4c148e0ac69a650e033">c_ss_excitation</a> u, int n, const double *t, int ndof, const double *ic, int solver, int nout, double *y, int ldy)</td></tr>
-<tr class="memdesc:ga92583ee76f474e2bda2a6395a63fd90a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Integrate a continuous state-space model.  <br /></td></tr>
-<tr class="separator:ga92583ee76f474e2bda2a6395a63fd90a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gafb943048b56a1e5a0b284f836f5ef11d" id="r_gafb943048b56a1e5a0b284f836f5ef11d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__state.html#gafb943048b56a1e5a0b284f836f5ef11d">c_lti_solve</a> (const <a class="el" href="structc__state__space__model.html">c_state_space_model</a> *mdl, const <a class="el" href="dynamics_8h.html#a54f3494eccf7e5cd23b1c43dea08e52f">c_ss_excitation</a> u, int n, const double *t, int ndof, const double *ic, int solver, int nout, double *y, int ldy, void *user_data)</td></tr>
+<tr class="memdesc:gafb943048b56a1e5a0b284f836f5ef11d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Integrate a continuous state-space model.  <br /></td></tr>
+<tr class="separator:gafb943048b56a1e5a0b284f836f5ef11d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga17d7f0b250853d347246fced0893918b" id="r_ga17d7f0b250853d347246fced0893918b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__state.html#ga17d7f0b250853d347246fced0893918b">c_state_space_poles</a> (const <a class="el" href="structc__state__space__model.html">c_state_space_model</a> *mdl, int n, double complex *p)</td></tr>
 <tr class="memdesc:ga17d7f0b250853d347246fced0893918b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute state-space poles.  <br /></td></tr>
 <tr class="separator:ga17d7f0b250853d347246fced0893918b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -823,8 +823,8 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ga92583ee76f474e2bda2a6395a63fd90a" name="ga92583ee76f474e2bda2a6395a63fd90a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga92583ee76f474e2bda2a6395a63fd90a">&#9670;&#160;</a></span>c_lti_solve()</h2>
+<a id="gafb943048b56a1e5a0b284f836f5ef11d" name="gafb943048b56a1e5a0b284f836f5ef11d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gafb943048b56a1e5a0b284f836f5ef11d">&#9670;&#160;</a></span>c_lti_solve()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -838,7 +838,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="dynamics_8h.html#a84a392919636d4c148e0ac69a650e033">c_ss_excitation</a>&#160;</td>
+          <td class="paramtype">const <a class="el" href="dynamics_8h.html#a54f3494eccf7e5cd23b1c43dea08e52f">c_ss_excitation</a>&#160;</td>
           <td class="paramname"><em>u</em>, </td>
         </tr>
         <tr>
@@ -887,7 +887,13 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>ldy</em>&#160;</td>
+          <td class="paramname"><em>ldy</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>user_data</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -910,6 +916,7 @@ Functions</h2></td></tr>
     <tr><td class="paramname">nout</td><td>Output count. </td></tr>
     <tr><td class="paramname">y</td><td>Output samples. </td></tr>
     <tr><td class="paramname">ldy</td><td>Leading dimension of y. </td></tr>
+    <tr><td class="paramname">user_data</td><td>Opaque caller data forwarded to u. </td></tr>
   </table>
   </dd>
 </dl>

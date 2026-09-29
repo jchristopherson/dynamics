@@ -1,0 +1,1675 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+   <meta name="description" content="DYNAMICS is a library of routines used for the analysis of dynamic systems.">
+    <meta name="author" content="Jason Christopherson" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>damper_element_3d &ndash; DYNAMICS </title>
+
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+    <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    
+    <script src="../js/jquery-2.1.3.min.js"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html">DYNAMICS </a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li class="dropdown hidden-xs visible-sm visible-md hidden-lg">
+              <a href="#" class="dropdown-toggle"
+              data-toggle="dropdown" role="button"
+              aria-haspopup="true"
+     aria-expanded="false">Contents <span class="caret"></span></a>
+        <ul class="dropdown-menu">
+            <li><a href="../lists/files.html">Source Files</a></li>
+            <li><a href="../lists/modules.html">Modules</a></li>
+            <li><a href="../lists/procedures.html">Procedures</a></li>
+            <li><a href="../lists/absint.html">Abstract Interfaces</a></li>
+                   <li><a href="../lists/types.html">Derived Types</a></li>
+       
+            </ul>
+        
+            </li>
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/files.html">Source Files</a></li>
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/modules.html">Modules</a></li>
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/procedures.html">Procedures</a></li>
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/absint.html">Abstract Interfaces</a></li>
+                             <li class="visible-xs hidden-sm visible-lg"><a href="../lists/types.html">Derived Types</a></li>
+          </ul>
+        <form action="../search.html" class="navbar-form navbar-right" role="search">
+        <div class="form-group">
+          <input type="text" class="form-control" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+        </div>
+<!--
+        <button type="submit" class="btn btn-default">Submit</button>
+-->
+        </form>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container">
+  <div class="row">
+    <h1>damper_element_3d
+      <small>Derived Type</small>
+      
+    </h1>
+      <div class="row" id="info-bar">
+    <div class="col-lg-12">
+      <div class="well well-sm">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+
+          <li id="statements"><i class="fa fa-list-ol"></i>
+            <a data-toggle="tooltip"
+               data-placement="bottom" data-html="true"
+               title="<p> 1.0% of total for derived types.</p>Including implementation: 165 statements,  2.9% of total for derived types.">4 statements</a>
+          </li>
+
+            <li id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/dynamics_discrete_elements.f90"> Source File</a>
+            </li>
+        </ul>
+        <ol class="breadcrumb in-well text-right">
+              <li><a href='../sourcefile/dynamics_discrete_elements.f90.html'>dynamics_discrete_elements.f90</a></li>
+              <li><a href='../module/dynamics_discrete_elements.html'>dynamics_discrete_elements</a></li>
+          <li class="active">damper_element_3d</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+  <script>
+    $(function () {
+    $('[data-toggle="tooltip"]').tooltip()
+    })
+  </script>
+
+  </div>
+  
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+      <div id="sidebar">
+      <h3>Contents</h3>
+  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#vars-0">Variables</a>
+        </h3>
+      </div>
+      <div id="vars-0" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../type/damper_element_3d.html#variable-damping_coefficient">damping_coefficient</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#variable-direction~6">direction</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#variable-material">material</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#variable-node_1~5">node_1</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#variable-node_2~5">node_2</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#variable-use_direction">use_direction</a>
+        </div>
+      </div>
+    </div>
+
+  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#cons-0">Constructor</a>
+        </h3>
+      </div>
+      <div id="cons-0" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../type/damper_element_3d.html#interface-damper_element_3d">damper_element_3d</a>
+        </div>
+      </div>
+    </div>
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#boundprocs-0">Type-Bound Procedures</a>
+        </h3>
+      </div>
+      <div id="boundprocs-0" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../type/damper_element_3d.html#boundprocedure-axis~6">axis</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#boundprocedure-constitutive_matrix~5">constitutive_matrix</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#boundprocedure-damping_matrix">damping_matrix</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#boundprocedure-evaluate_shape_function~5">evaluate_shape_function</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#boundprocedure-external_force_vector~2">external_force_vector</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#boundprocedure-get_dimensionality~7">get_dimensionality</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#boundprocedure-get_dof_per_node~5">get_dof_per_node</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#boundprocedure-get_node~5">get_node</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#boundprocedure-get_node_count~5">get_node_count</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#boundprocedure-get_node_natural_coordinates~2">get_node_natural_coordinates</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#boundprocedure-jacobian~6">jacobian</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#boundprocedure-mass_matrix~4">mass_matrix</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#boundprocedure-shape_function_matrix~5">shape_function_matrix</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#boundprocedure-stiffness_matrix~5">stiffness_matrix</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#boundprocedure-strain~2">strain</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#boundprocedure-strain_displacement_matrix~5">strain_displacement_matrix</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#boundprocedure-stress~2">stress</a>
+        </div>
+      </div>
+    </div>
+
+  
+
+
+  </div>
+
+    </div>
+    
+    <div class="col-md-9" id='text'>
+      <h2>type, public, extends(<a href='../type/damper_element.html'>damper_element</a>) :: damper_element_3d</h2>
+    <p>Defines a 3D linear, axial viscous damper element with x, y, and z
+translations at each node.</p>
+    <br>
+
+    <section class="visible-xs visible-sm hidden-md">
+        <h3>Contents</h3>
+  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#vars-1">Variables</a>
+        </h3>
+      </div>
+      <div id="vars-1" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../type/damper_element_3d.html#variable-damping_coefficient">damping_coefficient</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#variable-direction~6">direction</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#variable-material">material</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#variable-node_1~5">node_1</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#variable-node_2~5">node_2</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#variable-use_direction">use_direction</a>
+        </div>
+      </div>
+    </div>
+
+  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#cons-1">Constructor</a>
+        </h3>
+      </div>
+      <div id="cons-1" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../type/damper_element_3d.html#interface-damper_element_3d">damper_element_3d</a>
+        </div>
+      </div>
+    </div>
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#boundprocs-1">Type-Bound Procedures</a>
+        </h3>
+      </div>
+      <div id="boundprocs-1" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../type/damper_element_3d.html#boundprocedure-axis~6">axis</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#boundprocedure-constitutive_matrix~5">constitutive_matrix</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#boundprocedure-damping_matrix">damping_matrix</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#boundprocedure-evaluate_shape_function~5">evaluate_shape_function</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#boundprocedure-external_force_vector~2">external_force_vector</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#boundprocedure-get_dimensionality~7">get_dimensionality</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#boundprocedure-get_dof_per_node~5">get_dof_per_node</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#boundprocedure-get_node~5">get_node</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#boundprocedure-get_node_count~5">get_node_count</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#boundprocedure-get_node_natural_coordinates~2">get_node_natural_coordinates</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#boundprocedure-jacobian~6">jacobian</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#boundprocedure-mass_matrix~4">mass_matrix</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#boundprocedure-shape_function_matrix~5">shape_function_matrix</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#boundprocedure-stiffness_matrix~5">stiffness_matrix</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#boundprocedure-strain~2">strain</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#boundprocedure-strain_displacement_matrix~5">strain_displacement_matrix</a>
+            <a class="list-group-item" href="../type/damper_element_3d.html#boundprocedure-stress~2">stress</a>
+        </div>
+      </div>
+    </div>
+
+  
+
+
+    </section>
+    <br class="visible-xs visible-sm hidden-md">
+
+    <section>
+    <h2>Components</h2>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Visibility</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+<th></th><th>Initial</th>        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-damping_coefficient"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>damping_coefficient</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>The viscous damping coefficient.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-direction~6"></span>
+              real(kind=real64),
+            </td>
+              <td>public,</td>
+            <td>
+              dimension(3)
+            </td>
+            <td>::</td>
+            <td><strong>direction</strong></td>
+<td> =</td>
+                <td>0.0d0</td>
+            <td>
+                <p>The unit vector defining the user-supplied element axis.  Only
+the leading components corresponding to the element
+dimensionality are used.  This value is used only if
+use_direction is true.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-material"></span>
+              type(<a href='../type/material.html'>material</a>),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>material</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>The material.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-node_1~5"></span>
+              type(<a href='../type/node.html'>node</a>),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>node_1</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>The first node of the element (s = -1).</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-node_2~5"></span>
+              type(<a href='../type/node.html'>node</a>),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>node_2</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>The second node of the element (s = 1).</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-use_direction"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>use_direction</strong></td>
+<td> =</td>
+                <td>.false.</td>
+            <td>
+                <p>True if the element axis is defined by direction; else, false
+if the axis is defined by the vector from node 1 to node 2.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    </section>
+    <br>
+    
+      <section>
+        <h2>Constructor</h2>
+            <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="interface-damper_element_3d"></span>
+      <h3>public        interface <a href='../interface/damper_element_3d.html'>damper_element_3d</a> 
+      </h3>
+    </div>
+    <ul class="list-group">
+          <li class="list-group-item">
+                <h3>
+    private pure function dp3d_init(c, nd1, nd2, direction) result(rst)  
+
+    </h3>
+  <p>Initializes a new [[damper_element_3d]].</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>c</strong></td>
+            <td>
+                <p>The viscous damping coefficient.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/node.html'>node</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nd1</strong></td>
+            <td>
+                <p>The first node of the element.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/node.html'>node</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nd2</strong></td>
+            <td>
+                <p>The second node of the element.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>direction</strong></td>
+            <td>
+                <p>An optional 3-element vector defining the damper axis.  The vector
+must be non-zero and is normalized internally.  If not supplied,
+the axis is defined by the vector from node 1 to node 2, in which
+case the nodes must not be coincident.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/damper_element_3d.html'>damper_element_3d</a>)</small>
+    </h4>
+    <p>The new [[damper_element_3d]].</p>
+
+          </li>
+    </ul>
+  </div>
+
+      </section>
+      <br>
+
+
+      <section>
+        <h2>Type-Bound Procedures</h2>
+            <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-axis~6"></span><h3>procedure, public :: <strong>axis</strong>  => tnde_axis         
+    </h3></div>
+    <ul class="list-group">
+        <li class="list-group-item">
+                  <h3>
+    private pure function tnde_axis(this) result(rst)  
+</h3>
+  <p>Gets the unit vector defining the element axis in the global
+coordinate system.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/two_node_discrete_element.html'>two_node_discrete_element</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>this</strong></td>
+            <td>
+                <p>The two_node_discrete_element object.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), allocatable, dimension(:)</small>
+    </h4>
+    <p>The D-element unit vector, where D is the element dimensionality.</p>
+
+        </li>
+    </ul>
+  </div>
+
+            <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-constitutive_matrix~5"></span><h3>procedure, public :: <strong>constitutive_matrix</strong>  => dp_constitutive_matrix         
+    </h3></div>
+    <ul class="list-group">
+        <li class="list-group-item">
+                  <h3>
+    private pure function dp_constitutive_matrix(this) result(rst)  
+</h3>
+  <p>Returns the matrix relating damper elongation rate to damper force.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/damper_element.html'>damper_element</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>this</strong></td>
+            <td>
+                <p>The damper_element object.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), allocatable, dimension(:,:)</small>
+    </h4>
+    <p>The 1-by-1 matrix containing the damping coefficient.</p>
+
+        </li>
+    </ul>
+  </div>
+
+            <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-damping_matrix"></span><h3>procedure, public :: <strong>damping_matrix</strong>  => dp_damping_matrix         
+    </h3></div>
+    <ul class="list-group">
+        <li class="list-group-item">
+                  <h3>
+    private pure function dp_damping_matrix(this) result(rst)  
+</h3>
+  <p>Computes the global damper damping matrix
+<script type="math/tex; mode=display"> C = c\,\boldsymbol{b}\boldsymbol{b}^T, \qquad
+\boldsymbol{b}=\begin{bmatrix}-\boldsymbol{a}\\
+\boldsymbol{a}\end{bmatrix}. </script>
+</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/damper_element.html'>damper_element</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>this</strong></td>
+            <td>
+                <p>The damper_element object.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), allocatable, dimension(:,:)</small>
+    </h4>
+    <p>The 2D-by-2D global damping matrix, where D is the element
+dimensionality.</p>
+
+        </li>
+    </ul>
+  </div>
+
+            <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-evaluate_shape_function~5"></span><h3>procedure, public :: <strong>evaluate_shape_function</strong>  => tnde_shape_function         
+    </h3></div>
+    <ul class="list-group">
+        <li class="list-group-item">
+                  <h3>
+    private pure function tnde_shape_function(this, i, s) result(rst)  
+</h3>
+  <p>Evaluates the i-th linear shape function
+<script type="math/tex; mode=display"> N_1 = \frac{1}{2}(1 - s), \qquad N_2 = \frac{1}{2}(1 + s). </script>
+</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/two_node_discrete_element.html'>two_node_discrete_element</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>this</strong></td>
+            <td>
+                <p>The two_node_discrete_element object.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>i</strong></td>
+            <td>
+                <p>The index of the shape function to evaluate.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>s</strong></td>
+            <td>
+                <p>The natural coordinate at which to evaluate the shape function.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64)</small>
+    </h4>
+    <p>The value of the i-th shape function at s.</p>
+
+        </li>
+    </ul>
+  </div>
+
+            <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-external_force_vector~2"></span><h3>procedure, public :: <strong>external_force_vector</strong>  => de_ext_force_vector         
+    </h3></div>
+    <ul class="list-group">
+        <li class="list-group-item">
+                  <h3>
+    private pure function de_ext_force_vector(this, q, rule) result(rst)  
+</h3>
+  <p>Returns the element external force vector.  Discrete elements do not
+support distributed loads; therefore, a zero-valued vector is
+returned.  Concentrated loads should be applied directly to the global
+force vector.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/discrete_element.html'>discrete_element</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>this</strong></td>
+            <td>
+                <p>The discrete_element object.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>q</strong></td>
+            <td>
+                <p>The distributed load vector.  This argument is unused and is
+present for interface compatibility.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>rule</strong></td>
+            <td>
+                <p>The integration rule.  This argument is unused and is present for
+interface compatibility.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), allocatable, dimension(:)</small>
+    </h4>
+    <p>The N-element force vector, where N is the total number of element
+degrees of freedom.</p>
+
+        </li>
+    </ul>
+  </div>
+
+            <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-get_dimensionality~7"></span><h3>procedure, public :: <strong>get_dimensionality</strong>  => dp3d_dimensionality         
+    </h3></div>
+    <ul class="list-group">
+        <li class="list-group-item">
+                  <h3>
+    private pure function dp3d_dimensionality(this) result(rst)  
+</h3>
+  <p>Gets the dimensionality of the element.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/damper_element_3d.html'>damper_element_3d</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>this</strong></td>
+            <td>
+                <p>The damper_element_3d object.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>integer(kind=int32)</small>
+    </h4>
+    <p>The dimensionality.</p>
+
+        </li>
+    </ul>
+  </div>
+
+            <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-get_dof_per_node~5"></span><h3>procedure, public :: <strong>get_dof_per_node</strong>  => tnde_dof_per_node         
+    </h3></div>
+    <ul class="list-group">
+        <li class="list-group-item">
+                  <h3>
+    private pure function tnde_dof_per_node(this) result(rst)  
+</h3>
+  <p>Gets the number of degrees of freedom per node.  This is equal to the
+element dimensionality as only translations are considered.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/two_node_discrete_element.html'>two_node_discrete_element</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>this</strong></td>
+            <td>
+                <p>The two_node_discrete_element object.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>integer(kind=int32)</small>
+    </h4>
+    <p>The number of DOF per node.</p>
+
+        </li>
+    </ul>
+  </div>
+
+            <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-get_node~5"></span><h3>procedure, public :: <strong>get_node</strong>  => tnde_get_node         
+    </h3></div>
+    <ul class="list-group">
+        <li class="list-group-item">
+                  <h3>
+    private pure function tnde_get_node(this, i) result(rst)  
+</h3>
+  <p>Gets the requested node from the element.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/two_node_discrete_element.html'>two_node_discrete_element</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>this</strong></td>
+            <td>
+                <p>The two_node_discrete_element object.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>i</strong></td>
+            <td>
+                <p>The local index of the node to retrieve.  This value must be either
+1 or 2.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/node.html'>node</a>)</small>
+    </h4>
+    <p>The requested node.</p>
+
+        </li>
+    </ul>
+  </div>
+
+            <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-get_node_count~5"></span><h3>procedure, public :: <strong>get_node_count</strong>  => tnde_get_node_count         
+    </h3></div>
+    <ul class="list-group">
+        <li class="list-group-item">
+                  <h3>
+    private pure function tnde_get_node_count(this) result(rst)  
+</h3>
+  <p>Gets the number of nodes for the element.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/two_node_discrete_element.html'>two_node_discrete_element</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>this</strong></td>
+            <td>
+                <p>The two_node_discrete_element object.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>integer(kind=int32)</small>
+    </h4>
+    <p>The number of nodes.</p>
+
+        </li>
+    </ul>
+  </div>
+
+            <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-get_node_natural_coordinates~2"></span><h3>procedure, public :: <strong>get_node_natural_coordinates</strong>  => de_get_node_natural_coordinates         
+    </h3></div>
+    <ul class="list-group">
+        <li class="list-group-item">
+                  <h3>
+    private pure function de_get_node_natural_coordinates(this, i) result(rst)  
+</h3>
+  <p>Returns the natural coordinate of the requested node.  A single-node
+element has its node at s = 0; a two-node element has its nodes at
+s = -1 and s = 1, respectively.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/discrete_element.html'>discrete_element</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>this</strong></td>
+            <td>
+                <p>The discrete_element object.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>i</strong></td>
+            <td>
+                <p>The local index of the node.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), allocatable, dimension(:)</small>
+    </h4>
+    <p>The natural coordinate of the node.</p>
+
+        </li>
+    </ul>
+  </div>
+
+            <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-jacobian~6"></span><h3>procedure, public :: <strong>jacobian</strong>  => de_jacobian         
+    </h3></div>
+    <ul class="list-group">
+        <li class="list-group-item">
+                  <h3>
+    private pure function de_jacobian(this, s) result(rst)  
+</h3>
+  <p>Returns the element Jacobian.  Discrete elements have no spatial
+extent; therefore, a unit 1-by-1 Jacobian is returned.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/discrete_element.html'>discrete_element</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>this</strong></td>
+            <td>
+                <p>The discrete_element object.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>s</strong></td>
+            <td>
+                <p>The natural coordinates at which to evaluate the Jacobian.  This
+argument is unused and is present for interface compatibility.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), allocatable, dimension(:,:)</small>
+    </h4>
+    <p>The 1-by-1 Jacobian matrix.</p>
+
+        </li>
+    </ul>
+  </div>
+
+            <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-mass_matrix~4"></span><h3>procedure, public :: <strong>mass_matrix</strong>  => de_mass_matrix         
+    </h3></div>
+    <ul class="list-group">
+        <li class="list-group-item">
+                  <h3>
+    private pure function de_mass_matrix(this, rule) result(rst)  
+</h3>
+  <p>Returns the element mass matrix.  The default implementation returns a
+zero-valued matrix.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/discrete_element.html'>discrete_element</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>this</strong></td>
+            <td>
+                <p>The discrete_element object.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>rule</strong></td>
+            <td>
+                <p>The integration rule.  This argument is unused and is present for
+interface compatibility.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), allocatable, dimension(:,:)</small>
+    </h4>
+    <p>The N-by-N mass matrix, where N is the total number of element
+degrees of freedom.</p>
+
+        </li>
+    </ul>
+  </div>
+
+            <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-shape_function_matrix~5"></span><h3>procedure, public :: <strong>shape_function_matrix</strong>  => tnde_shape_function_matrix         
+    </h3></div>
+    <ul class="list-group">
+        <li class="list-group-item">
+                  <h3>
+    private pure function tnde_shape_function_matrix(this, s) result(rst)  
+</h3>
+  <p>Computes the translational displacement interpolation matrix
+<script type="math/tex; mode=display"> N = \begin{bmatrix} N_1 I & N_2 I \end{bmatrix}. </script>
+</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/two_node_discrete_element.html'>two_node_discrete_element</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>this</strong></td>
+            <td>
+                <p>The two_node_discrete_element object.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>s</strong></td>
+            <td>
+                <p>The natural coordinate at which to evaluate the matrix.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), allocatable, dimension(:,:)</small>
+    </h4>
+    <p>The D-by-2D shape function matrix, where D is the element
+dimensionality.</p>
+
+        </li>
+    </ul>
+  </div>
+
+            <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-stiffness_matrix~5"></span><h3>procedure, public :: <strong>stiffness_matrix</strong>  => de_stiffness_matrix         
+    </h3></div>
+    <ul class="list-group">
+        <li class="list-group-item">
+                  <h3>
+    private pure function de_stiffness_matrix(this, rule) result(rst)  
+</h3>
+  <p>Returns the element stiffness matrix.  The default implementation
+returns a zero-valued matrix.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/discrete_element.html'>discrete_element</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>this</strong></td>
+            <td>
+                <p>The discrete_element object.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>rule</strong></td>
+            <td>
+                <p>The integration rule.  This argument is unused and is present for
+interface compatibility.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), allocatable, dimension(:,:)</small>
+    </h4>
+    <p>The N-by-N stiffness matrix, where N is the total number of element
+degrees of freedom.</p>
+
+        </li>
+    </ul>
+  </div>
+
+            <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-strain~2"></span><h3>procedure, public :: <strong>strain</strong>  => e_strain         
+    </h3></div>
+    <ul class="list-group">
+        <li class="list-group-item">
+                  <h3>
+    private pure function e_strain(this, displacement, s) result(rst)  
+</h3>
+  <p>Computes the element strain at the specified natural coordinate.
+The strain is
+<script type="math/tex; mode=display"> \boldsymbol{\varepsilon}=B\boldsymbol{u}_e. </script>
+</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/element.html'>element</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>this</strong></td>
+            <td>
+                <p>The element object.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>displacement</strong></td>
+            <td>
+                <p>The element displacement vector in the element coordinate system.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>s</strong></td>
+            <td>
+                <p>The natural coordinates at which to evaluate the strain.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), allocatable, dimension(:)</small>
+    </h4>
+    <p>The resulting strain vector.</p>
+
+        </li>
+    </ul>
+  </div>
+
+            <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-strain_displacement_matrix~5"></span><h3>procedure, public :: <strong>strain_displacement_matrix</strong>  => tnde_strain_disp_matrix         
+    </h3></div>
+    <ul class="list-group">
+        <li class="list-group-item">
+                  <h3>
+    private pure function tnde_strain_disp_matrix(this, s) result(rst)  
+</h3>
+  <p>Computes the matrix relating global nodal displacements to the axial
+elongation of the element
+<script type="math/tex; mode=display"> B = \begin{bmatrix} -\boldsymbol{a}^T & \boldsymbol{a}^T
+\end{bmatrix}, </script>
+where <script type="math/tex">\boldsymbol{a}</script> is the unit element axis.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/two_node_discrete_element.html'>two_node_discrete_element</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>this</strong></td>
+            <td>
+                <p>The two_node_discrete_element object.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>s</strong></td>
+            <td>
+                <p>The natural coordinate at which to evaluate the matrix.  This
+argument is unused as the elongation is constant along the element.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), allocatable, dimension(:,:)</small>
+    </h4>
+    <p>The 1-by-2D matrix, where D is the element dimensionality.</p>
+
+        </li>
+    </ul>
+  </div>
+
+            <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-stress~2"></span><h3>procedure, public :: <strong>stress</strong>  => e_stress         
+    </h3></div>
+    <ul class="list-group">
+        <li class="list-group-item">
+                  <h3>
+    private pure function e_stress(this, displacement, s) result(rst)  
+</h3>
+  <p>Computes the element stress result at the specified natural coordinate.
+The stress result is
+<script type="math/tex; mode=display"> \boldsymbol{\sigma}=D B\boldsymbol{u}_e. </script>
+</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/element.html'>element</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>this</strong></td>
+            <td>
+                <p>The element object.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>displacement</strong></td>
+            <td>
+                <p>The element displacement vector in the element coordinate system.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>s</strong></td>
+            <td>
+                <p>The natural coordinates at which to evaluate the stress.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), allocatable, dimension(:)</small>
+    </h4>
+    <p>The resulting stress vector.</p>
+
+        </li>
+    </ul>
+  </div>
+
+      </section>
+
+    
+    </div>
+  </div>
+
+    <hr>    
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+      <div class="row">
+        <div class="col-xs-6 col-md-6"><p>DYNAMICS was developed by Jason Christopherson<br>&copy; 2026 
+</p>
+        </div>
+        <div class="col-xs-6 col-md-6">
+          <p class="text-right">
+            Documentation generated by 
+            <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+ on 2026-09-29 11:35            </p>
+        </div>
+      </div>
+      <br>
+      </div> <!-- /container -->    
+    </footer>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+<!--
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+-->
+    <script src="../js/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="../js/ie10-viewport-bug-workaround.js"></script>
+
+    <!-- MathJax JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+        jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+        extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+      });
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script src="../tipuesearch/tipuesearch_content.js"></script>
+    <script src="../tipuesearch/tipuesearch_set.js"></script>
+    <script src="../tipuesearch/tipuesearch.js"></script>
+    
+  </body>
+</html>

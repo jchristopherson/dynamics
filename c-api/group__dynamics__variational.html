@@ -101,9 +101,9 @@ Functions</h2></td></tr>
 <tr class="memitem:ga4b2fc6b7d153a9add7aad2f0055ec811" id="r_ga4b2fc6b7d153a9add7aad2f0055ec811"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__variational.html#ga4b2fc6b7d153a9add7aad2f0055ec811">c_default_variational_integrator_settings</a> (<a class="el" href="structc__variational__integrator__settings.html">c_variational_integrator_settings</a> *settings)</td></tr>
 <tr class="memdesc:ga4b2fc6b7d153a9add7aad2f0055ec811"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fill variational-integrator settings with library defaults.  <br /></td></tr>
 <tr class="separator:ga4b2fc6b7d153a9add7aad2f0055ec811"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaf79fc87624914f52a9a1f168ab73a474" id="r_gaf79fc87624914f52a9a1f168ab73a474"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__variational.html#gaf79fc87624914f52a9a1f168ab73a474">c_variational_integrator_solve</a> (int nbody, const <a class="el" href="structc__rigid__body.html">c_rigid_body</a> *bodies, int ntime, double dt, const double *initial_position, const <a class="el" href="structc__quaternion.html">c_quaternion</a> *initial_orientation, const double *initial_velocity, const double *initial_angular_velocity, int nconstraint, <a class="el" href="dynamics_8h.html#a13007f49119624bdc617df7b7d469d54">c_variational_force</a> force_callback, <a class="el" href="dynamics_8h.html#a7c81b54086ff4097411fddc026da8f85">c_variational_constraint</a> constraint_callback, <a class="el" href="dynamics_8h.html#a5463af4a08475da2bbd6c0efc2a81b3d">c_variational_constraint_jacobian</a> jacobian_callback, void *user_data, const <a class="el" href="structc__variational__integrator__settings.html">c_variational_integrator_settings</a> *settings, double *position, <a class="el" href="structc__quaternion.html">c_quaternion</a> *orientation, double *velocity, double *angular_velocity, double *multipliers)</td></tr>
-<tr class="memdesc:gaf79fc87624914f52a9a1f168ab73a474"><td class="mdescLeft">&#160;</td><td class="mdescRight">Integrate rigid bodies directly in maximal coordinates.  <br /></td></tr>
-<tr class="separator:gaf79fc87624914f52a9a1f168ab73a474"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga6a65810d6f070fa40236b7350dd09800" id="r_ga6a65810d6f070fa40236b7350dd09800"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__variational.html#ga6a65810d6f070fa40236b7350dd09800">c_variational_integrator_solve</a> (int nbody, const <a class="el" href="structc__rigid__body.html">c_rigid_body</a> *bodies, int ntime, double dt, const double *initial_position, const <a class="el" href="structc__quaternion.html">c_quaternion</a> *initial_orientation, const double *initial_velocity, const double *initial_angular_velocity, int nconstraint, <a class="el" href="dynamics_8h.html#a13007f49119624bdc617df7b7d469d54">c_variational_force</a> force_callback, <a class="el" href="dynamics_8h.html#a7c81b54086ff4097411fddc026da8f85">c_variational_constraint</a> constraint_callback, <a class="el" href="dynamics_8h.html#a5463af4a08475da2bbd6c0efc2a81b3d">c_variational_constraint_jacobian</a> jacobian_callback, void *user_data, const <a class="el" href="structc__variational__integrator__settings.html">c_variational_integrator_settings</a> *settings, double *position, <a class="el" href="structc__quaternion.html">c_quaternion</a> *orientation, double *velocity, double *angular_velocity, double *multipliers, int *converged, int *iterations, int *jacobian_singular, int *completed_steps)</td></tr>
+<tr class="memdesc:ga6a65810d6f070fa40236b7350dd09800"><td class="mdescLeft">&#160;</td><td class="mdescRight">Integrate rigid bodies directly in maximal coordinates.  <br /></td></tr>
+<tr class="separator:ga6a65810d6f070fa40236b7350dd09800"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gac18451fdae6f4b67ce057fca37a1c490" id="r_gac18451fdae6f4b67ce057fca37a1c490"><td class="memItemLeft" align="right" valign="top"><a class="el" href="dynamics_8h.html#a5da8b2bbebb1bb22fac8b63ee0afe676">c_linkage_dynamic_model</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__variational.html#gac18451fdae6f4b67ce057fca37a1c490">c_create_serial_linkage_dynamic_model</a> (const <a class="el" href="structc__serial__linkage.html">c_serial_linkage</a> *linkage, int n, const double *q)</td></tr>
 <tr class="memdesc:gac18451fdae6f4b67ce057fca37a1c490"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a dynamic model from a serial linkage value.  <br /></td></tr>
 <tr class="separator:gac18451fdae6f4b67ce057fca37a1c490"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -144,9 +144,9 @@ Functions</h2></td></tr>
 <tr class="memitem:gad43632aeb7dee21bf0a2b0635dcfaf21" id="r_gad43632aeb7dee21bf0a2b0635dcfaf21"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__variational.html#gad43632aeb7dee21bf0a2b0635dcfaf21">c_linkage_dynamic_torsional_element_results</a> (<a class="el" href="dynamics_8h.html#a5da8b2bbebb1bb22fac8b63ee0afe676">c_linkage_dynamic_model</a> obj, int nbody, double time, const double *position, const <a class="el" href="structc__quaternion.html">c_quaternion</a> *orientation, const double *velocity, const double *angular_velocity, <a class="el" href="structc__torsional__element__result.html">c_torsional_element_result</a> *results)</td></tr>
 <tr class="memdesc:gad43632aeb7dee21bf0a2b0635dcfaf21"><td class="mdescLeft">&#160;</td><td class="mdescRight">Query all torsional elements at one state.  <br /></td></tr>
 <tr class="separator:gad43632aeb7dee21bf0a2b0635dcfaf21"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga3bfbc4b8696bee3429345da08a12c2e9" id="r_ga3bfbc4b8696bee3429345da08a12c2e9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__variational.html#ga3bfbc4b8696bee3429345da08a12c2e9">c_linkage_dynamic_solve</a> (<a class="el" href="dynamics_8h.html#a5da8b2bbebb1bb22fac8b63ee0afe676">c_linkage_dynamic_model</a> obj, int nbody, int nconstraint, const <a class="el" href="structc__variational__integrator__settings.html">c_variational_integrator_settings</a> *settings, int ntime, double dt, const double gravity[3], const double *body_force, const double *body_torque, int prescribed_body, <a class="el" href="dynamics_8h.html#a9c85de8937622f1899ccc8c00d672190">c_linkage_prescribed_motion</a> prescribed_motion, void *user_data, double *position, <a class="el" href="structc__quaternion.html">c_quaternion</a> *orientation, double *velocity, double *angular_velocity, double *multipliers)</td></tr>
-<tr class="memdesc:ga3bfbc4b8696bee3429345da08a12c2e9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve linkage dynamics.  <br /></td></tr>
-<tr class="separator:ga3bfbc4b8696bee3429345da08a12c2e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5bc1663a76977c48e23574d99781ea61" id="r_ga5bc1663a76977c48e23574d99781ea61"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__variational.html#ga5bc1663a76977c48e23574d99781ea61">c_linkage_dynamic_solve</a> (<a class="el" href="dynamics_8h.html#a5da8b2bbebb1bb22fac8b63ee0afe676">c_linkage_dynamic_model</a> obj, int nbody, int nconstraint, const <a class="el" href="structc__variational__integrator__settings.html">c_variational_integrator_settings</a> *settings, int ntime, double dt, const double gravity[3], const double *body_force, const double *body_torque, int prescribed_body, <a class="el" href="dynamics_8h.html#a9c85de8937622f1899ccc8c00d672190">c_linkage_prescribed_motion</a> prescribed_motion, void *user_data, double *position, <a class="el" href="structc__quaternion.html">c_quaternion</a> *orientation, double *velocity, double *angular_velocity, double *multipliers, int *converged, int *iterations, int *jacobian_singular, int *completed_steps)</td></tr>
+<tr class="memdesc:ga5bc1663a76977c48e23574d99781ea61"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve linkage dynamics.  <br /></td></tr>
+<tr class="separator:ga5bc1663a76977c48e23574d99781ea61"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gacf6f1340ea2771e37411f6fd1cd236ff" id="r_gacf6f1340ea2771e37411f6fd1cd236ff"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__variational.html#gacf6f1340ea2771e37411f6fd1cd236ff">c_linkage_dynamic_joint_reactions</a> (<a class="el" href="dynamics_8h.html#a5da8b2bbebb1bb22fac8b63ee0afe676">c_linkage_dynamic_model</a> obj, int nbody, int nconstraint, double time, const double *position, const <a class="el" href="structc__quaternion.html">c_quaternion</a> *orientation, const double *velocity, const double *angular_velocity, const double *multipliers, <a class="el" href="structc__joint__reaction.html">c_joint_reaction</a> *reactions)</td></tr>
 <tr class="memdesc:gacf6f1340ea2771e37411f6fd1cd236ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert one state's linkage multipliers into joint reaction wrenches.  <br /></td></tr>
 <tr class="separator:gacf6f1340ea2771e37411f6fd1cd236ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -179,8 +179,8 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="gaf79fc87624914f52a9a1f168ab73a474" name="gaf79fc87624914f52a9a1f168ab73a474"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaf79fc87624914f52a9a1f168ab73a474">&#9670;&#160;</a></span>c_variational_integrator_solve()</h2>
+<a id="ga6a65810d6f070fa40236b7350dd09800" name="ga6a65810d6f070fa40236b7350dd09800"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga6a65810d6f070fa40236b7350dd09800">&#9670;&#160;</a></span>c_variational_integrator_solve()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -297,7 +297,31 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double *&#160;</td>
-          <td class="paramname"><em>multipliers</em>&#160;</td>
+          <td class="paramname"><em>multipliers</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>converged</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>iterations</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>jacobian_singular</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>completed_steps</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -328,7 +352,11 @@ Functions</h2></td></tr>
     <tr><td class="paramname">orientation</td><td>Output quaternion history with shape nbody-by-ntime. </td></tr>
     <tr><td class="paramname">velocity</td><td>Output world-frame velocity history with shape 3-by-nbody-by-ntime. </td></tr>
     <tr><td class="paramname">angular_velocity</td><td>Output body-frame angular-velocity history with shape 3-by-nbody-by-ntime. </td></tr>
-    <tr><td class="paramname">multipliers</td><td>Output constraint multipliers with shape nconstraint-by-ntime. The final column is obtained from a noncommitting look-ahead step. Storage may be omitted only when nconstraint is zero. </td></tr>
+    <tr><td class="paramname">multipliers</td><td>Output constraint multipliers with shape nconstraint-by-ntime. The final column is obtained from a noncommitting look-ahead step. On failure, only columns for completed steps are valid and the look-ahead column is omitted. Storage may be omitted only when nconstraint is zero. </td></tr>
+    <tr><td class="paramname">converged</td><td>Set to 1 on success and 0 if a numerical solve fails. </td></tr>
+    <tr><td class="paramname">iterations</td><td>Total Newton iterations across attempted steps. </td></tr>
+    <tr><td class="paramname">jacobian_singular</td><td>Set to 1 if a Newton Jacobian was detected as singular. </td></tr>
+    <tr><td class="paramname">completed_steps</td><td>Number of completed time advances. The output histories contain the initial state and these completed steps; unused trailing entries are zero (identity quaternions for orientation). </td></tr>
   </table>
   </dd>
 </dl>
@@ -923,8 +951,8 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ga3bfbc4b8696bee3429345da08a12c2e9" name="ga3bfbc4b8696bee3429345da08a12c2e9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga3bfbc4b8696bee3429345da08a12c2e9">&#9670;&#160;</a></span>c_linkage_dynamic_solve()</h2>
+<a id="ga5bc1663a76977c48e23574d99781ea61" name="ga5bc1663a76977c48e23574d99781ea61"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga5bc1663a76977c48e23574d99781ea61">&#9670;&#160;</a></span>c_linkage_dynamic_solve()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1029,7 +1057,31 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double *&#160;</td>
-          <td class="paramname"><em>multipliers</em>&#160;</td>
+          <td class="paramname"><em>multipliers</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>converged</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>iterations</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>jacobian_singular</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>completed_steps</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1058,7 +1110,11 @@ Functions</h2></td></tr>
     <tr><td class="paramname">orientation</td><td>Output quaternion history with shape nbody-by-ntime. </td></tr>
     <tr><td class="paramname">velocity</td><td>Output velocity history with shape 3-by-nbody-by-ntime. </td></tr>
     <tr><td class="paramname">angular_velocity</td><td>Output angular-velocity history with shape 3-by-nbody-by-ntime. </td></tr>
-    <tr><td class="paramname">multipliers</td><td>Output multiplier history with shape nconstraint-by-ntime. If prescribed motion is active, its required actuator torque is the last multiplier row. </td></tr>
+    <tr><td class="paramname">multipliers</td><td>Output multiplier history with shape nconstraint-by-ntime. If prescribed motion is active, its required actuator torque is the last multiplier row. On failure, only columns for completed steps are valid and the look-ahead column is omitted. </td></tr>
+    <tr><td class="paramname">converged</td><td>Set to 1 on success and 0 if a numerical solve fails. </td></tr>
+    <tr><td class="paramname">iterations</td><td>Total Newton iterations across attempted steps. </td></tr>
+    <tr><td class="paramname">jacobian_singular</td><td>Set to 1 if a Newton Jacobian was detected as singular. </td></tr>
+    <tr><td class="paramname">completed_steps</td><td>Number of completed time advances. The output histories contain the initial state and these completed steps; unused trailing entries are zero (identity quaternions for orientation). </td></tr>
   </table>
   </dd>
 </dl>

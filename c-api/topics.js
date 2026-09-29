@@ -1,6 +1,7 @@
 var topics =
 [
     [ "Public constants", "group__dynamics__constants.html", "group__dynamics__constants" ],
+    [ "Error reporting", "group__dynamics__errors.html", "group__dynamics__errors" ],
     [ "Matrix and general kinematics", "group__dynamics__matrix.html", "group__dynamics__matrix" ],
     [ "Frequency response and system identification", "group__dynamics__frequency.html", "group__dynamics__frequency" ],
     [ "Quaternion operations", "group__dynamics__quaternion.html", "group__dynamics__quaternion" ],
@@ -9,5 +10,6 @@ var topics =
     [ "Parallel and planar linkage operations", "group__dynamics__parallel.html", "group__dynamics__parallel" ],
     [ "Variational and linkage dynamics", "group__dynamics__variational.html", "group__dynamics__variational" ],
     [ "Transfer functions and state-space models", "group__dynamics__state.html", "group__dynamics__state" ],
-    [ "Structural analysis and line elements", "group__dynamics__structural.html", "group__dynamics__structural" ]
+    [ "Structural analysis and line elements", "group__dynamics__structural.html", "group__dynamics__structural" ],
+    [ "Linear structural time integration", "group__dynamics__structural__solvers.html", "group__dynamics__structural__solvers" ]
 ];

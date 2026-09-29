@@ -185,6 +185,9 @@ Functions</h2></td></tr>
 <tr class="memitem:ga95bf6611ced6c3e57ea257884f16f6d2" id="r_ga95bf6611ced6c3e57ea257884f16f6d2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__geometry.html#ga95bf6611ced6c3e57ea257884f16f6d2">c_poincare_map</a> (int n, const double *x, const double *y, const double *z, const <a class="el" href="structc__plane.html">c_plane</a> *pln, int side, int nbuffer, double *xbuffer, double *ybuffer, double *zbuffer, int *nactual)</td></tr>
 <tr class="memdesc:ga95bf6611ced6c3e57ea257884f16f6d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute a Poincare section map from sampled trajectories.  <br /></td></tr>
 <tr class="separator:ga95bf6611ced6c3e57ea257884f16f6d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9f37af2541d8fd07542c6bc162f5930d" id="r_ga9f37af2541d8fd07542c6bc162f5930d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__geometry.html#ga9f37af2541d8fd07542c6bc162f5930d">c_poincare_map_ode</a> (<a class="el" href="dynamics_8h.html#a7d8912445efac281cc3e6b46d6f3e4eb">c_ode_equations</a> fcn, const double tspan[2], int n, const double *iv, int sample_count, const <a class="el" href="structc__plane.html">c_plane</a> *pln, int side, int solver, <a class="el" href="dynamics_8h.html#a9a2eb8b6b8c89cf4d0c6f98c1f669ef6">c_poincare_coordinates</a> coordinates, int nbuffer, double *xbuffer, double *ybuffer, double *zbuffer, int *nactual, void *user_data)</td></tr>
+<tr class="memdesc:ga9f37af2541d8fd07542c6bc162f5930d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute a Poincare section map by integrating an ODE and intersecting uniformly spaced solution samples with a plane.  <br /></td></tr>
+<tr class="separator:ga9f37af2541d8fd07542c6bc162f5930d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="image">
@@ -1522,6 +1525,134 @@ Geometry representations and operations</div></div>
     <tr><td class="paramname">ybuffer</td><td>Output section y values. </td></tr>
     <tr><td class="paramname">zbuffer</td><td>Output section z values. </td></tr>
     <tr><td class="paramname">nactual</td><td>Output number of intersections. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ga9f37af2541d8fd07542c6bc162f5930d" name="ga9f37af2541d8fd07542c6bc162f5930d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga9f37af2541d8fd07542c6bc162f5930d">&#9670;&#160;</a></span>c_poincare_map_ode()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void c_poincare_map_ode </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="dynamics_8h.html#a7d8912445efac281cc3e6b46d6f3e4eb">c_ode_equations</a>&#160;</td>
+          <td class="paramname"><em>fcn</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double&#160;</td>
+          <td class="paramname"><em>tspan</em>[2], </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double *&#160;</td>
+          <td class="paramname"><em>iv</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>sample_count</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structc__plane.html">c_plane</a> *&#160;</td>
+          <td class="paramname"><em>pln</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>side</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>solver</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="dynamics_8h.html#a9a2eb8b6b8c89cf4d0c6f98c1f669ef6">c_poincare_coordinates</a>&#160;</td>
+          <td class="paramname"><em>coordinates</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>nbuffer</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>xbuffer</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>ybuffer</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>zbuffer</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>nactual</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>user_data</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute a Poincare section map by integrating an ODE and intersecting uniformly spaced solution samples with a plane. </p>
+<p>The coordinate callback is held per thread for the duration of the call, so this routine must not be re-entered from within its own callbacks. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">fcn</td><td>ODE callback. </td></tr>
+    <tr><td class="paramname">tspan</td><td>Increasing start and end times. </td></tr>
+    <tr><td class="paramname">n</td><td>State dimension. At least 3 if coordinates is NULL. </td></tr>
+    <tr><td class="paramname">iv</td><td>n-element initial state at tspan[0]. </td></tr>
+    <tr><td class="paramname">sample_count</td><td>Number of uniformly spaced samples across tspan, including both endpoints; at least 2. </td></tr>
+    <tr><td class="paramname">pln</td><td>Section plane. </td></tr>
+    <tr><td class="paramname">side</td><td>Section orientation selector. </td></tr>
+    <tr><td class="paramname">solver</td><td>ODE integration method (e.g. DYN_RUNGE_KUTTA_45). </td></tr>
+    <tr><td class="paramname">coordinates</td><td>Optional callback mapping each sample onto section coordinates; pass NULL to use the first three state components. </td></tr>
+    <tr><td class="paramname">nbuffer</td><td>Buffer capacity. </td></tr>
+    <tr><td class="paramname">xbuffer</td><td>Output section x values. </td></tr>
+    <tr><td class="paramname">ybuffer</td><td>Output section y values. </td></tr>
+    <tr><td class="paramname">zbuffer</td><td>Output section z values. </td></tr>
+    <tr><td class="paramname">nactual</td><td>Output number of intersections stored, at most nbuffer. </td></tr>
+    <tr><td class="paramname">user_data</td><td>Opaque caller data forwarded to fcn and coordinates. </td></tr>
   </table>
   </dd>
 </dl>

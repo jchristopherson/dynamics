@@ -1,8 +1,8 @@
 var searchData=
 [
   ['m_0',['m',['../structc__plucker__line.html#a107f6e367c9328b5cdcc62f739033e1d',1,'c_plucker_line']]],
-  ['mass_1',['mass',['../structc__binary__link.html#ae6fd138554034a15e5207091a467bdc3',1,'c_binary_link::mass'],['../structc__mechanism__link.html#a69628ab19ddf9d503f773dc6d12b505d',1,'c_mechanism_link::mass'],['../structc__rigid__body.html#a3aa0fcf7348860cee7955d6ee8f798d5',1,'c_rigid_body::mass']]],
-  ['material_2',['material',['../structc__beam__element__2d.html#a1a973ab35b4b6260ed155ed5ee27ec4b',1,'c_beam_element_2d::material'],['../structc__beam__element__3d.html#ae480ac29ec882f21ba1214510c37ecc2',1,'c_beam_element_3d::material']]],
+  ['mass_1',['mass',['../structc__binary__link.html#ae6fd138554034a15e5207091a467bdc3',1,'c_binary_link::mass'],['../structc__mechanism__link.html#a69628ab19ddf9d503f773dc6d12b505d',1,'c_mechanism_link::mass'],['../structc__rigid__body.html#a3aa0fcf7348860cee7955d6ee8f798d5',1,'c_rigid_body::mass'],['../structc__mass__element__2d.html#a28152b7261bf252f49ae432bec0f5512',1,'c_mass_element_2d::mass'],['../structc__mass__element__3d.html#a0fd7049de2f7d6904ba1661a296cec3a',1,'c_mass_element_3d::mass']]],
+  ['material_2',['material',['../structc__beam__element__2d.html#a1a973ab35b4b6260ed155ed5ee27ec4b',1,'c_beam_element_2d::material'],['../structc__beam__element__3d.html#ae480ac29ec882f21ba1214510c37ecc2',1,'c_beam_element_3d::material'],['../structc__truss__element__2d.html#afb501f5be28397544b7e99d8fc117c6e',1,'c_truss_element_2d::material'],['../structc__truss__element__3d.html#a2c88bd15155f14cf236a19b5b3053e23',1,'c_truss_element_3d::material']]],
   ['matrix_20and_20general_20kinematics_3',['Matrix and general kinematics',['../group__dynamics__matrix.html',1,'']]],
   ['max_5ffunction_5fevaluations_4',['max_function_evaluations',['../structc__iteration__controls.html#a72ad6f7799ea342694820ef2f05e0af3',1,'c_iteration_controls']]],
   ['max_5fiteration_5fbetween_5fupdates_5',['max_iteration_between_updates',['../structc__iteration__controls.html#aa9f2ba86810098fdef1b2c14bc921ae4',1,'c_iteration_controls']]],

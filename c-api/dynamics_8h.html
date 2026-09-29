@@ -210,6 +210,30 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structc__beam__element__3d.html">c_beam_element_3d</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A three-dimensional Bernoulli-Euler beam element.  <a href="structc__beam__element__3d.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structc__truss__element__2d.html">c_truss_element_2d</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A two-dimensional, pin-jointed, axial-only truss element with x and y translations at each node.  <a href="structc__truss__element__2d.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structc__truss__element__3d.html">c_truss_element_3d</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A three-dimensional, pin-jointed, axial-only truss element with x, y, and z translations at each node.  <a href="structc__truss__element__3d.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structc__spring__element__2d.html">c_spring_element_2d</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A two-dimensional linear, axial spring element with x and y translations at each node.  <a href="structc__spring__element__2d.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structc__spring__element__3d.html">c_spring_element_3d</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A three-dimensional linear, axial spring element with x, y, and z translations at each node.  <a href="structc__spring__element__3d.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structc__damper__element__2d.html">c_damper_element_2d</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A two-dimensional linear, axial viscous damper element with x and y translations at each node.  <a href="structc__damper__element__2d.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structc__damper__element__3d.html">c_damper_element_3d</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A three-dimensional linear, axial viscous damper element with x, y, and z translations at each node.  <a href="structc__damper__element__3d.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structc__mass__element__2d.html">c_mass_element_2d</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A two-dimensional translational point mass element.  <a href="structc__mass__element__2d.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structc__mass__element__3d.html">c_mass_element_3d</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A three-dimensional translational point mass element.  <a href="structc__mass__element__3d.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
@@ -330,30 +354,57 @@ Macros</h2></td></tr>
 <tr class="memitem:gae005626cdb791603e4e211fec92d6545" id="r_gae005626cdb791603e4e211fec92d6545"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__constants.html#gae005626cdb791603e4e211fec92d6545">DYN_VI_GRAPH_FACTORIZED_SOLVER</a>&#160;&#160;&#160;2</td></tr>
 <tr class="memdesc:gae005626cdb791603e4e211fec92d6545"><td class="mdescLeft">&#160;</td><td class="mdescRight">Graph-factorized solver for variational-integrator Newton systems.  <br /></td></tr>
 <tr class="separator:gae005626cdb791603e4e211fec92d6545"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga67954a29bb83de7dd7eda58454e37dc7" id="r_ga67954a29bb83de7dd7eda58454e37dc7"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__constants.html#ga67954a29bb83de7dd7eda58454e37dc7">DYN_NO_ERROR</a>&#160;&#160;&#160;0</td></tr>
+<tr class="memdesc:ga67954a29bb83de7dd7eda58454e37dc7"><td class="mdescLeft">&#160;</td><td class="mdescRight">No error has been recorded.  <br /></td></tr>
+<tr class="separator:ga67954a29bb83de7dd7eda58454e37dc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga215e6bfaf75ed380e8778279dc8d184c" id="r_ga215e6bfaf75ed380e8778279dc8d184c"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__constants.html#ga215e6bfaf75ed380e8778279dc8d184c">DYN_MEMORY_ERROR</a>&#160;&#160;&#160;10000</td></tr>
+<tr class="memdesc:ga215e6bfaf75ed380e8778279dc8d184c"><td class="mdescLeft">&#160;</td><td class="mdescRight">A memory allocation failed.  <br /></td></tr>
+<tr class="separator:ga215e6bfaf75ed380e8778279dc8d184c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa632dc0027b9ea7260a57058ff8db098" id="r_gaa632dc0027b9ea7260a57058ff8db098"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__constants.html#gaa632dc0027b9ea7260a57058ff8db098">DYN_NULL_POINTER_ERROR</a>&#160;&#160;&#160;10001</td></tr>
+<tr class="memdesc:gaa632dc0027b9ea7260a57058ff8db098"><td class="mdescLeft">&#160;</td><td class="mdescRight">A required pointer or handle was NULL or invalid.  <br /></td></tr>
+<tr class="separator:gaa632dc0027b9ea7260a57058ff8db098"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae38094af9fbd09b61800148e0275fbf8" id="r_gae38094af9fbd09b61800148e0275fbf8"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__constants.html#gae38094af9fbd09b61800148e0275fbf8">DYN_INVALID_INPUT_ERROR</a>&#160;&#160;&#160;10004</td></tr>
+<tr class="memdesc:gae38094af9fbd09b61800148e0275fbf8"><td class="mdescLeft">&#160;</td><td class="mdescRight">An input argument was invalid.  <br /></td></tr>
+<tr class="separator:gae38094af9fbd09b61800148e0275fbf8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab707e7105775f9da06e5e0cb506f484b" id="r_gab707e7105775f9da06e5e0cb506f484b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__constants.html#gab707e7105775f9da06e5e0cb506f484b">DYN_MATRIX_SIZE_ERROR</a>&#160;&#160;&#160;100100</td></tr>
+<tr class="memdesc:gab707e7105775f9da06e5e0cb506f484b"><td class="mdescLeft">&#160;</td><td class="mdescRight">A matrix was incorrectly sized.  <br /></td></tr>
+<tr class="separator:gab707e7105775f9da06e5e0cb506f484b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga747234c1aff3363fc32ecd89dd38ae7d" id="r_ga747234c1aff3363fc32ecd89dd38ae7d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__constants.html#ga747234c1aff3363fc32ecd89dd38ae7d">DYN_ARRAY_SIZE_ERROR</a>&#160;&#160;&#160;100105</td></tr>
+<tr class="memdesc:ga747234c1aff3363fc32ecd89dd38ae7d"><td class="mdescLeft">&#160;</td><td class="mdescRight">An array was incorrectly sized.  <br /></td></tr>
+<tr class="separator:ga747234c1aff3363fc32ecd89dd38ae7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:acec8e5133e6f29ae9ae64bd7840c1884" id="r_acec8e5133e6f29ae9ae64bd7840c1884"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="dynamics_8h.html#acec8e5133e6f29ae9ae64bd7840c1884">c_vecfcn</a>) (int nvar, int neqn, const double *x, double *f)</td></tr>
-<tr class="memdesc:acec8e5133e6f29ae9ae64bd7840c1884"><td class="mdescLeft">&#160;</td><td class="mdescRight">Nonlinear vector function callback.  <br /></td></tr>
-<tr class="separator:acec8e5133e6f29ae9ae64bd7840c1884"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab2591826425028477f425cc24c0b0b1e" id="r_ab2591826425028477f425cc24c0b0b1e"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="dynamics_8h.html#ab2591826425028477f425cc24c0b0b1e">c_modal_excite</a>) (int n, double freq, double complex *f)</td></tr>
-<tr class="memdesc:ab2591826425028477f425cc24c0b0b1e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Modal force callback used by frequency-response routines.  <br /></td></tr>
-<tr class="separator:ab2591826425028477f425cc24c0b0b1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8967af869ad581757c79114f42d9086a" id="r_a8967af869ad581757c79114f42d9086a"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="dynamics_8h.html#a8967af869ad581757c79114f42d9086a">c_harmonic_ode</a>) (int n, double freq, double t, const double *x, double *dxdt)</td></tr>
-<tr class="memdesc:a8967af869ad581757c79114f42d9086a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Harmonic ordinary-differential-equation callback.  <br /></td></tr>
-<tr class="separator:a8967af869ad581757c79114f42d9086a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab984a140a09f881807df64afebae3355" id="r_ab984a140a09f881807df64afebae3355"><td class="memItemLeft" align="right" valign="top">typedef double(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="dynamics_8h.html#ab984a140a09f881807df64afebae3355">c_window_function</a>) (int n, int bin)</td></tr>
-<tr class="memdesc:ab984a140a09f881807df64afebae3355"><td class="mdescLeft">&#160;</td><td class="mdescRight">Window function callback used by SISO frequency analysis.  <br /></td></tr>
-<tr class="separator:ab984a140a09f881807df64afebae3355"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af2c44635b3d86571be4e0db022c72568" id="r_af2c44635b3d86571be4e0db022c72568"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="dynamics_8h.html#af2c44635b3d86571be4e0db022c72568">c_constraint_equations</a>) (int n, int neqn, int nparam, const double *xg, const double *fg, const double *xc, const double *p, double *fc)</td></tr>
-<tr class="memdesc:af2c44635b3d86571be4e0db022c72568"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constraint callback used by least-squares system identification.  <br /></td></tr>
-<tr class="separator:af2c44635b3d86571be4e0db022c72568"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adcb2dda33aaee23304846c505155e780" id="r_adcb2dda33aaee23304846c505155e780"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="dynamics_8h.html#adcb2dda33aaee23304846c505155e780">c_ode_fit</a>) (int n, int nparam, const double *mdl, double t, const double *x, double F, double *dxdt)</td></tr>
-<tr class="memdesc:adcb2dda33aaee23304846c505155e780"><td class="mdescLeft">&#160;</td><td class="mdescRight">ODE model callback used by system identification.  <br /></td></tr>
-<tr class="separator:adcb2dda33aaee23304846c505155e780"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a84a392919636d4c148e0ac69a650e033" id="r_a84a392919636d4c148e0ac69a650e033"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="dynamics_8h.html#a84a392919636d4c148e0ac69a650e033">c_ss_excitation</a>) (int n, double t, double *u)</td></tr>
-<tr class="memdesc:a84a392919636d4c148e0ac69a650e033"><td class="mdescLeft">&#160;</td><td class="mdescRight">State-space input callback used by c_lti_solve.  <br /></td></tr>
-<tr class="separator:a84a392919636d4c148e0ac69a650e033"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aafcf83873d03de64a6bc6aec5abd657e" id="r_aafcf83873d03de64a6bc6aec5abd657e"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="dynamics_8h.html#aafcf83873d03de64a6bc6aec5abd657e">c_error_handler</a>) (int code, const char *message, void *user_data)</td></tr>
+<tr class="memdesc:aafcf83873d03de64a6bc6aec5abd657e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Error handler callback.  <br /></td></tr>
+<tr class="separator:aafcf83873d03de64a6bc6aec5abd657e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a85e25af3367037b35699c9b0b573d20c" id="r_a85e25af3367037b35699c9b0b573d20c"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="dynamics_8h.html#a85e25af3367037b35699c9b0b573d20c">c_vecfcn</a>) (int nvar, int neqn, const double *x, double *f, void *user_data)</td></tr>
+<tr class="memdesc:a85e25af3367037b35699c9b0b573d20c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Nonlinear vector function callback.  <br /></td></tr>
+<tr class="separator:a85e25af3367037b35699c9b0b573d20c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7de89a8fd9d1d3bdf7cf2fd53fa6fb93" id="r_a7de89a8fd9d1d3bdf7cf2fd53fa6fb93"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="dynamics_8h.html#a7de89a8fd9d1d3bdf7cf2fd53fa6fb93">c_modal_excite</a>) (int n, double freq, double complex *f, void *user_data)</td></tr>
+<tr class="memdesc:a7de89a8fd9d1d3bdf7cf2fd53fa6fb93"><td class="mdescLeft">&#160;</td><td class="mdescRight">Modal force callback used by frequency-response routines.  <br /></td></tr>
+<tr class="separator:a7de89a8fd9d1d3bdf7cf2fd53fa6fb93"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab973e31d7b983890d7a7c27e3b96536a" id="r_ab973e31d7b983890d7a7c27e3b96536a"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="dynamics_8h.html#ab973e31d7b983890d7a7c27e3b96536a">c_harmonic_ode</a>) (int n, double freq, double t, const double *x, double *dxdt, void *user_data)</td></tr>
+<tr class="memdesc:ab973e31d7b983890d7a7c27e3b96536a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Harmonic ordinary-differential-equation callback.  <br /></td></tr>
+<tr class="separator:ab973e31d7b983890d7a7c27e3b96536a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a289a6dbcb879e2e74e6adcd1b23b54af" id="r_a289a6dbcb879e2e74e6adcd1b23b54af"><td class="memItemLeft" align="right" valign="top">typedef double(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="dynamics_8h.html#a289a6dbcb879e2e74e6adcd1b23b54af">c_window_function</a>) (int n, int bin, void *user_data)</td></tr>
+<tr class="memdesc:a289a6dbcb879e2e74e6adcd1b23b54af"><td class="mdescLeft">&#160;</td><td class="mdescRight">Window function callback used by SISO frequency analysis.  <br /></td></tr>
+<tr class="separator:a289a6dbcb879e2e74e6adcd1b23b54af"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a859cbf548e04b41969f3552734b4c0a9" id="r_a859cbf548e04b41969f3552734b4c0a9"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="dynamics_8h.html#a859cbf548e04b41969f3552734b4c0a9">c_constraint_equations</a>) (int n, int neqn, int nparam, const double *xg, const double *fg, const double *xc, const double *p, double *fc, void *user_data)</td></tr>
+<tr class="memdesc:a859cbf548e04b41969f3552734b4c0a9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constraint callback used by least-squares system identification.  <br /></td></tr>
+<tr class="separator:a859cbf548e04b41969f3552734b4c0a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a72c7c56b35ddfd21afde8c199ef00eaa" id="r_a72c7c56b35ddfd21afde8c199ef00eaa"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="dynamics_8h.html#a72c7c56b35ddfd21afde8c199ef00eaa">c_ode_fit</a>) (int n, int nparam, const double *mdl, double t, const double *x, double F, double *dxdt, void *user_data)</td></tr>
+<tr class="memdesc:a72c7c56b35ddfd21afde8c199ef00eaa"><td class="mdescLeft">&#160;</td><td class="mdescRight">ODE model callback used by system identification.  <br /></td></tr>
+<tr class="separator:a72c7c56b35ddfd21afde8c199ef00eaa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a54f3494eccf7e5cd23b1c43dea08e52f" id="r_a54f3494eccf7e5cd23b1c43dea08e52f"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="dynamics_8h.html#a54f3494eccf7e5cd23b1c43dea08e52f">c_ss_excitation</a>) (int n, double t, double *u, void *user_data)</td></tr>
+<tr class="memdesc:a54f3494eccf7e5cd23b1c43dea08e52f"><td class="mdescLeft">&#160;</td><td class="mdescRight">State-space input callback used by c_lti_solve.  <br /></td></tr>
+<tr class="separator:a54f3494eccf7e5cd23b1c43dea08e52f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7d8912445efac281cc3e6b46d6f3e4eb" id="r_a7d8912445efac281cc3e6b46d6f3e4eb"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="dynamics_8h.html#a7d8912445efac281cc3e6b46d6f3e4eb">c_ode_equations</a>) (int n, double t, const double *x, double *dxdt, void *user_data)</td></tr>
+<tr class="memdesc:a7d8912445efac281cc3e6b46d6f3e4eb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ordinary-differential-equation callback.  <br /></td></tr>
+<tr class="separator:a7d8912445efac281cc3e6b46d6f3e4eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9a2eb8b6b8c89cf4d0c6f98c1f669ef6" id="r_a9a2eb8b6b8c89cf4d0c6f98c1f669ef6"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="dynamics_8h.html#a9a2eb8b6b8c89cf4d0c6f98c1f669ef6">c_poincare_coordinates</a>) (int n, double t, const double *x, double coordinates[3], void *user_data)</td></tr>
+<tr class="memdesc:a9a2eb8b6b8c89cf4d0c6f98c1f669ef6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Poincare section coordinate callback.  <br /></td></tr>
+<tr class="separator:a9a2eb8b6b8c89cf4d0c6f98c1f669ef6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af9b56afde1512e0880cd64df91b89062" id="r_af9b56afde1512e0880cd64df91b89062"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structc__variational__state.html">c_variational_state</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="dynamics_8h.html#af9b56afde1512e0880cd64df91b89062">c_variational_state</a></td></tr>
 <tr class="separator:af9b56afde1512e0880cd64df91b89062"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a13007f49119624bdc617df7b7d469d54" id="r_a13007f49119624bdc617df7b7d469d54"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="dynamics_8h.html#a13007f49119624bdc617df7b7d469d54">c_variational_force</a>) (const <a class="el" href="structc__variational__state.html">c_variational_state</a> *state, double *force, double *torque, void *user_data)</td></tr>
@@ -374,9 +425,24 @@ Typedefs</h2></td></tr>
 <tr class="memitem:a5da8b2bbebb1bb22fac8b63ee0afe676" id="r_a5da8b2bbebb1bb22fac8b63ee0afe676"><td class="memItemLeft" align="right" valign="top">typedef void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="dynamics_8h.html#a5da8b2bbebb1bb22fac8b63ee0afe676">c_linkage_dynamic_model</a></td></tr>
 <tr class="memdesc:a5da8b2bbebb1bb22fac8b63ee0afe676"><td class="mdescLeft">&#160;</td><td class="mdescRight">Opaque linkage dynamic-model handle.  <br /></td></tr>
 <tr class="separator:a5da8b2bbebb1bb22fac8b63ee0afe676"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abdba40f79593847ce9a5647d3f5ddeb9" id="r_abdba40f79593847ce9a5647d3f5ddeb9"><td class="memItemLeft" align="right" valign="top">typedef void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="dynamics_8h.html#abdba40f79593847ce9a5647d3f5ddeb9">c_structural_integrator</a></td></tr>
+<tr class="memdesc:abdba40f79593847ce9a5647d3f5ddeb9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Opaque linear structural time-integrator handle.  <br /></td></tr>
+<tr class="separator:abdba40f79593847ce9a5647d3f5ddeb9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:ga52b75ea25082cf21a75be10459e9c130" id="r_ga52b75ea25082cf21a75be10459e9c130"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__errors.html#ga52b75ea25082cf21a75be10459e9c130">c_set_error_handler</a> (<a class="el" href="dynamics_8h.html#aafcf83873d03de64a6bc6aec5abd657e">c_error_handler</a> fcn, void *user_data)</td></tr>
+<tr class="memdesc:ga52b75ea25082cf21a75be10459e9c130"><td class="mdescLeft">&#160;</td><td class="mdescRight">Register a handler invoked whenever the C interface records an error on the calling thread.  <br /></td></tr>
+<tr class="separator:ga52b75ea25082cf21a75be10459e9c130"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga50951e1377562fcbba83a80ebf2ec459" id="r_ga50951e1377562fcbba83a80ebf2ec459"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__errors.html#ga50951e1377562fcbba83a80ebf2ec459">c_get_last_error</a> (void)</td></tr>
+<tr class="memdesc:ga50951e1377562fcbba83a80ebf2ec459"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the most recent error recorded on the calling thread.  <br /></td></tr>
+<tr class="separator:ga50951e1377562fcbba83a80ebf2ec459"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2ba76f716e533b6ac47d8afa81a70c58" id="r_ga2ba76f716e533b6ac47d8afa81a70c58"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__errors.html#ga2ba76f716e533b6ac47d8afa81a70c58">c_get_last_error_message</a> (int n, char *buffer)</td></tr>
+<tr class="memdesc:ga2ba76f716e533b6ac47d8afa81a70c58"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy the message for the most recent error on the calling thread.  <br /></td></tr>
+<tr class="separator:ga2ba76f716e533b6ac47d8afa81a70c58"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8737ff7e32e13a1b5f9d97bf0ab1843f" id="r_ga8737ff7e32e13a1b5f9d97bf0ab1843f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__errors.html#ga8737ff7e32e13a1b5f9d97bf0ab1843f">c_clear_error</a> (void)</td></tr>
+<tr class="memdesc:ga8737ff7e32e13a1b5f9d97bf0ab1843f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clear the error recorded on the calling thread.  <br /></td></tr>
+<tr class="separator:ga8737ff7e32e13a1b5f9d97bf0ab1843f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga5674d2e4fbc0511708bf6aee39f06890" id="r_ga5674d2e4fbc0511708bf6aee39f06890"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__matrix.html#ga5674d2e4fbc0511708bf6aee39f06890">c_matmul</a> (int m, int n, int k, double alpha, const double *a, int lda, const double *b, int ldb, double beta, double *c, int ldc)</td></tr>
 <tr class="memdesc:ga5674d2e4fbc0511708bf6aee39f06890"><td class="mdescLeft">&#160;</td><td class="mdescRight">Multiply two column-major matrices: c = alpha*a*b + beta*c.  <br /></td></tr>
 <tr class="separator:ga5674d2e4fbc0511708bf6aee39f06890"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -476,15 +542,15 @@ Functions</h2></td></tr>
 <tr class="memitem:ga42e2008e081037a1e7f977e93c431d87" id="r_ga42e2008e081037a1e7f977e93c431d87"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__matrix.html#ga42e2008e081037a1e7f977e93c431d87">c_jacobian_generating_vector</a> (const double *d, const double *k, const double *R, int ldr, int jtype, double jvec[6])</td></tr>
 <tr class="memdesc:ga42e2008e081037a1e7f977e93c431d87"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generate one joint Jacobian column.  <br /></td></tr>
 <tr class="separator:ga42e2008e081037a1e7f977e93c431d87"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gadc0b9cc482843b7d6d04d26cb3a33182" id="r_gadc0b9cc482843b7d6d04d26cb3a33182"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__matrix.html#gadc0b9cc482843b7d6d04d26cb3a33182">c_solve_inverse_kinematics</a> (int njoints, int neqn, const <a class="el" href="dynamics_8h.html#acec8e5133e6f29ae9ae64bd7840c1884">c_vecfcn</a> mdl, const double *qo, const double *constraints, const double *qmax, const double *qmin, double *jvar, double *resid, <a class="el" href="structc__iteration__behavior.html">c_iteration_behavior</a> *ib)</td></tr>
-<tr class="memdesc:gadc0b9cc482843b7d6d04d26cb3a33182"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve a nonlinear inverse-kinematics problem.  <br /></td></tr>
-<tr class="separator:gadc0b9cc482843b7d6d04d26cb3a33182"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga019a241ec3ba5f4faf2c58ad8d35791a" id="r_ga019a241ec3ba5f4faf2c58ad8d35791a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__matrix.html#ga019a241ec3ba5f4faf2c58ad8d35791a">c_solve_inverse_kinematics</a> (int njoints, int neqn, const <a class="el" href="dynamics_8h.html#a85e25af3367037b35699c9b0b573d20c">c_vecfcn</a> mdl, const double *qo, const double *constraints, const double *qmax, const double *qmin, double *jvar, double *resid, <a class="el" href="structc__iteration__behavior.html">c_iteration_behavior</a> *ib, void *user_data)</td></tr>
+<tr class="memdesc:ga019a241ec3ba5f4faf2c58ad8d35791a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve a nonlinear inverse-kinematics problem.  <br /></td></tr>
+<tr class="separator:ga019a241ec3ba5f4faf2c58ad8d35791a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga908a707cb01c21d9a611514851975760" id="r_ga908a707cb01c21d9a611514851975760"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__matrix.html#ga908a707cb01c21d9a611514851975760">c_to_angle_axis</a> (const double *r, int ldr, double *angle, double axis[3])</td></tr>
 <tr class="memdesc:ga908a707cb01c21d9a611514851975760"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert a rotation matrix to angle-axis form.  <br /></td></tr>
 <tr class="separator:ga908a707cb01c21d9a611514851975760"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga4ace102fb2dcec4cd4662e501a3d8ad6" id="r_ga4ace102fb2dcec4cd4662e501a3d8ad6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__frequency.html#ga4ace102fb2dcec4cd4662e501a3d8ad6">c_frequency_response</a> (int n, int nfreq, const double *mass, int ldm, const double *stiff, int ldk, double alpha, double beta, const double *freq, const <a class="el" href="dynamics_8h.html#ab2591826425028477f425cc24c0b0b1e">c_modal_excite</a> frc, double *modes, double *modeshapes, int ldms, double complex *rsp, int ldr)</td></tr>
-<tr class="memdesc:ga4ace102fb2dcec4cd4662e501a3d8ad6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute a modal frequency response for a second-order system.  <br /></td></tr>
-<tr class="separator:ga4ace102fb2dcec4cd4662e501a3d8ad6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga6858a13ae1d3debcfd0b04e67c141cc0" id="r_ga6858a13ae1d3debcfd0b04e67c141cc0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__frequency.html#ga6858a13ae1d3debcfd0b04e67c141cc0">c_frequency_response</a> (int n, int nfreq, const double *mass, int ldm, const double *stiff, int ldk, double alpha, double beta, const double *freq, const <a class="el" href="dynamics_8h.html#a7de89a8fd9d1d3bdf7cf2fd53fa6fb93">c_modal_excite</a> frc, double *modes, double *modeshapes, int ldms, double complex *rsp, int ldr, void *user_data)</td></tr>
+<tr class="memdesc:ga6858a13ae1d3debcfd0b04e67c141cc0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute a modal frequency response for a second-order system.  <br /></td></tr>
+<tr class="separator:ga6858a13ae1d3debcfd0b04e67c141cc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gab12fbdc9cfbf54ed6a630fb420b92832" id="r_gab12fbdc9cfbf54ed6a630fb420b92832"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__frequency.html#gab12fbdc9cfbf54ed6a630fb420b92832">c_compute_modal_damping</a> (double lambda, double alpha, double beta)</td></tr>
 <tr class="memdesc:gab12fbdc9cfbf54ed6a630fb420b92832"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute modal damping from Rayleigh coefficients.  <br /></td></tr>
 <tr class="separator:gab12fbdc9cfbf54ed6a630fb420b92832"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -497,9 +563,9 @@ Functions</h2></td></tr>
 <tr class="memitem:ga21e0e147cba6121f005e823c3b7b2dd7" id="r_ga21e0e147cba6121f005e823c3b7b2dd7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__frequency.html#ga21e0e147cba6121f005e823c3b7b2dd7">c_normalize_mode_shapes</a> (int n, double *x, int ldx)</td></tr>
 <tr class="memdesc:ga21e0e147cba6121f005e823c3b7b2dd7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Normalize mode-shape columns.  <br /></td></tr>
 <tr class="separator:ga21e0e147cba6121f005e823c3b7b2dd7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga77c49923c770d020a9e3ffe3ee0ded07" id="r_ga77c49923c770d020a9e3ffe3ee0ded07"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__frequency.html#ga77c49923c770d020a9e3ffe3ee0ded07">c_frf_sweep</a> (int n, int nfreq, <a class="el" href="dynamics_8h.html#a8967af869ad581757c79114f42d9086a">c_harmonic_ode</a> fcn, const double *freq, const double *iv, int solver, double complex *rsp, int ldr, const <a class="el" href="structc__frequency__sweep__controls.html">c_frequency_sweep_controls</a> *opts)</td></tr>
-<tr class="memdesc:ga77c49923c770d020a9e3ffe3ee0ded07"><td class="mdescLeft">&#160;</td><td class="mdescRight">Perform a nonlinear harmonic frequency sweep.  <br /></td></tr>
-<tr class="separator:ga77c49923c770d020a9e3ffe3ee0ded07"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf122753fe66168e78f8dfc5371e1ab2d" id="r_gaf122753fe66168e78f8dfc5371e1ab2d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__frequency.html#gaf122753fe66168e78f8dfc5371e1ab2d">c_frf_sweep</a> (int n, int nfreq, <a class="el" href="dynamics_8h.html#ab973e31d7b983890d7a7c27e3b96536a">c_harmonic_ode</a> fcn, const double *freq, const double *iv, int solver, double complex *rsp, int ldr, const <a class="el" href="structc__frequency__sweep__controls.html">c_frequency_sweep_controls</a> *opts, void *user_data)</td></tr>
+<tr class="memdesc:gaf122753fe66168e78f8dfc5371e1ab2d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Perform a nonlinear harmonic frequency sweep.  <br /></td></tr>
+<tr class="separator:gaf122753fe66168e78f8dfc5371e1ab2d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga396dc60ad3d69806f224f71b9d199313" id="r_ga396dc60ad3d69806f224f71b9d199313"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__frequency.html#ga396dc60ad3d69806f224f71b9d199313">c_set_frequency_sweep_defaults</a> (<a class="el" href="structc__frequency__sweep__controls.html">c_frequency_sweep_controls</a> *x)</td></tr>
 <tr class="memdesc:ga396dc60ad3d69806f224f71b9d199313"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fill frequency-sweep controls with defaults.  <br /></td></tr>
 <tr class="separator:ga396dc60ad3d69806f224f71b9d199313"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -515,9 +581,9 @@ Functions</h2></td></tr>
 <tr class="memitem:ga89c6279860f80c01d3afee56bc96e957" id="r_ga89c6279860f80c01d3afee56bc96e957"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__frequency.html#ga89c6279860f80c01d3afee56bc96e957">c_fit_frf</a> (int n, int norder, int method, const double *freq, const double complex *rsp, const double *maxp, const double *minp, const <a class="el" href="structc__iteration__controls.html">c_iteration_controls</a> *controls, double *mdl, <a class="el" href="structc__regression__statistics.html">c_regression_statistics</a> *stats)</td></tr>
 <tr class="memdesc:ga89c6279860f80c01d3afee56bc96e957"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fit an FRF model to measured data.  <br /></td></tr>
 <tr class="separator:ga89c6279860f80c01d3afee56bc96e957"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gacf961b91e9dc5948f225561e8c76c3f4" id="r_gacf961b91e9dc5948f225561e8c76c3f4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__frequency.html#gacf961b91e9dc5948f225561e8c76c3f4">c_siso_frequency_response</a> (int n, int nf, const double *x, const double *y, double fs, int winsize, <a class="el" href="dynamics_8h.html#ab984a140a09f881807df64afebae3355">c_window_function</a> winfun, int method, double *freq, double complex *rsp)</td></tr>
-<tr class="memdesc:gacf961b91e9dc5948f225561e8c76c3f4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Estimate a SISO frequency response from input and output records.  <br /></td></tr>
-<tr class="separator:gacf961b91e9dc5948f225561e8c76c3f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga6b7559d1726d318caddbc181d7f4849e" id="r_ga6b7559d1726d318caddbc181d7f4849e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__frequency.html#ga6b7559d1726d318caddbc181d7f4849e">c_siso_frequency_response</a> (int n, int nf, const double *x, const double *y, double fs, int winsize, <a class="el" href="dynamics_8h.html#a289a6dbcb879e2e74e6adcd1b23b54af">c_window_function</a> winfun, int method, double *freq, double complex *rsp, void *user_data)</td></tr>
+<tr class="memdesc:ga6b7559d1726d318caddbc181d7f4849e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Estimate a SISO frequency response from input and output records.  <br /></td></tr>
+<tr class="separator:ga6b7559d1726d318caddbc181d7f4849e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga1ebc0d55528fe7bf9f47a625a2bed795" id="r_ga1ebc0d55528fe7bf9f47a625a2bed795"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__frequency.html#ga1ebc0d55528fe7bf9f47a625a2bed795">c_cross_product</a> (const double x[3], const double y[3], double z[3])</td></tr>
 <tr class="memdesc:ga1ebc0d55528fe7bf9f47a625a2bed795"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the cross product of two three-vectors.  <br /></td></tr>
 <tr class="separator:ga1ebc0d55528fe7bf9f47a625a2bed795"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -542,9 +608,12 @@ Functions</h2></td></tr>
 <tr class="memitem:gae3233c415cd4fad1c46e80fb11d78766" id="r_gae3233c415cd4fad1c46e80fb11d78766"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__frequency.html#gae3233c415cd4fad1c46e80fb11d78766">c_dot_product</a> (int n, const double *x, const double *y)</td></tr>
 <tr class="memdesc:gae3233c415cd4fad1c46e80fb11d78766"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute a dot product.  <br /></td></tr>
 <tr class="separator:gae3233c415cd4fad1c46e80fb11d78766"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga3c98ef540c4db0f430f37198eb7ce024" id="r_ga3c98ef540c4db0f430f37198eb7ce024"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__frequency.html#ga3c98ef540c4db0f430f37198eb7ce024">c_siso_model_fit_least_squares</a> (int nsets, int nparams, int neqns, const <a class="el" href="dynamics_8h.html#adcb2dda33aaee23304846c505155e780">c_ode_fit</a> fcn, const <a class="el" href="structc__dynamic__system__measurement.html">c_dynamic_system_measurement</a> *x, const double *ic, double *p, int integrator, int ind, const double *maxp, const double *minp, const <a class="el" href="structc__iteration__controls.html">c_iteration_controls</a> *controls, const <a class="el" href="structc__lm__solver__options.html">c_lm_solver_options</a> *opts, int nconstraints, const double *xc, const double *yc, const <a class="el" href="dynamics_8h.html#af2c44635b3d86571be4e0db022c72568">c_constraint_equations</a> constraints, int nweights, const double *weights, <a class="el" href="structc__regression__statistics.html">c_regression_statistics</a> *stats, <a class="el" href="structc__iteration__behavior.html">c_iteration_behavior</a> *info)</td></tr>
-<tr class="memdesc:ga3c98ef540c4db0f430f37198eb7ce024"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fit an ODE model to dynamic-system measurements by constrained least squares.  <br /></td></tr>
-<tr class="separator:ga3c98ef540c4db0f430f37198eb7ce024"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2222c222546465c82c764918c437f085" id="r_ga2222c222546465c82c764918c437f085"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__frequency.html#ga2222c222546465c82c764918c437f085">c_is_symmetric</a> (int m, int n, const double *a, int lda)</td></tr>
+<tr class="memdesc:ga2222c222546465c82c764918c437f085"><td class="mdescLeft">&#160;</td><td class="mdescRight">Test whether a matrix is symmetric to within a small relative tolerance.  <br /></td></tr>
+<tr class="separator:ga2222c222546465c82c764918c437f085"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2bf1151d45b7f9290da36ec8ef1ab75f" id="r_ga2bf1151d45b7f9290da36ec8ef1ab75f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__frequency.html#ga2bf1151d45b7f9290da36ec8ef1ab75f">c_siso_model_fit_least_squares</a> (int nsets, int nparams, int neqns, const <a class="el" href="dynamics_8h.html#a72c7c56b35ddfd21afde8c199ef00eaa">c_ode_fit</a> fcn, const <a class="el" href="structc__dynamic__system__measurement.html">c_dynamic_system_measurement</a> *x, const double *ic, double *p, int integrator, int ind, const double *maxp, const double *minp, const <a class="el" href="structc__iteration__controls.html">c_iteration_controls</a> *controls, const <a class="el" href="structc__lm__solver__options.html">c_lm_solver_options</a> *opts, int nconstraints, const double *xc, const double *yc, const <a class="el" href="dynamics_8h.html#a859cbf548e04b41969f3552734b4c0a9">c_constraint_equations</a> constraints, int nweights, const double *weights, <a class="el" href="structc__regression__statistics.html">c_regression_statistics</a> *stats, <a class="el" href="structc__iteration__behavior.html">c_iteration_behavior</a> *info, void *user_data)</td></tr>
+<tr class="memdesc:ga2bf1151d45b7f9290da36ec8ef1ab75f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fit an ODE model to dynamic-system measurements by constrained least squares.  <br /></td></tr>
+<tr class="separator:ga2bf1151d45b7f9290da36ec8ef1ab75f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gab483df3819cdd98082dbc77e0d51c05b" id="r_gab483df3819cdd98082dbc77e0d51c05b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__frequency.html#gab483df3819cdd98082dbc77e0d51c05b">c_set_lm_solver_options_defaults</a> (<a class="el" href="structc__lm__solver__options.html">c_lm_solver_options</a> *x)</td></tr>
 <tr class="memdesc:gab483df3819cdd98082dbc77e0d51c05b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fill Levenberg-Marquardt options with defaults.  <br /></td></tr>
 <tr class="separator:gab483df3819cdd98082dbc77e0d51c05b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -707,6 +776,9 @@ Functions</h2></td></tr>
 <tr class="memitem:ga95bf6611ced6c3e57ea257884f16f6d2" id="r_ga95bf6611ced6c3e57ea257884f16f6d2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__geometry.html#ga95bf6611ced6c3e57ea257884f16f6d2">c_poincare_map</a> (int n, const double *x, const double *y, const double *z, const <a class="el" href="structc__plane.html">c_plane</a> *pln, int side, int nbuffer, double *xbuffer, double *ybuffer, double *zbuffer, int *nactual)</td></tr>
 <tr class="memdesc:ga95bf6611ced6c3e57ea257884f16f6d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute a Poincare section map from sampled trajectories.  <br /></td></tr>
 <tr class="separator:ga95bf6611ced6c3e57ea257884f16f6d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9f37af2541d8fd07542c6bc162f5930d" id="r_ga9f37af2541d8fd07542c6bc162f5930d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__geometry.html#ga9f37af2541d8fd07542c6bc162f5930d">c_poincare_map_ode</a> (<a class="el" href="dynamics_8h.html#a7d8912445efac281cc3e6b46d6f3e4eb">c_ode_equations</a> fcn, const double tspan[2], int n, const double *iv, int sample_count, const <a class="el" href="structc__plane.html">c_plane</a> *pln, int side, int solver, <a class="el" href="dynamics_8h.html#a9a2eb8b6b8c89cf4d0c6f98c1f669ef6">c_poincare_coordinates</a> coordinates, int nbuffer, double *xbuffer, double *ybuffer, double *zbuffer, int *nactual, void *user_data)</td></tr>
+<tr class="memdesc:ga9f37af2541d8fd07542c6bc162f5930d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute a Poincare section map by integrating an ODE and intersecting uniformly spaced solution samples with a plane.  <br /></td></tr>
+<tr class="separator:ga9f37af2541d8fd07542c6bc162f5930d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga9501123f835e8918e819727b505c1fed" id="r_ga9501123f835e8918e819727b505c1fed"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__serial.html#ga9501123f835e8918e819727b505c1fed">c_alloc_dh_table</a> (int n, <a class="el" href="structc__dh__table.html">c_dh_table</a> *tbl)</td></tr>
 <tr class="memdesc:ga9501123f835e8918e819727b505c1fed"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocate a Denavit-Hartenberg table.  <br /></td></tr>
 <tr class="separator:ga9501123f835e8918e819727b505c1fed"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -818,9 +890,9 @@ Functions</h2></td></tr>
 <tr class="memitem:ga4b2fc6b7d153a9add7aad2f0055ec811" id="r_ga4b2fc6b7d153a9add7aad2f0055ec811"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__variational.html#ga4b2fc6b7d153a9add7aad2f0055ec811">c_default_variational_integrator_settings</a> (<a class="el" href="structc__variational__integrator__settings.html">c_variational_integrator_settings</a> *settings)</td></tr>
 <tr class="memdesc:ga4b2fc6b7d153a9add7aad2f0055ec811"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fill variational-integrator settings with library defaults.  <br /></td></tr>
 <tr class="separator:ga4b2fc6b7d153a9add7aad2f0055ec811"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaf79fc87624914f52a9a1f168ab73a474" id="r_gaf79fc87624914f52a9a1f168ab73a474"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__variational.html#gaf79fc87624914f52a9a1f168ab73a474">c_variational_integrator_solve</a> (int nbody, const <a class="el" href="structc__rigid__body.html">c_rigid_body</a> *bodies, int ntime, double dt, const double *initial_position, const <a class="el" href="structc__quaternion.html">c_quaternion</a> *initial_orientation, const double *initial_velocity, const double *initial_angular_velocity, int nconstraint, <a class="el" href="dynamics_8h.html#a13007f49119624bdc617df7b7d469d54">c_variational_force</a> force_callback, <a class="el" href="dynamics_8h.html#a7c81b54086ff4097411fddc026da8f85">c_variational_constraint</a> constraint_callback, <a class="el" href="dynamics_8h.html#a5463af4a08475da2bbd6c0efc2a81b3d">c_variational_constraint_jacobian</a> jacobian_callback, void *user_data, const <a class="el" href="structc__variational__integrator__settings.html">c_variational_integrator_settings</a> *settings, double *position, <a class="el" href="structc__quaternion.html">c_quaternion</a> *orientation, double *velocity, double *angular_velocity, double *multipliers)</td></tr>
-<tr class="memdesc:gaf79fc87624914f52a9a1f168ab73a474"><td class="mdescLeft">&#160;</td><td class="mdescRight">Integrate rigid bodies directly in maximal coordinates.  <br /></td></tr>
-<tr class="separator:gaf79fc87624914f52a9a1f168ab73a474"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga6a65810d6f070fa40236b7350dd09800" id="r_ga6a65810d6f070fa40236b7350dd09800"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__variational.html#ga6a65810d6f070fa40236b7350dd09800">c_variational_integrator_solve</a> (int nbody, const <a class="el" href="structc__rigid__body.html">c_rigid_body</a> *bodies, int ntime, double dt, const double *initial_position, const <a class="el" href="structc__quaternion.html">c_quaternion</a> *initial_orientation, const double *initial_velocity, const double *initial_angular_velocity, int nconstraint, <a class="el" href="dynamics_8h.html#a13007f49119624bdc617df7b7d469d54">c_variational_force</a> force_callback, <a class="el" href="dynamics_8h.html#a7c81b54086ff4097411fddc026da8f85">c_variational_constraint</a> constraint_callback, <a class="el" href="dynamics_8h.html#a5463af4a08475da2bbd6c0efc2a81b3d">c_variational_constraint_jacobian</a> jacobian_callback, void *user_data, const <a class="el" href="structc__variational__integrator__settings.html">c_variational_integrator_settings</a> *settings, double *position, <a class="el" href="structc__quaternion.html">c_quaternion</a> *orientation, double *velocity, double *angular_velocity, double *multipliers, int *converged, int *iterations, int *jacobian_singular, int *completed_steps)</td></tr>
+<tr class="memdesc:ga6a65810d6f070fa40236b7350dd09800"><td class="mdescLeft">&#160;</td><td class="mdescRight">Integrate rigid bodies directly in maximal coordinates.  <br /></td></tr>
+<tr class="separator:ga6a65810d6f070fa40236b7350dd09800"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gac18451fdae6f4b67ce057fca37a1c490" id="r_gac18451fdae6f4b67ce057fca37a1c490"><td class="memItemLeft" align="right" valign="top"><a class="el" href="dynamics_8h.html#a5da8b2bbebb1bb22fac8b63ee0afe676">c_linkage_dynamic_model</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__variational.html#gac18451fdae6f4b67ce057fca37a1c490">c_create_serial_linkage_dynamic_model</a> (const <a class="el" href="structc__serial__linkage.html">c_serial_linkage</a> *linkage, int n, const double *q)</td></tr>
 <tr class="memdesc:gac18451fdae6f4b67ce057fca37a1c490"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a dynamic model from a serial linkage value.  <br /></td></tr>
 <tr class="separator:gac18451fdae6f4b67ce057fca37a1c490"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -861,9 +933,9 @@ Functions</h2></td></tr>
 <tr class="memitem:gad43632aeb7dee21bf0a2b0635dcfaf21" id="r_gad43632aeb7dee21bf0a2b0635dcfaf21"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__variational.html#gad43632aeb7dee21bf0a2b0635dcfaf21">c_linkage_dynamic_torsional_element_results</a> (<a class="el" href="dynamics_8h.html#a5da8b2bbebb1bb22fac8b63ee0afe676">c_linkage_dynamic_model</a> obj, int nbody, double time, const double *position, const <a class="el" href="structc__quaternion.html">c_quaternion</a> *orientation, const double *velocity, const double *angular_velocity, <a class="el" href="structc__torsional__element__result.html">c_torsional_element_result</a> *results)</td></tr>
 <tr class="memdesc:gad43632aeb7dee21bf0a2b0635dcfaf21"><td class="mdescLeft">&#160;</td><td class="mdescRight">Query all torsional elements at one state.  <br /></td></tr>
 <tr class="separator:gad43632aeb7dee21bf0a2b0635dcfaf21"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga3bfbc4b8696bee3429345da08a12c2e9" id="r_ga3bfbc4b8696bee3429345da08a12c2e9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__variational.html#ga3bfbc4b8696bee3429345da08a12c2e9">c_linkage_dynamic_solve</a> (<a class="el" href="dynamics_8h.html#a5da8b2bbebb1bb22fac8b63ee0afe676">c_linkage_dynamic_model</a> obj, int nbody, int nconstraint, const <a class="el" href="structc__variational__integrator__settings.html">c_variational_integrator_settings</a> *settings, int ntime, double dt, const double gravity[3], const double *body_force, const double *body_torque, int prescribed_body, <a class="el" href="dynamics_8h.html#a9c85de8937622f1899ccc8c00d672190">c_linkage_prescribed_motion</a> prescribed_motion, void *user_data, double *position, <a class="el" href="structc__quaternion.html">c_quaternion</a> *orientation, double *velocity, double *angular_velocity, double *multipliers)</td></tr>
-<tr class="memdesc:ga3bfbc4b8696bee3429345da08a12c2e9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve linkage dynamics.  <br /></td></tr>
-<tr class="separator:ga3bfbc4b8696bee3429345da08a12c2e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5bc1663a76977c48e23574d99781ea61" id="r_ga5bc1663a76977c48e23574d99781ea61"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__variational.html#ga5bc1663a76977c48e23574d99781ea61">c_linkage_dynamic_solve</a> (<a class="el" href="dynamics_8h.html#a5da8b2bbebb1bb22fac8b63ee0afe676">c_linkage_dynamic_model</a> obj, int nbody, int nconstraint, const <a class="el" href="structc__variational__integrator__settings.html">c_variational_integrator_settings</a> *settings, int ntime, double dt, const double gravity[3], const double *body_force, const double *body_torque, int prescribed_body, <a class="el" href="dynamics_8h.html#a9c85de8937622f1899ccc8c00d672190">c_linkage_prescribed_motion</a> prescribed_motion, void *user_data, double *position, <a class="el" href="structc__quaternion.html">c_quaternion</a> *orientation, double *velocity, double *angular_velocity, double *multipliers, int *converged, int *iterations, int *jacobian_singular, int *completed_steps)</td></tr>
+<tr class="memdesc:ga5bc1663a76977c48e23574d99781ea61"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve linkage dynamics.  <br /></td></tr>
+<tr class="separator:ga5bc1663a76977c48e23574d99781ea61"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gacf6f1340ea2771e37411f6fd1cd236ff" id="r_gacf6f1340ea2771e37411f6fd1cd236ff"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__variational.html#gacf6f1340ea2771e37411f6fd1cd236ff">c_linkage_dynamic_joint_reactions</a> (<a class="el" href="dynamics_8h.html#a5da8b2bbebb1bb22fac8b63ee0afe676">c_linkage_dynamic_model</a> obj, int nbody, int nconstraint, double time, const double *position, const <a class="el" href="structc__quaternion.html">c_quaternion</a> *orientation, const double *velocity, const double *angular_velocity, const double *multipliers, <a class="el" href="structc__joint__reaction.html">c_joint_reaction</a> *reactions)</td></tr>
 <tr class="memdesc:gacf6f1340ea2771e37411f6fd1cd236ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert one state's linkage multipliers into joint reaction wrenches.  <br /></td></tr>
 <tr class="separator:gacf6f1340ea2771e37411f6fd1cd236ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -912,9 +984,9 @@ Functions</h2></td></tr>
 <tr class="memitem:ga16e14308ba96fac1de57846ea77c81cb" id="r_ga16e14308ba96fac1de57846ea77c81cb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__state.html#ga16e14308ba96fac1de57846ea77c81cb">c_scale_transfer_function</a> (double x, const <a class="el" href="structc__transfer__function.html">c_transfer_function</a> *tf1, <a class="el" href="structc__transfer__function.html">c_transfer_function</a> *tf)</td></tr>
 <tr class="memdesc:ga16e14308ba96fac1de57846ea77c81cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scale a transfer function.  <br /></td></tr>
 <tr class="separator:ga16e14308ba96fac1de57846ea77c81cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga92583ee76f474e2bda2a6395a63fd90a" id="r_ga92583ee76f474e2bda2a6395a63fd90a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__state.html#ga92583ee76f474e2bda2a6395a63fd90a">c_lti_solve</a> (const <a class="el" href="structc__state__space__model.html">c_state_space_model</a> *mdl, const <a class="el" href="dynamics_8h.html#a84a392919636d4c148e0ac69a650e033">c_ss_excitation</a> u, int n, const double *t, int ndof, const double *ic, int solver, int nout, double *y, int ldy)</td></tr>
-<tr class="memdesc:ga92583ee76f474e2bda2a6395a63fd90a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Integrate a continuous state-space model.  <br /></td></tr>
-<tr class="separator:ga92583ee76f474e2bda2a6395a63fd90a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gafb943048b56a1e5a0b284f836f5ef11d" id="r_gafb943048b56a1e5a0b284f836f5ef11d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__state.html#gafb943048b56a1e5a0b284f836f5ef11d">c_lti_solve</a> (const <a class="el" href="structc__state__space__model.html">c_state_space_model</a> *mdl, const <a class="el" href="dynamics_8h.html#a54f3494eccf7e5cd23b1c43dea08e52f">c_ss_excitation</a> u, int n, const double *t, int ndof, const double *ic, int solver, int nout, double *y, int ldy, void *user_data)</td></tr>
+<tr class="memdesc:gafb943048b56a1e5a0b284f836f5ef11d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Integrate a continuous state-space model.  <br /></td></tr>
+<tr class="separator:gafb943048b56a1e5a0b284f836f5ef11d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga17d7f0b250853d347246fced0893918b" id="r_ga17d7f0b250853d347246fced0893918b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__state.html#ga17d7f0b250853d347246fced0893918b">c_state_space_poles</a> (const <a class="el" href="structc__state__space__model.html">c_state_space_model</a> *mdl, int n, double complex *p)</td></tr>
 <tr class="memdesc:ga17d7f0b250853d347246fced0893918b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute state-space poles.  <br /></td></tr>
 <tr class="separator:ga17d7f0b250853d347246fced0893918b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1005,19 +1077,147 @@ Functions</h2></td></tr>
 <tr class="memitem:ga666cc6b0f64a9894a9634f1c57262381" id="r_ga666cc6b0f64a9894a9634f1c57262381"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga666cc6b0f64a9894a9634f1c57262381">c_solve_static_system_dense</a> (int n, const double *k, int ldk, const double *f, double *u)</td></tr>
 <tr class="memdesc:ga666cc6b0f64a9894a9634f1c57262381"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve the static system K*u = f for a dense stiffness matrix.  <br /></td></tr>
 <tr class="separator:ga666cc6b0f64a9894a9634f1c57262381"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0a30e075886b0d73bc5ade45c3c8991a" id="r_ga0a30e075886b0d73bc5ade45c3c8991a"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga0a30e075886b0d73bc5ade45c3c8991a">c_truss_element_2d_length</a> (const <a class="el" href="structc__truss__element__2d.html">c_truss_element_2d</a> *elem)</td></tr>
+<tr class="memdesc:ga0a30e075886b0d73bc5ade45c3c8991a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the length of a 2D truss element.  <br /></td></tr>
+<tr class="separator:ga0a30e075886b0d73bc5ade45c3c8991a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga09735b7e5cd3e41b66686217854df48e" id="r_ga09735b7e5cd3e41b66686217854df48e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga09735b7e5cd3e41b66686217854df48e">c_truss_element_2d_stiffness_matrix</a> (const <a class="el" href="structc__truss__element__2d.html">c_truss_element_2d</a> *elem, double *k, int ldk)</td></tr>
+<tr class="memdesc:ga09735b7e5cd3e41b66686217854df48e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the 4-by-4 global stiffness matrix of a 2D truss element.  <br /></td></tr>
+<tr class="separator:ga09735b7e5cd3e41b66686217854df48e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7e2059f58d33499f437fe4395aabf606" id="r_ga7e2059f58d33499f437fe4395aabf606"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga7e2059f58d33499f437fe4395aabf606">c_truss_element_2d_mass_matrix</a> (const <a class="el" href="structc__truss__element__2d.html">c_truss_element_2d</a> *elem, int rule, double *m, int ldm)</td></tr>
+<tr class="memdesc:ga7e2059f58d33499f437fe4395aabf606"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the 4-by-4 consistent mass matrix of a 2D truss element.  <br /></td></tr>
+<tr class="separator:ga7e2059f58d33499f437fe4395aabf606"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaecfc57ac4fcb2390b5bc9fc2b2d354f3" id="r_gaecfc57ac4fcb2390b5bc9fc2b2d354f3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#gaecfc57ac4fcb2390b5bc9fc2b2d354f3">c_truss_element_2d_rotation_matrix</a> (const <a class="el" href="structc__truss__element__2d.html">c_truss_element_2d</a> *elem, double *r, int ldr)</td></tr>
+<tr class="memdesc:gaecfc57ac4fcb2390b5bc9fc2b2d354f3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the 4-by-4 rotation matrix of a 2D truss element.  <br /></td></tr>
+<tr class="separator:gaecfc57ac4fcb2390b5bc9fc2b2d354f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga85139c82c798b8665f3fea7be428f7f8" id="r_ga85139c82c798b8665f3fea7be428f7f8"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga85139c82c798b8665f3fea7be428f7f8">c_truss_element_2d_strain</a> (const <a class="el" href="structc__truss__element__2d.html">c_truss_element_2d</a> *elem, const double displacement[4])</td></tr>
+<tr class="memdesc:ga85139c82c798b8665f3fea7be428f7f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the axial strain in a 2D truss element.  <br /></td></tr>
+<tr class="separator:ga85139c82c798b8665f3fea7be428f7f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga934d588f6b28aa144684d1c667bf7a04" id="r_ga934d588f6b28aa144684d1c667bf7a04"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga934d588f6b28aa144684d1c667bf7a04">c_truss_element_2d_axial_force</a> (const <a class="el" href="structc__truss__element__2d.html">c_truss_element_2d</a> *elem, const double displacement[4])</td></tr>
+<tr class="memdesc:ga934d588f6b28aa144684d1c667bf7a04"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the axial force (positive in tension) in a 2D truss element.  <br /></td></tr>
+<tr class="separator:ga934d588f6b28aa144684d1c667bf7a04"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga530434d2aaeef33ba6a738f92dd638c5" id="r_ga530434d2aaeef33ba6a738f92dd638c5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga530434d2aaeef33ba6a738f92dd638c5">c_truss_element_2d_external_force_vector</a> (const <a class="el" href="structc__truss__element__2d.html">c_truss_element_2d</a> *elem, const double q[2], int rule, double f[4])</td></tr>
+<tr class="memdesc:ga530434d2aaeef33ba6a738f92dd638c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the equivalent nodal force vector for a distributed load on a 2D truss element.  <br /></td></tr>
+<tr class="separator:ga530434d2aaeef33ba6a738f92dd638c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga700028e9d279b286f39aeee383ac97d9" id="r_ga700028e9d279b286f39aeee383ac97d9"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga700028e9d279b286f39aeee383ac97d9">c_truss_element_3d_length</a> (const <a class="el" href="structc__truss__element__3d.html">c_truss_element_3d</a> *elem)</td></tr>
+<tr class="memdesc:ga700028e9d279b286f39aeee383ac97d9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the length of a 3D truss element.  <br /></td></tr>
+<tr class="separator:ga700028e9d279b286f39aeee383ac97d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga62e48a7cf82626a18a6ee77b9e1a1973" id="r_ga62e48a7cf82626a18a6ee77b9e1a1973"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga62e48a7cf82626a18a6ee77b9e1a1973">c_truss_element_3d_stiffness_matrix</a> (const <a class="el" href="structc__truss__element__3d.html">c_truss_element_3d</a> *elem, double *k, int ldk)</td></tr>
+<tr class="memdesc:ga62e48a7cf82626a18a6ee77b9e1a1973"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the 6-by-6 global stiffness matrix of a 3D truss element.  <br /></td></tr>
+<tr class="separator:ga62e48a7cf82626a18a6ee77b9e1a1973"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0db03509a01913b45a0e96de3d403052" id="r_ga0db03509a01913b45a0e96de3d403052"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga0db03509a01913b45a0e96de3d403052">c_truss_element_3d_mass_matrix</a> (const <a class="el" href="structc__truss__element__3d.html">c_truss_element_3d</a> *elem, int rule, double *m, int ldm)</td></tr>
+<tr class="memdesc:ga0db03509a01913b45a0e96de3d403052"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the 6-by-6 consistent mass matrix of a 3D truss element.  <br /></td></tr>
+<tr class="separator:ga0db03509a01913b45a0e96de3d403052"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad3c45d9158b65d468f7e116913079048" id="r_gad3c45d9158b65d468f7e116913079048"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#gad3c45d9158b65d468f7e116913079048">c_truss_element_3d_rotation_matrix</a> (const <a class="el" href="structc__truss__element__3d.html">c_truss_element_3d</a> *elem, double *r, int ldr)</td></tr>
+<tr class="memdesc:gad3c45d9158b65d468f7e116913079048"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the 6-by-6 rotation matrix of a 3D truss element.  <br /></td></tr>
+<tr class="separator:gad3c45d9158b65d468f7e116913079048"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga44d22fdeda54216014b874b4faeb5975" id="r_ga44d22fdeda54216014b874b4faeb5975"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga44d22fdeda54216014b874b4faeb5975">c_truss_element_3d_strain</a> (const <a class="el" href="structc__truss__element__3d.html">c_truss_element_3d</a> *elem, const double displacement[6])</td></tr>
+<tr class="memdesc:ga44d22fdeda54216014b874b4faeb5975"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the axial strain in a 3D truss element.  <br /></td></tr>
+<tr class="separator:ga44d22fdeda54216014b874b4faeb5975"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4f72caa3e961b0759eada02ef22d070e" id="r_ga4f72caa3e961b0759eada02ef22d070e"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga4f72caa3e961b0759eada02ef22d070e">c_truss_element_3d_axial_force</a> (const <a class="el" href="structc__truss__element__3d.html">c_truss_element_3d</a> *elem, const double displacement[6])</td></tr>
+<tr class="memdesc:ga4f72caa3e961b0759eada02ef22d070e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the axial force (positive in tension) in a 3D truss element.  <br /></td></tr>
+<tr class="separator:ga4f72caa3e961b0759eada02ef22d070e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gabb2235c9f2245e0c82469e957fa0c990" id="r_gabb2235c9f2245e0c82469e957fa0c990"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#gabb2235c9f2245e0c82469e957fa0c990">c_truss_element_3d_external_force_vector</a> (const <a class="el" href="structc__truss__element__3d.html">c_truss_element_3d</a> *elem, const double q[3], int rule, double f[6])</td></tr>
+<tr class="memdesc:gabb2235c9f2245e0c82469e957fa0c990"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the equivalent nodal force vector for a distributed load on a 3D truss element.  <br /></td></tr>
+<tr class="separator:gabb2235c9f2245e0c82469e957fa0c990"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga424bde00bd960be330576f9ef5717504" id="r_ga424bde00bd960be330576f9ef5717504"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga424bde00bd960be330576f9ef5717504">c_assemble_static_system_truss_2d</a> (int gdof, int n, const <a class="el" href="structc__truss__element__2d.html">c_truss_element_2d</a> *elements, int nn, const <a class="el" href="structc__node.html">c_node</a> *nodes, double *k, int ldk)</td></tr>
+<tr class="memdesc:ga424bde00bd960be330576f9ef5717504"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assemble a dense global stiffness matrix from 2D truss elements.  <br /></td></tr>
+<tr class="separator:ga424bde00bd960be330576f9ef5717504"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga74a11dd63e7a2f2949d4f82944e5f27a" id="r_ga74a11dd63e7a2f2949d4f82944e5f27a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga74a11dd63e7a2f2949d4f82944e5f27a">c_assemble_dynamic_system_truss_2d</a> (int gdof, int n, const <a class="el" href="structc__truss__element__2d.html">c_truss_element_2d</a> *elements, int nn, const <a class="el" href="structc__node.html">c_node</a> *nodes, int rule, double *m, int ldm, double *k, int ldk)</td></tr>
+<tr class="memdesc:ga74a11dd63e7a2f2949d4f82944e5f27a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assemble dense global mass and stiffness matrices from 2D truss elements.  <br /></td></tr>
+<tr class="separator:ga74a11dd63e7a2f2949d4f82944e5f27a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gafc9498e97e052501e81de4e0ce0b9168" id="r_gafc9498e97e052501e81de4e0ce0b9168"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#gafc9498e97e052501e81de4e0ce0b9168">c_assemble_static_system_truss_3d</a> (int gdof, int n, const <a class="el" href="structc__truss__element__3d.html">c_truss_element_3d</a> *elements, int nn, const <a class="el" href="structc__node.html">c_node</a> *nodes, double *k, int ldk)</td></tr>
+<tr class="memdesc:gafc9498e97e052501e81de4e0ce0b9168"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assemble a dense global stiffness matrix from 3D truss elements.  <br /></td></tr>
+<tr class="separator:gafc9498e97e052501e81de4e0ce0b9168"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8cc0defff74902c40188e6c465c26b08" id="r_ga8cc0defff74902c40188e6c465c26b08"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga8cc0defff74902c40188e6c465c26b08">c_assemble_dynamic_system_truss_3d</a> (int gdof, int n, const <a class="el" href="structc__truss__element__3d.html">c_truss_element_3d</a> *elements, int nn, const <a class="el" href="structc__node.html">c_node</a> *nodes, int rule, double *m, int ldm, double *k, int ldk)</td></tr>
+<tr class="memdesc:ga8cc0defff74902c40188e6c465c26b08"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assemble dense global mass and stiffness matrices from 3D truss elements.  <br /></td></tr>
+<tr class="separator:ga8cc0defff74902c40188e6c465c26b08"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad3f08b76328c99d72d9be25b7b7a6384" id="r_gad3f08b76328c99d72d9be25b7b7a6384"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#gad3f08b76328c99d72d9be25b7b7a6384">c_spring_element_2d_stiffness_matrix</a> (const <a class="el" href="structc__spring__element__2d.html">c_spring_element_2d</a> *elem, double *k, int ldk)</td></tr>
+<tr class="memdesc:gad3f08b76328c99d72d9be25b7b7a6384"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the 4-by-4 global stiffness matrix of a 2D spring element.  <br /></td></tr>
+<tr class="separator:gad3f08b76328c99d72d9be25b7b7a6384"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf6a3c34bd9490929d61a87b777dc25f4" id="r_gaf6a3c34bd9490929d61a87b777dc25f4"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#gaf6a3c34bd9490929d61a87b777dc25f4">c_spring_element_2d_force</a> (const <a class="el" href="structc__spring__element__2d.html">c_spring_element_2d</a> *elem, const double displacement[4])</td></tr>
+<tr class="memdesc:gaf6a3c34bd9490929d61a87b777dc25f4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the spring force (positive in tension) in a 2D spring element.  <br /></td></tr>
+<tr class="separator:gaf6a3c34bd9490929d61a87b777dc25f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa00ba80bd41bba5efb7679faeb7e7664" id="r_gaa00ba80bd41bba5efb7679faeb7e7664"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#gaa00ba80bd41bba5efb7679faeb7e7664">c_spring_element_3d_stiffness_matrix</a> (const <a class="el" href="structc__spring__element__3d.html">c_spring_element_3d</a> *elem, double *k, int ldk)</td></tr>
+<tr class="memdesc:gaa00ba80bd41bba5efb7679faeb7e7664"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the 6-by-6 global stiffness matrix of a 3D spring element.  <br /></td></tr>
+<tr class="separator:gaa00ba80bd41bba5efb7679faeb7e7664"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga491ee5739825658ce968bf529a4c2143" id="r_ga491ee5739825658ce968bf529a4c2143"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga491ee5739825658ce968bf529a4c2143">c_spring_element_3d_force</a> (const <a class="el" href="structc__spring__element__3d.html">c_spring_element_3d</a> *elem, const double displacement[6])</td></tr>
+<tr class="memdesc:ga491ee5739825658ce968bf529a4c2143"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the spring force (positive in tension) in a 3D spring element.  <br /></td></tr>
+<tr class="separator:ga491ee5739825658ce968bf529a4c2143"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7b66a6308bdd82acbea4d06598a648ce" id="r_ga7b66a6308bdd82acbea4d06598a648ce"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga7b66a6308bdd82acbea4d06598a648ce">c_damper_element_2d_damping_matrix</a> (const <a class="el" href="structc__damper__element__2d.html">c_damper_element_2d</a> *elem, double *c, int ldc)</td></tr>
+<tr class="memdesc:ga7b66a6308bdd82acbea4d06598a648ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the 4-by-4 global damping matrix of a 2D damper element.  <br /></td></tr>
+<tr class="separator:ga7b66a6308bdd82acbea4d06598a648ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga78d005a1e56137f9d23322d263bdc33b" id="r_ga78d005a1e56137f9d23322d263bdc33b"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga78d005a1e56137f9d23322d263bdc33b">c_damper_element_2d_force</a> (const <a class="el" href="structc__damper__element__2d.html">c_damper_element_2d</a> *elem, const double velocity[4])</td></tr>
+<tr class="memdesc:ga78d005a1e56137f9d23322d263bdc33b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the damper force (positive in tension) in a 2D damper element.  <br /></td></tr>
+<tr class="separator:ga78d005a1e56137f9d23322d263bdc33b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga648e6bbc3b79c4b2f9ade74feec39a13" id="r_ga648e6bbc3b79c4b2f9ade74feec39a13"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga648e6bbc3b79c4b2f9ade74feec39a13">c_damper_element_3d_damping_matrix</a> (const <a class="el" href="structc__damper__element__3d.html">c_damper_element_3d</a> *elem, double *c, int ldc)</td></tr>
+<tr class="memdesc:ga648e6bbc3b79c4b2f9ade74feec39a13"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the 6-by-6 global damping matrix of a 3D damper element.  <br /></td></tr>
+<tr class="separator:ga648e6bbc3b79c4b2f9ade74feec39a13"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1b33c2b53cdf01cd6675d10c8daa5dc7" id="r_ga1b33c2b53cdf01cd6675d10c8daa5dc7"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga1b33c2b53cdf01cd6675d10c8daa5dc7">c_damper_element_3d_force</a> (const <a class="el" href="structc__damper__element__3d.html">c_damper_element_3d</a> *elem, const double velocity[6])</td></tr>
+<tr class="memdesc:ga1b33c2b53cdf01cd6675d10c8daa5dc7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the damper force (positive in tension) in a 3D damper element.  <br /></td></tr>
+<tr class="separator:ga1b33c2b53cdf01cd6675d10c8daa5dc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaacee443d7c60c19eb3233a238febc302" id="r_gaacee443d7c60c19eb3233a238febc302"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#gaacee443d7c60c19eb3233a238febc302">c_mass_element_2d_mass_matrix</a> (const <a class="el" href="structc__mass__element__2d.html">c_mass_element_2d</a> *elem, double *m, int ldm)</td></tr>
+<tr class="memdesc:gaacee443d7c60c19eb3233a238febc302"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the 2-by-2 mass matrix of a 2D point mass element.  <br /></td></tr>
+<tr class="separator:gaacee443d7c60c19eb3233a238febc302"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga10f1fe038b7c4881d4de66517d96e623" id="r_ga10f1fe038b7c4881d4de66517d96e623"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga10f1fe038b7c4881d4de66517d96e623">c_mass_element_3d_mass_matrix</a> (const <a class="el" href="structc__mass__element__3d.html">c_mass_element_3d</a> *elem, double *m, int ldm)</td></tr>
+<tr class="memdesc:ga10f1fe038b7c4881d4de66517d96e623"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the 3-by-3 mass matrix of a 3D point mass element.  <br /></td></tr>
+<tr class="separator:ga10f1fe038b7c4881d4de66517d96e623"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gacb2dbe9e9df60b6cd32b6c13c77ac477" id="r_gacb2dbe9e9df60b6cd32b6c13c77ac477"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#gacb2dbe9e9df60b6cd32b6c13c77ac477">c_assemble_discrete_system_2d</a> (int gdof, int nm, const <a class="el" href="structc__mass__element__2d.html">c_mass_element_2d</a> *masses, int nd, const <a class="el" href="structc__damper__element__2d.html">c_damper_element_2d</a> *dampers, int ns, const <a class="el" href="structc__spring__element__2d.html">c_spring_element_2d</a> *springs, int nn, const <a class="el" href="structc__node.html">c_node</a> *nodes, double *m, int ldm, double *c, int ldc, double *k, int ldk)</td></tr>
+<tr class="memdesc:gacb2dbe9e9df60b6cd32b6c13c77ac477"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assemble dense global mass, damping, and stiffness matrices for a 2D system composed of discrete elements.  <br /></td></tr>
+<tr class="separator:gacb2dbe9e9df60b6cd32b6c13c77ac477"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga24a54d4ce5cc15283f3898dce0a0394b" id="r_ga24a54d4ce5cc15283f3898dce0a0394b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural.html#ga24a54d4ce5cc15283f3898dce0a0394b">c_assemble_discrete_system_3d</a> (int gdof, int nm, const <a class="el" href="structc__mass__element__3d.html">c_mass_element_3d</a> *masses, int nd, const <a class="el" href="structc__damper__element__3d.html">c_damper_element_3d</a> *dampers, int ns, const <a class="el" href="structc__spring__element__3d.html">c_spring_element_3d</a> *springs, int nn, const <a class="el" href="structc__node.html">c_node</a> *nodes, double *m, int ldm, double *c, int ldc, double *k, int ldk)</td></tr>
+<tr class="memdesc:ga24a54d4ce5cc15283f3898dce0a0394b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assemble dense global mass, damping, and stiffness matrices for a 3D system composed of discrete elements.  <br /></td></tr>
+<tr class="separator:ga24a54d4ce5cc15283f3898dce0a0394b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga29c3b434a1fb3197d5e6c0c766249156" id="r_ga29c3b434a1fb3197d5e6c0c766249156"><td class="memItemLeft" align="right" valign="top"><a class="el" href="dynamics_8h.html#abdba40f79593847ce9a5647d3f5ddeb9">c_structural_integrator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural__solvers.html#ga29c3b434a1fb3197d5e6c0c766249156">c_create_dense_generalized_alpha_integrator</a> (int n, const double *m, int ldm, const double *c, int ldc, const double *k, int ldk, double rho_infinity)</td></tr>
+<tr class="memdesc:ga29c3b434a1fb3197d5e6c0c766249156"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a dense generalized-alpha integrator for M*a + C*v + K*u = f.  <br /></td></tr>
+<tr class="separator:ga29c3b434a1fb3197d5e6c0c766249156"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga99f922b8935e237c866dfb7aaaed18dd" id="r_ga99f922b8935e237c866dfb7aaaed18dd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural__solvers.html#ga99f922b8935e237c866dfb7aaaed18dd">c_free_structural_integrator</a> (<a class="el" href="dynamics_8h.html#abdba40f79593847ce9a5647d3f5ddeb9">c_structural_integrator</a> obj)</td></tr>
+<tr class="memdesc:ga99f922b8935e237c866dfb7aaaed18dd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Release a structural integrator handle.  <br /></td></tr>
+<tr class="separator:ga99f922b8935e237c866dfb7aaaed18dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2fd4e04597c2ab65846485e8602b4879" id="r_ga2fd4e04597c2ab65846485e8602b4879"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural__solvers.html#ga2fd4e04597c2ab65846485e8602b4879">c_structural_integrator_step</a> (<a class="el" href="dynamics_8h.html#abdba40f79593847ce9a5647d3f5ddeb9">c_structural_integrator</a> obj, int n, const double *force_current, const double *force_next, double dt, double *displacement, double *velocity, double *acceleration)</td></tr>
+<tr class="memdesc:ga2fd4e04597c2ab65846485e8602b4879"><td class="mdescLeft">&#160;</td><td class="mdescRight">Advance the state by one time step.  <br /></td></tr>
+<tr class="separator:ga2fd4e04597c2ab65846485e8602b4879"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga494aaba6802c84f017f1dd9125749484" id="r_ga494aaba6802c84f017f1dd9125749484"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__structural__solvers.html#ga494aaba6802c84f017f1dd9125749484">c_structural_integrator_solve</a> (<a class="el" href="dynamics_8h.html#abdba40f79593847ce9a5647d3f5ddeb9">c_structural_integrator</a> obj, int n, int npts, const double *forces, int ldf, double dt, double *displacement, double *velocity, double *acceleration)</td></tr>
+<tr class="memdesc:ga494aaba6802c84f017f1dd9125749484"><td class="mdescLeft">&#160;</td><td class="mdescRight">Advance the state through a force history using npts - 1 constant steps.  <br /></td></tr>
+<tr class="separator:ga494aaba6802c84f017f1dd9125749484"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Public C interface to the DYNAMICS library. </p>
-<p>Matrices use column-major storage to match the Fortran implementation. A matrix with <code>m</code> rows and <code>n</code> columns has leading dimension <code>ld</code> and stores element <code>(i, j)</code> at <code>j * ld + i</code>, using zero-based C indices. Link, joint, and frame indices passed to the mechanism API are one-based. Objects returned by an allocation or creation routine remain owned by the caller and must be released with the corresponding <code>c_free_*</code> routine. Unless documented otherwise, pointer arguments must refer to storage large enough for the dimensions supplied to the routine. </p>
+<p>Matrices use column-major storage to match the Fortran implementation. A matrix with <code>m</code> rows and <code>n</code> columns has leading dimension <code>ld</code> and stores element <code>(i, j)</code> at <code>j * ld + i</code>, using zero-based C indices. Link, joint, and frame indices passed to the mechanism API are one-based. Objects returned by an allocation or creation routine remain owned by the caller and must be released with the corresponding <code>c_free_*</code> routine. Unless documented otherwise, pointer arguments must refer to storage large enough for the dimensions supplied to the routine.</p>
+<p>Argument errors detected by this interface (for example, an undersized leading dimension or a NULL callback) do not terminate the process. The routine records the error, invokes any handler registered with <code>c_set_error_handler</code>, and returns without computing a result; outputs are then unspecified. Query the error with <code>c_get_last_error</code>. Errors detected deeper inside the Fortran library still terminate the process.</p>
+<p>Every callback receives the <code>user_data</code> pointer supplied to the routine that invoked it, allowing callers to pass state without globals. </p>
 </div><h2 class="groupheader">Typedef Documentation</h2>
-<a id="acec8e5133e6f29ae9ae64bd7840c1884" name="acec8e5133e6f29ae9ae64bd7840c1884"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acec8e5133e6f29ae9ae64bd7840c1884">&#9670;&#160;</a></span>c_vecfcn</h2>
+<a id="aafcf83873d03de64a6bc6aec5abd657e" name="aafcf83873d03de64a6bc6aec5abd657e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aafcf83873d03de64a6bc6aec5abd657e">&#9670;&#160;</a></span>c_error_handler</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef void(* c_vecfcn) (int nvar, int neqn, const double *x, double *f)</td>
+          <td class="memname">typedef void(* c_error_handler) (int code, const char *message, void *user_data)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Error handler callback. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">code</td><td>Error code (one of the DYN_*_ERROR constants). </td></tr>
+    <tr><td class="paramname">message</td><td>Null-terminated description, valid only during the call. </td></tr>
+    <tr><td class="paramname">user_data</td><td>Opaque pointer supplied to c_set_error_handler. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a85e25af3367037b35699c9b0b573d20c" name="a85e25af3367037b35699c9b0b573d20c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a85e25af3367037b35699c9b0b573d20c">&#9670;&#160;</a></span>c_vecfcn</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef void(* c_vecfcn) (int nvar, int neqn, const double *x, double *f, void *user_data)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -1029,20 +1229,21 @@ Functions</h2></td></tr>
     <tr><td class="paramname">neqn</td><td>Number of equations. </td></tr>
     <tr><td class="paramname">x</td><td>Input variables. </td></tr>
     <tr><td class="paramname">f</td><td>Output residual vector. </td></tr>
+    <tr><td class="paramname">user_data</td><td>Opaque caller data. </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a id="ab2591826425028477f425cc24c0b0b1e" name="ab2591826425028477f425cc24c0b0b1e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab2591826425028477f425cc24c0b0b1e">&#9670;&#160;</a></span>c_modal_excite</h2>
+<a id="a7de89a8fd9d1d3bdf7cf2fd53fa6fb93" name="a7de89a8fd9d1d3bdf7cf2fd53fa6fb93"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7de89a8fd9d1d3bdf7cf2fd53fa6fb93">&#9670;&#160;</a></span>c_modal_excite</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef void(* c_modal_excite) (int n, double freq, double complex *f)</td>
+          <td class="memname">typedef void(* c_modal_excite) (int n, double freq, double complex *f, void *user_data)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -1053,20 +1254,21 @@ Functions</h2></td></tr>
     <tr><td class="paramname">n</td><td>Modal count. </td></tr>
     <tr><td class="paramname">freq</td><td>Frequency. </td></tr>
     <tr><td class="paramname">f</td><td>Output modal force. </td></tr>
+    <tr><td class="paramname">user_data</td><td>Opaque caller data. </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a id="a8967af869ad581757c79114f42d9086a" name="a8967af869ad581757c79114f42d9086a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8967af869ad581757c79114f42d9086a">&#9670;&#160;</a></span>c_harmonic_ode</h2>
+<a id="ab973e31d7b983890d7a7c27e3b96536a" name="ab973e31d7b983890d7a7c27e3b96536a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab973e31d7b983890d7a7c27e3b96536a">&#9670;&#160;</a></span>c_harmonic_ode</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef void(* c_harmonic_ode) (int n, double freq, double t, const double *x, double *dxdt)</td>
+          <td class="memname">typedef void(* c_harmonic_ode) (int n, double freq, double t, const double *x, double *dxdt, void *user_data)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -1079,20 +1281,21 @@ Functions</h2></td></tr>
     <tr><td class="paramname">t</td><td>Time. </td></tr>
     <tr><td class="paramname">x</td><td>State vector. </td></tr>
     <tr><td class="paramname">dxdt</td><td>Output state derivative. </td></tr>
+    <tr><td class="paramname">user_data</td><td>Opaque caller data. </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a id="ab984a140a09f881807df64afebae3355" name="ab984a140a09f881807df64afebae3355"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab984a140a09f881807df64afebae3355">&#9670;&#160;</a></span>c_window_function</h2>
+<a id="a289a6dbcb879e2e74e6adcd1b23b54af" name="a289a6dbcb879e2e74e6adcd1b23b54af"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a289a6dbcb879e2e74e6adcd1b23b54af">&#9670;&#160;</a></span>c_window_function</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef double(* c_window_function) (int n, int bin)</td>
+          <td class="memname">typedef double(* c_window_function) (int n, int bin, void *user_data)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -1102,6 +1305,7 @@ Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramname">n</td><td>Window length. </td></tr>
     <tr><td class="paramname">bin</td><td>Zero-based sample index. </td></tr>
+    <tr><td class="paramname">user_data</td><td>Opaque caller data. </td></tr>
   </table>
   </dd>
 </dl>
@@ -1109,14 +1313,14 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="af2c44635b3d86571be4e0db022c72568" name="af2c44635b3d86571be4e0db022c72568"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af2c44635b3d86571be4e0db022c72568">&#9670;&#160;</a></span>c_constraint_equations</h2>
+<a id="a859cbf548e04b41969f3552734b4c0a9" name="a859cbf548e04b41969f3552734b4c0a9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a859cbf548e04b41969f3552734b4c0a9">&#9670;&#160;</a></span>c_constraint_equations</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef void(* c_constraint_equations) (int n, int neqn, int nparam, const double *xg, const double *fg, const double *xc, const double *p, double *fc)</td>
+          <td class="memname">typedef void(* c_constraint_equations) (int n, int neqn, int nparam, const double *xg, const double *fg, const double *xc, const double *p, double *fc, void *user_data)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -1132,20 +1336,21 @@ Functions</h2></td></tr>
     <tr><td class="paramname">xc</td><td>Constraint inputs. </td></tr>
     <tr><td class="paramname">p</td><td>Model parameters. </td></tr>
     <tr><td class="paramname">fc</td><td>Output constraint residuals. </td></tr>
+    <tr><td class="paramname">user_data</td><td>Opaque caller data. </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a id="adcb2dda33aaee23304846c505155e780" name="adcb2dda33aaee23304846c505155e780"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adcb2dda33aaee23304846c505155e780">&#9670;&#160;</a></span>c_ode_fit</h2>
+<a id="a72c7c56b35ddfd21afde8c199ef00eaa" name="a72c7c56b35ddfd21afde8c199ef00eaa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a72c7c56b35ddfd21afde8c199ef00eaa">&#9670;&#160;</a></span>c_ode_fit</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef void(* c_ode_fit) (int n, int nparam, const double *mdl, double t, const double *x, double F, double *dxdt)</td>
+          <td class="memname">typedef void(* c_ode_fit) (int n, int nparam, const double *mdl, double t, const double *x, double F, double *dxdt, void *user_data)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -1160,20 +1365,21 @@ Functions</h2></td></tr>
     <tr><td class="paramname">x</td><td>State vector. </td></tr>
     <tr><td class="paramname">F</td><td>Input or forcing value. </td></tr>
     <tr><td class="paramname">dxdt</td><td>Output state derivative. </td></tr>
+    <tr><td class="paramname">user_data</td><td>Opaque caller data. </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a id="a84a392919636d4c148e0ac69a650e033" name="a84a392919636d4c148e0ac69a650e033"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a84a392919636d4c148e0ac69a650e033">&#9670;&#160;</a></span>c_ss_excitation</h2>
+<a id="a54f3494eccf7e5cd23b1c43dea08e52f" name="a54f3494eccf7e5cd23b1c43dea08e52f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a54f3494eccf7e5cd23b1c43dea08e52f">&#9670;&#160;</a></span>c_ss_excitation</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef void(* c_ss_excitation) (int n, double t, double *u)</td>
+          <td class="memname">typedef void(* c_ss_excitation) (int n, double t, double *u, void *user_data)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -1184,6 +1390,59 @@ Functions</h2></td></tr>
     <tr><td class="paramname">n</td><td>Input count. </td></tr>
     <tr><td class="paramname">t</td><td>Time. </td></tr>
     <tr><td class="paramname">u</td><td>Output input vector. </td></tr>
+    <tr><td class="paramname">user_data</td><td>Opaque caller data. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a7d8912445efac281cc3e6b46d6f3e4eb" name="a7d8912445efac281cc3e6b46d6f3e4eb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7d8912445efac281cc3e6b46d6f3e4eb">&#9670;&#160;</a></span>c_ode_equations</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef void(* c_ode_equations) (int n, double t, const double *x, double *dxdt, void *user_data)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Ordinary-differential-equation callback. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">n</td><td>State dimension. </td></tr>
+    <tr><td class="paramname">t</td><td>Independent variable (time). </td></tr>
+    <tr><td class="paramname">x</td><td>State vector. </td></tr>
+    <tr><td class="paramname">dxdt</td><td>Output state derivative. </td></tr>
+    <tr><td class="paramname">user_data</td><td>Opaque caller data. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a9a2eb8b6b8c89cf4d0c6f98c1f669ef6" name="a9a2eb8b6b8c89cf4d0c6f98c1f669ef6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9a2eb8b6b8c89cf4d0c6f98c1f669ef6">&#9670;&#160;</a></span>c_poincare_coordinates</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef void(* c_poincare_coordinates) (int n, double t, const double *x, double coordinates[3], void *user_data)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Poincare section coordinate callback. </p>
+<p>Maps a sampled ODE state onto the coordinates intersected with the section plane. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">n</td><td>State dimension. </td></tr>
+    <tr><td class="paramname">t</td><td>Time at which the state was sampled. </td></tr>
+    <tr><td class="paramname">x</td><td>State vector. </td></tr>
+    <tr><td class="paramname">coordinates</td><td>Output 3-element [x, y, z] section coordinates. </td></tr>
+    <tr><td class="paramname">user_data</td><td>Opaque caller data. </td></tr>
   </table>
   </dd>
 </dl>
@@ -1335,6 +1594,23 @@ Functions</h2></td></tr>
 
 <p>Opaque linkage dynamic-model handle. </p>
 <p>Create with c_create_serial_linkage_dynamic_model or c_create_linkage_dynamic_model and release with c_free_linkage_dynamic_model. </p>
+
+</div>
+</div>
+<a id="abdba40f79593847ce9a5647d3f5ddeb9" name="abdba40f79593847ce9a5647d3f5ddeb9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abdba40f79593847ce9a5647d3f5ddeb9">&#9670;&#160;</a></span>c_structural_integrator</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef void* <a class="el" href="dynamics_8h.html#abdba40f79593847ce9a5647d3f5ddeb9">c_structural_integrator</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Opaque linear structural time-integrator handle. </p>
+<p>Create with c_create_dense_generalized_alpha_integrator and release with c_free_structural_integrator. </p>
 
 </div>
 </div>

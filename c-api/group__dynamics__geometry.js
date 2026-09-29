@@ -28,5 +28,6 @@ var group__dynamics__geometry =
     [ "c_line_common_normal", "group__dynamics__geometry.html#ga72ef64d96e452fb4639d828bf3e85d8a", null ],
     [ "c_do_lines_intersect", "group__dynamics__geometry.html#ga2d7b5b244e63fce54f1ea9d85cc02841", null ],
     [ "c_line_from_point_and_vector", "group__dynamics__geometry.html#ga413c19716c37e882584c2cd0f7848902", null ],
-    [ "c_poincare_map", "group__dynamics__geometry.html#ga95bf6611ced6c3e57ea257884f16f6d2", null ]
+    [ "c_poincare_map", "group__dynamics__geometry.html#ga95bf6611ced6c3e57ea257884f16f6d2", null ],
+    [ "c_poincare_map_ode", "group__dynamics__geometry.html#ga9f37af2541d8fd07542c6bc162f5930d", null ]
 ];

@@ -90,7 +90,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 1.1% of total for modules and submodules.">91 statements</a>
+               title=" 2.4% of total for modules and submodules.">222 statements</a>
           </li>
 
             <li id="source-file">
@@ -139,22 +139,34 @@
   
   
   
-  
-  
-  
       <div class="panel panel-primary">
       <div class="panel-heading text-left">
         <h3 class="panel-title">
-          <a data-toggle="collapse" href="#funcs-0">Functions</a>
+          <a data-toggle="collapse" href="#inters-0">Interfaces</a>
         </h3>
       </div>
-      <div id="funcs-0" class="panel-collapse collapse">
+      <div id="inters-0" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../module/dynamics_maps.html#proc-poincare_map">poincare_map</a>
+            <a class="list-group-item" href="../module/dynamics_maps.html#interface-poincare_map">poincare_map</a>
         </div>
       </div>
     </div>
 
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#absints-0">Abstract Interfaces</a>
+        </h3>
+      </div>
+      <div id="absints-0" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_maps.html#interface-poincare_map_progress">poincare_map_progress</a>
+        </div>
+      </div>
+    </div>
+
+  
+  
   
   
   
@@ -177,7 +189,9 @@
       <ul class="list-group">
           <li class="list-group-item">
             <ul class="list-inline">
+                <li>diffeq</li>
                 <li><a href='../module/dynamics_geometry.html'>dynamics_geometry</a></li>
+                <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
                 <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
             </ul>
           </li>
@@ -211,22 +225,34 @@
   
   
   
-  
-  
-  
       <div class="panel panel-primary">
       <div class="panel-heading text-left">
         <h3 class="panel-title">
-          <a data-toggle="collapse" href="#funcs-1">Functions</a>
+          <a data-toggle="collapse" href="#inters-1">Interfaces</a>
         </h3>
       </div>
-      <div id="funcs-1" class="panel-collapse collapse">
+      <div id="inters-1" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../module/dynamics_maps.html#proc-poincare_map">poincare_map</a>
+            <a class="list-group-item" href="../module/dynamics_maps.html#interface-poincare_map">poincare_map</a>
         </div>
       </div>
     </div>
 
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#absints-1">Abstract Interfaces</a>
+        </h3>
+      </div>
+      <div id="absints-1" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_maps.html#interface-poincare_map_progress">poincare_map_progress</a>
+        </div>
+      </div>
+    </div>
+
+  
+  
   
   
   
@@ -318,24 +344,32 @@ by the plane normal).  It simply returns any intersection point.</p>
     <br>
     
     
-
-    
-    
- 
     <section>
-    <h2>Functions</h2>
-      <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="proc-poincare_map"></span><h3>public pure function <a href='../proc/poincare_map.html'>poincare_map</a>(x, y, z, pln, side) result(rst)  
-</h3></div>
-    <div class="panel-body">
-          
+   <h2>Interfaces</h2>
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="interface-poincare_map"></span>
+      <h3>public        interface <a href='../interface/poincare_map.html'>poincare_map</a> 
+      </h3>
+    </div>
+    <ul class="list-group">
+          <li class="list-group-item">
+                <h3>
+    private pure function poincare_map_samples(x, y, z, pln, side) result(rst)  
+
+    </h3>
   <p>Generates a Poincare map by determining the intersections of the
 supplied trajectory with the specified plane.
 For consecutive samples <script type="math/tex">\boldsymbol{p}_1</script> and <script type="math/tex">\boldsymbol{p}_2</script>,
 the segment is interpolated as
 <script type="math/tex; mode=display"> \boldsymbol{p}(t)=\boldsymbol{p}_1+t(\boldsymbol{p}_2-\boldsymbol{p}_1),
 \quad 0\leq t\leq1, </script>
-and the section point satisfies <script type="math/tex">a x(t)+b y(t)+c z(t)+d=0</script>.</p>
+and the section point satisfies <script type="math/tex">a x(t)+b y(t)+c z(t)+d=0</script>.
+A crossing at an exactly sampled point is returned once, provided
+the nearest non-section samples on either side lie on opposite
+sides of the plane. Tangencies and runs of samples on the plane are
+not crossings and are ignored. A final sample on the plane is
+returned once if the preceding segment approaches it.</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -360,7 +394,7 @@ and the section point satisfies <script type="math/tex">a x(t)+b y(t)+c z(t)+d=0
             <td>::</td>
             <td><strong>x</strong></td>
             <td>
-<p>The x-coordinates of the trajectory.</p>
+                <p>The x-coordinates of the trajectory.</p>
             </td>
         </tr>
         <tr>
@@ -375,7 +409,7 @@ and the section point satisfies <script type="math/tex">a x(t)+b y(t)+c z(t)+d=0
             <td>::</td>
             <td><strong>y</strong></td>
             <td>
-<p>The y-coordinates of the trajectory.</p>
+                <p>The y-coordinates of the trajectory.</p>
             </td>
         </tr>
         <tr>
@@ -390,7 +424,7 @@ and the section point satisfies <script type="math/tex">a x(t)+b y(t)+c z(t)+d=0
             <td>::</td>
             <td><strong>z</strong></td>
             <td>
-<p>The z-coordinates of the trajectory.</p>
+                <p>The z-coordinates of the trajectory.</p>
             </td>
         </tr>
         <tr>
@@ -405,7 +439,7 @@ and the section point satisfies <script type="math/tex">a x(t)+b y(t)+c z(t)+d=0
             <td>::</td>
             <td><strong>pln</strong></td>
             <td>
-<p>The plane to intersect.  If not supplied, the x-y plane is 
+                <p>The plane to intersect.  If not supplied, the x-y plane is 
 utilized where z = 0.</p>
             </td>
         </tr>
@@ -421,8 +455,29 @@ utilized where z = 0.</p>
             <td>::</td>
             <td><strong>side</strong></td>
             <td>
-<p>An integer flag denoting which approach to use when computing
-the section.  The acceptable values are as follows.</p><a href="../proc/poincare_map.html#variable-side" class="pull-right"><emph>Read more&hellip;</emph></a>
+                <p>An integer flag denoting which approach to use when computing
+the section.  The acceptable values are as follows.</p>
+<ul>
+<li>
+<p>POINCARE_TWO_SIDED (Default): A two-sided Poincare section 
+will be computed.  In this section, the algorithm does not care 
+whether the trajectory approaches the sectioning plane from the 
+front or the back of the plane (defined by the plane normal).<br>
+It simply returns any intersection point.</p>
+</li>
+<li>
+<p>POINCARE_ONE_SIDED_FROM_FRONT: A one-sided Poincare section 
+will be computed where the algorithm only retains intersection 
+points where the trajectory approaches the sectioning plane from 
+the front (the side of the plane normal).</p>
+</li>
+<li>
+<p>POINCARE_ONE_SIDED_FROM_BACK: A one-sided Poincare section 
+will be computed where the algorithm only retains intersection 
+points where the trajectory approaches the sectioning plane from 
+the back (the side opposite the plane normal).</p>
+</li>
+</ul>
             </td>
         </tr>
     </tbody>
@@ -436,11 +491,315 @@ the section.  The acceptable values are as follows.</p><a href="../proc/poincare
 of the N intersection points in the first, second, and third
 columns respectively.</p>
 
-    </div>
+          </li>
+          <li class="list-group-item">
+                <h3>
+    private  function poincare_map_ode(sys, tspan, iv, sample_count, pln, side, solver, chunk_size, coordinates, args, progress_callback) result(rst)  
+
+    </h3>
+  <p>Computes a Poincare section from uniformly spaced ODE samples while
+retaining only one solution chunk and the resulting section points.
+Each chunk starts from the preceding chunk's final solution state.
+As with poincare_map_samples, a final sample on the plane can be
+retained if the preceding segment approaches it.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(ode_container),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>sys</strong></td>
+            <td>
+                <p>The ODE system to integrate. Its equation function must be set.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(2)
+            </td>
+            <td>::</td>
+            <td><strong>tspan</strong></td>
+            <td>
+                <p>The increasing start and end times of the complete solve.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>iv</strong></td>
+            <td>
+                <p>The initial value of each ODE state at tspan(1). At least one
+state is required, or three when coordinates is not supplied.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>sample_count</strong></td>
+            <td>
+                <p>The number of uniformly spaced samples across tspan, including
+both endpoints. Must be at least two.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/plane.html'>plane</a>),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>pln</strong></td>
+            <td>
+                <p>The section plane. Defaults to the x-y plane (z = 0).</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>side</strong></td>
+            <td>
+                <p>The crossing direction: POINCARE_TWO_SIDED (default),
+POINCARE_ONE_SIDED_FROM_FRONT, or POINCARE_ONE_SIDED_FROM_BACK.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(ode_integrator),
+            </td>
+<td>intent(inout),</td>
+              <td>optional,</td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>solver</strong></td>
+            <td>
+                <p>The ODE solver to use. Defaults to runge_kutta_45. Its solution
+buffer is cleared for each chunk and on return; other solver
+settings, including tolerances, are retained.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>chunk_size</strong></td>
+            <td>
+                <p>Maximum number of sample intervals per solve. Must be positive;
+defaults to 1000. The solve requests at most chunk_size + 1
+samples, except that a one-interval solve requests a midpoint.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              procedure(poincare_coordinates),
+            </td>
+<td></td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>coordinates</strong></td>
+            <td>
+                <p>Maps each sampled time and ODE state to section coordinates.
+Defaults to the first three state components.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(*),
+            </td>
+<td>intent(inout),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>args</strong></td>
+            <td>
+                <p>Optional user data forwarded to each ODE solver call.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              procedure(<a href='../interface/poincare_map_progress.html'>poincare_map_progress</a>),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              pointer
+            </td>
+            <td>::</td>
+            <td><strong>progress_callback</strong></td>
+            <td>
+                <p>Optional notification after each completed sample chunk.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), allocatable, dimension(:,:)</small>
+    </h4>
+    <p>An N-by-3 array of section intersections in x, y, z order.</p>
+
+          </li>
+    </ul>
   </div>
 
     </section>
-    <br>
+  <br>
+
+    <section>
+     <h2>Abstract Interfaces</h2>
+       <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="interface-poincare_map_progress"></span><h3>abstract interface
+        
+    </h3></div>
+    <ul class="list-group">
+      <li class="list-group-item">
+            <h3>
+    public  subroutine poincare_map_progress(completed_samples, total_samples, time, args)  
+
+    </h3>
+  <p>Reports progress after a complete ODE sample chunk is processed.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>completed_samples</strong></td>
+            <td>
+                <p>Number of uniformly spaced samples completed so far.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>total_samples</strong></td>
+            <td>
+                <p>Total number of requested samples.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>time</strong></td>
+            <td>
+                <p>Time at the end of the completed chunk.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(*),
+            </td>
+<td>intent(inout),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>args</strong></td>
+            <td>
+                <p>Optional user data shared with the ODE callbacks.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+      </li>
+    </ul>
+  </div>
+
+    </section>
+  <br>
+    
+    
 
 
 
@@ -460,7 +819,7 @@ columns respectively.</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-09-23 10:50            </p>
+ on 2026-09-29 11:35            </p>
         </div>
       </div>
       <br>

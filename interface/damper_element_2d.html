@@ -8,7 +8,7 @@
     <meta name="author" content="Jason Christopherson" >
     <link rel="icon" href="../favicon.png">
 
-    <title>poincare_map &ndash; DYNAMICS</title>
+    <title>damper_element_2d &ndash; DYNAMICS</title>
 
     <link href="../css/bootstrap.min.css" rel="stylesheet">
     <link href="../css/pygments.css" rel="stylesheet">
@@ -78,8 +78,8 @@
 
     <div class="container">
   <div class="row">
-    <h1>poincare_map
-      <small>Function</small>
+    <h1>damper_element_2d
+      <small>Interface</small>
       
     </h1>
       <div class="row" id="info-bar">
@@ -90,18 +90,18 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 4.1% of total for procedures.">58 statements</a>
+               title="<p> 0.2% of total for procedures.</p>Including implementation: 12 statements,  0.9% of total for procedures.">3 statements</a>
           </li>
 
             <li id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dynamics_maps.f90"> Source File</a>
+              <a href="../src/dynamics_discrete_elements.f90"> Source File</a>
             </li>
         </ul>
         <ol class="breadcrumb in-well text-right">
-              <li><a href='../sourcefile/dynamics_maps.f90.html'>dynamics_maps.f90</a></li>
-              <li><a href='../module/dynamics_maps.html'>dynamics_maps</a></li>
-          <li class="active">poincare_map</li>
+              <li><a href='../sourcefile/dynamics_discrete_elements.f90.html'>dynamics_discrete_elements.f90</a></li>
+              <li><a href='../module/dynamics_discrete_elements.html'>dynamics_discrete_elements</a></li>
+          <li class="active">damper_element_2d</li>
         </ol>
       </div>
     </div>
@@ -116,7 +116,7 @@
   
   <div class="row">
     <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
-      <div id="sidebar">
+        <div id="sidebar">
       <h3>Contents</h3>
   
   
@@ -136,7 +136,19 @@
   
   
   
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#modprocs-0">Module Procedures</a>
+        </h3>
+      </div>
+      <div id="modprocs-0" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../interface/damper_element_2d.html#moduleprocedure-dp2d_init">dp2d_init</a>
+        </div>
+      </div>
+    </div>
+
 
 
   </div>
@@ -144,20 +156,58 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>public pure function poincare_map(x, y, z, pln, side) result(rst)  
-</h2>
-    
+      <h2>public interface damper_element_2d</h2>
+   
 
-    <p>Generates a Poincare map by determining the intersections of the
-supplied trajectory with the specified plane.
-For consecutive samples <script type="math/tex">\boldsymbol{p}_1</script> and <script type="math/tex">\boldsymbol{p}_2</script>,
-the segment is interpolated as
-<script type="math/tex; mode=display"> \boldsymbol{p}(t)=\boldsymbol{p}_1+t(\boldsymbol{p}_2-\boldsymbol{p}_1),
-\quad 0\leq t\leq1, </script>
-and the section point satisfies <script type="math/tex">a x(t)+b y(t)+c z(t)+d=0</script>.</p>
+     <section class="visible-xs visible-sm hidden-md">
+         <h3>Contents</h3>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#modprocs-1">Module Procedures</a>
+        </h3>
+      </div>
+      <div id="modprocs-1" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../interface/damper_element_2d.html#moduleprocedure-dp2d_init">dp2d_init</a>
+        </div>
+      </div>
+    </div>
 
-    <h3>Arguments</h3>
-        <table class="table table-striped varlist">
+
+
+     </section>
+     <br class="visible-xs visible-sm hidden-md">
+     
+
+
+   <h2>Module Procedures</h2>
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-dp2d_init"></span><h3>private pure function dp2d_init(c, nd1, nd2, direction) result(rst)  
+</h3></div>
+    <div class="panel-body">
+        <p>Initializes a new [[damper_element_2d]].</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
     <thead>
       <tr>
         <th>Type</th>
@@ -169,154 +219,82 @@ and the section point satisfies <script type="math/tex">a x(t)+b y(t)+c z(t)+d=0
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-x~47"></span>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>c</strong></td>
+            <td>
+                <p>The viscous damping coefficient.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/node.html'>node</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nd1</strong></td>
+            <td>
+                <p>The first node of the element.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/node.html'>node</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nd2</strong></td>
+            <td>
+                <p>The second node of the element.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
               real(kind=real64),
             </td>
 <td>intent(in),</td>
-              <td></td>            <td>
+              <td>optional,</td>            <td>
               dimension(:)
             </td>
             <td>::</td>
-            <td><strong>x</strong></td>
+            <td><strong>direction</strong></td>
             <td>
-                <p>The x-coordinates of the trajectory.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-y~24"></span>
-              real(kind=real64),
-            </td>
-<td>intent(in),</td>
-              <td></td>            <td>
-              dimension(size(x))
-            </td>
-            <td>::</td>
-            <td><strong>y</strong></td>
-            <td>
-                <p>The y-coordinates of the trajectory.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-z~4"></span>
-              real(kind=real64),
-            </td>
-<td>intent(in),</td>
-              <td></td>            <td>
-              dimension(size(x))
-            </td>
-            <td>::</td>
-            <td><strong>z</strong></td>
-            <td>
-                <p>The z-coordinates of the trajectory.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-pln~6"></span>
-              class(<a href='../type/plane.html'>plane</a>),
-            </td>
-<td>intent(in),</td>
-              <td>optional</td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>pln</strong></td>
-            <td>
-                <p>The plane to intersect.  If not supplied, the x-y plane is 
-utilized where z = 0.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-side"></span>
-              integer(kind=int32),
-            </td>
-<td>intent(in),</td>
-              <td>optional</td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>side</strong></td>
-            <td>
-                <p>An integer flag denoting which approach to use when computing
-the section.  The acceptable values are as follows.</p>
-<ul>
-<li>
-<p>POINCARE_TWO_SIDED (Default): A two-sided Poincare section 
-will be computed.  In this section, the algorithm does not care 
-whether the trajectory approaches the sectioning plane from the 
-front or the back of the plane (defined by the plane normal).<br>
-It simply returns any intersection point.</p>
-</li>
-<li>
-<p>POINCARE_ONE_SIDED_FROM_FRONT: A one-sided Poincare section 
-will be computed where the algorithm only retains intersection 
-points where the trajectory approaches the sectioning plane from 
-the front (the side of the plane normal).</p>
-</li>
-<li>
-<p>POINCARE_ONE_SIDED_FROM_BACK: A one-sided Poincare section 
-will be computed where the algorithm only retains intersection 
-points where the trajectory approaches the sectioning plane from 
-the back (the side opposite the plane normal).</p>
-</li>
-</ul>
+                <p>An optional 2-element vector defining the damper axis.  The vector
+must be non-zero and is normalized internally.  If not supplied,
+the axis is defined by the vector from node 1 to node 2, in which
+case the nodes must not be coincident.</p>
             </td>
         </tr>
     </tbody>
   </table>
 
-      <h3>Return Value
-        <small>
-          <span class="anchor" id="variable-rst~210"></span>
-          real(kind=real64), allocatable, dimension(:,:)
-        </small>
-      </h3>
-      <p>An N-by-3 matrix containing the x, y, and z coordinates of each
-of the N intersection points in the first, second, and third
-columns respectively.</p>
-    <br>
+    <h4>
+    Return Value
+    <small>type(<a href='../type/damper_element_2d.html'>damper_element_2d</a>)</small>
+    </h4>
+    <p>The new [[damper_element_2d]].</p>
 
-    <section class="visible-xs visible-sm hidden-md">
-        <h3>Contents</h3>
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-
-
-    </section>
-    <br class="visible-xs visible-sm hidden-md">
-
-
-    
-    
-
-    
-    
-
-
-    
-    
     </div>
   </div>
+
+
+ </div>
+</div>
 
     <hr>    
     </div> <!-- /container -->
@@ -330,7 +308,7 @@ columns respectively.</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-09-23 10:50            </p>
+ on 2026-09-29 11:35            </p>
         </div>
       </div>
       <br>

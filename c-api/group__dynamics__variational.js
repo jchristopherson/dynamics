@@ -1,7 +1,7 @@
 var group__dynamics__variational =
 [
     [ "c_default_variational_integrator_settings", "group__dynamics__variational.html#ga4b2fc6b7d153a9add7aad2f0055ec811", null ],
-    [ "c_variational_integrator_solve", "group__dynamics__variational.html#gaf79fc87624914f52a9a1f168ab73a474", null ],
+    [ "c_variational_integrator_solve", "group__dynamics__variational.html#ga6a65810d6f070fa40236b7350dd09800", null ],
     [ "c_create_serial_linkage_dynamic_model", "group__dynamics__variational.html#gac18451fdae6f4b67ce057fca37a1c490", null ],
     [ "c_create_linkage_dynamic_model", "group__dynamics__variational.html#gaa1768c709709f59b934111dc8c4378b1", null ],
     [ "c_free_linkage_dynamic_model", "group__dynamics__variational.html#ga3dbcc9aadf396fa0ada22623eef83f84", null ],
@@ -16,6 +16,6 @@ var group__dynamics__variational =
     [ "c_linkage_dynamic_torsional_element_count", "group__dynamics__variational.html#ga641966d47a7f166ce6c880675e11b1f9", null ],
     [ "c_linkage_dynamic_axial_element_results", "group__dynamics__variational.html#ga12b09e2a005c3b046bf612e79f2fe392", null ],
     [ "c_linkage_dynamic_torsional_element_results", "group__dynamics__variational.html#gad43632aeb7dee21bf0a2b0635dcfaf21", null ],
-    [ "c_linkage_dynamic_solve", "group__dynamics__variational.html#ga3bfbc4b8696bee3429345da08a12c2e9", null ],
+    [ "c_linkage_dynamic_solve", "group__dynamics__variational.html#ga5bc1663a76977c48e23574d99781ea61", null ],
     [ "c_linkage_dynamic_joint_reactions", "group__dynamics__variational.html#gacf6f1340ea2771e37411f6fd1cd236ff", null ]
 ];

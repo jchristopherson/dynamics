@@ -34,6 +34,7 @@ module dynamics_variational_integrators
     private
 
     public :: variational_state
+    public :: variational_integrator_info
     public :: variational_integrator
     public :: variational_integrator_settings
     public :: variational_force
@@ -64,6 +65,17 @@ module dynamics_variational_integrators
             !! Body-frame angular velocities, dimensioned 3-by-nbody.
         real(real64) :: time = 0.0d0
             !! The time associated with the state.
+    end type
+
+    type variational_integrator_info
+        !! Reports convergence diagnostics for a step or trajectory solve.
+        logical :: converged = .false.
+            !! True when the requested solve completed successfully.
+        integer(int32) :: iterations = 0
+            !! Newton iterations used; aggregated across steps by solve.
+        logical :: jacobian_singular = .false.
+            !! True if any attempted Newton Jacobian was detected as singular,
+            !! including one later regularized successfully.
     end type
 
     abstract interface
@@ -185,7 +197,7 @@ end subroutine
 
 ! ------------------------------------------------------------------------------
 subroutine vi_step(this, bodies, state, dt, constraint_count, constraint, &
-    force_function, constraint_jacobian, multipliers, args)
+    force_function, constraint_jacobian, multipliers, args, info)
     !! Advances a rigid-body system by one fixed time step. The unknown vector
     !! contains the next translational and body-frame angular velocities,
     !! followed by the equality-constraint multipliers. Orientations are
@@ -199,6 +211,7 @@ subroutine vi_step(this, bodies, state, dt, constraint_count, constraint, &
         !! The body mass and body-frame inertia properties.
     type(variational_state), intent(inout) :: state
         !! On input, the current state; on output, the converged next state.
+        !! On recoverable failure, the state is unchanged.
     real(real64), intent(in) :: dt
         !! The positive fixed time step.
     integer(int32), intent(in), optional :: constraint_count
@@ -213,14 +226,21 @@ subroutine vi_step(this, bodies, state, dt, constraint_count, constraint, &
         !! An optional analytic reduced constraint Jacobian. When omitted, the
         !! Jacobian is evaluated by finite differences.
     real(real64), allocatable, intent(out), optional, dimension(:) :: multipliers
-        !! The converged Lagrange multipliers.
+        !! The converged Lagrange multipliers; unallocated on recoverable
+        !! failure.
     class(*), intent(inout), optional :: args
         !! Optional user-supplied data forwarded to all callbacks.
+    type(variational_integrator_info), intent(out), optional :: info
+        !! Optional convergence diagnostics. When present, convergence failures
+        !! are returned instead of terminating execution; when absent, the
+        !! legacy error-stop behavior is retained.
 
     ! Local Variables
-    integer(int32) :: i, iteration, line_iteration, nbody, nconstraint, nvar
+    integer(int32) :: i, iteration, iterations_used, line_iteration, &
+        nbody, nconstraint, nvar
     integer(int32), allocatable, dimension(:) :: pivot
     real(real64) :: alpha, trial_norm, residual_norm
+    logical :: jacobian_singular, graph_singular
     real(real64), allocatable, dimension(:) :: unknown, trial, residual, &
         trial_residual, delta, perturbed, perturbed_value, &
         base_constraint_value, constraint_value
@@ -234,6 +254,13 @@ subroutine vi_step(this, bodies, state, dt, constraint_count, constraint, &
     if (present(constraint_count)) nconstraint = constraint_count
     call check_inputs(this%settings, bodies, state, dt, nconstraint, &
         present(constraint))
+    jacobian_singular = .false.
+    iterations_used = 0
+    if (present(info)) then
+        info%converged = .false.
+        info%iterations = 0
+        info%jacobian_singular = .false.
+    end if
 
     ! Initialize the Newton unknown with the current velocities and zero
     ! equality-constraint impulses.
@@ -269,21 +296,30 @@ subroutine vi_step(this, bodies, state, dt, constraint_count, constraint, &
     residual_norm = norm2(residual)
     do iteration = 1, this%settings%maximum_iterations
         if (residual_norm <= this%settings%tolerance) exit
+        iterations_used = iteration
         call finite_difference_jacobian(unknown, residual, jacobian)
         select case (this%settings%linear_solver)
         case (VI_DENSE_SOLVER)
             call lu_factor(jacobian, ipvt = pivot, lu = lu)
             if (any(pivot == 0)) then
+                jacobian_singular = .true.
                 do i = 1, nvar
                     jacobian(i,i) = jacobian(i,i) + this%settings%tolerance
                 end do
                 call lu_factor(jacobian, ipvt = pivot, lu = lu)
-                if (any(pivot == 0)) error stop DYN_CONVERGENCE_ERROR
+                if (any(pivot == 0)) then
+                    call convergence_failure(iterations_used, .true.)
+                    return
+                end if
             end if
             delta = solve_lu(lu, pivot, -residual)
         case (VI_GRAPH_FACTORIZED_SOLVER)
             delta = graph_factorized_solve(jacobian, -residual, nbody, &
-                nconstraint)
+                nconstraint, graph_singular)
+            if (graph_singular) then
+                call convergence_failure(iterations_used, .true.)
+                return
+            end if
         end select
 
         alpha = 1.0d0
@@ -295,13 +331,18 @@ subroutine vi_step(this, bodies, state, dt, constraint_count, constraint, &
             if (trial_norm < residual_norm) exit
             alpha = 0.5d0 * alpha
         end do
-        if (trial_norm >= residual_norm) error stop DYN_CONVERGENCE_ERROR
+        if (trial_norm >= residual_norm) then
+            call convergence_failure(iterations_used, jacobian_singular)
+            return
+        end if
         unknown = trial
         residual = trial_residual
         residual_norm = trial_norm
     end do
-    if (residual_norm > this%settings%tolerance) &
-        error stop DYN_CONVERGENCE_ERROR
+    if (residual_norm > this%settings%tolerance) then
+        call convergence_failure(iterations_used, jacobian_singular)
+        return
+    end if
 
     ! Commit the converged state through a temporary to avoid aliasing the host
     ! state used by state_from_unknown.
@@ -312,8 +353,26 @@ subroutine vi_step(this, bodies, state, dt, constraint_count, constraint, &
         allocate(multipliers(nconstraint))
         if (nconstraint > 0) multipliers = unknown(6*nbody+1:nvar)
     end if
+    if (present(info)) then
+        info%converged = .true.
+        info%iterations = iterations_used
+        info%jacobian_singular = jacobian_singular
+    end if
 
 contains
+    subroutine convergence_failure(iterations, singular)
+        integer(int32), intent(in) :: iterations
+        logical, intent(in) :: singular
+
+        if (present(info)) then
+            info%converged = .false.
+            info%iterations = iterations
+            info%jacobian_singular = singular
+        else
+            error stop DYN_CONVERGENCE_ERROR
+        end if
+    end subroutine
+
     subroutine evaluate_residual(x, value)
         !! Evaluates the coupled discrete Euler-Lagrange and holonomic
         !! constraint residual for a Newton iterate.
@@ -470,7 +529,7 @@ end subroutine
 
 ! ------------------------------------------------------------------------------
 function vi_solve(this, bodies, state, dt, ntime, constraint_count, &
-    constraint, force_function, constraint_jacobian, multipliers, args) &
+    constraint, force_function, constraint_jacobian, multipliers, args, info) &
     result(rst)
     !! Computes the solution for the rigid-body system for the specified number
     !! of sequential time steps.
@@ -479,7 +538,7 @@ function vi_solve(this, bodies, state, dt, ntime, constraint_count, &
     type(rigid_body), intent(in), dimension(:) :: bodies
         !! The body mass and body-frame inertia properties.
     type(variational_state), intent(inout) :: state
-        !! On input, the current state; on output, the converged next state.
+        !! On input, the initial state; on output, the final completed state.
     real(real64), intent(in) :: dt
         !! The positive fixed time step.
     integer(int32), intent(in) :: ntime
@@ -496,20 +555,28 @@ function vi_solve(this, bodies, state, dt, ntime, constraint_count, &
         !! An optional analytic reduced constraint Jacobian. When omitted, the
         !! Jacobian is evaluated by finite differences.
     real(real64), allocatable, intent(out), optional, dimension(:,:) :: multipliers
-        !! The Nconstraint-by-Ntime Lagrange multiplier history. A multiplier
-        !! computed over the interval beginning at time point i is stored in
-        !! column i because the discrete force enters through the constraint
-        !! Jacobian evaluated at that point. The final column is obtained from
-        !! one noncommitting look-ahead step beyond the requested solution.
+        !! The Nconstraint-by-Ntime Lagrange multiplier history on success. On
+        !! recoverable failure, contains only multipliers for completed steps;
+        !! the final column requires a successful noncommitting look-ahead.
+        !! A multiplier for the interval beginning at time point i is in column
+        !! i because the discrete force uses the constraint Jacobian at that
+        !! point.
     class(*), intent(inout), optional :: args
         !! Optional user-supplied data forwarded to all callbacks.
+    type(variational_integrator_info), intent(out), optional :: info
+        !! Optional diagnostics; iterations are summed over attempted steps,
+        !! including the look-ahead when multipliers are requested. On failure,
+        !! rst contains the initial state and all completed steps.
     type(variational_state), allocatable, dimension(:) :: rst
         !! The solution at each time step.
 
     ! Local Variables
     integer(int32) :: i, nconstraint
     real(real64), allocatable, dimension(:) :: mult
+    real(real64), allocatable, dimension(:,:) :: multiplier_history
+    type(variational_state), allocatable, dimension(:) :: trajectory_prefix
     type(variational_state) :: new_state, look_ahead_state
+    type(variational_integrator_info) :: step_info
 
     ! Input Checking
     if (ntime < 1) error stop DYN_INVALID_INPUT_ERROR
@@ -520,21 +587,46 @@ function vi_solve(this, bodies, state, dt, ntime, constraint_count, &
     allocate(rst(ntime))
     rst(1) = state  ! initial state
     new_state = state
+	if (present(info)) then
+        info%converged = .true.
+        info%iterations = 0
+        info%jacobian_singular = .false.
+	end if
 	if (present(multipliers)) then
-        allocate(multipliers(nconstraint, ntime))
+        allocate(multiplier_history(nconstraint, ntime))
 	end if
     do i = 2, ntime
-        call this%step(bodies, new_state, dt, &
-            constraint_count = constraint_count, &
-            constraint = constraint, &
-            force_function = force_function, &
-            constraint_jacobian = constraint_jacobian, &
-            multipliers = mult, &
-            args = args &
-        )
+        if (present(info)) then
+            call this%step(bodies, new_state, dt, &
+                constraint_count = constraint_count, &
+                constraint = constraint, &
+                force_function = force_function, &
+                constraint_jacobian = constraint_jacobian, &
+                multipliers = mult, args = args, info = step_info)
+            info%iterations = info%iterations + step_info%iterations
+            info%jacobian_singular = info%jacobian_singular .or. &
+                step_info%jacobian_singular
+            if (.not.step_info%converged) then
+                info%converged = .false.
+                trajectory_prefix = rst(1:i-1)
+                call move_alloc(trajectory_prefix, rst)
+                state = new_state
+                if (present(multipliers)) then
+                    multipliers = multiplier_history(:,1:i-2)
+                end if
+                return
+            end if
+        else
+            call this%step(bodies, new_state, dt, &
+                constraint_count = constraint_count, &
+                constraint = constraint, &
+                force_function = force_function, &
+                constraint_jacobian = constraint_jacobian, &
+                multipliers = mult, args = args)
+        end if
         rst(i) = new_state
         if (present(multipliers)) then
-            multipliers(:,i - 1) = mult
+            multiplier_history(:,i - 1) = mult
         end if
         deallocate(mult)
     end do
@@ -544,16 +636,33 @@ function vi_solve(this, bodies, state, dt, ntime, constraint_count, &
     ! discard the predicted state.
     if (present(multipliers)) then
         look_ahead_state = new_state
-        call this%step(bodies, look_ahead_state, dt, &
-            constraint_count = constraint_count, &
-            constraint = constraint, &
-            force_function = force_function, &
-            constraint_jacobian = constraint_jacobian, &
-            multipliers = mult, &
-            args = args &
-        )
-        multipliers(:,ntime) = mult
+        if (present(info)) then
+            call this%step(bodies, look_ahead_state, dt, &
+                constraint_count = constraint_count, &
+                constraint = constraint, &
+                force_function = force_function, &
+                constraint_jacobian = constraint_jacobian, &
+                multipliers = mult, args = args, info = step_info)
+            info%iterations = info%iterations + step_info%iterations
+            info%jacobian_singular = info%jacobian_singular .or. &
+                step_info%jacobian_singular
+            if (.not.step_info%converged) then
+                info%converged = .false.
+                multipliers = multiplier_history(:,1:ntime-1)
+                state = new_state
+                return
+            end if
+        else
+            call this%step(bodies, look_ahead_state, dt, &
+                constraint_count = constraint_count, &
+                constraint = constraint, &
+                force_function = force_function, &
+                constraint_jacobian = constraint_jacobian, &
+                multipliers = mult, args = args)
+        end if
+        multiplier_history(:,ntime) = mult
     end if
+    if (present(multipliers)) multipliers = multiplier_history
     state = new_state
 end function
 
@@ -618,7 +727,8 @@ subroutine check_inputs(settings, bodies, state, dt, nconstraint, has_constraint
 end subroutine
 
 ! ------------------------------------------------------------------------------
-function graph_factorized_solve(matrix, vector, nbody, nconstraint) result(rst)
+function graph_factorized_solve(matrix, vector, nbody, nconstraint, &
+    singular) result(rst)
     !! Solves a Newton system by graph-ordered block LDU elimination. Each rigid
     !! body is represented by a six-variable graph node and each scalar
     !! constraint by a one-variable node. Schur-complement updates add the fill
@@ -631,6 +741,8 @@ function graph_factorized_solve(matrix, vector, nbody, nconstraint) result(rst)
         !! The number of six-variable rigid-body nodes.
     integer(int32), intent(in) :: nconstraint
         !! The number of scalar constraint nodes.
+    logical, intent(out) :: singular
+        !! True when no nonsingular graph block can be eliminated.
     real(real64), allocatable, dimension(:) :: rst
         !! The solution vector.
 
@@ -652,6 +764,7 @@ function graph_factorized_solve(matrix, vector, nbody, nconstraint) result(rst)
     reduced_rhs = vector
     rst = 0.0d0
     active = .true.
+    singular = .false.
 
     ! Eliminate the lowest-degree node whose current diagonal block is
     ! nonsingular. Constraint nodes become eligible after neighboring body
@@ -669,7 +782,10 @@ function graph_factorized_solve(matrix, vector, nbody, nconstraint) result(rst)
                 candidate_degree = degree
             end if
         end do
-        if (candidate == 0) error stop DYN_CONVERGENCE_ERROR
+        if (candidate == 0) then
+            singular = .true.
+            return
+        end if
 
         elimination_order(position) = candidate
         call graph_node_range(candidate, nbody, i1, i2)

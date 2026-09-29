@@ -15,6 +15,7 @@ module dynamics_helper
     use iso_fortran_env
     implicit none
     private
+    public :: is_symmetric
     public :: cross_product
     public :: to_skew_symmetric
     public :: vector_angle
@@ -22,6 +23,35 @@ module dynamics_helper
     public :: vector_projection
 
 contains
+! ------------------------------------------------------------------------------
+pure function is_symmetric(a) result(rst)
+    !! Tests to see if a matrix is symmetric.
+    real(real64), intent(in), dimension(:,:) :: a
+        !! The matrix to test.
+    logical :: rst
+        !! True if the matrix is symmetric; else, false.
+
+    real(real64), parameter :: tol = 10.0d0 * epsilon(0.0d0)
+    integer(int32) :: i, j, n
+    real(real64) :: scale
+
+    n = size(a, 1)
+    if (size(a, 2) /= n) then
+        rst = .false.
+        return
+    end if
+    scale = max(1.0d0, maxval(abs(a)))
+    rst = .true.
+    do j = 1, n
+        do i = j + 1, n
+            if (abs(a(i,j) - a(j,i)) > tol * scale) then
+                rst = .false.
+                return
+            end if
+        end do
+    end do
+end function
+
 ! ------------------------------------------------------------------------------
 pure function cross_product(x, y) result(rst)
     !! Computes the cross-product of two three-dimensional vectors.

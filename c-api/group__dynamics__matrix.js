@@ -33,6 +33,6 @@ var group__dynamics__matrix =
     [ "c_dh_translate_x", "group__dynamics__matrix.html#gaba41946ca91228c913eaecb3772b36f3", null ],
     [ "c_dh_translate_z", "group__dynamics__matrix.html#ga3897f572ddfe4de24f7affe99bc6b172", null ],
     [ "c_jacobian_generating_vector", "group__dynamics__matrix.html#ga42e2008e081037a1e7f977e93c431d87", null ],
-    [ "c_solve_inverse_kinematics", "group__dynamics__matrix.html#gadc0b9cc482843b7d6d04d26cb3a33182", null ],
+    [ "c_solve_inverse_kinematics", "group__dynamics__matrix.html#ga019a241ec3ba5f4faf2c58ad8d35791a", null ],
     [ "c_to_angle_axis", "group__dynamics__matrix.html#ga908a707cb01c21d9a611514851975760", null ]
 ];
