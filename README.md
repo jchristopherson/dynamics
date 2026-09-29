@@ -602,7 +602,70 @@ DAMPING TERM:
 
 ## Structural Example
 
-TO DO: Place example here
+The [`structural_example`](examples/structural_example.f90) analyzes a two-dimensional aluminum frame shaped as a triangular truss with a center member. Each of its five members is divided into 50 Euler-Bernoulli beam elements, giving 250 elements and 249 nodes. Each node has two translational degrees of freedom and one in-plane rotation. The lower-left node is fixed in all three degrees of freedom, the lower-right node is supported vertically, and a 10 kN downward load is applied at the apex.
+
+The example assembles global stiffness and mass matrices, solves the constrained static system, recovers support reactions, and computes the six lowest modes. It then forms a Rayleigh-damped frequency response from 10 Hz to 1 kHz, exciting the apex vertically. The central analysis calls are:
+
+```fortran
+call assemble_dynamic_system(gdof, beams, nodes, M, K)
+
+allocate(F(size(K, 1)), source = 0.0d0)
+F(5) = -applied_force
+bc = [1, 2, 3, 8]
+Fbc = apply_boundary_conditions(bc, F)
+Kbc = apply_boundary_conditions(bc, K)
+Mbc = apply_boundary_conditions(bc, M)
+
+ubc = solve_static_system(Kbc, Fbc)
+u = restore_constrained_values(bc, ubc)
+call modal_response(Mbc, Kbc, n_plot_modes, freqs, shapesbc)
+
+excitefcn => modal_frf_forcing_term
+frsp = frequency_response(Mbc, Kbc, alpha, beta, n_plot_modes, nfreq, &
+    minfreq, maxfreq, excitefcn)
+```
+
+The static plot overlays the undeformed frame with the deformed shape, magnified for visibility. The text output below reports the first four nodes' displacement components multiplied by 1000 and the summed support reactions.
+
+![Static deformation of the five-member frame; deformation is magnified for visibility](images/structural_example_static_deformation.png?raw=true)
+
+```txt
+NODAL DISPLACEMENTS (x 1000)
+Node       X              Y                Theta
+1       0.000E+0        0.000E+0        0.000E+0
+2       -41.247E-3      -229.425E-3     -60.831E-3
+3       -81.263E-3      0.000E+0        692.776E-3
+4       -39.967E-3      -228.573E-3     -65.412E-3
+
+REACTION LOADS
+Node      FX              FY               MZ
+1       9.234E-9        5.209E+3        208.794E+0
+3       600.829E-12     4.791E+3        1.364E-12
+SUM     9.834E-9        10.000E+3       208.794E+0
+
+MODAL RESPONSE
+Mode 1: 379.810 Hz
+Mode 2: 553.835 Hz
+Mode 3: 670.329 Hz
+Mode 4: 804.472 Hz
+Mode 5: 949.697 Hz
+Mode 6: 1283.488 Hz
+```
+
+The first six natural frequencies and corresponding mode shapes are:
+
+| Mode 1: 379.810 Hz | Mode 2: 553.835 Hz | Mode 3: 670.329 Hz |
+|:--:|:--:|:--:|
+| ![Mode 1](images/structural_example_mode_1.png?raw=true) | ![Mode 2](images/structural_example_mode_2.png?raw=true) | ![Mode 3](images/structural_example_mode_3.png?raw=true) |
+| **Mode 4: 804.472 Hz** | **Mode 5: 949.697 Hz** | **Mode 6: 1283.488 Hz** |
+| ![Mode 4](images/structural_example_mode_4.png?raw=true) | ![Mode 5](images/structural_example_mode_5.png?raw=true) | ![Mode 6](images/structural_example_mode_6.png?raw=true) |
+
+For the harmonic analysis, the example uses proportional damping, $C=\alpha M+\beta K$, with $\alpha=10^{-3}$ and $\beta=2\times10^{-6}$. The following plot shows the normalized magnitude and phase of the apex vertical response (degree of freedom 5) under a 10 kN harmonic force.
+
+![Frequency response of the apex vertical degree of freedom from 10 Hz to 1 kHz](images/structural_example_frf.png?raw=true)
+
+Build with `BUILD_DYNAMICS_EXAMPLES=ON`, then build and run the `structural_example` target.
+
 
 ## Harmonic Truss Example
 
