@@ -13,6 +13,8 @@
 ! fitness for a particular purpose and noninfringement.
 module dynamics
     use dynamics_frequency_response
+    use dynamics_frequency_sweep
+    use dynamics_modal_analysis
     use dynamics_rotation
     use dynamics_structural
     use dynamics_kinematics
@@ -28,7 +30,11 @@ module dynamics
     use dynamics_geometry
     use dynamics_quaternions
     use dynamics_rigid_bodies
-    use dynamics_line_elements
+    use dynamics_beam_elements
+    use dynamics_truss_elements
+    use dynamics_discrete_elements
     use dynamics_variational_integrators
     use dynamics_linkage_dynamics
+    use dynamics_linear_structural_solvers
+    use dynamics_maps
 end module

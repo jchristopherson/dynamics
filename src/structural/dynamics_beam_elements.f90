@@ -11,11 +11,12 @@
 ! The Software is provided "as is", without warranty of any kind, express or
 ! implied, including but not limited to the warranties of merchantability,
 ! fitness for a particular purpose and noninfringement.
+
 ! Shape Functions:
 ! 2D Line: https://www.mm.bme.hu/~gyebro/files/ans_help_v182/ans_thry/thy_shp1.html#shp2dlinerdof
 ! 3D Line: https://www.mm.bme.hu/~gyebro/files/ans_help_v182/ans_thry/thy_shp2.html#shp3d2node
 
-module dynamics_line_elements
+module dynamics_beam_elements
     use iso_fortran_env
     use dynamics_structural
     use dynamics_geometry

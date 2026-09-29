@@ -12,6 +12,16 @@
  * corresponding `c_free_*` routine. Unless documented otherwise, pointer
  * arguments must refer to storage large enough for the dimensions supplied to
  * the routine.
+ *
+ * Argument errors detected by this interface (for example, an undersized
+ * leading dimension or a NULL callback) do not terminate the process.  The
+ * routine records the error, invokes any handler registered with
+ * `c_set_error_handler`, and returns without computing a result; outputs are
+ * then unspecified.  Query the error with `c_get_last_error`.  Errors detected
+ * deeper inside the Fortran library still terminate the process.
+ *
+ * Every callback receives the `user_data` pointer supplied to the routine that
+ * invoked it, allowing callers to pass state without globals.
  */
 
 #include <complex.h>
@@ -181,25 +191,50 @@
 #define DYN_VI_DENSE_SOLVER 1
 /** Graph-factorized solver for variational-integrator Newton systems. */
 #define DYN_VI_GRAPH_FACTORIZED_SOLVER 2
+
+/** No error has been recorded. */
+#define DYN_NO_ERROR 0
+/** A memory allocation failed. */
+#define DYN_MEMORY_ERROR 10000
+/** A required pointer or handle was NULL or invalid. */
+#define DYN_NULL_POINTER_ERROR 10001
+/** An input argument was invalid. */
+#define DYN_INVALID_INPUT_ERROR 10004
+/** A matrix was incorrectly sized. */
+#define DYN_MATRIX_SIZE_ERROR 100100
+/** An array was incorrectly sized. */
+#define DYN_ARRAY_SIZE_ERROR 100105
 /**
  * @}
  */
 
+/**
+ * Error handler callback.
+ * @param code Error code (one of the DYN_*_ERROR constants).
+ * @param message Null-terminated description, valid only during the call.
+ * @param user_data Opaque pointer supplied to c_set_error_handler.
+ */
+typedef void (*c_error_handler)(int code, const char *message,
+    void *user_data);
 /**
  * Nonlinear vector function callback.
  * @param nvar Number of variables.
  * @param neqn Number of equations.
  * @param x Input variables.
  * @param f Output residual vector.
+ * @param user_data Opaque caller data.
  */
-typedef void (*c_vecfcn)(int nvar, int neqn, const double *x, double *f);
+typedef void (*c_vecfcn)(int nvar, int neqn, const double *x, double *f,
+    void *user_data);
 /**
  * Modal force callback used by frequency-response routines.
  * @param n Modal count.
  * @param freq Frequency.
  * @param f Output modal force.
+ * @param user_data Opaque caller data.
  */
-typedef void (*c_modal_excite)(int n, double freq, double complex *f);
+typedef void (*c_modal_excite)(int n, double freq, double complex *f,
+    void *user_data);
 /**
  * Harmonic ordinary-differential-equation callback.
  * @param n State dimension.
@@ -207,16 +242,18 @@ typedef void (*c_modal_excite)(int n, double freq, double complex *f);
  * @param t Time.
  * @param x State vector.
  * @param dxdt Output state derivative.
+ * @param user_data Opaque caller data.
  */
 typedef void (*c_harmonic_ode)(int n, double freq, double t, const double *x,
-    double *dxdt);
+    double *dxdt, void *user_data);
 /**
  * Window function callback used by SISO frequency analysis.
  * @param n Window length.
  * @param bin Zero-based sample index.
+ * @param user_data Opaque caller data.
  * @return Window coefficient.
  */
-typedef double (*c_window_function)(int n, int bin);
+typedef double (*c_window_function)(int n, int bin, void *user_data);
 /**
  * Constraint callback used by least-squares system identification.
  * @param n Data-set index or count.
@@ -227,10 +264,11 @@ typedef double (*c_window_function)(int n, int bin);
  * @param xc Constraint inputs.
  * @param p Model parameters.
  * @param fc Output constraint residuals.
+ * @param user_data Opaque caller data.
  */
 typedef void (*c_constraint_equations)(int n, int neqn, int nparam, 
     const double *xg, const double *fg, const double *xc, const double *p,
-    double *fc);
+    double *fc, void *user_data);
 /**
  * ODE model callback used by system identification.
  * @param n State dimension.
@@ -240,17 +278,42 @@ typedef void (*c_constraint_equations)(int n, int neqn, int nparam,
  * @param x State vector.
  * @param F Input or forcing value.
  * @param dxdt Output state derivative.
+ * @param user_data Opaque caller data.
  */
 typedef void (*c_ode_fit)(int n, int nparam, const double *mdl, double t, 
-    const double *x, double F, double *dxdt);
+    const double *x, double F, double *dxdt, void *user_data);
 
 /**
  * State-space input callback used by c_lti_solve.
  * @param n Input count.
  * @param t Time.
  * @param u Output input vector.
+ * @param user_data Opaque caller data.
  */
-typedef void (*c_ss_excitation)(int n, double t, double *u);
+typedef void (*c_ss_excitation)(int n, double t, double *u, void *user_data);
+
+/**
+ * Ordinary-differential-equation callback.
+ * @param n State dimension.
+ * @param t Independent variable (time).
+ * @param x State vector.
+ * @param dxdt Output state derivative.
+ * @param user_data Opaque caller data.
+ */
+typedef void (*c_ode_equations)(int n, double t, const double *x,
+    double *dxdt, void *user_data);
+
+/**
+ * Poincare section coordinate callback.  Maps a sampled ODE state onto the
+ * coordinates intersected with the section plane.
+ * @param n State dimension.
+ * @param t Time at which the state was sampled.
+ * @param x State vector.
+ * @param coordinates Output 3-element [x, y, z] section coordinates.
+ * @param user_data Opaque caller data.
+ */
+typedef void (*c_poincare_coordinates)(int n, double t, const double *x,
+    double coordinates[3], void *user_data);
 
 typedef struct c_variational_state c_variational_state;
 /**
@@ -821,6 +884,12 @@ typedef void* c_mechanism;
  * release with c_free_linkage_dynamic_model.
  */
 typedef void* c_linkage_dynamic_model;
+/**
+ * @brief Opaque linear structural time-integrator handle. Create with
+ * c_create_dense_generalized_alpha_integrator and release with
+ * c_free_structural_integrator.
+ */
+typedef void* c_structural_integrator;
 
 /**
  * @brief A polynomial with dynamically allocated coefficients.
@@ -1008,9 +1077,243 @@ typedef struct
     double orientation_point[3];
 } c_beam_element_3d;
 
+/**
+ * @brief A two-dimensional, pin-jointed, axial-only truss element with x and
+ * y translations at each node.
+ */
+typedef struct
+{
+    /**
+     * The material.
+    */
+    c_material material;
+    /**
+     * The cross-sectional area.
+    */
+    double area;
+    /**
+     * The first node of the element (s = -1).
+    */
+    c_node node_1;
+    /**
+     * The second node of the element (s = 1).
+    */
+    c_node node_2;
+} c_truss_element_2d;
+
+/**
+ * @brief A three-dimensional, pin-jointed, axial-only truss element with x,
+ * y, and z translations at each node.
+ */
+typedef struct
+{
+    /**
+     * The material.
+    */
+    c_material material;
+    /**
+     * The cross-sectional area.
+    */
+    double area;
+    /**
+     * The first node of the element (s = -1).
+    */
+    c_node node_1;
+    /**
+     * The second node of the element (s = 1).
+    */
+    c_node node_2;
+} c_truss_element_3d;
+
+/**
+ * @brief A two-dimensional linear, axial spring element with x and y
+ * translations at each node.
+ */
+typedef struct
+{
+    /**
+     * The spring stiffness.
+    */
+    double stiffness;
+    /**
+     * The first node of the element.
+    */
+    c_node node_1;
+    /**
+     * The second node of the element.
+    */
+    c_node node_2;
+    /**
+     * The spring axis; used only if use_direction is true.  The vector must
+     * be non-zero and is normalized internally.
+    */
+    double direction[2];
+    /**
+     * True to define the spring axis by direction; false to define it by
+     * the vector from node_1 to node_2, in which case the nodes must not be
+     * coincident.
+    */
+    bool use_direction;
+} c_spring_element_2d;
+
+/**
+ * @brief A three-dimensional linear, axial spring element with x, y, and z
+ * translations at each node.
+ */
+typedef struct
+{
+    /**
+     * The spring stiffness.
+    */
+    double stiffness;
+    /**
+     * The first node of the element.
+    */
+    c_node node_1;
+    /**
+     * The second node of the element.
+    */
+    c_node node_2;
+    /**
+     * The spring axis; used only if use_direction is true.  The vector must
+     * be non-zero and is normalized internally.
+    */
+    double direction[3];
+    /**
+     * True to define the spring axis by direction; false to define it by
+     * the vector from node_1 to node_2, in which case the nodes must not be
+     * coincident.
+    */
+    bool use_direction;
+} c_spring_element_3d;
+
+/**
+ * @brief A two-dimensional linear, axial viscous damper element with x and y
+ * translations at each node.
+ */
+typedef struct
+{
+    /**
+     * The viscous damping coefficient.
+    */
+    double damping_coefficient;
+    /**
+     * The first node of the element.
+    */
+    c_node node_1;
+    /**
+     * The second node of the element.
+    */
+    c_node node_2;
+    /**
+     * The damper axis; used only if use_direction is true.  The vector must
+     * be non-zero and is normalized internally.
+    */
+    double direction[2];
+    /**
+     * True to define the damper axis by direction; false to define it by
+     * the vector from node_1 to node_2, in which case the nodes must not be
+     * coincident.
+    */
+    bool use_direction;
+} c_damper_element_2d;
+
+/**
+ * @brief A three-dimensional linear, axial viscous damper element with x, y,
+ * and z translations at each node.
+ */
+typedef struct
+{
+    /**
+     * The viscous damping coefficient.
+    */
+    double damping_coefficient;
+    /**
+     * The first node of the element.
+    */
+    c_node node_1;
+    /**
+     * The second node of the element.
+    */
+    c_node node_2;
+    /**
+     * The damper axis; used only if use_direction is true.  The vector must
+     * be non-zero and is normalized internally.
+    */
+    double direction[3];
+    /**
+     * True to define the damper axis by direction; false to define it by
+     * the vector from node_1 to node_2, in which case the nodes must not be
+     * coincident.
+    */
+    bool use_direction;
+} c_damper_element_3d;
+
+/**
+ * @brief A two-dimensional translational point mass element.
+ */
+typedef struct
+{
+    /**
+     * The mass.
+    */
+    double mass;
+    /**
+     * The node to which the mass is attached.
+    */
+    c_node node_1;
+} c_mass_element_2d;
+
+/**
+ * @brief A three-dimensional translational point mass element.
+ */
+typedef struct
+{
+    /**
+     * The mass.
+    */
+    double mass;
+    /**
+     * The node to which the mass is attached.
+    */
+    c_node node_1;
+} c_mass_element_3d;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * @defgroup dynamics_errors Error reporting
+ * @{
+ */
+/**
+ * Register a handler invoked whenever the C interface records an error on
+ * the calling thread.
+ * @param fcn Handler, or NULL to remove the current handler.
+ * @param user_data Opaque pointer forwarded to fcn.
+ */
+void c_set_error_handler(c_error_handler fcn, void *user_data);
+/**
+ * Get the most recent error recorded on the calling thread.  The value is
+ * retained until c_clear_error is called; successful calls do not reset it.
+ * @return The error code, or DYN_NO_ERROR if no error has been recorded.
+ */
+int c_get_last_error(void);
+/**
+ * Copy the message for the most recent error on the calling thread.
+ * @param n Capacity of buffer, including the terminating null character.
+ * @param buffer Output null-terminated message; truncated to fit.
+ * @return The full length of the message, excluding the null character.
+ */
+int c_get_last_error_message(int n, char *buffer);
+/**
+ * Clear the error recorded on the calling thread.
+ */
+void c_clear_error(void);
+/**
+ * @}
+ */
 
 /**
  * @defgroup dynamics_matrix Matrix and general kinematics
@@ -1331,11 +1634,12 @@ void c_jacobian_generating_vector(const double *d, const double *k,
  * @param jvar Output joint variables.
  * @param resid Output residual.
  * @param ib Output iteration statistics.
+ * @param user_data Opaque caller data forwarded to mdl.
  */
 void c_solve_inverse_kinematics(int njoints, int neqn, const c_vecfcn mdl,
     const double *qo, const double *constraints, const double *qmax,
     const double *qmin, double *jvar, double *resid,
-    c_iteration_behavior *ib);
+    c_iteration_behavior *ib, void *user_data);
 /**
  * Convert a rotation matrix to angle-axis form.
  * @param r Rotation matrix.
@@ -1369,11 +1673,12 @@ void c_to_angle_axis(const double *r, int ldr, double *angle, double axis[3]);
  * @param ldms Leading dimension of modeshapes.
  * @param rsp Output complex response.
  * @param ldr Leading dimension of rsp.
+ * @param user_data Opaque caller data forwarded to frc.
  */
 void c_frequency_response(int n, int nfreq, const double *mass, int ldm,
     const double *stiff, int ldk, double alpha, double beta, const double *freq,
     const c_modal_excite frc, double *modes, double *modeshapes, int ldms,
-    double complex *rsp, int ldr);
+    double complex *rsp, int ldr, void *user_data);
 /**
  * Compute modal damping from Rayleigh coefficients.
  * @param lambda Modal eigenvalue.
@@ -1423,10 +1728,11 @@ void c_normalize_mode_shapes(int n, double *x, int ldx);
  * @param rsp Output complex response.
  * @param ldr Leading dimension of rsp.
  * @param opts Sweep controls.
+ * @param user_data Opaque caller data forwarded to fcn.
  */
 void c_frf_sweep(int n, int nfreq, c_harmonic_ode fcn, const double *freq,
     const double *iv, int solver, double complex *rsp, int ldr, 
-    const c_frequency_sweep_controls *opts);
+    const c_frequency_sweep_controls *opts, void *user_data);
 /**
  * Fill frequency-sweep controls with defaults.
  * @param x Controls updated in place.
@@ -1486,10 +1792,11 @@ void c_fit_frf(int n, int norder, int method, const double *freq,
  * @param method H1 or H2 estimator.
  * @param freq Output frequencies.
  * @param rsp Output complex response.
+ * @param user_data Opaque caller data forwarded to winfun.
  */
 void c_siso_frequency_response(int n, int nf, const double *x, const double *y,
     double fs, int winsize, c_window_function winfun, int method, double *freq,
-    double complex *rsp);
+    double complex *rsp, void *user_data);
 
 /**
  * Compute the cross product of two three-vectors.
@@ -1547,6 +1854,15 @@ void c_vector_normalize(int n, double *x);
  * @return Dot product.
  */
 double c_dot_product(int n, const double *x, const double *y);
+/**
+ * Test whether a matrix is symmetric to within a small relative tolerance.
+ * @param m Row count.
+ * @param n Column count.
+ * @param a m-by-n matrix.
+ * @param lda Leading dimension of a.
+ * @return true when a is square and symmetric; else, false.
+ */
+bool c_is_symmetric(int m, int n, const double *a, int lda);
 
 /**
  * Fit an ODE model to dynamic-system measurements by constrained least squares.
@@ -1571,6 +1887,7 @@ double c_dot_product(int n, const double *x, const double *y);
  * @param weights Residual weights.
  * @param stats Output regression statistics.
  * @param info Output iteration statistics.
+ * @param user_data Opaque caller data forwarded to fcn and constraints.
  */
 void c_siso_model_fit_least_squares(int nsets, int nparams, int neqns, 
     const c_ode_fit fcn, const c_dynamic_system_measurement *x, 
@@ -1579,7 +1896,7 @@ void c_siso_model_fit_least_squares(int nsets, int nparams, int neqns,
     const c_lm_solver_options *opts, int nconstraints, const double *xc, 
     const double *yc, const c_constraint_equations constraints, int nweights,
     const double *weights, c_regression_statistics *stats, 
-    c_iteration_behavior *info);
+    c_iteration_behavior *info, void *user_data);
 /**
  * Fill Levenberg-Marquardt options with defaults.
  * @param x Options updated in place.
@@ -1998,6 +2315,34 @@ void c_poincare_map(int n, const double *x, const double *y, const double *z,
     const c_plane *pln, int side, int nbuffer, double *xbuffer, double *ybuffer,
     double *zbuffer, int *nactual);
 /**
+ * Compute a Poincare section map by integrating an ODE and intersecting
+ * uniformly spaced solution samples with a plane.  The coordinate callback
+ * is held per thread for the duration of the call, so this routine must not
+ * be re-entered from within its own callbacks.
+ * @param fcn ODE callback.
+ * @param tspan Increasing start and end times.
+ * @param n State dimension.  At least 3 if coordinates is NULL.
+ * @param iv n-element initial state at tspan[0].
+ * @param sample_count Number of uniformly spaced samples across tspan,
+ *  including both endpoints; at least 2.
+ * @param pln Section plane.
+ * @param side Section orientation selector.
+ * @param solver ODE integration method (e.g. DYN_RUNGE_KUTTA_45).
+ * @param coordinates Optional callback mapping each sample onto section
+ *  coordinates; pass NULL to use the first three state components.
+ * @param nbuffer Buffer capacity.
+ * @param xbuffer Output section x values.
+ * @param ybuffer Output section y values.
+ * @param zbuffer Output section z values.
+ * @param nactual Output number of intersections stored, at most nbuffer.
+ * @param user_data Opaque caller data forwarded to fcn and coordinates.
+ */
+void c_poincare_map_ode(c_ode_equations fcn, const double tspan[2], int n,
+    const double *iv, int sample_count, const c_plane *pln, int side,
+    int solver, c_poincare_coordinates coordinates, int nbuffer,
+    double *xbuffer, double *ybuffer, double *zbuffer, int *nactual,
+    void *user_data);
+/**
  * @}
  */
 
@@ -2371,7 +2716,16 @@ void c_default_variational_integrator_settings(
  * shape 3-by-nbody-by-ntime.
  * @param multipliers Output constraint multipliers with shape
  * nconstraint-by-ntime. The final column is obtained from a noncommitting
- * look-ahead step. Storage may be omitted only when nconstraint is zero.
+ * look-ahead step. On failure, only columns for completed steps are valid and
+ * the look-ahead column is omitted. Storage may be omitted only when
+ * nconstraint is zero.
+ * @param converged Set to 1 on success and 0 if a numerical solve fails.
+ * @param iterations Total Newton iterations across attempted steps.
+ * @param jacobian_singular Set to 1 if a Newton Jacobian was detected as
+ * singular.
+ * @param completed_steps Number of completed time advances. The output
+ * histories contain the initial state and these completed steps; unused
+ * trailing entries are zero (identity quaternions for orientation).
  */
 void c_variational_integrator_solve(int nbody, const c_rigid_body *bodies,
     int ntime, double dt, const double *initial_position,
@@ -2382,7 +2736,8 @@ void c_variational_integrator_solve(int nbody, const c_rigid_body *bodies,
     c_variational_constraint_jacobian jacobian_callback, void *user_data,
     const c_variational_integrator_settings *settings, double *position,
     c_quaternion *orientation, double *velocity, double *angular_velocity,
-    double *multipliers);
+    double *multipliers, int *converged, int *iterations,
+    int *jacobian_singular, int *completed_steps);
 /**
  * Create a dynamic model from a serial linkage value.
  * @param linkage Serial linkage definition. The dynamic model copies all link
@@ -2529,7 +2884,15 @@ void c_linkage_dynamic_torsional_element_results(c_linkage_dynamic_model obj,
  * 3-by-nbody-by-ntime.
  * @param multipliers Output multiplier history with shape
  * nconstraint-by-ntime. If prescribed motion is active, its required actuator
- * torque is the last multiplier row.
+ * torque is the last multiplier row. On failure, only columns for completed
+ * steps are valid and the look-ahead column is omitted.
+ * @param converged Set to 1 on success and 0 if a numerical solve fails.
+ * @param iterations Total Newton iterations across attempted steps.
+ * @param jacobian_singular Set to 1 if a Newton Jacobian was detected as
+ * singular.
+ * @param completed_steps Number of completed time advances. The output
+ * histories contain the initial state and these completed steps; unused
+ * trailing entries are zero (identity quaternions for orientation).
  */
 void c_linkage_dynamic_solve(c_linkage_dynamic_model obj, int nbody,
     int nconstraint, const c_variational_integrator_settings *settings,
@@ -2537,7 +2900,8 @@ void c_linkage_dynamic_solve(c_linkage_dynamic_model obj, int nbody,
     const double *body_torque, int prescribed_body,
     c_linkage_prescribed_motion prescribed_motion, void *user_data,
     double *position, c_quaternion *orientation, double *velocity,
-    double *angular_velocity, double *multipliers);
+    double *angular_velocity, double *multipliers, int *converged,
+    int *iterations, int *jacobian_singular, int *completed_steps);
 /**
  * Convert one state's linkage multipliers into joint reaction wrenches. Each
  * reaction is expressed in world coordinates and acts on the joint's child
@@ -2699,10 +3063,11 @@ void c_scale_transfer_function(double x, const c_transfer_function *tf1,
  * @param nout Output count.
  * @param y Output samples.
  * @param ldy Leading dimension of y.
+ * @param user_data Opaque caller data forwarded to u.
  */
 void c_lti_solve(const c_state_space_model *mdl, const c_ss_excitation u,
     int n, const double *t, int ndof, const double *ic, int solver, 
-    int nout, double *y, int ldy);
+    int nout, double *y, int ldy, void *user_data);
 /**
  * Compute state-space poles.
  * @param mdl State-space model.
@@ -3015,6 +3380,373 @@ void c_apply_displacement_constraint_dense(int dof, double val, int n,
  */
 void c_solve_static_system_dense(int n, const double *k, int ldk,
     const double *f, double *u);
+/**
+ * Compute the length of a 2D truss element.
+ * @param elem Truss element.
+ * @return Element length.
+ */
+double c_truss_element_2d_length(const c_truss_element_2d *elem);
+/**
+ * Compute the 4-by-4 global stiffness matrix of a 2D truss element.
+ * @param elem Truss element.
+ * @param k Output stiffness matrix.
+ * @param ldk Leading dimension of k.
+ */
+void c_truss_element_2d_stiffness_matrix(const c_truss_element_2d *elem,
+    double *k, int ldk);
+/**
+ * Compute the 4-by-4 consistent mass matrix of a 2D truss element.
+ * @param elem Truss element.
+ * @param rule Integration rule, or zero to use the default rule.
+ * @param m Output mass matrix.
+ * @param ldm Leading dimension of m.
+ */
+void c_truss_element_2d_mass_matrix(const c_truss_element_2d *elem, int rule,
+    double *m, int ldm);
+/**
+ * Compute the 4-by-4 rotation matrix of a 2D truss element.
+ * @param elem Truss element.
+ * @param r Output rotation matrix.
+ * @param ldr Leading dimension of r.
+ */
+void c_truss_element_2d_rotation_matrix(const c_truss_element_2d *elem,
+    double *r, int ldr);
+/**
+ * Compute the axial strain in a 2D truss element.
+ * @param elem Truss element.
+ * @param displacement 4-element global element displacement vector.
+ * @return Axial strain.
+ */
+double c_truss_element_2d_strain(const c_truss_element_2d *elem,
+    const double displacement[4]);
+/**
+ * Compute the axial force (positive in tension) in a 2D truss element.
+ * @param elem Truss element.
+ * @param displacement 4-element global element displacement vector.
+ * @return Axial force.
+ */
+double c_truss_element_2d_axial_force(const c_truss_element_2d *elem,
+    const double displacement[4]);
+/**
+ * Compute the equivalent nodal force vector for a distributed load on a 2D
+ * truss element.
+ * @param elem Truss element.
+ * @param q 2-element distributed load vector in the element coordinate
+ *  system.
+ * @param rule Integration rule, or zero to use the default rule.
+ * @param f Output 4-element nodal force vector.
+ */
+void c_truss_element_2d_external_force_vector(const c_truss_element_2d *elem,
+    const double q[2], int rule, double f[4]);
+/**
+ * Compute the length of a 3D truss element.
+ * @param elem Truss element.
+ * @return Element length.
+ */
+double c_truss_element_3d_length(const c_truss_element_3d *elem);
+/**
+ * Compute the 6-by-6 global stiffness matrix of a 3D truss element.
+ * @param elem Truss element.
+ * @param k Output stiffness matrix.
+ * @param ldk Leading dimension of k.
+ */
+void c_truss_element_3d_stiffness_matrix(const c_truss_element_3d *elem,
+    double *k, int ldk);
+/**
+ * Compute the 6-by-6 consistent mass matrix of a 3D truss element.
+ * @param elem Truss element.
+ * @param rule Integration rule, or zero to use the default rule.
+ * @param m Output mass matrix.
+ * @param ldm Leading dimension of m.
+ */
+void c_truss_element_3d_mass_matrix(const c_truss_element_3d *elem, int rule,
+    double *m, int ldm);
+/**
+ * Compute the 6-by-6 rotation matrix of a 3D truss element.
+ * @param elem Truss element.
+ * @param r Output rotation matrix.
+ * @param ldr Leading dimension of r.
+ */
+void c_truss_element_3d_rotation_matrix(const c_truss_element_3d *elem,
+    double *r, int ldr);
+/**
+ * Compute the axial strain in a 3D truss element.
+ * @param elem Truss element.
+ * @param displacement 6-element global element displacement vector.
+ * @return Axial strain.
+ */
+double c_truss_element_3d_strain(const c_truss_element_3d *elem,
+    const double displacement[6]);
+/**
+ * Compute the axial force (positive in tension) in a 3D truss element.
+ * @param elem Truss element.
+ * @param displacement 6-element global element displacement vector.
+ * @return Axial force.
+ */
+double c_truss_element_3d_axial_force(const c_truss_element_3d *elem,
+    const double displacement[6]);
+/**
+ * Compute the equivalent nodal force vector for a distributed load on a 3D
+ * truss element.
+ * @param elem Truss element.
+ * @param q 3-element distributed load vector in the element coordinate
+ *  system.
+ * @param rule Integration rule, or zero to use the default rule.
+ * @param f Output 6-element nodal force vector.
+ */
+void c_truss_element_3d_external_force_vector(const c_truss_element_3d *elem,
+    const double q[3], int rule, double f[6]);
+/**
+ * Assemble a dense global stiffness matrix from 2D truss elements.
+ * @param gdof Total number of global degrees of freedom.
+ * @param n Element count.
+ * @param elements Truss elements.
+ * @param nn Node count.
+ * @param nodes Global node list.
+ * @param k Output gdof-by-gdof stiffness matrix.
+ * @param ldk Leading dimension of k.
+ */
+void c_assemble_static_system_truss_2d(int gdof, int n,
+    const c_truss_element_2d *elements, int nn, const c_node *nodes,
+    double *k, int ldk);
+/**
+ * Assemble dense global mass and stiffness matrices from 2D truss elements.
+ * @param gdof Total number of global degrees of freedom.
+ * @param n Element count.
+ * @param elements Truss elements.
+ * @param nn Node count.
+ * @param nodes Global node list.
+ * @param rule Integration rule, or zero to use the default rule.
+ * @param m Output gdof-by-gdof mass matrix.
+ * @param ldm Leading dimension of m.
+ * @param k Output gdof-by-gdof stiffness matrix.
+ * @param ldk Leading dimension of k.
+ */
+void c_assemble_dynamic_system_truss_2d(int gdof, int n,
+    const c_truss_element_2d *elements, int nn, const c_node *nodes, int rule,
+    double *m, int ldm, double *k, int ldk);
+/**
+ * Assemble a dense global stiffness matrix from 3D truss elements.
+ * @param gdof Total number of global degrees of freedom.
+ * @param n Element count.
+ * @param elements Truss elements.
+ * @param nn Node count.
+ * @param nodes Global node list.
+ * @param k Output gdof-by-gdof stiffness matrix.
+ * @param ldk Leading dimension of k.
+ */
+void c_assemble_static_system_truss_3d(int gdof, int n,
+    const c_truss_element_3d *elements, int nn, const c_node *nodes,
+    double *k, int ldk);
+/**
+ * Assemble dense global mass and stiffness matrices from 3D truss elements.
+ * @param gdof Total number of global degrees of freedom.
+ * @param n Element count.
+ * @param elements Truss elements.
+ * @param nn Node count.
+ * @param nodes Global node list.
+ * @param rule Integration rule, or zero to use the default rule.
+ * @param m Output gdof-by-gdof mass matrix.
+ * @param ldm Leading dimension of m.
+ * @param k Output gdof-by-gdof stiffness matrix.
+ * @param ldk Leading dimension of k.
+ */
+void c_assemble_dynamic_system_truss_3d(int gdof, int n,
+    const c_truss_element_3d *elements, int nn, const c_node *nodes, int rule,
+    double *m, int ldm, double *k, int ldk);
+/**
+ * Compute the 4-by-4 global stiffness matrix of a 2D spring element.
+ * @param elem Spring element.
+ * @param k Output stiffness matrix.
+ * @param ldk Leading dimension of k.
+ */
+void c_spring_element_2d_stiffness_matrix(const c_spring_element_2d *elem,
+    double *k, int ldk);
+/**
+ * Compute the spring force (positive in tension) in a 2D spring element.
+ * @param elem Spring element.
+ * @param displacement 4-element global element displacement vector.
+ * @return Spring force.
+ */
+double c_spring_element_2d_force(const c_spring_element_2d *elem,
+    const double displacement[4]);
+/**
+ * Compute the 6-by-6 global stiffness matrix of a 3D spring element.
+ * @param elem Spring element.
+ * @param k Output stiffness matrix.
+ * @param ldk Leading dimension of k.
+ */
+void c_spring_element_3d_stiffness_matrix(const c_spring_element_3d *elem,
+    double *k, int ldk);
+/**
+ * Compute the spring force (positive in tension) in a 3D spring element.
+ * @param elem Spring element.
+ * @param displacement 6-element global element displacement vector.
+ * @return Spring force.
+ */
+double c_spring_element_3d_force(const c_spring_element_3d *elem,
+    const double displacement[6]);
+/**
+ * Compute the 4-by-4 global damping matrix of a 2D damper element.
+ * @param elem Damper element.
+ * @param c Output damping matrix.
+ * @param ldc Leading dimension of c.
+ */
+void c_damper_element_2d_damping_matrix(const c_damper_element_2d *elem,
+    double *c, int ldc);
+/**
+ * Compute the damper force (positive in tension) in a 2D damper element.
+ * @param elem Damper element.
+ * @param velocity 4-element global element velocity vector.
+ * @return Damper force.
+ */
+double c_damper_element_2d_force(const c_damper_element_2d *elem,
+    const double velocity[4]);
+/**
+ * Compute the 6-by-6 global damping matrix of a 3D damper element.
+ * @param elem Damper element.
+ * @param c Output damping matrix.
+ * @param ldc Leading dimension of c.
+ */
+void c_damper_element_3d_damping_matrix(const c_damper_element_3d *elem,
+    double *c, int ldc);
+/**
+ * Compute the damper force (positive in tension) in a 3D damper element.
+ * @param elem Damper element.
+ * @param velocity 6-element global element velocity vector.
+ * @return Damper force.
+ */
+double c_damper_element_3d_force(const c_damper_element_3d *elem,
+    const double velocity[6]);
+/**
+ * Compute the 2-by-2 mass matrix of a 2D point mass element.
+ * @param elem Mass element.
+ * @param m Output mass matrix.
+ * @param ldm Leading dimension of m.
+ */
+void c_mass_element_2d_mass_matrix(const c_mass_element_2d *elem, double *m,
+    int ldm);
+/**
+ * Compute the 3-by-3 mass matrix of a 3D point mass element.
+ * @param elem Mass element.
+ * @param m Output mass matrix.
+ * @param ldm Leading dimension of m.
+ */
+void c_mass_element_3d_mass_matrix(const c_mass_element_3d *elem, double *m,
+    int ldm);
+/**
+ * Assemble dense global mass, damping, and stiffness matrices for a 2D system
+ * composed of discrete elements.  Any element count may be zero, in which
+ * case the corresponding array pointer may be NULL.
+ * @param gdof Total number of global degrees of freedom.
+ * @param nm Mass element count.
+ * @param masses Mass elements.
+ * @param nd Damper element count.
+ * @param dampers Damper elements.
+ * @param ns Spring element count.
+ * @param springs Spring elements.
+ * @param nn Node count.
+ * @param nodes Global node list.
+ * @param m Output gdof-by-gdof mass matrix.
+ * @param ldm Leading dimension of m.
+ * @param c Output gdof-by-gdof damping matrix.
+ * @param ldc Leading dimension of c.
+ * @param k Output gdof-by-gdof stiffness matrix.
+ * @param ldk Leading dimension of k.
+ */
+void c_assemble_discrete_system_2d(int gdof, int nm,
+    const c_mass_element_2d *masses, int nd, const c_damper_element_2d *dampers,
+    int ns, const c_spring_element_2d *springs, int nn, const c_node *nodes,
+    double *m, int ldm, double *c, int ldc, double *k, int ldk);
+/**
+ * Assemble dense global mass, damping, and stiffness matrices for a 3D system
+ * composed of discrete elements.  Any element count may be zero, in which
+ * case the corresponding array pointer may be NULL.
+ * @param gdof Total number of global degrees of freedom.
+ * @param nm Mass element count.
+ * @param masses Mass elements.
+ * @param nd Damper element count.
+ * @param dampers Damper elements.
+ * @param ns Spring element count.
+ * @param springs Spring elements.
+ * @param nn Node count.
+ * @param nodes Global node list.
+ * @param m Output gdof-by-gdof mass matrix.
+ * @param ldm Leading dimension of m.
+ * @param c Output gdof-by-gdof damping matrix.
+ * @param ldc Leading dimension of c.
+ * @param k Output gdof-by-gdof stiffness matrix.
+ * @param ldk Leading dimension of k.
+ */
+void c_assemble_discrete_system_3d(int gdof, int nm,
+    const c_mass_element_3d *masses, int nd, const c_damper_element_3d *dampers,
+    int ns, const c_spring_element_3d *springs, int nn, const c_node *nodes,
+    double *m, int ldm, double *c, int ldc, double *k, int ldk);
+/**
+ * @}
+ */
+
+/**
+ * @defgroup dynamics_structural_solvers Linear structural time integration
+ * @{
+ */
+/**
+ * Create a dense generalized-alpha integrator for M*a + C*v + K*u = f.  The
+ * matrices must already reflect any boundary conditions.
+ * @param n Number of degrees of freedom.
+ * @param m n-by-n mass matrix.
+ * @param ldm Leading dimension of m.
+ * @param c n-by-n damping matrix.
+ * @param ldc Leading dimension of c.
+ * @param k n-by-n stiffness matrix.
+ * @param ldk Leading dimension of k.
+ * @param rho_infinity High-frequency spectral radius in [0, 1].  A value of
+ *  1 gives the average-acceleration (trapezoidal) scheme.
+ * @return Integrator handle; release with c_free_structural_integrator.
+ */
+c_structural_integrator c_create_dense_generalized_alpha_integrator(int n,
+    const double *m, int ldm, const double *c, int ldc, const double *k,
+    int ldk, double rho_infinity);
+/**
+ * Release a structural integrator handle.
+ * @param obj Integrator handle; NULL is ignored.
+ */
+void c_free_structural_integrator(c_structural_integrator obj);
+/**
+ * Advance the state by one time step.
+ * @param obj Integrator handle.
+ * @param n Number of degrees of freedom.
+ * @param force_current n-element external force at the start of the step.
+ * @param force_next n-element external force at the end of the step.
+ * @param dt Positive time step.
+ * @param displacement n-element displacement; updated to the end state.
+ * @param velocity n-element velocity; updated to the end state.
+ * @param acceleration n-element acceleration; updated to the end state.
+ *  On the first step this must be consistent with the initial conditions.
+ */
+void c_structural_integrator_step(c_structural_integrator obj, int n,
+    const double *force_current, const double *force_next, double dt,
+    double *displacement, double *velocity, double *acceleration);
+/**
+ * Advance the state through a force history using npts - 1 constant steps.
+ * Only the final state is returned.
+ * @param obj Integrator handle.
+ * @param n Number of degrees of freedom.
+ * @param npts Number of force samples (time points); at least 2.
+ * @param forces n-by-npts matrix whose columns are the external force at
+ *  each time point.
+ * @param ldf Leading dimension of forces.
+ * @param dt Positive time step.
+ * @param displacement n-element displacement; initial state on input, final
+ *  state on output.
+ * @param velocity n-element velocity; initial state on input, final state
+ *  on output.
+ * @param acceleration n-element acceleration; initial state on input, final
+ *  state on output.
+ */
+void c_structural_integrator_solve(c_structural_integrator obj, int n,
+    int npts, const double *forces, int ldf, double dt, double *displacement,
+    double *velocity, double *acceleration);
 /**
  * @}
  */

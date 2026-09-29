@@ -82,6 +82,13 @@ add_executable(
 )
 target_link_libraries(four_bar_example_1 ${PROJECT_NAME} ${FPLOT_LIBRARIES})
 
+# Four-Bar Linkage Example 2
+add_executable(
+    four_bar_example_2
+    four_bar_example_2.f90
+)
+target_link_libraries(four_bar_example_2 ${PROJECT_NAME} ${FPLOT_LIBRARIES})
+
 # SISO FRF Example 1
 add_executable(
     siso_frf_example_1
@@ -163,6 +170,30 @@ target_link_libraries(
     ${DIFFEQ_LIBRARIES}
 )
 
+# Duffing Poincare Example
+add_executable(
+    duffing_poincare_example
+    duffing_poincare_example.f90
+)
+target_link_libraries(
+    duffing_poincare_example
+    ${PROJECT_NAME}
+    ${FPLOT_LIBRARIES}
+    ${DIFFEQ_LIBRARIES}
+)
+
+# Discrete Structural Example
+add_executable(
+    discrete_structural_example
+    discrete_structural_example.f90
+)
+target_link_libraries(
+    discrete_structural_example
+    ${PROJECT_NAME}
+    ${FPLOT_LIBRARIES}
+    ${DIFFEQ_LIBRARIES}
+)
+
 # C DH_Table Example
 if (${BUILD_DYNAMICS_C_INTERFACE})
     add_executable(
@@ -229,6 +260,10 @@ endif()
 add_executable(structural_example structural_example.f90)
 target_link_libraries(structural_example ${PROJECT_NAME} ${FPLOT_LIBRARIES})
 
+# Harmonic Truss Example
+add_executable(harmonic_truss_example harmonic_truss_example.f90)
+target_link_libraries(harmonic_truss_example ${PROJECT_NAME} ${FPLOT_LIBRARIES})
+
 # Variational Integrator Example
 add_executable(variational_integrator_example variational_integrator_example.f90)
 target_link_libraries(variational_integrator_example ${PROJECT_NAME} ${FPLOT_LIBRARIES})
@@ -238,6 +273,24 @@ add_executable(motor_driven_four_bar_example motor_driven_four_bar_example.f90)
 target_link_libraries(motor_driven_four_bar_example ${PROJECT_NAME} ${FPLOT_LIBRARIES})
 
 if (${BUILD_SHARED_LIBS} AND WIN32)
+    add_custom_command(
+        TARGET duffing_poincare_example
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+        $<TARGET_RUNTIME_DLLS:duffing_poincare_example>
+        $<TARGET_FILE_DIR:duffing_poincare_example>
+        COMMAND_EXPAND_LISTS
+    )
+
+    add_custom_command(
+        TARGET harmonic_truss_example
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+        $<TARGET_RUNTIME_DLLS:harmonic_truss_example>
+        $<TARGET_FILE_DIR:harmonic_truss_example>
+        COMMAND_EXPAND_LISTS
+    )
+
     add_custom_command(
         TARGET frf_sweep_example_1
         POST_BUILD

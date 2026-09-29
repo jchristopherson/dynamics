@@ -2,7 +2,7 @@
 #include <math.h>
 #include "dynamics.h"
 
-void excitation(int n, double t, double *u);
+void excitation(int n, double t, double *u, void *user_data);
 
 int main()
 {
@@ -28,7 +28,8 @@ int main()
     ic[1] = 0.0;
     
     // Compute the solution
-    c_lti_solve(&mdl, excitation, n, t, 2, ic, DYN_RUNGE_KUTTA_45, 1, y, n);
+    c_lti_solve(&mdl, excitation, n, t, 2, ic, DYN_RUNGE_KUTTA_45, 1, y, n,
+        NULL);
 
     // Print out the solution
     for (i = 0; i < n; ++i)
@@ -41,7 +42,7 @@ int main()
     return 0;
 }
 
-void excitation(int n, double t, double *u)
+void excitation(int n, double t, double *u, void *user_data)
 {
     u[0] = 1.0e3 * sin(10.0 * t);
 }

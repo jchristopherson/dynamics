@@ -28,6 +28,20 @@ static void fixed_jacobian(const c_variational_state *state, int n,
     for (int i = 0; i < n; ++i) jacobian[i * ldj + i] = 1.0;
 }
 
+static void inconsistent_constraint(const c_variational_state *state, int n,
+    double *value, void *user_data)
+{
+    (void)state; (void)user_data;
+    for (int i = 0; i < n; ++i) value[i] = 1.0;
+}
+
+static void zero_jacobian(const c_variational_state *state, int n,
+    double *jacobian, int ldj, void *user_data)
+{
+    (void)state; (void)n; (void)user_data;
+    for (int i = 0; i < ldj * 6; ++i) jacobian[i] = 0.0;
+}
+
 bool c_test_variational_integrator(void)
 {
     c_rigid_body body = {0};
@@ -38,19 +52,36 @@ bool c_test_variational_integrator(void)
     double v0[3] = {0.0, 0.0, 0.0};
     double w0[3] = {0.0, 0.0, 0.0};
     double p[9], v[9], w[9], multipliers[9];
+    int converged, iterations, jacobian_singular, completed_steps;
 
     body.mass = 2.0;
     body.inertia[0] = body.inertia[4] = body.inertia[8] = 1.0;
     c_default_variational_integrator_settings(&settings);
     c_variational_integrator_solve(1, &body, 3, 0.01, p0, &q0, v0, w0, 3,
         fixed_force, fixed_constraint, fixed_jacobian, NULL, &settings,
-        p, q, v, w, multipliers);
-    if (fabs(p[6]) > 1.0e-10 || fabs(p[7]) > 1.0e-10 ||
+        p, q, v, w, multipliers, &converged, &iterations,
+        &jacobian_singular, &completed_steps);
+    if (converged != 1 || iterations < 0 || jacobian_singular != 0 ||
+        completed_steps != 2 || fabs(p[6]) > 1.0e-10 || fabs(p[7]) > 1.0e-10 ||
         fabs(p[8]) > 1.0e-10 || fabs(multipliers[2] - 19.62) > 1.0e-6)
     {
         printf("TEST FAILED: c_test_variational_integrator\n");
         return false;
     }
+        settings.maximum_iterations = 1;
+        settings.tolerance = 1.0e-30;
+        c_variational_integrator_solve(1, &body, 3, 0.1, p0, &q0, v0, w0, 1,
+            NULL, inconsistent_constraint, zero_jacobian, NULL, &settings,
+            p, q, v, w, multipliers,
+            &converged, &iterations, &jacobian_singular, &completed_steps);
+        if (converged != 0 || iterations != 1 || jacobian_singular != 1 ||
+            completed_steps != 0 ||
+            p[0] != 0.0 || p[1] != 0.0 || p[2] != 0.0)
+        {
+            printf("TEST FAILED: recovery (%d, %d, %d, %d)\n", converged,
+                iterations, jacobian_singular, completed_steps);
+            return false;
+        }
     return true;
 }
 
@@ -117,6 +148,7 @@ bool c_test_linkage_dynamics(void)
     double position[18], velocity[18], angular_velocity[18];
     c_quaternion orientation[6];
     double multipliers[36]; /* (17 linkage + 1 prescribed) by 2 times */
+    int converged, iterations, jacobian_singular, completed_steps;
     bool result = true;
 
     c_alloc_serial_linkage(1, &serial);
@@ -175,7 +207,10 @@ bool c_test_linkage_dynamics(void)
             result = false;
         c_linkage_dynamic_solve(model, 3, 18, &settings, 2, 1.0e-4, gravity,
             force, torque, 1, fixed_motion, &theta, position, orientation,
-            velocity, angular_velocity, multipliers);
+            velocity, angular_velocity, multipliers, &converged, &iterations,
+            &jacobian_singular, &completed_steps);
+        if (converged != 1 || iterations < 0 || jacobian_singular != 0 ||
+            completed_steps != 1) result = false;
         c_linkage_dynamic_joint_reactions(model, 3, 18, 1.0e-4,
             position + 9, orientation + 3, velocity + 9,
             angular_velocity + 9, multipliers + 18, reactions);

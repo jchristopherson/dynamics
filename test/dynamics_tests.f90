@@ -27,6 +27,7 @@ program main
     use dynamics_parallel_linkage_tests
     use dynamics_variational_integrator_tests
     use dynamics_linkage_dynamics_tests
+    use dynamics_discrete_elements_tests
     implicit none
 
     ! Variables
@@ -35,6 +36,17 @@ program main
 
     ! Initialization
     flag = 0
+
+    if (command_argument_count() > 0) then
+        block
+            character(32) :: selection
+            call get_command_argument(1, selection)
+            if (selection == "generalized-alpha") then
+                if (.not.test_generalized_alpha_integrator()) stop 152
+                stop
+            end if
+        end block
+    end if
 
     ! Tests
     check = test_frf_sweep()
@@ -96,6 +108,27 @@ program main
 
     check = test_global_assembly()
     if (.not.check) flag = 118
+
+    check = test_truss_elements()
+    if (.not.check) flag = 153
+
+    check = test_generalized_alpha_integrator()
+    if (.not.check) flag = 152
+
+    check = test_spring_elements()
+    if (.not.check) flag = 156
+
+    check = test_damper_elements()
+    if (.not.check) flag = 157
+
+    check = test_mass_elements()
+    if (.not.check) flag = 158
+
+    check = test_discrete_element_system()
+    if (.not.check) flag = 159
+
+    check = test_assemble_discrete_system()
+    if (.not.check) flag = 160
 
     check = test_forward_kinematics()
     if (.not.check) flag = 12
@@ -298,6 +331,12 @@ program main
     check = test_line_eval()
     if (.not.check) flag = 65
 
+    check = test_poincare_map()
+    if (.not.check) flag = 154
+
+    check = test_poincare_map_ode()
+    if (.not.check) flag = 155
+
     check = test_plane_from_3_points()
     if (.not.check) flag = 66
 
@@ -429,6 +468,9 @@ program main
 
     check = test_variational_free_body()
     if (.not.check) flag = 130
+
+    check = test_variational_recoverable_failure()
+    if (.not.check) flag = 148
 
     check = test_variational_applied_force()
     if (.not.check) flag = 131

@@ -752,7 +752,7 @@ end subroutine
 ! ------------------------------------------------------------------------------
 function ldm_solve(this, integrator, dt, ntime, initial_state, gravity, &
     body_force, body_torque, prescribed_body, prescribed_motion, multipliers, &
-	args) result(rst)
+    args, info) result(rst)
     !! Integrates the linkage dynamics under an optional uniform world-frame
     !! gravitational acceleration and optional constant body loads.
     class(linkage_dynamic_model), intent(in), target :: this
@@ -782,6 +782,8 @@ function ldm_solve(this, integrator, dt, ntime, initial_state, gravity, &
 	class(*), intent(inout), target, optional :: args
 		!! A mechanism for the caller to pass information to/from the 
 		!! user-defined routines (e.g. presribed_motion).
+    type(variational_integrator_info), intent(out), optional :: info
+        !! Optional convergence diagnostics aggregated over the trajectory.
     type(variational_state), allocatable, dimension(:) :: rst
             !! The state at the initial time followed by the state after each
             !! completed integration step.
@@ -827,7 +829,7 @@ function ldm_solve(this, integrator, dt, ntime, initial_state, gravity, &
         constraint_count = constraint_count, &
         constraint = constraint, &
         force_function = frc, multipliers = multipliers, &
-        args = context)
+        args = context, info = info)
 end function
 
 ! ------------------------------------------------------------------------------

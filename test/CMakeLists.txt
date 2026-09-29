@@ -15,6 +15,7 @@ set(dynamics_test_sources
     dynamics_parallel_linkage_tests.f90
     dynamics_variational_integrator_tests.f90
     dynamics_linkage_dynamics_tests.f90
+    dynamics_discrete_elements_tests.f90
 )
 
 # Dependencies
@@ -46,6 +47,11 @@ add_test(
     NAME dynamics_tests
     WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
     COMMAND $<TARGET_FILE:dynamics_tests>
+)
+add_test(
+    NAME dynamics_generalized_alpha_tests
+    WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+    COMMAND $<TARGET_FILE:dynamics_tests> generalized-alpha
 )
 
 # Test the C API

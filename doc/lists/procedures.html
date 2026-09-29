@@ -104,6 +104,18 @@ relative to its parent frame.</p><a href="../proc/acceleration_transform.html" c
                  <td></td>
                </tr>
 			   <tr>
+                 <td><a href='..\interface\assemble_damping_matrix.html'>assemble_damping_matrix</a></td>
+                 <td><a href='..\module\dynamics_discrete_elements.html'>dynamics_discrete_elements</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\interface\assemble_discrete_system.html'>assemble_discrete_system</a></td>
+                 <td><a href='..\module\dynamics_discrete_elements.html'>dynamics_discrete_elements</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
                  <td><a href='..\interface\assemble_dynamic_system.html'>assemble_dynamic_system</a></td>
                  <td><a href='..\module\dynamics_structural.html'>dynamics_structural</a></td>
                  <td>Interface</td>
@@ -117,25 +129,25 @@ relative to its parent frame.</p><a href="../proc/acceleration_transform.html" c
                </tr>
 			   <tr>
                  <td><a href='..\interface\assignment(=).html'>assignment(=)</a></td>
-                 <td><a href='..\module\dynamics_geometry.html'>dynamics_geometry</a></td>
-                 <td>Interface</td>
-                 <td></td>
-               </tr>
-			   <tr>
-                 <td><a href='..\interface\assignment(=)~2.html'>assignment(=)</a></td>
                  <td><a href='..\module\dynamics_quaternions.html'>dynamics_quaternions</a></td>
                  <td>Interface</td>
                  <td></td>
                </tr>
 			   <tr>
+                 <td><a href='..\interface\assignment(=)~2.html'>assignment(=)</a></td>
+                 <td><a href='..\module\dynamics_geometry.html'>dynamics_geometry</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
                  <td><a href='..\interface\beam_element_2d.html'>beam_element_2d</a></td>
-                 <td><a href='..\module\dynamics_line_elements.html'>dynamics_line_elements</a></td>
+                 <td><a href='..\module\dynamics_beam_elements.html'>dynamics_beam_elements</a></td>
                  <td>Interface</td>
                  <td></td>
                </tr>
 			   <tr>
                  <td><a href='..\interface\beam_element_3d.html'>beam_element_3d</a></td>
-                 <td><a href='..\module\dynamics_line_elements.html'>dynamics_line_elements</a></td>
+                 <td><a href='..\module\dynamics_beam_elements.html'>dynamics_beam_elements</a></td>
                  <td>Interface</td>
                  <td></td>
                </tr>
@@ -147,7 +159,7 @@ relative to its parent frame.</p><a href="../proc/acceleration_transform.html" c
                </tr>
 			   <tr>
                  <td><a href='..\proc\chirp.html'>chirp</a></td>
-                 <td><a href='..\module\dynamics_frequency_response.html'>dynamics_frequency_response</a></td>
+                 <td><a href='..\module\dynamics_frequency_sweep.html'>dynamics_frequency_sweep</a></td>
                  <td>Function</td>
                  <td><p>Evaluates a linear chirp function.
 The instantaneous frequency varies linearly,
@@ -157,7 +169,7 @@ response <script type="math/tex">x(t)=A\sin(\phi(t))</script>.</p></td>
                </tr>
 			   <tr>
                  <td><a href='..\proc\compute_modal_damping.html'>compute_modal_damping</a></td>
-                 <td><a href='..\module\dynamics_frequency_response.html'>dynamics_frequency_response</a></td>
+                 <td><a href='..\module\dynamics_modal_analysis.html'>dynamics_modal_analysis</a></td>
                  <td>Function</td>
                  <td><p>Computes the modal damping factors <script type="math/tex"> \zeta_i </script> given the
 proportional damping terms <script type="math/tex"> \alpha </script> and <script type="math/tex"> \beta </script> where
@@ -201,6 +213,18 @@ The result is orthogonal to both inputs and is defined by
 <script type="math/tex; mode=display"> \boldsymbol{x}\times\boldsymbol{y} =
 \begin{bmatrix}x_2y_3-x_3y_2\\x_3y_1-x_1y_3\\x_1y_2-x_2y_1\end{bmatrix}. </script>
 </p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\interface\damper_element_2d.html'>damper_element_2d</a></td>
+                 <td><a href='..\module\dynamics_discrete_elements.html'>dynamics_discrete_elements</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\interface\damper_element_3d.html'>damper_element_3d</a></td>
+                 <td><a href='..\module\dynamics_discrete_elements.html'>dynamics_discrete_elements</a></td>
+                 <td>Interface</td>
+                 <td></td>
                </tr>
 			   <tr>
                  <td><a href='..\proc\damping_from_fractional_overshoot.html'>damping_from_fractional_overshoot</a></td>
@@ -368,13 +392,13 @@ receptance model:</p><a href="../proc/fit_frf.html" class="pull-right"><emph>Rea
                </tr>
 			   <tr>
                  <td><a href='..\interface\frequency_sweep.html'>frequency_sweep</a></td>
-                 <td><a href='..\module\dynamics_frequency_response.html'>dynamics_frequency_response</a></td>
+                 <td><a href='..\module\dynamics_frequency_sweep.html'>dynamics_frequency_sweep</a></td>
                  <td>Interface</td>
                  <td></td>
                </tr>
 			   <tr>
                  <td><a href='..\interface\harmonic_ode.html'>harmonic_ode</a></td>
-                 <td><a href='..\module\dynamics_frequency_response.html'>dynamics_frequency_response</a></td>
+                 <td><a href='..\module\dynamics_frequency_sweep.html'>dynamics_frequency_sweep</a></td>
                  <td>Interface</td>
                  <td></td>
                </tr>
@@ -439,6 +463,12 @@ For a nonzero quaternion,
                  <td><a href='..\module\dynamics_geometry.html'>dynamics_geometry</a></td>
                  <td>Function</td>
                  <td><p>Tests to see if a point lies on a plane.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\proc\is_symmetric.html'>is_symmetric</a></td>
+                 <td><a href='..\module\dynamics_helper.html'>dynamics_helper</a></td>
+                 <td>Function</td>
+                 <td><p>Tests to see if a matrix is symmetric.</p></td>
                </tr>
 			   <tr>
                  <td><a href='..\proc\jacobian_generating_vector.html'>jacobian_generating_vector</a></td>
@@ -511,6 +541,18 @@ The logarithmic decrement is calculated as follows.</p><a href="../proc/logarith
                  <td><p>Solves the LTI system given by the specified state space model.</p></td>
                </tr>
 			   <tr>
+                 <td><a href='..\interface\mass_element_2d.html'>mass_element_2d</a></td>
+                 <td><a href='..\module\dynamics_discrete_elements.html'>dynamics_discrete_elements</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\interface\mass_element_3d.html'>mass_element_3d</a></td>
+                 <td><a href='..\module\dynamics_discrete_elements.html'>dynamics_discrete_elements</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
                  <td><a href='..\interface\material.html'>material</a></td>
                  <td><a href='..\module\dynamics_structural.html'>dynamics_structural</a></td>
                  <td>Interface</td>
@@ -530,7 +572,7 @@ The logarithmic decrement is calculated as follows.</p><a href="../proc/logarith
                </tr>
 			   <tr>
                  <td><a href='..\interface\modal_response.html'>modal_response</a></td>
-                 <td><a href='..\module\dynamics_frequency_response.html'>dynamics_frequency_response</a></td>
+                 <td><a href='..\module\dynamics_modal_analysis.html'>dynamics_modal_analysis</a></td>
                  <td>Interface</td>
                  <td></td>
                </tr>
@@ -576,7 +618,7 @@ some point (pt) not on the line.</p></td>
                </tr>
 			   <tr>
                  <td><a href='..\proc\normalize_mode_shapes.html'>normalize_mode_shapes</a></td>
-                 <td><a href='..\module\dynamics_frequency_response.html'>dynamics_frequency_response</a></td>
+                 <td><a href='..\module\dynamics_modal_analysis.html'>dynamics_modal_analysis</a></td>
                  <td>Subroutine</td>
                  <td><p>Normalizes mode shape vectors such that the largest magnitude
 value in the vector is one.
@@ -588,19 +630,19 @@ k=\arg\max_j|\phi_{i,j}|. </script>
                </tr>
 			   <tr>
                  <td><a href='..\interface\ode_excite.html'>ode_excite</a></td>
-                 <td><a href='..\module\dynamics_frequency_response.html'>dynamics_frequency_response</a></td>
+                 <td><a href='..\module\dynamics_frequency_sweep.html'>dynamics_frequency_sweep</a></td>
                  <td>Interface</td>
                  <td></td>
                </tr>
 			   <tr>
                  <td><a href='..\interface\operator(ASTERISK).html'>operator(*)</a></td>
-                 <td><a href='..\module\dynamics_controls.html'>dynamics_controls</a></td>
+                 <td><a href='..\module\dynamics_quaternions.html'>dynamics_quaternions</a></td>
                  <td>Interface</td>
                  <td></td>
                </tr>
 			   <tr>
                  <td><a href='..\interface\operator(ASTERISK)~2.html'>operator(*)</a></td>
-                 <td><a href='..\module\dynamics_quaternions.html'>dynamics_quaternions</a></td>
+                 <td><a href='..\module\dynamics_controls.html'>dynamics_controls</a></td>
                  <td>Interface</td>
                  <td></td>
                </tr>
@@ -659,16 +701,10 @@ k=\arg\max_j|\phi_{i,j}|. </script>
                  <td></td>
                </tr>
 			   <tr>
-                 <td><a href='..\proc\poincare_map.html'>poincare_map</a></td>
+                 <td><a href='..\interface\poincare_map.html'>poincare_map</a></td>
                  <td><a href='..\module\dynamics_maps.html'>dynamics_maps</a></td>
-                 <td>Function</td>
-                 <td><p>Generates a Poincare map by determining the intersections of the
-supplied trajectory with the specified plane.
-For consecutive samples <script type="math/tex">\boldsymbol{p}_1</script> and <script type="math/tex">\boldsymbol{p}_2</script>,
-the segment is interpolated as
-<script type="math/tex; mode=display"> \boldsymbol{p}(t)=\boldsymbol{p}_1+t(\boldsymbol{p}_2-\boldsymbol{p}_1),
-\quad 0\leq t\leq1, </script>
-and the section point satisfies <script type="math/tex">a x(t)+b y(t)+c z(t)+d=0</script>.</p></td>
+                 <td>Interface</td>
+                 <td></td>
                </tr>
 			   <tr>
                  <td><a href='..\interface\point.html'>point</a></td>
@@ -823,6 +859,18 @@ solution procedure is utilized.</p></td>
                  <td></td>
                </tr>
 			   <tr>
+                 <td><a href='..\interface\spring_element_2d.html'>spring_element_2d</a></td>
+                 <td><a href='..\module\dynamics_discrete_elements.html'>dynamics_discrete_elements</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\interface\spring_element_3d.html'>spring_element_3d</a></td>
+                 <td><a href='..\module\dynamics_discrete_elements.html'>dynamics_discrete_elements</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
                  <td><a href='..\interface\ss_excitation.html'>ss_excitation</a></td>
                  <td><a href='..\module\dynamics_controls.html'>dynamics_controls</a></td>
                  <td>Interface</td>
@@ -868,6 +916,18 @@ skew-symmetric matrix is defined as follows.</p><a href="../proc/to_skew_symmetr
 			   <tr>
                  <td><a href='..\interface\translate.html'>translate</a></td>
                  <td><a href='..\module\dynamics_rotation.html'>dynamics_rotation</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\interface\truss_element_2d.html'>truss_element_2d</a></td>
+                 <td><a href='..\module\dynamics_truss_elements.html'>dynamics_truss_elements</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\interface\truss_element_3d.html'>truss_element_3d</a></td>
+                 <td><a href='..\module\dynamics_truss_elements.html'>dynamics_truss_elements</a></td>
                  <td>Interface</td>
                  <td></td>
                </tr>
@@ -921,7 +981,7 @@ its parent frame.</p><a href="../proc/velocity_transform.html" class="pull-right
             <p class="text-end">
               Documentation generated by
               <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-09-20 17:06              </p>
+ on 2026-09-29 05:53              </p>
           </div>
         </div>
         <br>

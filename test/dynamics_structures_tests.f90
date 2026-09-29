@@ -1864,4 +1864,328 @@ function test_beam3d_mass_matrix() result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+function test_truss_elements() result(rst)
+    logical :: rst
+    integer(int32) :: row, col
+    real(real64), parameter :: tol = 1.0d-12
+    real(real64), dimension(4) :: axial_2d
+    real(real64), dimension(6) :: axial_3d
+    real(real64), dimension(4,4) :: expected_k2, expected_m2
+    real(real64), dimension(6,6) :: expected_k3, expected_m3
+    real(real64), allocatable, dimension(:) :: strain_result
+    real(real64), allocatable, dimension(:,:) :: mass, stiffness
+    type(material) :: mat
+    type(node), dimension(2) :: nodes_2d, nodes_3d
+    type(truss_element_2d), dimension(1) :: bars_2d
+    type(truss_element_3d), dimension(1) :: bars_3d
+
+    rst = .true.
+    mat = material(100.0d0, 0.3d0, 6.0d0)
+    nodes_2d(1) = node(1, 2, 0.0d0, 0.0d0, 0.0d0)
+    nodes_2d(2) = node(2, 2, 3.0d0, 4.0d0, 0.0d0)
+    bars_2d(1) = truss_element_2d(mat, 0.02d0, nodes_2d(1), nodes_2d(2))
+    axial_2d = [-0.6d0, -0.8d0, 0.6d0, 0.8d0]
+    expected_k2 = 0.0d0
+    expected_m2 = 0.0d0
+    do col = 1, 4
+        do row = 1, 4
+            expected_k2(row,col) = 0.4d0 * axial_2d(row) * axial_2d(col)
+        end do
+        expected_m2(col,col) = 0.2d0
+    end do
+    expected_m2(1,3) = 0.1d0
+    expected_m2(3,1) = 0.1d0
+    expected_m2(2,4) = 0.1d0
+    expected_m2(4,2) = 0.1d0
+    call assemble_dynamic_system(4, bars_2d, nodes_2d, mass, stiffness)
+    strain_result = bars_2d(1)%strain([0.0d0, 0.0d0, 0.006d0, 0.008d0], [0.0d0])
+    if (maxval(abs(stiffness - expected_k2)) > tol .or. &
+        maxval(abs(mass - expected_m2)) > tol .or. &
+        abs(bars_2d(1)%length() - 5.0d0) > tol .or. &
+        abs(strain_result(1) - 0.002d0) > tol) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_truss_elements - 2D"
+    end if
+
+    nodes_3d(1) = node(1, 3, 0.0d0, 0.0d0, 0.0d0)
+    nodes_3d(2) = node(2, 3, 0.0d0, 0.0d0, 2.0d0)
+    bars_3d(1) = truss_element_3d(mat, 0.02d0, nodes_3d(1), nodes_3d(2))
+    axial_3d = [0.0d0, 0.0d0, -1.0d0, 0.0d0, 0.0d0, 1.0d0]
+    expected_k3 = 0.0d0
+    expected_m3 = 0.0d0
+    do col = 1, 6
+        do row = 1, 6
+            expected_k3(row,col) = 1.0d0 * axial_3d(row) * axial_3d(col)
+        end do
+        expected_m3(col,col) = 0.08d0
+    end do
+    expected_m3(1,4) = 0.04d0
+    expected_m3(4,1) = 0.04d0
+    expected_m3(2,5) = 0.04d0
+    expected_m3(5,2) = 0.04d0
+    expected_m3(3,6) = 0.04d0
+    expected_m3(6,3) = 0.04d0
+    call assemble_dynamic_system(6, bars_3d, nodes_3d, mass, stiffness)
+    if (maxval(abs(stiffness - expected_k3)) > tol .or. &
+        maxval(abs(mass - expected_m3)) > tol .or. &
+        abs(bars_3d(1)%length() - 2.0d0) > tol) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_truss_elements - 3D"
+    end if
+
+    nodes_3d(2) = node(2, 3, 3.0d0, 4.0d0, 12.0d0)
+    bars_3d(1) = truss_element_3d(mat, 0.02d0, nodes_3d(1), nodes_3d(2))
+    axial_3d = [-3.0d0, -4.0d0, -12.0d0, 3.0d0, 4.0d0, 12.0d0] / 13.0d0
+    do col = 1, 6
+        do row = 1, 6
+            expected_k3(row,col) = 2.0d0 / 13.0d0 * axial_3d(row) * axial_3d(col)
+        end do
+    end do
+    strain_result = bars_3d(1)%strain([0.0d0, 0.0d0, 0.0d0, &
+        0.003d0, 0.004d0, 0.012d0], [0.0d0])
+    call assemble_dynamic_system(6, bars_3d, nodes_3d, mass, stiffness)
+    if (maxval(abs(stiffness - expected_k3)) > tol .or. &
+        abs(strain_result(1) - 0.001d0) > tol .or. &
+        abs(bars_3d(1)%length() - 13.0d0) > tol) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_truss_elements - oblique 3D"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_generalized_alpha_integrator() result(rst)
+    use linalg, only : dense_to_csr
+    logical :: rst
+    integer(int32) :: index, step, row
+    real(real64) :: dt, rho, alpha_m, alpha_f, gamma, beta
+    real(real64), dimension(2) :: displacement, velocity, acceleration
+    real(real64), dimension(2) :: sparse_displacement, sparse_velocity, sparse_acceleration
+    real(real64), dimension(2) :: previous_displacement, previous_velocity, previous_acceleration
+    real(real64), dimension(2) :: force_current, force_next, residual
+    real(real64), dimension(2) :: default_displacement, default_velocity, default_acceleration
+    real(real64), dimension(2) :: object_displacement, object_velocity, object_acceleration
+    real(real64), dimension(2) :: sparse_object_displacement, sparse_object_velocity, sparse_object_acceleration
+    real(real64), dimension(2) :: expected_displacement, expected_velocity, expected_acceleration
+    real(real64), dimension(2,11) :: force_history
+    real(real64), dimension(2,2) :: mass, damping, stiffness
+    real(real64), dimension(40,40) :: large_mass, large_damping, large_stiffness
+    real(real64), dimension(40) :: large_displacement, large_velocity, large_acceleration
+    real(real64), dimension(40) :: large_sparse_displacement, large_sparse_velocity, large_sparse_acceleration
+    real(real64), dimension(40) :: large_object_displacement, large_object_velocity, large_object_acceleration
+    real(real64), dimension(40) :: large_force_current, large_force_next
+    type(csr_matrix) :: sparse_mass, sparse_damping, sparse_stiffness
+    type(csr_matrix) :: large_sparse_mass, large_sparse_damping, large_sparse_stiffness
+    type(dense_generalized_alpha_integrator) :: dense_integrator, reference_integrator
+    type(dense_generalized_alpha_integrator) :: default_integrator, large_dense_integrator
+    type(sparse_generalized_alpha_integrator) :: sparse_integrator, sparse_reference_integrator
+    type(sparse_generalized_alpha_integrator) :: large_integrator, large_reference_integrator
+    class(structural_integrator), allocatable :: polymorphic_integrator
+
+    rst = .true.
+    dt = 0.05d0
+    mass = reshape([2.0d0, 0.2d0, 0.2d0, 1.5d0], [2, 2])
+    damping = reshape([0.4d0, -0.1d0, -0.1d0, 0.3d0], [2, 2])
+    stiffness = reshape([8.0d0, -2.0d0, -2.0d0, 5.0d0], [2, 2])
+    sparse_mass = dense_to_csr(mass)
+    sparse_damping = dense_to_csr(damping)
+    sparse_stiffness = dense_to_csr(stiffness)
+
+    do index = 1, 3
+        rho = 0.5d0 * real(index - 1, real64)
+        alpha_m = (2.0d0 * rho - 1.0d0) / (rho + 1.0d0)
+        alpha_f = rho / (rho + 1.0d0)
+        gamma = 0.5d0 + alpha_f - alpha_m
+        beta = 0.25d0 * (1.0d0 + alpha_f - alpha_m)**2
+        displacement = [0.3d0, -0.2d0]
+        velocity = [0.1d0, 0.4d0]
+        force_current = [1.0d0, -0.5d0]
+        acceleration = solve_static_system(mass, force_current - &
+            matmul(damping, velocity) - matmul(stiffness, displacement))
+        sparse_displacement = displacement
+        sparse_velocity = velocity
+        sparse_acceleration = acceleration
+        object_displacement = displacement
+        object_velocity = velocity
+        object_acceleration = acceleration
+        sparse_object_displacement = displacement
+        sparse_object_velocity = velocity
+        sparse_object_acceleration = acceleration
+        call dense_integrator%initialize(mass, damping, stiffness, rho)
+        call sparse_integrator%initialize(sparse_mass, sparse_damping, sparse_stiffness, rho)
+        call reference_integrator%initialize(mass, damping, stiffness, rho)
+        call sparse_reference_integrator%initialize(sparse_mass, sparse_damping, sparse_stiffness, rho)
+
+        do step = 1, 10
+            previous_displacement = displacement
+            previous_velocity = velocity
+            previous_acceleration = acceleration
+            force_next = [1.0d0 + 0.2d0 * step, -0.5d0 + 0.1d0 * step]
+            if (index == 3 .and. step == 1) then
+                default_displacement = displacement
+                default_velocity = velocity
+                default_acceleration = acceleration
+                call default_integrator%initialize(mass, damping, stiffness)
+                call default_integrator%step(force_current, force_next, dt, &
+                    default_displacement, default_velocity, default_acceleration)
+            end if
+            call dense_integrator%step(force_current, force_next, dt, &
+                displacement, velocity, acceleration)
+            call sparse_integrator%step(force_current, force_next, dt, &
+                sparse_displacement, sparse_velocity, sparse_acceleration)
+            call reference_integrator%step(force_current, force_next, dt, &
+                object_displacement, object_velocity, object_acceleration)
+            call sparse_reference_integrator%step(force_current, force_next, dt, &
+                sparse_object_displacement, sparse_object_velocity, sparse_object_acceleration)
+
+            residual = matmul(mass, (1.0d0 - alpha_m) * acceleration + &
+                alpha_m * previous_acceleration) + &
+                matmul(damping, (1.0d0 - alpha_f) * velocity + alpha_f * previous_velocity) + &
+                matmul(stiffness, (1.0d0 - alpha_f) * displacement + alpha_f * previous_displacement) - &
+                ((1.0d0 - alpha_f) * force_next + alpha_f * force_current)
+            if (norm2(residual) > 1.0d-10 .or. &
+                norm2(displacement - previous_displacement - dt * previous_velocity - &
+                    dt**2 * ((0.5d0 - beta) * previous_acceleration + beta * acceleration)) > 1.0d-10 .or. &
+                norm2(velocity - previous_velocity - dt * ((1.0d0 - gamma) * previous_acceleration + &
+                    gamma * acceleration)) > 1.0d-10 .or. &
+                norm2(displacement - sparse_displacement) > 1.0d-8 .or. &
+                norm2(velocity - sparse_velocity) > 1.0d-8 .or. &
+                norm2(acceleration - sparse_acceleration) > 1.0d-8 .or. &
+                norm2(displacement - object_displacement) > 1.0d-10 .or. &
+                norm2(velocity - object_velocity) > 1.0d-10 .or. &
+                norm2(acceleration - object_acceleration) > 1.0d-10 .or. &
+                norm2(displacement - sparse_object_displacement) > 1.0d-8 .or. &
+                norm2(velocity - sparse_object_velocity) > 1.0d-8 .or. &
+                norm2(acceleration - sparse_object_acceleration) > 1.0d-8) then
+                rst = .false.
+                print "(A,I0,A,I0)", "TEST FAILED: test_generalized_alpha_integrator -", index, " step ", step
+                return
+            end if
+            if (index == 3 .and. step == 1) then
+                if (norm2(displacement - default_displacement) > 1.0d-12 .or. &
+                    norm2(velocity - default_velocity) > 1.0d-12 .or. &
+                    norm2(acceleration - default_acceleration) > 1.0d-12) then
+                    rst = .false.
+                    print "(A)", "TEST FAILED: test_generalized_alpha_integrator default"
+                    return
+                end if
+            end if
+            force_current = force_next
+        end do
+        if (index == 2) then
+            expected_displacement = displacement
+            expected_velocity = velocity
+            expected_acceleration = acceleration
+        end if
+    end do
+
+    force_history(:,1) = [1.0d0, -0.5d0]
+    do step = 1, 10
+        force_history(:,step+1) = [1.0d0 + 0.2d0 * step, -0.5d0 + 0.1d0 * step]
+    end do
+    allocate(dense_generalized_alpha_integrator :: polymorphic_integrator)
+    select type (polymorphic_integrator)
+    type is (dense_generalized_alpha_integrator)
+        call polymorphic_integrator%initialize(mass, damping, stiffness, 0.5d0)
+    end select
+    object_displacement = [0.3d0, -0.2d0]
+    object_velocity = [0.1d0, 0.4d0]
+    object_acceleration = solve_static_system(mass, force_history(:,1) - &
+        matmul(damping, object_velocity) - matmul(stiffness, object_displacement))
+    call polymorphic_integrator%solve(force_history, dt, object_displacement, &
+        object_velocity, object_acceleration)
+    if (norm2(object_displacement - expected_displacement) > 1.0d-10 .or. &
+        norm2(object_velocity - expected_velocity) > 1.0d-10 .or. &
+        norm2(object_acceleration - expected_acceleration) > 1.0d-10) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_generalized_alpha_integrator dense solve"
+    end if
+
+    call sparse_integrator%initialize(sparse_mass, sparse_damping, sparse_stiffness, 0.5d0)
+    sparse_object_displacement = [0.3d0, -0.2d0]
+    sparse_object_velocity = [0.1d0, 0.4d0]
+    sparse_object_acceleration = solve_static_system(mass, force_history(:,1) - &
+        matmul(damping, sparse_object_velocity) - matmul(stiffness, sparse_object_displacement))
+    call sparse_integrator%solve(force_history, dt, sparse_object_displacement, &
+        sparse_object_velocity, sparse_object_acceleration)
+    if (norm2(sparse_object_displacement - expected_displacement) > 1.0d-8 .or. &
+        norm2(sparse_object_velocity - expected_velocity) > 1.0d-8 .or. &
+        norm2(sparse_object_acceleration - expected_acceleration) > 1.0d-8) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_generalized_alpha_integrator sparse solve"
+    end if
+
+    force_next = [2.0d0, 0.5d0]
+    call reference_integrator%initialize(mass, damping, stiffness, 0.5d0)
+    call reference_integrator%step(force_current, force_next, 0.07d0, &
+        expected_displacement, expected_velocity, expected_acceleration)
+    call polymorphic_integrator%step(force_current, force_next, 0.07d0, &
+        object_displacement, object_velocity, object_acceleration)
+    call sparse_integrator%step(force_current, force_next, 0.07d0, &
+        sparse_object_displacement, sparse_object_velocity, sparse_object_acceleration)
+    if (norm2(object_displacement - expected_displacement) > 1.0d-10 .or. &
+        norm2(sparse_object_displacement - expected_displacement) > 1.0d-8) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_generalized_alpha_integrator changed dt"
+    end if
+
+    large_mass = 0.0d0
+    large_damping = 0.0d0
+    large_stiffness = 0.0d0
+    do row = 1, 40
+        large_mass(row,row) = 2.0d0
+        large_stiffness(row,row) = 4.0d0
+        if (row < 40) then
+            large_stiffness(row,row+1) = -1.0d0
+            large_stiffness(row+1,row) = -1.0d0
+        end if
+    end do
+    large_sparse_mass = dense_to_csr(large_mass)
+    large_sparse_damping = dense_to_csr(large_damping)
+    large_sparse_stiffness = dense_to_csr(large_stiffness)
+    large_displacement = 0.0d0
+    large_velocity = 0.0d0
+    large_acceleration = 0.0d0
+    large_sparse_displacement = large_displacement
+    large_sparse_velocity = large_velocity
+    large_sparse_acceleration = large_acceleration
+    large_object_displacement = large_displacement
+    large_object_velocity = large_velocity
+    large_object_acceleration = large_acceleration
+    large_force_current = 0.0d0
+    large_force_next = [(0.01d0 * real(row, real64), row = 1, 40)]
+    call large_dense_integrator%initialize(large_mass, large_damping, large_stiffness, 0.5d0)
+    call large_integrator%initialize(large_sparse_mass, large_sparse_damping, &
+        large_sparse_stiffness, 0.5d0)
+    call large_reference_integrator%initialize(large_sparse_mass, large_sparse_damping, &
+        large_sparse_stiffness, 0.5d0)
+    call large_dense_integrator%step(large_force_current, large_force_next, dt, &
+        large_displacement, large_velocity, large_acceleration)
+    call large_integrator%step(large_force_current, large_force_next, dt, &
+        large_sparse_displacement, large_sparse_velocity, large_sparse_acceleration)
+    call large_reference_integrator%step(large_force_current, large_force_next, dt, &
+        large_object_displacement, large_object_velocity, large_object_acceleration)
+    if (norm2(large_displacement - large_sparse_displacement) > 1.0d-8 .or. &
+        norm2(large_velocity - large_sparse_velocity) > 1.0d-8 .or. &
+        norm2(large_acceleration - large_sparse_acceleration) > 1.0d-8 .or. &
+        norm2(large_displacement - large_object_displacement) > 1.0d-8 .or. &
+        norm2(large_velocity - large_object_velocity) > 1.0d-8 .or. &
+        norm2(large_acceleration - large_object_acceleration) > 1.0d-8) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_generalized_alpha_integrator sparse GMRES"
+    end if
+
+    large_force_current = large_force_next
+    large_force_next = 0.5d0 * large_force_current
+    call large_dense_integrator%step(large_force_current, large_force_next, 0.07d0, &
+        large_displacement, large_velocity, large_acceleration)
+    call large_integrator%step(large_force_current, large_force_next, 0.07d0, &
+        large_object_displacement, large_object_velocity, large_object_acceleration)
+    if (norm2(large_displacement - large_object_displacement) > 1.0d-8 .or. &
+        norm2(large_velocity - large_object_velocity) > 1.0d-8 .or. &
+        norm2(large_acceleration - large_object_acceleration) > 1.0d-8) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_generalized_alpha_integrator sparse changed dt"
+    end if
+end function
+
 end module

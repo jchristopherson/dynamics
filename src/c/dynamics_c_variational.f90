@@ -16,6 +16,7 @@ module dynamics_c_variational
     use iso_fortran_env, only : int32, real64
     use dynamics
     use dynamics_error_handling
+    use dynamics_c_errors, only : c_api_error
     use linalg, only : identity
     implicit none
     private
@@ -271,11 +272,13 @@ subroutine copy_solution(solution, fm, p, q, v, w, m)
                 solution(j)%orientation(i)%z)
         end do
     end do
-    if (size(m,1) > 0) m = fm
+    if (size(m,1) > 0 .and. size(fm,2) > 0) &
+        m(:,1:size(fm,2)) = fm
 end subroutine
 
 subroutine c_vi_solve(nbody, bodies, ntime, dt, p0, q0, v0, w0, nconstraint, &
-    force_cb, constraint_cb, jacobian_cb, user_data, settings, p, q, v, w, m) &
+    force_cb, constraint_cb, jacobian_cb, user_data, settings, p, q, v, w, m, &
+    converged, iterations, jacobian_singular, completed_steps) &
     bind(C, name="c_variational_integrator_solve")
     integer(c_int), intent(in), value :: nbody, ntime, nconstraint
     real(c_double), intent(in), value :: dt
@@ -288,6 +291,8 @@ subroutine c_vi_solve(nbody, bodies, ntime, dt, p0, q0, v0, w0, nconstraint, &
     real(c_double), intent(out) :: p(3,nbody,ntime), v(3,nbody,ntime), &
         w(3,nbody,ntime), m(nconstraint,ntime)
     type(c_quaternion_vi), intent(out) :: q(nbody,ntime)
+    integer(c_int), intent(out) :: converged, iterations, &
+        jacobian_singular, completed_steps
     integer(int32) :: i
     type(rigid_body), allocatable, dimension(:) :: fb
     type(variational_state) :: state
@@ -295,6 +300,11 @@ subroutine c_vi_solve(nbody, bodies, ntime, dt, p0, q0, v0, w0, nconstraint, &
     type(variational_integrator) :: integrator
     type(c_callback_context) :: ctx
     real(real64), allocatable, dimension(:,:) :: fm
+    type(variational_integrator_info) :: info
+    converged = 0; iterations = 0; jacobian_singular = 0
+    completed_steps = 0
+    p = 0.0d0; v = 0.0d0; w = 0.0d0; m = 0.0d0
+    q = c_quaternion_vi(1.0d0, 0.0d0, 0.0d0, 0.0d0)
     allocate(fb(nbody)); call initialize_variational_state(state, int(nbody,int32))
     do i = 1, nbody
         fb(i) = rigid_body(bodies(i)%mass, reshape(bodies(i)%inertia,[3,3]), &
@@ -311,13 +321,17 @@ subroutine c_vi_solve(nbody, bodies, ntime, dt, p0, q0, v0, w0, nconstraint, &
         solution=integrator%solve(fb,state,dt,int(ntime,int32), &
             constraint_count=int(nconstraint,int32),constraint=constraint_bridge, &
             force_function=force_bridge,constraint_jacobian=jacobian_bridge, &
-            multipliers=fm,args=ctx)
+            multipliers=fm,args=ctx,info=info)
     else
         solution=integrator%solve(fb,state,dt,int(ntime,int32), &
             constraint_count=int(nconstraint,int32),constraint=constraint_bridge, &
-            force_function=force_bridge,multipliers=fm,args=ctx)
+            force_function=force_bridge,multipliers=fm,args=ctx,info=info)
     end if
     call copy_solution(solution,fm,p,q,v,w,m)
+    converged = merge(1_c_int, 0_c_int, info%converged)
+    iterations = int(info%iterations, c_int)
+    jacobian_singular = merge(1_c_int, 0_c_int, info%jacobian_singular)
+    completed_steps = int(max(0, size(solution) - 1), c_int)
 end subroutine
 
 function get_model(obj) result(model)
@@ -339,7 +353,10 @@ function c_vi_create_serial_model(linkage,n,q) result(rst) &
     type(serial_linkage) :: serial
     type(c_dynamic_model_container), pointer :: cont
     integer(int32) :: i
-    if (n /= linkage%link_count) error stop DYN_ARRAY_SIZE_ERROR
+    rst = c_null_ptr
+    if (c_api_error(n /= linkage%link_count, DYN_ARRAY_SIZE_ERROR, &
+        "c_create_serial_linkage_dynamic_model: n must equal link_count.")) &
+        return
     call c_f_pointer(linkage%links,links,[linkage%link_count]); allocate(flinks(n))
     do i=1,n
         flinks(i)=binary_link(int(links(i)%joint_type,int32),links(i)%link_length, &
@@ -417,7 +434,8 @@ subroutine c_vi_add_linear_spring(obj,c) bind(C,name="c_linkage_dynamic_add_line
     type(c_linear_spring_vi), intent(in) :: c
     type(linkage_dynamic_model), pointer :: model
     type(linear_spring) :: spring
-    model=>get_model(obj); if(.not.associated(model)) error stop DYN_NULL_POINTER_ERROR
+    model=>get_model(obj)
+    if (invalid_model(model, "c_linkage_dynamic_add_linear_spring")) return
     spring%body_1=c%body_1; spring%body_2=c%body_2
     spring%point_1=c%point_1; spring%point_2=c%point_2
     spring%stiffness=c%stiffness; spring%free_length=c%free_length
@@ -429,7 +447,8 @@ subroutine c_vi_add_linear_damper(obj,c) bind(C,name="c_linkage_dynamic_add_line
     type(c_linear_damper_vi), intent(in) :: c
     type(linkage_dynamic_model), pointer :: model
     type(linear_damper) :: damper
-    model=>get_model(obj); if(.not.associated(model)) error stop DYN_NULL_POINTER_ERROR
+    model=>get_model(obj)
+    if (invalid_model(model, "c_linkage_dynamic_add_linear_damper")) return
     damper%body_1=c%body_1; damper%body_2=c%body_2
     damper%point_1=c%point_1; damper%point_2=c%point_2
     damper%damping=c%damping; call model%add_linear_damper(damper)
@@ -440,7 +459,8 @@ subroutine c_vi_add_torsional_spring(obj,c) bind(C,name="c_linkage_dynamic_add_t
     type(c_torsional_spring_vi), intent(in) :: c
     type(linkage_dynamic_model), pointer :: model
     type(torsional_spring) :: spring
-    model=>get_model(obj); if(.not.associated(model)) error stop DYN_NULL_POINTER_ERROR
+    model=>get_model(obj)
+    if (invalid_model(model, "c_linkage_dynamic_add_torsional_spring")) return
     spring%joint_index=c%joint_index; spring%stiffness=c%stiffness
     spring%free_angle=c%free_angle; call model%add_torsional_spring(spring)
 end subroutine
@@ -450,7 +470,8 @@ subroutine c_vi_add_torsional_damper(obj,c) bind(C,name="c_linkage_dynamic_add_t
     type(c_torsional_damper_vi), intent(in) :: c
     type(linkage_dynamic_model), pointer :: model
     type(torsional_damper) :: damper
-    model=>get_model(obj); if(.not.associated(model)) error stop DYN_NULL_POINTER_ERROR
+    model=>get_model(obj)
+    if (invalid_model(model, "c_linkage_dynamic_add_torsional_damper")) return
     damper%joint_index=c%joint_index; damper%damping=c%damping
     call model%add_torsional_damper(damper)
 end subroutine
@@ -477,7 +498,6 @@ subroutine unpack_model_state(model,nbody,time,p,q,v,w,state)
     type(c_quaternion_vi), intent(in) :: q(nbody)
     type(variational_state), intent(out) :: state
     integer(int32) :: i
-    if(nbody/=model%get_body_count()) error stop DYN_ARRAY_SIZE_ERROR
     call initialize_variational_state(state,int(nbody,int32))
     state%time=time; state%position=p; state%velocity=v; state%angular_velocity=w
     do i=1,nbody
@@ -497,7 +517,10 @@ subroutine c_vi_axial_results(obj,nbody,time,p,q,v,w,r) &
     type(variational_state) :: state
     type(axial_element_result), allocatable, dimension(:) :: fr
     integer(int32) :: i
-    model=>get_model(obj); if(.not.associated(model)) error stop DYN_NULL_POINTER_ERROR
+    model=>get_model(obj)
+    if (invalid_model(model, "c_linkage_dynamic_axial_element_results")) return
+    if (invalid_body_count(model, nbody, &
+        "c_linkage_dynamic_axial_element_results")) return
     call unpack_model_state(model,nbody,time,p,q,v,w,state)
     fr=model%get_axial_element_results(state)
     do i=1,size(fr)
@@ -517,7 +540,11 @@ subroutine c_vi_torsional_results(obj,nbody,time,p,q,v,w,r) &
     type(variational_state) :: state
     type(torsional_element_result), allocatable, dimension(:) :: fr
     integer(int32) :: i
-    model=>get_model(obj); if(.not.associated(model)) error stop DYN_NULL_POINTER_ERROR
+    model=>get_model(obj)
+    if (invalid_model(model, "c_linkage_dynamic_torsional_element_results")) &
+        return
+    if (invalid_body_count(model, nbody, &
+        "c_linkage_dynamic_torsional_element_results")) return
     call unpack_model_state(model,nbody,time,p,q,v,w,state)
     fr=model%get_torsional_element_results(state)
     do i=1,size(fr)
@@ -533,10 +560,13 @@ function motion_bridge(t, args) result(rst)
 end function
 
 subroutine c_vi_model_solve(obj,nbody,nconstraint,settings,ntime,dt,gravity, &
-    body_force,body_torque,prescribed_body,motion_cb,user_data,p,q,v,w,m) &
+    body_force,body_torque,prescribed_body,motion_cb,user_data,p,q,v,w,m, &
+    converged,iterations,jacobian_singular,completed_steps) &
     bind(C,name="c_linkage_dynamic_solve")
     type(c_ptr), intent(in), value :: obj,user_data
     integer(c_int), intent(in), value :: nbody,nconstraint,ntime,prescribed_body
+    integer(c_int), intent(out) :: converged,iterations,jacobian_singular, &
+        completed_steps
     real(c_double), intent(in), value :: dt
     type(c_variational_settings_vi), intent(in) :: settings
     real(c_double), intent(in) :: gravity(3),body_force(3,nbody),body_torque(3,nbody)
@@ -548,24 +578,37 @@ subroutine c_vi_model_solve(obj,nbody,nconstraint,settings,ntime,dt,gravity, &
     type(variational_integrator) :: integrator
     type(variational_state), allocatable, dimension(:) :: solution
     real(real64), allocatable, dimension(:,:) :: fm
-    model=>get_model(obj); if(.not.associated(model)) error stop DYN_NULL_POINTER_ERROR
-    if (nbody /= model%get_body_count()) error stop DYN_ARRAY_SIZE_ERROR
-    if (nconstraint /= model%get_constraint_count() + &
-        merge(1,0,c_associated(motion_cb))) error stop DYN_ARRAY_SIZE_ERROR
+    type(variational_integrator_info) :: info
+    converged=0; iterations=0; jacobian_singular=0; completed_steps=0
+    p=0.0d0; v=0.0d0; w=0.0d0; m=0.0d0
+    q=c_quaternion_vi(1.0d0,0.0d0,0.0d0,0.0d0)
+    model=>get_model(obj)
+    if (invalid_model(model, "c_linkage_dynamic_solve")) return
+    if (invalid_body_count(model, nbody, "c_linkage_dynamic_solve")) return
+    if (c_api_error(nconstraint /= model%get_constraint_count() + &
+        merge(1,0,c_associated(motion_cb)), DYN_ARRAY_SIZE_ERROR, &
+        "c_linkage_dynamic_solve: nconstraint does not match the model.")) &
+        return
     integrator%settings=convert_settings(settings)
     if(c_associated(motion_cb)) then
         call c_f_procpointer(motion_cb,active_motion); active_motion_data=user_data
         solution=model%solve(integrator,dt,int(ntime,int32),gravity=gravity, &
             body_force=body_force,body_torque=body_torque, &
             prescribed_body=int(prescribed_body,int32), &
-            prescribed_motion=motion_bridge,multipliers=fm)
+            prescribed_motion=motion_bridge,multipliers=fm,info=info)
         nullify(active_motion); active_motion_data=c_null_ptr
     else
         solution=model%solve(integrator,dt,int(ntime,int32),gravity=gravity, &
-            body_force=body_force,body_torque=body_torque,multipliers=fm)
+            body_force=body_force,body_torque=body_torque,multipliers=fm, &
+            info=info)
     end if
-    if(size(fm,1)/=nconstraint) error stop DYN_ARRAY_SIZE_ERROR
+    if (c_api_error(size(fm,1)/=nconstraint, DYN_ARRAY_SIZE_ERROR, &
+        "c_linkage_dynamic_solve: unexpected multiplier count.")) return
     call copy_solution(solution,fm,p,q,v,w,m)
+    converged=merge(1_c_int,0_c_int,info%converged)
+    iterations=int(info%iterations,c_int)
+    jacobian_singular=merge(1_c_int,0_c_int,info%jacobian_singular)
+    completed_steps=int(max(0,size(solution)-1),c_int)
 end subroutine
 
 subroutine c_vi_model_joint_reactions(obj,nbody,nconstraint,time,p,q,v,w,m,r) &
@@ -580,7 +623,11 @@ subroutine c_vi_model_joint_reactions(obj,nbody,nconstraint,time,p,q,v,w,m,r) &
     type(variational_state) :: state
     type(joint_reaction), allocatable, dimension(:) :: fr
     integer(int32) :: i
-    model=>get_model(obj); call initialize_variational_state(state,nbody)
+    model=>get_model(obj)
+    if (invalid_model(model, "c_linkage_dynamic_joint_reactions")) return
+    if (invalid_body_count(model, nbody, "c_linkage_dynamic_joint_reactions")) &
+        return
+    call initialize_variational_state(state,nbody)
     state%time=time; state%position=p; state%velocity=v; state%angular_velocity=w
     do i=1,nbody
         state%orientation(i)=quaternion([q(i)%w,q(i)%x,q(i)%y,q(i)%z])
@@ -590,5 +637,24 @@ subroutine c_vi_model_joint_reactions(obj,nbody,nconstraint,time,p,q,v,w,m,r) &
         r(i)%force=fr(i)%force; r(i)%moment=fr(i)%moment
     end do
 end subroutine
+
+function invalid_model(model, routine) result(rst)
+    ! Reports a null or empty linkage dynamic-model handle.
+    type(linkage_dynamic_model), intent(in), pointer :: model
+    character(len=*), intent(in) :: routine
+    logical :: rst
+    rst = c_api_error(.not.associated(model), DYN_NULL_POINTER_ERROR, &
+        routine // ": invalid linkage dynamic-model handle.")
+end function
+
+function invalid_body_count(model, nbody, routine) result(rst)
+    ! Reports a body count that does not match the model.
+    type(linkage_dynamic_model), intent(in) :: model
+    integer(c_int), intent(in) :: nbody
+    character(len=*), intent(in) :: routine
+    logical :: rst
+    rst = c_api_error(nbody /= model%get_body_count(), DYN_ARRAY_SIZE_ERROR, &
+        routine // ": nbody does not match the model.")
+end function
 
 end module

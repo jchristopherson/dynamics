@@ -39,8 +39,7 @@ program main
     use iso_fortran_env
     use equation_container
     use diffeq
-    use dynamics_maps
-    use dynamics_geometry
+    use dynamics
     use fplot_core
     implicit none
 

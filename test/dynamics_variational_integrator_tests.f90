@@ -31,6 +31,8 @@ function test_variational_free_body() result(rst)
         !! The maximal-coordinate body state.
     type(variational_integrator) :: integrator
         !! The integrator under test.
+    type(variational_integrator_info) :: info
+        !! Convergence diagnostics.
     real(real64), parameter :: dt = 0.01d0
         !! The integration time step.
     real(real64) :: expected_q(4)
@@ -44,7 +46,9 @@ function test_variational_free_body() result(rst)
     state%angular_velocity(:,1) = [0.0d0, 0.0d0, 1.0d0]
 
     ! Advance one free-body step.
-    call integrator%step(bodies, state, dt)
+    call integrator%step(bodies, state, dt, info = info)
+    if (.not.info%converged .or. info%iterations /= 0 .or. &
+        info%jacobian_singular) rst = .false.
     expected_q = [sqrt(1.0d0 - (0.5d0*dt)**2), 0.0d0, 0.0d0, 0.5d0*dt]
 
     ! Test the translational and rotational updates.
@@ -64,6 +68,79 @@ function test_variational_free_body() result(rst)
         print "(A)", "TEST FAILED: test_variational_free_body - orientation"
     end if
 end function
+
+! ------------------------------------------------------------------------------
+function test_variational_recoverable_failure() result(rst)
+    !! Verifies that requested diagnostics turn convergence failure into a
+    !! recoverable return and preserve the last accepted state.
+    logical :: rst
+    type(rigid_body) :: bodies(1)
+    type(variational_state) :: state
+    type(variational_state), allocatable, dimension(:) :: solution
+    type(variational_integrator) :: integrator
+    type(variational_integrator_info) :: info
+    real(real64), allocatable, dimension(:,:) :: multipliers
+    procedure(variational_force), pointer :: force_ptr
+    procedure(variational_constraint), pointer :: constraint_ptr
+    procedure(variational_constraint_jacobian), pointer :: jacobian_ptr
+
+    rst = .true.
+    bodies(1) = rigid_body(2.0d0)
+    call initialize_variational_state(state, 1)
+    force_ptr => constant_force
+    integrator%settings%maximum_iterations = 1
+    integrator%settings%tolerance = 1.0d-30
+    call integrator%step(bodies, state, 0.01d0, &
+        force_function = force_ptr, info = info)
+    if (info%converged .or. info%iterations /= 1 .or. &
+        info%jacobian_singular .or. state%time /= 0.0d0 .or. &
+        any(state%position /= 0.0d0) .or. any(state%velocity /= 0.0d0)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_variational_recoverable_failure - step"
+    end if
+
+    solution = integrator%solve(bodies, state, 0.01d0, 3, &
+        force_function = force_ptr, info = info)
+    if (info%converged .or. info%iterations /= 1 .or. &
+        info%jacobian_singular .or. size(solution) /= 1 .or. &
+        state%time /= 0.0d0) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_variational_recoverable_failure - solve"
+    end if
+
+    call initialize_variational_state(state, 1)
+    constraint_ptr => late_inconsistent_constraint
+    jacobian_ptr => zero_constraint_jacobian
+    solution = integrator%solve(bodies, state, 0.01d0, 3, &
+        constraint_count = 1, constraint = constraint_ptr, &
+        constraint_jacobian = jacobian_ptr, multipliers = multipliers, &
+        info = info)
+    if (info%converged .or. info%iterations /= 1 .or. &
+        .not.info%jacobian_singular .or. size(solution) /= 2 .or. &
+        abs(state%time - 0.01d0) > epsilon(1.0d0) .or. &
+        size(multipliers,1) /= 1 .or. size(multipliers,2) /= 1) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_variational_recoverable_failure - partial"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+subroutine late_inconsistent_constraint(state, value, args)
+    type(variational_state), intent(in) :: state
+    real(real64), intent(out), dimension(:) :: value
+    class(*), intent(inout), optional :: args
+
+    value = merge(1.0d0, 0.0d0, state%time > 0.015d0)
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine zero_constraint_jacobian(state, jacobian, args)
+    type(variational_state), intent(in) :: state
+    real(real64), intent(out), dimension(:,:) :: jacobian
+    class(*), intent(inout), optional :: args
+
+    jacobian = 0.0d0
+end subroutine
 
 ! ------------------------------------------------------------------------------
 function test_variational_applied_force() result(rst)

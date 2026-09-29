@@ -13,6 +13,7 @@ set(dynamics_c_sources
     dynamics_transfer_function_tests.c
     dynamics_state_space_tests.c
     dynamics_variational_tests.c
+    dynamics_structural_tests.c
 )
 
 # Build the tests
