@@ -272,11 +272,13 @@ subroutine copy_solution(solution, fm, p, q, v, w, m)
                 solution(j)%orientation(i)%z)
         end do
     end do
-    if (size(m,1) > 0) m = fm
+    if (size(m,1) > 0 .and. size(fm,2) > 0) &
+        m(:,1:size(fm,2)) = fm
 end subroutine
 
 subroutine c_vi_solve(nbody, bodies, ntime, dt, p0, q0, v0, w0, nconstraint, &
-    force_cb, constraint_cb, jacobian_cb, user_data, settings, p, q, v, w, m) &
+    force_cb, constraint_cb, jacobian_cb, user_data, settings, p, q, v, w, m, &
+    converged, iterations, jacobian_singular, completed_steps) &
     bind(C, name="c_variational_integrator_solve")
     integer(c_int), intent(in), value :: nbody, ntime, nconstraint
     real(c_double), intent(in), value :: dt
@@ -289,6 +291,8 @@ subroutine c_vi_solve(nbody, bodies, ntime, dt, p0, q0, v0, w0, nconstraint, &
     real(c_double), intent(out) :: p(3,nbody,ntime), v(3,nbody,ntime), &
         w(3,nbody,ntime), m(nconstraint,ntime)
     type(c_quaternion_vi), intent(out) :: q(nbody,ntime)
+    integer(c_int), intent(out) :: converged, iterations, &
+        jacobian_singular, completed_steps
     integer(int32) :: i
     type(rigid_body), allocatable, dimension(:) :: fb
     type(variational_state) :: state
@@ -296,6 +300,11 @@ subroutine c_vi_solve(nbody, bodies, ntime, dt, p0, q0, v0, w0, nconstraint, &
     type(variational_integrator) :: integrator
     type(c_callback_context) :: ctx
     real(real64), allocatable, dimension(:,:) :: fm
+    type(variational_integrator_info) :: info
+    converged = 0; iterations = 0; jacobian_singular = 0
+    completed_steps = 0
+    p = 0.0d0; v = 0.0d0; w = 0.0d0; m = 0.0d0
+    q = c_quaternion_vi(1.0d0, 0.0d0, 0.0d0, 0.0d0)
     allocate(fb(nbody)); call initialize_variational_state(state, int(nbody,int32))
     do i = 1, nbody
         fb(i) = rigid_body(bodies(i)%mass, reshape(bodies(i)%inertia,[3,3]), &
@@ -312,13 +321,17 @@ subroutine c_vi_solve(nbody, bodies, ntime, dt, p0, q0, v0, w0, nconstraint, &
         solution=integrator%solve(fb,state,dt,int(ntime,int32), &
             constraint_count=int(nconstraint,int32),constraint=constraint_bridge, &
             force_function=force_bridge,constraint_jacobian=jacobian_bridge, &
-            multipliers=fm,args=ctx)
+            multipliers=fm,args=ctx,info=info)
     else
         solution=integrator%solve(fb,state,dt,int(ntime,int32), &
             constraint_count=int(nconstraint,int32),constraint=constraint_bridge, &
-            force_function=force_bridge,multipliers=fm,args=ctx)
+            force_function=force_bridge,multipliers=fm,args=ctx,info=info)
     end if
     call copy_solution(solution,fm,p,q,v,w,m)
+    converged = merge(1_c_int, 0_c_int, info%converged)
+    iterations = int(info%iterations, c_int)
+    jacobian_singular = merge(1_c_int, 0_c_int, info%jacobian_singular)
+    completed_steps = int(max(0, size(solution) - 1), c_int)
 end subroutine
 
 function get_model(obj) result(model)
@@ -547,10 +560,13 @@ function motion_bridge(t, args) result(rst)
 end function
 
 subroutine c_vi_model_solve(obj,nbody,nconstraint,settings,ntime,dt,gravity, &
-    body_force,body_torque,prescribed_body,motion_cb,user_data,p,q,v,w,m) &
+    body_force,body_torque,prescribed_body,motion_cb,user_data,p,q,v,w,m, &
+    converged,iterations,jacobian_singular,completed_steps) &
     bind(C,name="c_linkage_dynamic_solve")
     type(c_ptr), intent(in), value :: obj,user_data
     integer(c_int), intent(in), value :: nbody,nconstraint,ntime,prescribed_body
+    integer(c_int), intent(out) :: converged,iterations,jacobian_singular, &
+        completed_steps
     real(c_double), intent(in), value :: dt
     type(c_variational_settings_vi), intent(in) :: settings
     real(c_double), intent(in) :: gravity(3),body_force(3,nbody),body_torque(3,nbody)
@@ -562,6 +578,10 @@ subroutine c_vi_model_solve(obj,nbody,nconstraint,settings,ntime,dt,gravity, &
     type(variational_integrator) :: integrator
     type(variational_state), allocatable, dimension(:) :: solution
     real(real64), allocatable, dimension(:,:) :: fm
+    type(variational_integrator_info) :: info
+    converged=0; iterations=0; jacobian_singular=0; completed_steps=0
+    p=0.0d0; v=0.0d0; w=0.0d0; m=0.0d0
+    q=c_quaternion_vi(1.0d0,0.0d0,0.0d0,0.0d0)
     model=>get_model(obj)
     if (invalid_model(model, "c_linkage_dynamic_solve")) return
     if (invalid_body_count(model, nbody, "c_linkage_dynamic_solve")) return
@@ -575,15 +595,20 @@ subroutine c_vi_model_solve(obj,nbody,nconstraint,settings,ntime,dt,gravity, &
         solution=model%solve(integrator,dt,int(ntime,int32),gravity=gravity, &
             body_force=body_force,body_torque=body_torque, &
             prescribed_body=int(prescribed_body,int32), &
-            prescribed_motion=motion_bridge,multipliers=fm)
+            prescribed_motion=motion_bridge,multipliers=fm,info=info)
         nullify(active_motion); active_motion_data=c_null_ptr
     else
         solution=model%solve(integrator,dt,int(ntime,int32),gravity=gravity, &
-            body_force=body_force,body_torque=body_torque,multipliers=fm)
+            body_force=body_force,body_torque=body_torque,multipliers=fm, &
+            info=info)
     end if
     if (c_api_error(size(fm,1)/=nconstraint, DYN_ARRAY_SIZE_ERROR, &
         "c_linkage_dynamic_solve: unexpected multiplier count.")) return
     call copy_solution(solution,fm,p,q,v,w,m)
+    converged=merge(1_c_int,0_c_int,info%converged)
+    iterations=int(info%iterations,c_int)
+    jacobian_singular=merge(1_c_int,0_c_int,info%jacobian_singular)
+    completed_steps=int(max(0,size(solution)-1),c_int)
 end subroutine
 
 subroutine c_vi_model_joint_reactions(obj,nbody,nconstraint,time,p,q,v,w,m,r) &

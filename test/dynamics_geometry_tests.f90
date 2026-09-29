@@ -21,6 +21,12 @@ module dynamics_geometry_tests
     use dynamics_helper
     implicit none
 
+    type :: poincare_progress_test_data
+        integer(int32) :: notification_count = 0
+        integer(int32), dimension(2) :: completed_samples = 0
+        real(real64), dimension(2) :: time = 0.0d0
+    end type
+
 contains
 ! ------------------------------------------------------------------------------
 function test_poincare_map() result(rst)
@@ -157,11 +163,19 @@ function test_poincare_map_ode() result(rst)
     real(real64), allocatable, dimension(:,:) :: points
     type(ode_container) :: model
     type(bdf) :: integrator
+    type(poincare_progress_test_data) :: progress
 
     rst = .false.
     model%fcn => linear_section_ode
     points = poincare_map(model, [0.0d0, 4.0d0], [0.0d0, 0.0d0, -2.0d0], &
-        9, solver = integrator, chunk_size = 4)
+        9, solver = integrator, chunk_size = 4, args = progress, &
+        progress_callback = record_poincare_progress)
+    if (progress%notification_count /= 2 .or. &
+        any(progress%completed_samples /= [5, 9]) .or. &
+        maxval(abs(progress%time - [2.0d0, 4.0d0])) > 1.0d-12) then
+        print "(A)", "TEST FAILED: test_poincare_map_ode progress notifications"
+        return
+    end if
     if (size(points,1) /= 1) then
         print "(A)", "TEST FAILED: test_poincare_map_ode sampled chunk boundary"
         return
@@ -202,6 +216,22 @@ function test_poincare_map_ode() result(rst)
     end if
     rst = .true.
 end function
+
+subroutine record_poincare_progress(completed_samples, total_samples, time, args)
+    integer(int32), intent(in) :: completed_samples, total_samples
+    real(real64), intent(in) :: time
+    class(*), intent(inout), optional :: args
+
+    select type (progress => args)
+    type is (poincare_progress_test_data)
+        progress%notification_count = progress%notification_count + 1
+        if (progress%notification_count <= size(progress%completed_samples)) then
+            progress%completed_samples(progress%notification_count) = &
+                completed_samples
+            progress%time(progress%notification_count) = time
+        end if
+    end select
+end subroutine
 
 subroutine linear_section_ode(t, state, derivative, args)
     real(real64), intent(in) :: t

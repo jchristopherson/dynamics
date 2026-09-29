@@ -22,6 +22,7 @@ module dynamics_maps
     public :: POINCARE_ONE_SIDED_FROM_FRONT
     public :: POINCARE_ONE_SIDED_FROM_BACK
     public :: poincare_map
+    public :: poincare_map_progress
 
     integer(int32), parameter :: POINCARE_TWO_SIDED = 0
         !! A two-sided Poincare section will be computed.  In this section, the
@@ -55,6 +56,20 @@ module dynamics_maps
                 !! The ODE state at t, in the equation's state ordering.
             real(real64), intent(out), dimension(3) :: coordinates_out
                 !! The x, y, and z coordinates to intersect with the plane.
+        end subroutine
+
+        subroutine poincare_map_progress(completed_samples, total_samples, &
+            time, args)
+            !! Reports progress after a complete ODE sample chunk is processed.
+            import int32, real64
+            integer(int32), intent(in) :: completed_samples
+                !! Number of uniformly spaced samples completed so far.
+            integer(int32), intent(in) :: total_samples
+                !! Total number of requested samples.
+            real(real64), intent(in) :: time
+                !! Time at the end of the completed chunk.
+            class(*), intent(inout), optional :: args
+                !! Optional user data shared with the ODE callbacks.
         end subroutine
     end interface
 
@@ -198,7 +213,7 @@ contains
 
 ! ------------------------------------------------------------------------------
     function poincare_map_ode(sys, tspan, iv, sample_count, pln, side, solver, &
-        chunk_size, coordinates, args) result(rst)
+        chunk_size, coordinates, args, progress_callback) result(rst)
         !! Computes a Poincare section from uniformly spaced ODE samples while
         !! retaining only one solution chunk and the resulting section points.
         !! Each chunk starts from the preceding chunk's final solution state.
@@ -232,6 +247,9 @@ contains
             !! Defaults to the first three state components.
         class(*), intent(inout), optional :: args
             !! Optional user data forwarded to each ODE solver call.
+        procedure(poincare_map_progress), intent(in), pointer, optional :: &
+            progress_callback
+            !! Optional notification after each completed sample chunk.
         real(real64), allocatable, dimension(:,:) :: rst
             !! An N-by-3 array of section intersections in x, y, z order.
 
@@ -351,6 +369,12 @@ contains
             if (carry_previous) previous = points(size(points,1)-1,:)
             deallocate(points)
             first = last
+
+            ! Update the user on our progress
+            if (present(progress_callback)) then
+                call progress_callback(last + 1, sample_count, &
+                    times(solve_count), args)
+            end if
         end do
         rst = buffer(:count,:)
         call integrator%clear_buffer()

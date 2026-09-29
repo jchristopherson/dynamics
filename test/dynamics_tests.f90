@@ -469,6 +469,9 @@ program main
     check = test_variational_free_body()
     if (.not.check) flag = 130
 
+    check = test_variational_recoverable_failure()
+    if (.not.check) flag = 148
+
     check = test_variational_applied_force()
     if (.not.check) flag = 131
 

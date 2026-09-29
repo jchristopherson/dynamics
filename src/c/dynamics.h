@@ -2716,7 +2716,16 @@ void c_default_variational_integrator_settings(
  * shape 3-by-nbody-by-ntime.
  * @param multipliers Output constraint multipliers with shape
  * nconstraint-by-ntime. The final column is obtained from a noncommitting
- * look-ahead step. Storage may be omitted only when nconstraint is zero.
+ * look-ahead step. On failure, only columns for completed steps are valid and
+ * the look-ahead column is omitted. Storage may be omitted only when
+ * nconstraint is zero.
+ * @param converged Set to 1 on success and 0 if a numerical solve fails.
+ * @param iterations Total Newton iterations across attempted steps.
+ * @param jacobian_singular Set to 1 if a Newton Jacobian was detected as
+ * singular.
+ * @param completed_steps Number of completed time advances. The output
+ * histories contain the initial state and these completed steps; unused
+ * trailing entries are zero (identity quaternions for orientation).
  */
 void c_variational_integrator_solve(int nbody, const c_rigid_body *bodies,
     int ntime, double dt, const double *initial_position,
@@ -2727,7 +2736,8 @@ void c_variational_integrator_solve(int nbody, const c_rigid_body *bodies,
     c_variational_constraint_jacobian jacobian_callback, void *user_data,
     const c_variational_integrator_settings *settings, double *position,
     c_quaternion *orientation, double *velocity, double *angular_velocity,
-    double *multipliers);
+    double *multipliers, int *converged, int *iterations,
+    int *jacobian_singular, int *completed_steps);
 /**
  * Create a dynamic model from a serial linkage value.
  * @param linkage Serial linkage definition. The dynamic model copies all link
@@ -2874,7 +2884,15 @@ void c_linkage_dynamic_torsional_element_results(c_linkage_dynamic_model obj,
  * 3-by-nbody-by-ntime.
  * @param multipliers Output multiplier history with shape
  * nconstraint-by-ntime. If prescribed motion is active, its required actuator
- * torque is the last multiplier row.
+ * torque is the last multiplier row. On failure, only columns for completed
+ * steps are valid and the look-ahead column is omitted.
+ * @param converged Set to 1 on success and 0 if a numerical solve fails.
+ * @param iterations Total Newton iterations across attempted steps.
+ * @param jacobian_singular Set to 1 if a Newton Jacobian was detected as
+ * singular.
+ * @param completed_steps Number of completed time advances. The output
+ * histories contain the initial state and these completed steps; unused
+ * trailing entries are zero (identity quaternions for orientation).
  */
 void c_linkage_dynamic_solve(c_linkage_dynamic_model obj, int nbody,
     int nconstraint, const c_variational_integrator_settings *settings,
@@ -2882,7 +2900,8 @@ void c_linkage_dynamic_solve(c_linkage_dynamic_model obj, int nbody,
     const double *body_torque, int prescribed_body,
     c_linkage_prescribed_motion prescribed_motion, void *user_data,
     double *position, c_quaternion *orientation, double *velocity,
-    double *angular_velocity, double *multipliers);
+    double *angular_velocity, double *multipliers, int *converged,
+    int *iterations, int *jacobian_singular, int *completed_steps);
 /**
  * Convert one state's linkage multipliers into joint reaction wrenches. Each
  * reaction is expressed in world coordinates and acts on the joint's child
