@@ -52,6 +52,12 @@ program main
     check = test_frf_sweep()
     if (.not.check) flag = 1
 
+    check = test_dynamic_stiffness_dense()
+    if (.not.check) flag = 161
+
+    check = test_general_damping_frf()
+    if (.not.check) flag = 162
+
     check = test_proportional_damping_frf()
     if (.not.check) flag = 2
 

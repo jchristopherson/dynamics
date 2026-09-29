@@ -44,6 +44,8 @@ int main()
     if (!c_test_inverse_kinematics()) flag = 18;
 
     if (!c_test_frequency_response()) flag = 19;
+    if (!c_test_general_damping_frf()) flag = 85;
+    if (!c_test_dynamic_stiffness_dense()) flag = 86;
     if (!c_test_modal_response()) flag = 20;
     if (!c_test_frf_sweep()) flag = 21;
     if (!c_test_frf_fit()) flag = 22;

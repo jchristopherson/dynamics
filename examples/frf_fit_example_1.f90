@@ -120,7 +120,7 @@ program example
 ! PLOTTING CODE ONLY
 ! ------------------------------------------------------------------------------
     ! Set up the plots
-    call plt%initialize(2, 1)
+    call plt%initialize(2, 1, width = 1000, height = 500)
     call plt1%initialize()
     call plt2%initialize()
     x1 => plt1%get_x_axis()

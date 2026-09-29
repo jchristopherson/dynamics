@@ -1690,6 +1690,68 @@ void c_frequency_response(int n, int nfreq, const double *mass, int ldm,
     const c_modal_excite frc, double *modes, double *modeshapes, int ldms,
     double complex *rsp, int ldr, void *user_data);
 /**
+ * Compute dense dynamic stiffness, K - omega^2 M + i omega C.
+ * Matrices use column-major storage.
+ * @param n Matrix order.
+ * @param omega Excitation frequency in radians per second.
+ * @param mass Mass matrix.
+ * @param ldm Leading dimension of mass.
+ * @param damp General damping matrix.
+ * @param ldc Leading dimension of damp.
+ * @param stiff Stiffness matrix.
+ * @param ldk Leading dimension of stiff.
+ * @param dyn_stiff Output complex dynamic stiffness matrix.
+ * @param ldd Leading dimension of dyn_stiff.
+ */
+void c_dynamic_stiffness_dense(int n, double omega, const double *mass, int ldm,
+    const double *damp, int ldc, const double *stiff, int ldk,
+    double complex *dyn_stiff, int ldd);
+/**
+ * Compute a general-damping frequency response at explicit frequencies.
+ * Matrices and response use column-major storage.
+ * @param n System order.
+ * @param nfreq Frequency count.
+ * @param mass Mass matrix.
+ * @param ldm Leading dimension of mass.
+ * @param damp General damping matrix.
+ * @param ldc Leading dimension of damp.
+ * @param stiff Stiffness matrix.
+ * @param ldk Leading dimension of stiff.
+ * @param freq Frequencies in radians per second.
+ * @param frc Force callback.
+ * @param rsp Output complex response matrix.
+ * @param ldr Leading dimension of rsp.
+ * @param ranks Output rank of each dynamic stiffness matrix.
+ * @param user_data Opaque caller data forwarded to frc.
+ */
+void c_frf_general_damp_1(int n, int nfreq, const double *mass, int ldm,
+    const double *damp, int ldc, const double *stiff, int ldk,
+    const double *freq, const c_modal_excite frc, double complex *rsp, int ldr,
+    int *ranks, void *user_data);
+/**
+ * Compute a general-damping frequency response over an evenly spaced interval.
+ * Matrices and response use column-major storage.
+ * @param n System order.
+ * @param nfreq Frequency count, at least 2.
+ * @param freq1 Starting frequency in radians per second.
+ * @param freq2 Ending frequency in radians per second.
+ * @param mass Mass matrix.
+ * @param ldm Leading dimension of mass.
+ * @param damp General damping matrix.
+ * @param ldc Leading dimension of damp.
+ * @param stiff Stiffness matrix.
+ * @param ldk Leading dimension of stiff.
+ * @param frc Force callback.
+ * @param rsp Output complex response matrix.
+ * @param ldr Leading dimension of rsp.
+ * @param ranks Output rank of each dynamic stiffness matrix.
+ * @param user_data Opaque caller data forwarded to frc.
+ */
+void c_frf_general_damp_2(int n, int nfreq, double freq1, double freq2,
+    const double *mass, int ldm, const double *damp, int ldc,
+    const double *stiff, int ldk, const c_modal_excite frc, double complex *rsp,
+    int ldr, int *ranks, void *user_data);
+/**
  * Compute modal damping from Rayleigh coefficients.
  * @param lambda Modal eigenvalue.
  * @param alpha Mass-proportional coefficient.

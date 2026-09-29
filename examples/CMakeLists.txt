@@ -39,13 +39,13 @@ target_link_libraries(
     ${FPLOT_LIBRARIES}
 )
 
-# FRF Proportional Damping Example 1
+# FRF Example 1
 add_executable(
-    frf_proportional_example_1
-    frf_proportional_example_1.f90
+    frf_example_1
+    frf_example_1.f90
 )
 target_link_libraries(
-    frf_proportional_example_1
+    frf_example_1
     ${PROJECT_NAME}
     ${FPLOT_LIBRARIES}
 )

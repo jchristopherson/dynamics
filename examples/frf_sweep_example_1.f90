@@ -147,7 +147,7 @@ program example
     w2 = leg2(z)
 
     ! Plot the results
-    call plt%initialize(2, 1)
+    call plt%initialize(2, 1, width = 1000, height = 500)
     call plt1%initialize()
     xAxis => plt1%get_x_axis()
     yAxis => plt1%get_y_axis()

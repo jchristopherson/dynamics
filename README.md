@@ -458,7 +458,7 @@ The left-endpoint update can grow kinetic energy when $r>2$. The implicit endpoi
 Select a Fortran mode with `integrator%settings%force_evaluation`, for example `VI_FORCE_MIDPOINT`. In C, set `c_variational_integrator_settings.force_evaluation` to `DYN_VI_FORCE_LEFT_ENDPOINT`, `DYN_VI_FORCE_IMPLICIT_ENDPOINT`, or `DYN_VI_FORCE_MIDPOINT`; initialize the settings with `c_default_variational_integrator_settings` first. Force callbacks may be reevaluated repeatedly during Newton iterations and should compute loads deterministically from their input time, state, and user data.
 
 ## Frequency Response Example
-Consider the following 3 DOF system. The [`frf_proportional_example_1`](examples/frf_proportional_example_1.f90) example illustrates how to use this library to compute the frequency response functions for this system.
+Consider the following 3 DOF system. The [`frf_example_1`](examples/frf_proportional_example_1.f90) example illustrates how to use this library to compute the frequency response functions for this system.
 
 ![](images/3%20DOF%20Schematic.PNG?raw=true)
 
@@ -468,16 +468,10 @@ The equations describing this system are as follows.
 \begin{bmatrix} m_1 & 0 & 0 \\ 0 & m_2 & 0 \\ 0 & 0 & m_3 \end{bmatrix} \begin{Bmatrix} \ddot{x}_1 \\ \ddot{x}_2 \\ \ddot{x}_3 \end{Bmatrix} + \begin{bmatrix} b_1 + b_2 & -b_2 & 0 \\ -b_2 & b_2 + b_3 & -b_3 \\ 0 & -b_3 & b_3 + b_4 \end{bmatrix} \begin{Bmatrix} \dot{x}_1 \\ \dot{x}_2 \\ \dot{x}_3 \end{Bmatrix} + \begin{bmatrix} k_1 + k_2 & -k_2 & 0 \\ -k_2 & k_2 + k_3 & -k_3 \\ 0 & -k_3 & k_3 + k_4 \end{bmatrix} \begin{Bmatrix} x_{1} \\ x_{2} \\ x_{3} \end{Bmatrix} = \begin{Bmatrix} F(t) \\ 0 \\ 0 \end{Bmatrix}
 ```
 
-This analysis makes use of proportional damping.  Using proportional damping, the damping matrix is determined as follows.
-
-```math
-B = \alpha M + \beta K
-```
-
 The essential excitation and solution setup is:
 
 ```fortran
-real(real64), dimension(3,3) :: mass, stiffness
+real(real64), dimension(3,3) :: mass, stiffness, damp
 type(frf) :: response
 procedure(modal_excite), pointer :: excitation
 
@@ -487,9 +481,12 @@ mass = reshape([0.5d0, 0.0d0, 0.0d0, &
 stiffness = reshape([15.0d6, -10.0d6, 0.0d0, &
     -10.0d6, 20.0d6, -10.0d6, &
     0.0d0, -10.0d6, 15.0d6], [3,3])
+damp = reshape([150.0d0, -25.0d0, 0.0d0, &
+    -25.0d0, 50.0d0, -25.0d0, &
+    0.0d0, -25.0d0, 40.0d0], [3,3])
 
 excitation => modal_frf_forcing_term
-response = frequency_response(mass, stiffness, 1.0d-3, 2.0d-6, &
+response = frequency_response(mass, damp, stiffness, &
     1000, 2.0d0*pi*10.0d0, 2.0d0*pi*1.0d3, excitation)
 
 contains
@@ -503,7 +500,7 @@ end subroutine
 
 The computed frequency response functions.
 
-![](images/frf_proportional_example_1.png?raw=true)
+![](images/frf_example_1.png?raw=true)
 
 ## Nonlinear FRF Example
 Computing the frequency response function for a nonlinear system is not as straight-forward. A technique for capturing nonlinear behaviors, such as jump phenomenon, is to sweep through frequency, in both an ascending and a descending manner. The [`frf_sweep_example_1`](examples/frf_sweep_example_1.f90) example illustrates such a frequency sweep using the famous Duffing equation as the model.
