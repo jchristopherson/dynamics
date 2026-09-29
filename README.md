@@ -457,8 +457,6 @@ The left-endpoint update can grow kinetic energy when $r>2$. The implicit endpoi
 
 Select a Fortran mode with `integrator%settings%force_evaluation`, for example `VI_FORCE_MIDPOINT`. In C, set `c_variational_integrator_settings.force_evaluation` to `DYN_VI_FORCE_LEFT_ENDPOINT`, `DYN_VI_FORCE_IMPLICIT_ENDPOINT`, or `DYN_VI_FORCE_MIDPOINT`; initialize the settings with `c_default_variational_integrator_settings` first. Force callbacks may be reevaluated repeatedly during Newton iterations and should compute loads deterministically from their input time, state, and user data.
 
-The complete example includes the massive-rod inertia calculation, gravity and endpoint-constraint callbacks, analytic quaternion-tangent Jacobian, and plots of both rod angles. Build it with `BUILD_DYNAMICS_EXAMPLES=ON` and run the `variational_integrator_example` target.
-
 ## Frequency Response Example
 Consider the following 3 DOF system. The [`frf_proportional_example_1`](examples/frf_proportional_example_1.f90) example illustrates how to use this library to compute the frequency response functions for this system.
 
