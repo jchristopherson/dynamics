@@ -466,6 +466,9 @@ program main
     check = test_open_chain_equivalence()
     if (.not.check) flag = 107
 
+    check = test_variational_force_evaluation()
+    if (.not.check) flag = 149
+
     check = test_variational_free_body()
     if (.not.check) flag = 130
 

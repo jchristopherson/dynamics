@@ -255,6 +255,44 @@ Notice that the linkage is drawn by querying the mechanism itself.  The `body_tr
 
 ![](images/four_bar_example_1.png?raw=true)
 
+## Variational Integrator Example
+The [`variational_integrator_example`](examples/variational_integrator_example.f90) simulates a planar double pendulum in maximal coordinates. Both connecting rods have distributed mass, finite cross-section inertia, and gravity loading at their centers of mass. Six holonomic constraints pin the first rod to ground and join the two rod endpoints.
+
+The example selects the graph-factorized solver from Brüdigam et al. (2023), supplies force and constraint callbacks, and provides an analytic reduced constraint Jacobian for efficient Newton iterations:
+
+```fortran
+type(rigid_body), dimension(2) :: bodies
+type(variational_state) :: initial_state
+type(variational_state), allocatable, dimension(:) :: solution
+type(variational_integrator) :: integrator
+
+! Each connecting rod carries its own mass and center-of-mass inertia tensor.
+bodies(1) = rigid_body(mass1, rod_inertia(mass1, length1, width1))
+bodies(2) = rigid_body(mass2, rod_inertia(mass2, length2, width2))
+
+call initialize_variational_state(initial_state, 2)
+initial_state%orientation(1) = quaternion(angle1_initial, &
+    [0.0d0, 0.0d0, 1.0d0])
+initial_state%orientation(2) = quaternion(angle2_initial, &
+    [0.0d0, 0.0d0, 1.0d0])
+
+! Set compatible center-of-mass positions for the two endpoint constraints.
+direction1 = [sin(angle1_initial), -cos(angle1_initial), 0.0d0]
+direction2 = [sin(angle2_initial), -cos(angle2_initial), 0.0d0]
+initial_state%position(:,1) = 0.5d0 * length1 * direction1
+initial_state%position(:,2) = length1 * direction1 + &
+    0.5d0 * length2 * direction2
+
+integrator%settings%linear_solver = VI_GRAPH_FACTORIZED_SOLVER
+solution = integrator%solve(bodies, initial_state, dt, ntime, &
+    constraint_count = 6, &
+    constraint = pendulum_constraints, &
+    force_function = gravity_forces, &
+    constraint_jacobian = pendulum_constraint_jacobian, &
+    args = parameters)
+```
+![Double-pendulum rod angles produced by the variational integrator example](images/variational_integrator_example.png?raw=true)
+
 ## Motor-Driven Parallel Linkage Example
 The linkage dynamics analysis capabilities also allow the addition of motors to drive motion, along with spring and damper elements.  The [`four_bar_example_2`](examples/four_bar_example_2.f90) analyzes a four-bar linkage driven at the crank by a motor, and utilizes a torsional spring and damper at the rocker-ground revolute joint.  The analysis illustrates how, given the motor motion, to extract the motor torque required to achieve the motion, along with the joint reaction forces in terms of the world coordinate frame.  The solver always places prescribed-motion constraints after all the joint constraints; therefore, the motor torque is the last row in the Lagrange multiplier output.  For this example, the motor torque is the required torque to overcome the inertia of the mechanism, and the spring and damper at the rocker-ground revolute joint.
 
@@ -382,6 +420,44 @@ torque = constraint_multipliers(nmult,:)    ! motor torque
 ```
 ![](images/four_bar_example_2a.png?raw=true)
 ![](images/four_bar_example_2b.png?raw=true)
+
+### Nonconservative Loads and Damping
+The variational integrator accepts applied forces and torques, including dissipative loads such as viscous dampers. They enter as nonconservative forces in the forced discrete Euler-Lagrange equations. The `force_evaluation` setting selects when **all** applied loads are sampled; it changes the force quadrature, not the conservative state update or its formal order.
+
+Let $t_k,y_k$ be the current time and state, and $t_{k+1},y_{k+1}$ the trial next time and state. The translational momentum balance uses the selected force sample $F_*$:
+$$
+m\frac{v_{k+1}-v_k}{h}=F_*.
+$$
+The rotational discrete momentum balance uses the torque sampled at the same point. The available modes are:
+
+| Mode | Force sample | Tradeoffs |
+|---|---|---|
+| `VI_FORCE_LEFT_ENDPOINT` (default) | $F(t_k,y_k)$ | Explicit in the step and least expensive. Large damping or a large step can make the discrete velocity grow. |
+| `VI_FORCE_IMPLICIT_ENDPOINT` | $F(t_{k+1},y_{k+1})$ | Evaluates loads on each Newton trial. More robust for stiff damping, but adds nonlinear work and endpoint-samples every load, including springs and user-defined loads. |
+| `VI_FORCE_MIDPOINT` | $F(t_{k+1/2},y_{k+1/2})$ | Evaluates loads on each Newton trial at an interpolated midpoint. A centered force sample, but not a complete implicit-midpoint integrator and not L-stable for very stiff modes. |
+
+For `VI_FORCE_MIDPOINT`, time, position, and translational velocity are arithmetic midpoints. Orientation follows the unit-quaternion geodesic midpoint
+$$
+q_{k+1/2}=q_k\left(q_k^{-1}q_{k+1}\right)^{1/2}.
+$$
+Angular velocity is averaged in world coordinates, then expressed in the midpoint body frame:
+$$
+\omega_{k+1/2}=R(q_{k+1/2})^T\frac{R(q_k)\omega_k+R(q_{k+1})\omega_{k+1}}{2}.
+$$
+
+For an isolated mass $m$ with viscous force $F=-cv$, define $r=hc/m$. The velocity amplification factors are
+$$
+\frac{v_{k+1}}{v_k}=\begin{cases}
+1-r, & \text{left endpoint},\\
+\dfrac{1}{1+r}, & \text{implicit endpoint},\\
+\dfrac{1-r/2}{1+r/2}, & \text{midpoint}.
+\end{cases}
+$$
+The left-endpoint update can grow kinetic energy when $r>2$. The implicit endpoint is unconditionally stable for this scalar linear problem and strongly damps stiff modes. The midpoint factor does not grow for $r\ge0$, but approaches $-1$ as damping becomes very stiff, so those modes alternate rather than being rapidly suppressed. These scalar properties do not guarantee an energy law for a constrained multibody simulation; check timestep convergence and energy/work behavior for the system of interest.
+
+Select a Fortran mode with `integrator%settings%force_evaluation`, for example `VI_FORCE_MIDPOINT`. In C, set `c_variational_integrator_settings.force_evaluation` to `DYN_VI_FORCE_LEFT_ENDPOINT`, `DYN_VI_FORCE_IMPLICIT_ENDPOINT`, or `DYN_VI_FORCE_MIDPOINT`; initialize the settings with `c_default_variational_integrator_settings` first. Force callbacks may be reevaluated repeatedly during Newton iterations and should compute loads deterministically from their input time, state, and user data.
+
+The complete example includes the massive-rod inertia calculation, gravity and endpoint-constraint callbacks, analytic quaternion-tangent Jacobian, and plots of both rod angles. Build it with `BUILD_DYNAMICS_EXAMPLES=ON` and run the `variational_integrator_example` target.
 
 ## Frequency Response Example
 Consider the following 3 DOF system. The [`frf_proportional_example_1`](examples/frf_proportional_example_1.f90) example illustrates how to use this library to compute the frequency response functions for this system.
@@ -524,6 +600,10 @@ DAMPING TERM:
 ```
 ![](images/siso_least_squares_fit_example.png?raw=true)
 
+## Structural Example
+
+TO DO: Place example here
+
 ## Harmonic Truss Example
 
 The [`harmonic_truss_example`](examples/harmonic_truss_example.f90) models a four-node, five-bar pin-jointed truss with a pinned support and a roller. It assembles axial stiffness and consistent translational mass matrices, applies the support constraints, and advances the response to a vertical 20 Hz load at the apex with `dense_generalized_alpha_integrator`. Fplot saves vertical apex and midspan motion and horizontal midspan and roller motion to `harmonic_truss_response.png` in the process's working directory. Build the `harmonic_truss_example` CMake target with examples enabled, then run it from the build's examples directory.
@@ -548,47 +628,6 @@ end do
 ```
 
 ![Forced response of the simple truss example](images/harmonic_truss_example.png?raw=true)
-
-## Variational Integrator Example
-The [`variational_integrator_example`](examples/variational_integrator_example.f90) simulates a planar double pendulum in maximal coordinates. Both connecting rods have distributed mass, finite cross-section inertia, and gravity loading at their centers of mass. Six holonomic constraints pin the first rod to ground and join the two rod endpoints.
-
-The example selects the graph-factorized solver from Brüdigam et al. (2023), supplies force and constraint callbacks, and provides an analytic reduced constraint Jacobian for efficient Newton iterations:
-
-```fortran
-type(rigid_body), dimension(2) :: bodies
-type(variational_state) :: initial_state
-type(variational_state), allocatable, dimension(:) :: solution
-type(variational_integrator) :: integrator
-
-! Each connecting rod carries its own mass and center-of-mass inertia tensor.
-bodies(1) = rigid_body(mass1, rod_inertia(mass1, length1, width1))
-bodies(2) = rigid_body(mass2, rod_inertia(mass2, length2, width2))
-
-call initialize_variational_state(initial_state, 2)
-initial_state%orientation(1) = quaternion(angle1_initial, &
-    [0.0d0, 0.0d0, 1.0d0])
-initial_state%orientation(2) = quaternion(angle2_initial, &
-    [0.0d0, 0.0d0, 1.0d0])
-
-! Set compatible center-of-mass positions for the two endpoint constraints.
-direction1 = [sin(angle1_initial), -cos(angle1_initial), 0.0d0]
-direction2 = [sin(angle2_initial), -cos(angle2_initial), 0.0d0]
-initial_state%position(:,1) = 0.5d0 * length1 * direction1
-initial_state%position(:,2) = length1 * direction1 + &
-    0.5d0 * length2 * direction2
-
-integrator%settings%linear_solver = VI_GRAPH_FACTORIZED_SOLVER
-solution = integrator%solve(bodies, initial_state, dt, ntime, &
-    constraint_count = 6, &
-    constraint = pendulum_constraints, &
-    force_function = gravity_forces, &
-    constraint_jacobian = pendulum_constraint_jacobian, &
-    args = parameters)
-```
-
-The complete example includes the massive-rod inertia calculation, gravity and endpoint-constraint callbacks, analytic quaternion-tangent Jacobian, and plots of both rod angles. Build it with `BUILD_DYNAMICS_EXAMPLES=ON` and run the `variational_integrator_example` target.
-
-![Double-pendulum rod angles produced by the variational integrator example](images/variational_integrator_example.png?raw=true)
 
 ## References
 1. J. D. Hartog, "Mechanical Vibrations," New York: Dover Publications, Inc., 1985.

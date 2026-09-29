@@ -191,6 +191,12 @@
 #define DYN_VI_DENSE_SOLVER 1
 /** Graph-factorized solver for variational-integrator Newton systems. */
 #define DYN_VI_GRAPH_FACTORIZED_SOLVER 2
+/** Evaluate applied loads at the current state (explicit left endpoint). */
+#define DYN_VI_FORCE_LEFT_ENDPOINT 1
+/** Evaluate applied loads at the trial next state inside Newton. */
+#define DYN_VI_FORCE_IMPLICIT_ENDPOINT 2
+/** Evaluate applied loads at an interpolated midpoint state inside Newton. */
+#define DYN_VI_FORCE_MIDPOINT 3
 
 /** No error has been recorded. */
 #define DYN_NO_ERROR 0
@@ -810,6 +816,10 @@ typedef struct {
     int maximum_line_search_iterations;
     /** DYN_VI_DENSE_SOLVER or DYN_VI_GRAPH_FACTORIZED_SOLVER. */
     int linear_solver;
+    /** One of DYN_VI_FORCE_LEFT_ENDPOINT, DYN_VI_FORCE_IMPLICIT_ENDPOINT, or
+     * DYN_VI_FORCE_MIDPOINT.
+     */
+    int force_evaluation;
 } c_variational_integrator_settings;
 
 /** @brief World-frame joint reaction exerted on the joint's child link. */
@@ -2706,7 +2716,9 @@ void c_default_variational_integrator_settings(
  * @param user_data Opaque pointer forwarded unchanged to all callbacks; may be
  * NULL.
  * @param settings Integration settings, commonly initialized by
- * c_default_variational_integrator_settings.
+ * c_default_variational_integrator_settings. force_evaluation selects explicit
+ * left-endpoint, implicit trial-endpoint, or midpoint applied-load evaluation;
+ * see the Variational and linkage dynamics guide for equations and tradeoffs.
  * @param position Output world-frame position history with shape
  * 3-by-nbody-by-ntime.
  * @param orientation Output quaternion history with shape nbody-by-ntime.

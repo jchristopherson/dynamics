@@ -48,6 +48,7 @@ module dynamics_c_variational
         integer(c_int) :: maximum_iterations
         integer(c_int) :: maximum_line_search_iterations
         integer(c_int) :: linear_solver
+        integer(c_int) :: force_evaluation
     end type
 
     type, bind(C) :: c_serial_linkage_vi
@@ -175,6 +176,7 @@ subroutine c_vi_default_settings(settings) &
     settings%maximum_iterations = defaults%maximum_iterations
     settings%maximum_line_search_iterations = defaults%maximum_line_search_iterations
     settings%linear_solver = defaults%linear_solver
+    settings%force_evaluation = defaults%force_evaluation
 end subroutine
 
 pure function convert_settings(c) result(f)
@@ -187,6 +189,7 @@ pure function convert_settings(c) result(f)
     f%maximum_iterations = int(c%maximum_iterations, int32)
     f%maximum_line_search_iterations = int(c%maximum_line_search_iterations, int32)
     f%linear_solver = int(c%linear_solver, int32)
+    f%force_evaluation = int(c%force_evaluation, int32)
 end function
 
 subroutine pack_state(state, cstate, p, q, v, w)
