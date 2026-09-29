@@ -90,13 +90,13 @@ compute a force from the current length and length rate.</p></td>
                </tr>
 			   <tr>
                  <td><a href='..\type\beam_element_2d.html'>beam_element_2d</a></td>
-                 <td><a href='..\module\dynamics_line_elements.html'>dynamics_line_elements</a></td>
+                 <td><a href='..\module\dynamics_beam_elements.html'>dynamics_beam_elements</a></td>
                  <td><a href='..\type\line_element.html'>line_element</a></td>
                  <td><p>Defines a two-dimensional Bernoulli-Euler beam element.</p><a href="../type/beam_element_2d.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
 			   <tr>
                  <td><a href='..\type\beam_element_3d.html'>beam_element_3d</a></td>
-                 <td><a href='..\module\dynamics_line_elements.html'>dynamics_line_elements</a></td>
+                 <td><a href='..\module\dynamics_beam_elements.html'>dynamics_beam_elements</a></td>
                  <td><a href='..\type\line_element.html'>line_element</a></td>
                  <td><p>Defines a three-dimensional Bernoulli-Euler beam element.</p><a href="../type/beam_element_3d.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
@@ -116,6 +116,35 @@ Denavit-Hartenberg convention in order to express its geometry.</p></td>
                  <td><p>Defines a 3D Cartesian coordinate system.</p></td>
                </tr>
 			   <tr>
+                 <td><a href='..\type\damper_element.html'>damper_element</a></td>
+                 <td><a href='..\module\dynamics_discrete_elements.html'>dynamics_discrete_elements</a></td>
+                 <td><a href='..\type\two_node_discrete_element.html'>two_node_discrete_element</a></td>
+                 <td><p>Defines a linear, axial viscous damper element.  When evaluated
+with nodal velocities, the element "strain" is the elongation rate
+and the element "stress" is the damper force (positive in
+tension).</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\damper_element_2d.html'>damper_element_2d</a></td>
+                 <td><a href='..\module\dynamics_discrete_elements.html'>dynamics_discrete_elements</a></td>
+                 <td><a href='..\type\damper_element.html'>damper_element</a></td>
+                 <td><p>Defines a 2D linear, axial viscous damper element with x and y
+translations at each node.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\damper_element_3d.html'>damper_element_3d</a></td>
+                 <td><a href='..\module\dynamics_discrete_elements.html'>dynamics_discrete_elements</a></td>
+                 <td><a href='..\type\damper_element.html'>damper_element</a></td>
+                 <td><p>Defines a 3D linear, axial viscous damper element with x, y, and z
+translations at each node.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\dense_generalized_alpha_integrator.html'>dense_generalized_alpha_integrator</a></td>
+                 <td><a href='..\module\dynamics_linear_structural_solvers.html'>dynamics_linear_structural_solvers</a></td>
+                 <td><a href='..\type\structural_integrator.html'>structural_integrator</a></td>
+                 <td><p>Defines a generalized alpha integrator for dense matrix systems.</p></td>
+               </tr>
+			   <tr>
                  <td><a href='..\type\dh_parameter_set.html'>dh_parameter_set</a></td>
                  <td><a href='..\module\dynamics_kinematics.html'>dynamics_kinematics</a></td>
                  <td>None</td>
@@ -126,6 +155,15 @@ Denavit-Hartenberg convention in order to express its geometry.</p></td>
                  <td><a href='..\module\dynamics_kinematics.html'>dynamics_kinematics</a></td>
                  <td>None</td>
                  <td><p>Describes a Denavit-Hartenberg table.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\discrete_element.html'>discrete_element</a></td>
+                 <td><a href='..\module\dynamics_discrete_elements.html'>dynamics_discrete_elements</a></td>
+                 <td><a href='..\type\element.html'>element</a></td>
+                 <td><p>Defines a discrete (lumped-parameter) element.  Discrete elements
+have no spatial extent; therefore, the stiffness, mass, and damping
+matrices default to zero and are overridden only where the element
+contributes to the system.  The inherited material is unused.</p></td>
                </tr>
 			   <tr>
                  <td><a href='..\type\dynamic_joint.html'>dynamic_joint</a></td>
@@ -259,6 +297,27 @@ stored within a single array.</p></td>
 Body index zero in a joint descriptor denotes the fixed ground link.</p></td>
                </tr>
 			   <tr>
+                 <td><a href='..\type\mass_element.html'>mass_element</a></td>
+                 <td><a href='..\module\dynamics_discrete_elements.html'>dynamics_discrete_elements</a></td>
+                 <td><a href='..\type\discrete_element.html'>discrete_element</a></td>
+                 <td><p>Defines a translational point mass element attached to a single
+node.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\mass_element_2d.html'>mass_element_2d</a></td>
+                 <td><a href='..\module\dynamics_discrete_elements.html'>dynamics_discrete_elements</a></td>
+                 <td><a href='..\type\mass_element.html'>mass_element</a></td>
+                 <td><p>Defines a 2D translational point mass element with x and y
+translations.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\mass_element_3d.html'>mass_element_3d</a></td>
+                 <td><a href='..\module\dynamics_discrete_elements.html'>dynamics_discrete_elements</a></td>
+                 <td><a href='..\type\mass_element.html'>mass_element</a></td>
+                 <td><p>Defines a 3D translational point mass element with x, y, and z
+translations.</p></td>
+               </tr>
+			   <tr>
                  <td><a href='..\type\material.html'>material</a></td>
                  <td><a href='..\module\dynamics_structural.html'>dynamics_structural</a></td>
                  <td>None</td>
@@ -364,11 +423,45 @@ The translational and rotational kinetic energies are represented by
 traversal.</p></td>
                </tr>
 			   <tr>
+                 <td><a href='..\type\sparse_generalized_alpha_integrator.html'>sparse_generalized_alpha_integrator</a></td>
+                 <td><a href='..\module\dynamics_linear_structural_solvers.html'>dynamics_linear_structural_solvers</a></td>
+                 <td><a href='..\type\structural_integrator.html'>structural_integrator</a></td>
+                 <td><p>Defines a generalized alpha integrator for sparse matrix systems.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\spring_element.html'>spring_element</a></td>
+                 <td><a href='..\module\dynamics_discrete_elements.html'>dynamics_discrete_elements</a></td>
+                 <td><a href='..\type\two_node_discrete_element.html'>two_node_discrete_element</a></td>
+                 <td><p>Defines a linear, axial spring element.  The element "strain" is
+the spring elongation and the element "stress" is the spring force
+(positive in tension).</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\spring_element_2d.html'>spring_element_2d</a></td>
+                 <td><a href='..\module\dynamics_discrete_elements.html'>dynamics_discrete_elements</a></td>
+                 <td><a href='..\type\spring_element.html'>spring_element</a></td>
+                 <td><p>Defines a 2D linear, axial spring element with x and y translations
+at each node.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\spring_element_3d.html'>spring_element_3d</a></td>
+                 <td><a href='..\module\dynamics_discrete_elements.html'>dynamics_discrete_elements</a></td>
+                 <td><a href='..\type\spring_element.html'>spring_element</a></td>
+                 <td><p>Defines a 3D linear, axial spring element with x, y, and z
+translations at each node.</p></td>
+               </tr>
+			   <tr>
                  <td><a href='..\type\state_space.html'>state_space</a></td>
                  <td><a href='..\module\dynamics_controls.html'>dynamics_controls</a></td>
                  <td>None</td>
                  <td><p>Defines a state-space representation of a dynamic system.  This
 implementation takes the form:</p><a href="../type/state_space.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\structural_integrator.html'>structural_integrator</a></td>
+                 <td><a href='..\module\dynamics_linear_structural_solvers.html'>dynamics_linear_structural_solvers</a></td>
+                 <td>None</td>
+                 <td><p>Base class for linear structural time integrators.</p></td>
                </tr>
 			   <tr>
                  <td><a href='..\type\torsional_damper.html'>torsional_damper</a></td>
@@ -402,6 +495,28 @@ implementation takes the form:</p><a href="../type/state_space.html" class="pull
 <script type="math/tex"> H(s) = \frac{Y(s)}{X(s)} </script>.</p></td>
                </tr>
 			   <tr>
+                 <td><a href='..\type\truss_element_2d.html'>truss_element_2d</a></td>
+                 <td><a href='..\module\dynamics_truss_elements.html'>dynamics_truss_elements</a></td>
+                 <td><a href='..\type\line_element.html'>line_element</a></td>
+                 <td><p>Defines a pin-jointed 2D bar with x and y translations per node.
+Use the parent mass_matrix and the global axial stiffness override.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\truss_element_3d.html'>truss_element_3d</a></td>
+                 <td><a href='..\module\dynamics_truss_elements.html'>dynamics_truss_elements</a></td>
+                 <td><a href='..\type\line_element.html'>line_element</a></td>
+                 <td><p>Defines a pin-jointed 3D bar with three translations per node.
+The local transverse axes are arbitrary; only the longitudinal
+direction influences axial strain and stiffness.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\two_node_discrete_element.html'>two_node_discrete_element</a></td>
+                 <td><a href='..\module\dynamics_discrete_elements.html'>dynamics_discrete_elements</a></td>
+                 <td><a href='..\type\discrete_element.html'>discrete_element</a></td>
+                 <td><p>Defines a discrete element that connects two nodes and acts along
+a single axis.</p></td>
+               </tr>
+			   <tr>
                  <td><a href='..\type\variational_integrator.html'>variational_integrator</a></td>
                  <td><a href='..\module\dynamics_variational_integrators.html'>dynamics_variational_integrators</a></td>
                  <td>None</td>
@@ -409,6 +524,12 @@ implementation takes the form:</p><a href="../type/state_space.html" class="pull
 Brudigam et al. (2023), equations (18)-(20). The nonlinear system is
 solved with damped Newton iterations and either dense LU or the
 paper's graph-structured block factorization.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\variational_integrator_info.html'>variational_integrator_info</a></td>
+                 <td><a href='..\module\dynamics_variational_integrators.html'>dynamics_variational_integrators</a></td>
+                 <td>None</td>
+                 <td><p>Reports convergence diagnostics for a step or trajectory solve.</p></td>
                </tr>
 			   <tr>
                  <td><a href='..\type\variational_integrator_settings.html'>variational_integrator_settings</a></td>
@@ -441,7 +562,7 @@ orientations use the world frame.</p></td>
             <p class="text-end">
               Documentation generated by
               <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-09-20 17:06              </p>
+ on 2026-09-29 05:53              </p>
           </div>
         </div>
         <br>
