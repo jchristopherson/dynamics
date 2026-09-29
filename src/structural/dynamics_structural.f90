@@ -371,8 +371,8 @@ pure function get_model_parameters(rule) result(rst)
     ! Process
     select case (rule)
     case (DYN_ONE_POINT_INTEGRATION_RULE)
-        allocate(rst(2, 2))
-        rst = reshape([0.0d0, 0.0d0, 2.0d0, 2.0d0], [2, 2])
+        allocate(rst(1, 2))
+        rst = reshape([0.0d0, 2.0d0], [1, 2])
     case (DYN_TWO_POINT_INTEGRATION_RULE)
         allocate(rst(2, 2))
         x = sqrt(3.0d0) / 3.0d0
@@ -380,11 +380,13 @@ pure function get_model_parameters(rule) result(rst)
     case (DYN_THREE_POINT_INTEGRATION_RULE)
         allocate(rst(3, 2))
         x = sqrt(3.0d0 / 5.0d0)
+        w1 = 8.0d0 / 9.0d0
+        w2 = 5.0d0 / 9.0d0
         rst = reshape([0.0d0, -x, x, w1, w2, w2], [3, 2])
     case default ! Four Point Rule
         allocate(rst(4, 2))
         pt1 = sqrt((3.0d0 / 7.0d0) - (2.0d0 / 7.0d0) * sqrt(6.0d0 / 5.0d0))
-        pt1 = sqrt((3.0d0 / 7.0d0) + (2.0d0 / 7.0d0) * sqrt(6.0d0 / 5.0d0))
+        pt2 = sqrt((3.0d0 / 7.0d0) + (2.0d0 / 7.0d0) * sqrt(6.0d0 / 5.0d0))
         w1 = (1.8d1 + sqrt(3.0d1)) / 3.6d1
         w2 = (1.8d1 - sqrt(3.0d1)) / 3.6d1
         rst = reshape([-pt1, pt1, -pt2, pt2, w1, w1, w2, w2], [4, 2])

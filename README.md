@@ -54,6 +54,7 @@ The `dynamics` module aggregates tools for analysis, modeling, and identificatio
     - 2D/3D beam element utilities and material/node/element abstractions, with local-coordinate [beam system documentation](images/beam_coordinate_system.svg).
     - 2D/3D axial truss elements with consistent mass and no rotational degrees of freedom.
     - Position-dependent beam shear-force and bending-moment extraction in 2D and 3D.
+    - Flat 3D shell elements with 6 DOF per node: a 3-node triangle (CST membrane + DKT thin-plate bending) and a 4-node quadrilateral (bilinear membrane + MITC4 Mindlin-Reissner bending), both with Hughes-Brezzi drilling stabilization, consistent mass, and membrane/moment/shear stress-resultant recovery.
     - Connectivity matrix construction and boundary-condition application.
     - Sparse/CSR-oriented structural assembly helpers.
     - Generalized-alpha time stepping for linear structural systems with dense or CSR mass, damping, and stiffness matrices.
@@ -699,3 +700,7 @@ end do
 9. Jolicoeur, M.P., Roumy, J.G., Vanreusel, S., Dionne, D., Douville, H., Boulet, B., Michalska, H., Masson, P., & Berry, A. (2005). "Reduction of structure-borne noise in automobiles by multivariable feedback." 1397 - 1402. 10.1109/CCA.2005.1507327. 
 10. Brunton, Steven & Proctor, Joshua & Kutz, J.. (2015). "Discovering governing equations from data: Sparse identification of nonlinear dynamical systems." Proceedings of the National Academy of Sciences. 113. 3932–3937. 10.1073/pnas.1517384113. 
 11. Brüdigam, Jan & Sosnowski, Stefan & Manchester, Zac & Hirche, Sandra. (2023). Variational integrators and graph-based solvers for multibody dynamics in maximal coordinates. Multibody System Dynamics. 61. 1-34. 10.1007/s11044-023-09949-x. 
+12. J.-L. Batoz, K.-J. Bathe, and L.-W. Ho, "A study of three-node triangular plate bending elements," International Journal for Numerical Methods in Engineering, vol. 15, no. 12, pp. 1771-1812, 1980. 10.1002/nme.1620151205.
+13. E. N. Dvorkin and K.-J. Bathe, "A continuum mechanics based four-node shell element for general non-linear analysis," Engineering Computations, vol. 1, no. 1, pp. 77-88, 1984. 10.1108/eb023562.
+14. T. J. R. Hughes and F. Brezzi, "On drilling degrees of freedom," Computer Methods in Applied Mechanics and Engineering, vol. 72, no. 1, pp. 105-121, 1989. 10.1016/0045-7825(89)90124-2.
+15. R. D. Cook, D. S. Malkus, M. E. Plesha, and R. J. Witt, "Concepts and Applications of Finite Element Analysis," 4th ed., New York: John Wiley & Sons, Inc., 2002.
