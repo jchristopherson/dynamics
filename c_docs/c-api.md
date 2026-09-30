@@ -90,7 +90,7 @@ direct and linkage solves:
 	body frame. This is midpoint force sampling, not a complete implicit-midpoint
 	state integrator.
 
-For a scalar mass-damper equation $m\dot v=-cv$, with $r=h c/m$, the velocity
+For a scalar mass-damper equation `m * dv/dt = -c * v`, with $r=h c/m$, the velocity
 amplification factors are $1-r$ (left endpoint), $1/(1+r)$ (implicit endpoint),
 and $(1-r/2)/(1+r/2)$ (midpoint). Thus the explicit mode can grow energy for
 $r>2$, the implicit mode strongly damps stiff modes, and midpoint is stable but
