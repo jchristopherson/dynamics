@@ -215,6 +215,15 @@ Macros</h2></td></tr>
 <tr class="memitem:gae005626cdb791603e4e211fec92d6545" id="r_gae005626cdb791603e4e211fec92d6545"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__constants.html#gae005626cdb791603e4e211fec92d6545">DYN_VI_GRAPH_FACTORIZED_SOLVER</a>&#160;&#160;&#160;2</td></tr>
 <tr class="memdesc:gae005626cdb791603e4e211fec92d6545"><td class="mdescLeft">&#160;</td><td class="mdescRight">Graph-factorized solver for variational-integrator Newton systems.  <br /></td></tr>
 <tr class="separator:gae005626cdb791603e4e211fec92d6545"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0e7331c6f9ea4f938f6333e7e462c8f9" id="r_ga0e7331c6f9ea4f938f6333e7e462c8f9"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__constants.html#ga0e7331c6f9ea4f938f6333e7e462c8f9">DYN_VI_FORCE_LEFT_ENDPOINT</a>&#160;&#160;&#160;1</td></tr>
+<tr class="memdesc:ga0e7331c6f9ea4f938f6333e7e462c8f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Evaluate applied loads at the current state (explicit left endpoint).  <br /></td></tr>
+<tr class="separator:ga0e7331c6f9ea4f938f6333e7e462c8f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9be0e9ccc14d80ba9d6a407258bbf891" id="r_ga9be0e9ccc14d80ba9d6a407258bbf891"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__constants.html#ga9be0e9ccc14d80ba9d6a407258bbf891">DYN_VI_FORCE_IMPLICIT_ENDPOINT</a>&#160;&#160;&#160;2</td></tr>
+<tr class="memdesc:ga9be0e9ccc14d80ba9d6a407258bbf891"><td class="mdescLeft">&#160;</td><td class="mdescRight">Evaluate applied loads at the trial next state inside Newton.  <br /></td></tr>
+<tr class="separator:ga9be0e9ccc14d80ba9d6a407258bbf891"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4f678e4ed1220c715e7281d218b9e9e2" id="r_ga4f678e4ed1220c715e7281d218b9e9e2"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__constants.html#ga4f678e4ed1220c715e7281d218b9e9e2">DYN_VI_FORCE_MIDPOINT</a>&#160;&#160;&#160;3</td></tr>
+<tr class="memdesc:ga4f678e4ed1220c715e7281d218b9e9e2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Evaluate applied loads at an interpolated midpoint state inside Newton.  <br /></td></tr>
+<tr class="separator:ga4f678e4ed1220c715e7281d218b9e9e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga67954a29bb83de7dd7eda58454e37dc7" id="r_ga67954a29bb83de7dd7eda58454e37dc7"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__constants.html#ga67954a29bb83de7dd7eda58454e37dc7">DYN_NO_ERROR</a>&#160;&#160;&#160;0</td></tr>
 <tr class="memdesc:ga67954a29bb83de7dd7eda58454e37dc7"><td class="mdescLeft">&#160;</td><td class="mdescRight">No error has been recorded.  <br /></td></tr>
 <tr class="separator:ga67954a29bb83de7dd7eda58454e37dc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -857,6 +866,54 @@ Macros</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Graph-factorized solver for variational-integrator Newton systems. </p>
+
+</div>
+</div>
+<a id="ga0e7331c6f9ea4f938f6333e7e462c8f9" name="ga0e7331c6f9ea4f938f6333e7e462c8f9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga0e7331c6f9ea4f938f6333e7e462c8f9">&#9670;&#160;</a></span>DYN_VI_FORCE_LEFT_ENDPOINT</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define DYN_VI_FORCE_LEFT_ENDPOINT&#160;&#160;&#160;1</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Evaluate applied loads at the current state (explicit left endpoint). </p>
+
+</div>
+</div>
+<a id="ga9be0e9ccc14d80ba9d6a407258bbf891" name="ga9be0e9ccc14d80ba9d6a407258bbf891"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga9be0e9ccc14d80ba9d6a407258bbf891">&#9670;&#160;</a></span>DYN_VI_FORCE_IMPLICIT_ENDPOINT</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define DYN_VI_FORCE_IMPLICIT_ENDPOINT&#160;&#160;&#160;2</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Evaluate applied loads at the trial next state inside Newton. </p>
+
+</div>
+</div>
+<a id="ga4f678e4ed1220c715e7281d218b9e9e2" name="ga4f678e4ed1220c715e7281d218b9e9e2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga4f678e4ed1220c715e7281d218b9e9e2">&#9670;&#160;</a></span>DYN_VI_FORCE_MIDPOINT</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define DYN_VI_FORCE_MIDPOINT&#160;&#160;&#160;3</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Evaluate applied loads at an interpolated midpoint state inside Newton. </p>
 
 </div>
 </div>

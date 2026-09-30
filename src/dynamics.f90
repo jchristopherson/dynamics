@@ -33,6 +33,7 @@ module dynamics
     use dynamics_beam_elements
     use dynamics_truss_elements
     use dynamics_discrete_elements
+    use dynamics_shell_elements
     use dynamics_variational_integrators
     use dynamics_linkage_dynamics
     use dynamics_linear_structural_solvers

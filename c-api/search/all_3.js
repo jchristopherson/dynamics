@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['d_0',['d',['../structc__state__space__model.html#a744742dba31dfb5d2e4dfc0372d75b4a',1,'c_state_space_model::D'],['../structc__plane.html#a23681b4af40d83e6222045cf9214d013',1,'c_plane::d']]],
+  ['d_0',['d',['../structc__plane.html#a23681b4af40d83e6222045cf9214d013',1,'c_plane::d'],['../structc__state__space__model.html#a744742dba31dfb5d2e4dfc0372d75b4a',1,'c_state_space_model::D']]],
   ['damping_1',['damping',['../structc__linear__damper.html#adfa9590362c0b9bae4b3c40d4f1e0cec',1,'c_linear_damper::damping'],['../structc__torsional__damper.html#a53d38aa465917e2051ecb0eb0e187917',1,'c_torsional_damper::damping']]],
   ['damping_5fcoefficient_2',['damping_coefficient',['../structc__damper__element__2d.html#afe7f10330f32a58d28d2c4a6913ea885',1,'c_damper_element_2d::damping_coefficient'],['../structc__damper__element__3d.html#a3d8155b1d98fc8c32a3e8c69dff69c14',1,'c_damper_element_3d::damping_coefficient']]],
   ['damping_5fdecrease_5ffactor_3',['damping_decrease_factor',['../structc__lm__solver__options.html#adaa3a0a1deaebf376f3397632b88eb31',1,'c_lm_solver_options']]],
@@ -10,7 +10,7 @@ var searchData=
   ['denominator_7',['denominator',['../structc__transfer__function.html#a530e7ac1e583ea6fb674cf1df19171fe',1,'c_transfer_function']]],
   ['density_8',['density',['../structc__material.html#a955d30393a5b17dd761241b0fe585357',1,'c_material']]],
   ['dimension_9',['dimension',['../structc__state__space__model.html#a576a5d445fedefe89f2e5fc95c1450c9',1,'c_state_space_model']]],
-  ['direction_10',['direction',['../structc__spring__element__3d.html#af4ea545f1614c29a0becaa0208cde628',1,'c_spring_element_3d::direction'],['../structc__damper__element__2d.html#af97a0583a334b38e43f030595306d6e2',1,'c_damper_element_2d::direction'],['../structc__damper__element__3d.html#ae45f03eab46e0b90be583d2d60a6de85',1,'c_damper_element_3d::direction'],['../structc__spring__element__2d.html#a154d14da7229e3a58d04109e30e67ac3',1,'c_spring_element_2d::direction']]],
+  ['direction_10',['direction',['../structc__spring__element__3d.html#af4ea545f1614c29a0becaa0208cde628',1,'c_spring_element_3d::direction'],['../structc__spring__element__2d.html#a154d14da7229e3a58d04109e30e67ac3',1,'c_spring_element_2d::direction'],['../structc__damper__element__3d.html#ae45f03eab46e0b90be583d2d60a6de85',1,'c_damper_element_3d::direction'],['../structc__damper__element__2d.html#af97a0583a334b38e43f030595306d6e2',1,'c_damper_element_2d::direction']]],
   ['dof_11',['dof',['../structc__node.html#a17628a4238707a35b28e358cc3ef787a',1,'c_node']]],
   ['dyn_5faccelerance_5fmodel_12',['DYN_ACCELERANCE_MODEL',['../group__dynamics__constants.html#ga8de9470eb122b54684d2d976387d6f81',1,'dynamics.h']]],
   ['dyn_5fadams_13',['DYN_ADAMS',['../group__dynamics__constants.html#ga3bee400c82b248171ed98db44c169b43',1,'dynamics.h']]],
@@ -56,9 +56,12 @@ var searchData=
   ['dyn_5ftwo_5fpoint_5fintegration_5frule_53',['DYN_TWO_POINT_INTEGRATION_RULE',['../group__dynamics__constants.html#ga932be870f743625bfe0b1d2b141e4e59',1,'dynamics.h']]],
   ['dyn_5funiversal_5fjoint_54',['DYN_UNIVERSAL_JOINT',['../group__dynamics__constants.html#ga64ff946ea01852ffe8ded1f794f15472',1,'dynamics.h']]],
   ['dyn_5fvi_5fdense_5fsolver_55',['DYN_VI_DENSE_SOLVER',['../group__dynamics__constants.html#ga099c2c21f08d73002fb973f5c65d8044',1,'dynamics.h']]],
-  ['dyn_5fvi_5fgraph_5ffactorized_5fsolver_56',['DYN_VI_GRAPH_FACTORIZED_SOLVER',['../group__dynamics__constants.html#gae005626cdb791603e4e211fec92d6545',1,'dynamics.h']]],
-  ['dynamics_57',['dynamics',['../group__dynamics__variational.html',1,'Variational and linkage dynamics'],['../index.html#autotoc_md7',1,'Variational and linkage dynamics']]],
-  ['dynamics_20c_20api_58',['DYNAMICS C API',['../index.html',1,'']]],
-  ['dynamics_20c_20api_20routine_20reference_59',['DYNAMICS C API Routine Reference',['../md__2home_2runner_2work_2dynamics_2dynamics_2c__docs_2c-api-reference.html',1,'']]],
-  ['dynamics_2eh_60',['dynamics.h',['../dynamics_8h.html',1,'']]]
+  ['dyn_5fvi_5fforce_5fimplicit_5fendpoint_56',['DYN_VI_FORCE_IMPLICIT_ENDPOINT',['../group__dynamics__constants.html#ga9be0e9ccc14d80ba9d6a407258bbf891',1,'dynamics.h']]],
+  ['dyn_5fvi_5fforce_5fleft_5fendpoint_57',['DYN_VI_FORCE_LEFT_ENDPOINT',['../group__dynamics__constants.html#ga0e7331c6f9ea4f938f6333e7e462c8f9',1,'dynamics.h']]],
+  ['dyn_5fvi_5fforce_5fmidpoint_58',['DYN_VI_FORCE_MIDPOINT',['../group__dynamics__constants.html#ga4f678e4ed1220c715e7281d218b9e9e2',1,'dynamics.h']]],
+  ['dyn_5fvi_5fgraph_5ffactorized_5fsolver_59',['DYN_VI_GRAPH_FACTORIZED_SOLVER',['../group__dynamics__constants.html#gae005626cdb791603e4e211fec92d6545',1,'dynamics.h']]],
+  ['dynamics_60',['dynamics',['../group__dynamics__variational.html',1,'Variational and linkage dynamics'],['../index.html#autotoc_md7',1,'Variational and linkage dynamics']]],
+  ['dynamics_20c_20api_61',['DYNAMICS C API',['../index.html',1,'']]],
+  ['dynamics_20c_20api_20routine_20reference_62',['DYNAMICS C API Routine Reference',['../md__2home_2runner_2work_2dynamics_2dynamics_2c__docs_2c-api-reference.html',1,'']]],
+  ['dynamics_2eh_63',['dynamics.h',['../dynamics_8h.html',1,'']]]
 ];

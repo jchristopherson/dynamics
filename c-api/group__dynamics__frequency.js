@@ -1,6 +1,9 @@
 var group__dynamics__frequency =
 [
     [ "c_frequency_response", "group__dynamics__frequency.html#ga6858a13ae1d3debcfd0b04e67c141cc0", null ],
+    [ "c_dynamic_stiffness_dense", "group__dynamics__frequency.html#ga8d6e5dadcc69b85ad9152731607cbbe0", null ],
+    [ "c_frf_general_damp_1", "group__dynamics__frequency.html#gadaa068021dc78ae781ac11fef533c110", null ],
+    [ "c_frf_general_damp_2", "group__dynamics__frequency.html#gabaf8945c09eaa9921c84a715fd6527e9", null ],
     [ "c_compute_modal_damping", "group__dynamics__frequency.html#gab12fbdc9cfbf54ed6a630fb420b92832", null ],
     [ "c_chirp", "group__dynamics__frequency.html#ga791f0474f021051b34ea8e0c24bc315f", null ],
     [ "c_modal_response", "group__dynamics__frequency.html#gadf53b33ca1eccb97816134af6a3264f6", null ],

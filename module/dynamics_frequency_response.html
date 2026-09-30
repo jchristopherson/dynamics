@@ -90,7 +90,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 5.3% of total for modules and submodules.">492 statements</a>
+               title=" 6.6% of total for modules and submodules.">667 statements</a>
           </li>
 
             <li id="source-file">
@@ -146,6 +146,7 @@
       </div>
       <div id="inters-0" class="panel-collapse collapse">
         <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_frequency_response.html#interface-dynamic_stiffness">dynamic_stiffness</a>
             <a class="list-group-item" href="../module/dynamics_frequency_response.html#interface-evaluate_accelerance_frf_model">evaluate_accelerance_frf_model</a>
             <a class="list-group-item" href="../module/dynamics_frequency_response.html#interface-evaluate_receptance_frf_model">evaluate_receptance_frf_model</a>
             <a class="list-group-item" href="../module/dynamics_frequency_response.html#interface-frequency_response">frequency_response</a>
@@ -204,12 +205,13 @@
       <ul class="list-group">
           <li class="list-group-item">
             <ul class="list-inline">
+                <li>spectrum</li>
+                <li><a href='../module/dynamics_modal_analysis.html'>dynamics_modal_analysis</a></li>
+                <li><a href='../module/dynamics_helper.html'>dynamics_helper</a></li>
+                <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
+                <li>lapack</li>
                 <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
                 <li>fstats</li>
-                <li><a href='../module/dynamics_helper.html'>dynamics_helper</a></li>
-                <li><a href='../module/dynamics_modal_analysis.html'>dynamics_modal_analysis</a></li>
-                <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
-                <li>spectrum</li>
             </ul>
           </li>
       </ul>
@@ -249,6 +251,7 @@
       </div>
       <div id="inters-1" class="panel-collapse collapse">
         <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_frequency_response.html#interface-dynamic_stiffness">dynamic_stiffness</a>
             <a class="list-group-item" href="../module/dynamics_frequency_response.html#interface-evaluate_accelerance_frf_model">evaluate_accelerance_frf_model</a>
             <a class="list-group-item" href="../module/dynamics_frequency_response.html#interface-evaluate_receptance_frf_model">evaluate_receptance_frf_model</a>
             <a class="list-group-item" href="../module/dynamics_frequency_response.html#interface-frequency_response">frequency_response</a>
@@ -353,6 +356,115 @@ parameter
     
     <section>
    <h2>Interfaces</h2>
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="interface-dynamic_stiffness"></span>
+      <h3>public        interface <a href='../interface/dynamic_stiffness.html'>dynamic_stiffness</a> 
+      </h3>
+    </div>
+    <ul class="list-group">
+          <li class="list-group-item">
+                <h3>
+    private pure subroutine dynamic_stiffness_dense(omega, mass, damp, stiff, dyn_stiff)  
+
+    </h3>
+  <p>Computes the dynamic stiffness matrix at the specified frequency 
+such that /( K_{dyn}(\omega) = K - \omega^{2} M + j \omega C /).</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>omega</strong></td>
+            <td>
+                <p>The frequency, in rad/s.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>mass</strong></td>
+            <td>
+                <p>The N-by-N mass matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>damp</strong></td>
+            <td>
+                <p>The N-by-N damping matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>stiff</strong></td>
+            <td>
+                <p>The N-by-N stiffness matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              complex(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>dyn_stiff</strong></td>
+            <td>
+                <p>The N-by-N dynamic stiffness matrix.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+          </li>
+    </ul>
+  </div>
+
        <div class="panel panel-default">
     <div class="panel-heading codesum">
       <span class="anchor" id="interface-evaluate_accelerance_frf_model"></span>
@@ -1425,6 +1537,320 @@ retained mode shapes.</p>
           </li>
           <li class="list-group-item">
                 <h3>
+    private  function frf_general_damp_1(mass, damp, stiff, freq, frc, ranks, args) result(rst)  
+
+    </h3>
+  <p>Computes the frequency response functions for a multi-degree-of-freedom
+system that has a general damping matrix, and is not necessarily 
+symmetric.  The problem is treated as the solution to the linear
+system <script type="math/tex"> \left( K - \omega^{2} M + j \omega C \right) H(\omega) = 
+F(\omega) </script>.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>mass</strong></td>
+            <td>
+                <p>The N-by-N mass matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>damp</strong></td>
+            <td>
+                <p>The N-by-N damping matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>stiff</strong></td>
+            <td>
+                <p>The N-by-N stiffness matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>freq</strong></td>
+            <td>
+                <p>An M-element array of frequency values at which to evaluate the
+frequency response functions, in units of rad/s.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              procedure(<a href='../interface/modal_excite.html'>modal_excite</a>),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              pointer
+            </td>
+            <td>::</td>
+            <td><strong>frc</strong></td>
+            <td>
+                <p>A pointer to a routine used to compute the modal forcing 
+function.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(out),</td>
+              <td>optional,</td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>ranks</strong></td>
+            <td>
+                <p>Provides information on the rank of the dynamic stiffness matrix
+for each frequency.  If provided, this array must be the same
+length as freq.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(*),
+            </td>
+<td>intent(inout),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>args</strong></td>
+            <td>
+                <p>An optional argument that can be used to communicate with
+the outside world.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/frf.html'>frf</a>)</small>
+    </h4>
+    <p>The resulting frequency responses.</p>
+
+          </li>
+          <li class="list-group-item">
+                <h3>
+    private  function frf_general_damp_2(mass, damp, stiff, nfreq, freq1, freq2, frc, ranks, args) result(rst)  
+
+    </h3>
+  <p>Computes the frequency response functions for a multi-degree-of-freedom
+system that has a general damping matrix, and is not necessarily 
+symmetric.  The problem is treated as the solution to the linear
+system <script type="math/tex"> \left( K - \omega^{2} M + j \omega C \right) H(\omega) = 
+F(\omega) </script>.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>mass</strong></td>
+            <td>
+                <p>The N-by-N mass matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>damp</strong></td>
+            <td>
+                <p>The N-by-N damping matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>stiff</strong></td>
+            <td>
+                <p>The N-by-N stiffness matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nfreq</strong></td>
+            <td>
+                <p>The number of frequency values to analyze.  This value must be
+at least 2.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>freq1</strong></td>
+            <td>
+                <p>The starting frequency, in units of rad/s.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>freq2</strong></td>
+            <td>
+                <p>The ending frequency, in units of rad/s.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              procedure(<a href='../interface/modal_excite.html'>modal_excite</a>),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              pointer
+            </td>
+            <td>::</td>
+            <td><strong>frc</strong></td>
+            <td>
+                <p>A pointer to a routine used to compute the modal forcing 
+function.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(out),</td>
+              <td>optional,</td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>ranks</strong></td>
+            <td>
+                <p>Provides information on the rank of the dynamic stiffness matrix
+for each frequency.  If provided, this array must be the same
+length as freq.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(*),
+            </td>
+<td>intent(inout),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>args</strong></td>
+            <td>
+                <p>An optional argument that can be used to communicate with
+the outside world.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/frf.html'>frf</a>)</small>
+    </h4>
+    <p>The resulting frequency responses.</p>
+
+          </li>
+          <li class="list-group-item">
+                <h3>
     private  function siso_freqres(x, y, fs, win, method) result(rst)  
 
     </h3>
@@ -2146,7 +2572,7 @@ iterative solution and the nature of the convergence.</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-09-29 11:40            </p>
+ on 2026-09-30 16:00            </p>
         </div>
       </div>
       <br>

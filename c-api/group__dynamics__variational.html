@@ -347,7 +347,7 @@ Functions</h2></td></tr>
     <tr><td class="paramname">constraint_callback</td><td>Constraint callback. Required when nconstraint is greater than zero; may be NULL when nconstraint is zero. </td></tr>
     <tr><td class="paramname">jacobian_callback</td><td>Optional analytic reduced constraint Jacobian, or NULL to use scaled finite differences. </td></tr>
     <tr><td class="paramname">user_data</td><td>Opaque pointer forwarded unchanged to all callbacks; may be NULL. </td></tr>
-    <tr><td class="paramname">settings</td><td>Integration settings, commonly initialized by c_default_variational_integrator_settings. </td></tr>
+    <tr><td class="paramname">settings</td><td>Integration settings, commonly initialized by c_default_variational_integrator_settings. force_evaluation selects explicit left-endpoint, implicit trial-endpoint, or midpoint applied-load evaluation; see the Variational and linkage dynamics guide for equations and tradeoffs. </td></tr>
     <tr><td class="paramname">position</td><td>Output world-frame position history with shape 3-by-nbody-by-ntime. </td></tr>
     <tr><td class="paramname">orientation</td><td>Output quaternion history with shape nbody-by-ntime. </td></tr>
     <tr><td class="paramname">velocity</td><td>Output world-frame velocity history with shape 3-by-nbody-by-ntime. </td></tr>

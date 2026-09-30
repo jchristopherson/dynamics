@@ -101,6 +101,15 @@ Functions</h2></td></tr>
 <tr class="memitem:ga6858a13ae1d3debcfd0b04e67c141cc0" id="r_ga6858a13ae1d3debcfd0b04e67c141cc0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__frequency.html#ga6858a13ae1d3debcfd0b04e67c141cc0">c_frequency_response</a> (int n, int nfreq, const double *mass, int ldm, const double *stiff, int ldk, double alpha, double beta, const double *freq, const <a class="el" href="dynamics_8h.html#a7de89a8fd9d1d3bdf7cf2fd53fa6fb93">c_modal_excite</a> frc, double *modes, double *modeshapes, int ldms, double complex *rsp, int ldr, void *user_data)</td></tr>
 <tr class="memdesc:ga6858a13ae1d3debcfd0b04e67c141cc0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute a modal frequency response for a second-order system.  <br /></td></tr>
 <tr class="separator:ga6858a13ae1d3debcfd0b04e67c141cc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8d6e5dadcc69b85ad9152731607cbbe0" id="r_ga8d6e5dadcc69b85ad9152731607cbbe0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__frequency.html#ga8d6e5dadcc69b85ad9152731607cbbe0">c_dynamic_stiffness_dense</a> (int n, double omega, const double *mass, int ldm, const double *damp, int ldc, const double *stiff, int ldk, double complex *dyn_stiff, int ldd)</td></tr>
+<tr class="memdesc:ga8d6e5dadcc69b85ad9152731607cbbe0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute dense dynamic stiffness, K - omega^2 M + i omega C.  <br /></td></tr>
+<tr class="separator:ga8d6e5dadcc69b85ad9152731607cbbe0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gadaa068021dc78ae781ac11fef533c110" id="r_gadaa068021dc78ae781ac11fef533c110"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__frequency.html#gadaa068021dc78ae781ac11fef533c110">c_frf_general_damp_1</a> (int n, int nfreq, const double *mass, int ldm, const double *damp, int ldc, const double *stiff, int ldk, const double *freq, const <a class="el" href="dynamics_8h.html#a7de89a8fd9d1d3bdf7cf2fd53fa6fb93">c_modal_excite</a> frc, double complex *rsp, int ldr, int *ranks, void *user_data)</td></tr>
+<tr class="memdesc:gadaa068021dc78ae781ac11fef533c110"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute a general-damping frequency response at explicit frequencies.  <br /></td></tr>
+<tr class="separator:gadaa068021dc78ae781ac11fef533c110"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gabaf8945c09eaa9921c84a715fd6527e9" id="r_gabaf8945c09eaa9921c84a715fd6527e9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__frequency.html#gabaf8945c09eaa9921c84a715fd6527e9">c_frf_general_damp_2</a> (int n, int nfreq, double freq1, double freq2, const double *mass, int ldm, const double *damp, int ldc, const double *stiff, int ldk, const <a class="el" href="dynamics_8h.html#a7de89a8fd9d1d3bdf7cf2fd53fa6fb93">c_modal_excite</a> frc, double complex *rsp, int ldr, int *ranks, void *user_data)</td></tr>
+<tr class="memdesc:gabaf8945c09eaa9921c84a715fd6527e9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute a general-damping frequency response over an evenly spaced interval.  <br /></td></tr>
+<tr class="separator:gabaf8945c09eaa9921c84a715fd6527e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gab12fbdc9cfbf54ed6a630fb420b92832" id="r_gab12fbdc9cfbf54ed6a630fb420b92832"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__frequency.html#gab12fbdc9cfbf54ed6a630fb420b92832">c_compute_modal_damping</a> (double lambda, double alpha, double beta)</td></tr>
 <tr class="memdesc:gab12fbdc9cfbf54ed6a630fb420b92832"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute modal damping from Rayleigh coefficients.  <br /></td></tr>
 <tr class="separator:gab12fbdc9cfbf54ed6a630fb420b92832"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -310,6 +319,348 @@ Functions</h2></td></tr>
     <tr><td class="paramname">ldms</td><td>Leading dimension of modeshapes. </td></tr>
     <tr><td class="paramname">rsp</td><td>Output complex response. </td></tr>
     <tr><td class="paramname">ldr</td><td>Leading dimension of rsp. </td></tr>
+    <tr><td class="paramname">user_data</td><td>Opaque caller data forwarded to frc. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ga8d6e5dadcc69b85ad9152731607cbbe0" name="ga8d6e5dadcc69b85ad9152731607cbbe0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga8d6e5dadcc69b85ad9152731607cbbe0">&#9670;&#160;</a></span>c_dynamic_stiffness_dense()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void c_dynamic_stiffness_dense </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>omega</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double *&#160;</td>
+          <td class="paramname"><em>mass</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double *&#160;</td>
+          <td class="paramname"><em>damp</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double *&#160;</td>
+          <td class="paramname"><em>stiff</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldk</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double complex *&#160;</td>
+          <td class="paramname"><em>dyn_stiff</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldd</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute dense dynamic stiffness, K - omega^2 M + i omega C. </p>
+<p>Matrices use column-major storage. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">n</td><td>Matrix order. </td></tr>
+    <tr><td class="paramname">omega</td><td>Excitation frequency in radians per second. </td></tr>
+    <tr><td class="paramname">mass</td><td>Mass matrix. </td></tr>
+    <tr><td class="paramname">ldm</td><td>Leading dimension of mass. </td></tr>
+    <tr><td class="paramname">damp</td><td>General damping matrix. </td></tr>
+    <tr><td class="paramname">ldc</td><td>Leading dimension of damp. </td></tr>
+    <tr><td class="paramname">stiff</td><td>Stiffness matrix. </td></tr>
+    <tr><td class="paramname">ldk</td><td>Leading dimension of stiff. </td></tr>
+    <tr><td class="paramname">dyn_stiff</td><td>Output complex dynamic stiffness matrix. </td></tr>
+    <tr><td class="paramname">ldd</td><td>Leading dimension of dyn_stiff. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="gadaa068021dc78ae781ac11fef533c110" name="gadaa068021dc78ae781ac11fef533c110"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gadaa068021dc78ae781ac11fef533c110">&#9670;&#160;</a></span>c_frf_general_damp_1()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void c_frf_general_damp_1 </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>nfreq</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double *&#160;</td>
+          <td class="paramname"><em>mass</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double *&#160;</td>
+          <td class="paramname"><em>damp</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double *&#160;</td>
+          <td class="paramname"><em>stiff</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldk</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double *&#160;</td>
+          <td class="paramname"><em>freq</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="dynamics_8h.html#a7de89a8fd9d1d3bdf7cf2fd53fa6fb93">c_modal_excite</a>&#160;</td>
+          <td class="paramname"><em>frc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double complex *&#160;</td>
+          <td class="paramname"><em>rsp</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>ranks</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>user_data</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute a general-damping frequency response at explicit frequencies. </p>
+<p>Matrices and response use column-major storage. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">n</td><td>System order. </td></tr>
+    <tr><td class="paramname">nfreq</td><td>Frequency count. </td></tr>
+    <tr><td class="paramname">mass</td><td>Mass matrix. </td></tr>
+    <tr><td class="paramname">ldm</td><td>Leading dimension of mass. </td></tr>
+    <tr><td class="paramname">damp</td><td>General damping matrix. </td></tr>
+    <tr><td class="paramname">ldc</td><td>Leading dimension of damp. </td></tr>
+    <tr><td class="paramname">stiff</td><td>Stiffness matrix. </td></tr>
+    <tr><td class="paramname">ldk</td><td>Leading dimension of stiff. </td></tr>
+    <tr><td class="paramname">freq</td><td>Frequencies in radians per second. </td></tr>
+    <tr><td class="paramname">frc</td><td>Force callback. </td></tr>
+    <tr><td class="paramname">rsp</td><td>Output complex response matrix. </td></tr>
+    <tr><td class="paramname">ldr</td><td>Leading dimension of rsp. </td></tr>
+    <tr><td class="paramname">ranks</td><td>Output rank of each dynamic stiffness matrix. </td></tr>
+    <tr><td class="paramname">user_data</td><td>Opaque caller data forwarded to frc. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="gabaf8945c09eaa9921c84a715fd6527e9" name="gabaf8945c09eaa9921c84a715fd6527e9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gabaf8945c09eaa9921c84a715fd6527e9">&#9670;&#160;</a></span>c_frf_general_damp_2()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void c_frf_general_damp_2 </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>n</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>nfreq</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>freq1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>freq2</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double *&#160;</td>
+          <td class="paramname"><em>mass</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double *&#160;</td>
+          <td class="paramname"><em>damp</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double *&#160;</td>
+          <td class="paramname"><em>stiff</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldk</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="dynamics_8h.html#a7de89a8fd9d1d3bdf7cf2fd53fa6fb93">c_modal_excite</a>&#160;</td>
+          <td class="paramname"><em>frc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double complex *&#160;</td>
+          <td class="paramname"><em>rsp</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ldr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>ranks</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>user_data</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compute a general-damping frequency response over an evenly spaced interval. </p>
+<p>Matrices and response use column-major storage. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">n</td><td>System order. </td></tr>
+    <tr><td class="paramname">nfreq</td><td>Frequency count, at least 2. </td></tr>
+    <tr><td class="paramname">freq1</td><td>Starting frequency in radians per second. </td></tr>
+    <tr><td class="paramname">freq2</td><td>Ending frequency in radians per second. </td></tr>
+    <tr><td class="paramname">mass</td><td>Mass matrix. </td></tr>
+    <tr><td class="paramname">ldm</td><td>Leading dimension of mass. </td></tr>
+    <tr><td class="paramname">damp</td><td>General damping matrix. </td></tr>
+    <tr><td class="paramname">ldc</td><td>Leading dimension of damp. </td></tr>
+    <tr><td class="paramname">stiff</td><td>Stiffness matrix. </td></tr>
+    <tr><td class="paramname">ldk</td><td>Leading dimension of stiff. </td></tr>
+    <tr><td class="paramname">frc</td><td>Force callback. </td></tr>
+    <tr><td class="paramname">rsp</td><td>Output complex response matrix. </td></tr>
+    <tr><td class="paramname">ldr</td><td>Leading dimension of rsp. </td></tr>
+    <tr><td class="paramname">ranks</td><td>Output rank of each dynamic stiffness matrix. </td></tr>
     <tr><td class="paramname">user_data</td><td>Opaque caller data forwarded to frc. </td></tr>
   </table>
   </dd>

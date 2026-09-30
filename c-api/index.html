@@ -144,7 +144,14 @@ Variational and linkage dynamics</h1>
 <li><code>c_variational_integrator_solve</code> integrates caller-defined rigid bodies in maximal coordinates. C callbacks supply applied loads, equality constraints, and optionally an analytic reduced constraint Jacobian.</li>
 <li><code>c_create_serial_linkage_dynamic_model</code> and <code>c_create_linkage_dynamic_model</code> convert linkage descriptions into opaque dynamic-model handles. <code>c_linkage_dynamic_solve</code> then applies gravity, constant body loads, and optional prescribed planar motion.</li>
 </ol>
-<p>Initialize <code><a class="el" href="structc__variational__integrator__settings.html" title="Numerical controls for the maximal-coordinate variational integrator.">c_variational_integrator_settings</a></code> with <code>c_default_variational_integrator_settings</code> before changing individual fields. The direct and linkage solve routines write caller-owned histories using these column-major shapes:</p>
+<p>Initialize <code><a class="el" href="structc__variational__integrator__settings.html" title="Numerical controls for the maximal-coordinate variational integrator.">c_variational_integrator_settings</a></code> with <code>c_default_variational_integrator_settings</code> before changing individual fields. The <code>force_evaluation</code> field selects the applied-load sampling rule for both direct and linkage solves:</p>
+<ul>
+<li><code>DYN_VI_FORCE_LEFT_ENDPOINT</code> (default) evaluates loads at the current state; this is explicit and least expensive.</li>
+<li><code>DYN_VI_FORCE_IMPLICIT_ENDPOINT</code> evaluates loads at the trial next state in every Newton residual evaluation. This is more robust for stiff damping but increases nonlinear work and also endpoint-samples springs and user loads.</li>
+<li><code>DYN_VI_FORCE_MIDPOINT</code> evaluates loads at the time/state midpoint in every Newton residual evaluation. Translation, time, and linear velocity are averaged; orientation uses the unit-quaternion geodesic midpoint, and angular velocity is averaged in world coordinates then expressed in the midpoint body frame. This is midpoint force sampling, not a complete implicit-midpoint state integrator.</li>
+</ul>
+<p>For a scalar mass-damper equation <code>m * dv/dt = -c * v</code>, with $r=h c/m$, the velocity amplification factors are $1-r$ (left endpoint), $1/(1+r)$ (implicit endpoint), and $(1-r/2)/(1+r/2)$ (midpoint). Thus the explicit mode can grow energy for $r&gt;2$, the implicit mode strongly damps stiff modes, and midpoint is stable but approaches a sign-alternating factor of $-1$ for very stiff modes. All applied loads use the selected sampling rule, not only damper elements. Force callbacks in the implicit and midpoint modes are called repeatedly during Newton and should be deterministic functions of their input state, time, and user data.</p>
+<p>The direct and linkage solve routines write caller-owned histories using these column-major shapes:</p>
 <ul>
 <li>position, velocity, and angular velocity: <code>3 × nbody × ntime</code>;</li>
 <li>orientation: <code>nbody × ntime</code>;</li>

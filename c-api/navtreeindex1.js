@@ -1,5 +1,11 @@
 var NAVTREEINDEX1 =
 {
+"group__dynamics__state.html#ga1d8e20df8ef095e2a7c0c023ae57f940":[9,9,18],
+"group__dynamics__state.html#ga30fbc97a022110c4d5210aba1bfc8caa":[9,9,17],
+"group__dynamics__state.html#ga359d5e40f3cebc8c17fe6eb880b7d892":[9,9,7],
+"group__dynamics__state.html#ga399cb00061321bec6119210658a2f40d":[9,9,10],
+"group__dynamics__state.html#ga459bc4d3174fb593d4441eec49457fa5":[9,9,9],
+"group__dynamics__state.html#ga5b3138ce385d12057157228875ebe2bc":[9,9,0],
 "group__dynamics__state.html#ga5d0fbd0ad48d49a137a783934a66bf12":[9,9,1],
 "group__dynamics__state.html#ga60b1f41760874eb565867db9a3741751":[9,9,12],
 "group__dynamics__state.html#ga6d39d7fd3d28c5b4dedfec99faeda45b":[9,9,11],
@@ -243,11 +249,5 @@ var NAVTREEINDEX1 =
 "structc__plane.html":[10,0,24],
 "structc__plane.html#a2181c039977678ca5a05f6c63555e3cc":[10,0,24,0],
 "structc__plane.html#a23681b4af40d83e6222045cf9214d013":[10,0,24,3],
-"structc__plane.html#ab06fdff7c4dbd6c6e70c65946ace1f45":[10,0,24,2],
-"structc__plane.html#af4a84201a3c6a6d09856a5df40e7198c":[10,0,24,1],
-"structc__plucker__line.html":[10,0,25],
-"structc__plucker__line.html#a107f6e367c9328b5cdcc62f739033e1d":[10,0,25,1],
-"structc__plucker__line.html#a3a708e9da2970910243f4b00144101b1":[10,0,25,0],
-"structc__polynomial.html":[10,0,26],
-"structc__polynomial.html#a3203cba3df445996d52df15e791a5f5a":[10,0,26,0]
+"structc__plane.html#ab06fdff7c4dbd6c6e70c65946ace1f45":[10,0,24,2]
 };

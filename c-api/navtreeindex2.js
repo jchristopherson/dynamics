@@ -1,5 +1,11 @@
 var NAVTREEINDEX2 =
 {
+"structc__plane.html#af4a84201a3c6a6d09856a5df40e7198c":[10,0,24,1],
+"structc__plucker__line.html":[10,0,25],
+"structc__plucker__line.html#a107f6e367c9328b5cdcc62f739033e1d":[10,0,25,1],
+"structc__plucker__line.html#a3a708e9da2970910243f4b00144101b1":[10,0,25,0],
+"structc__polynomial.html":[10,0,26],
+"structc__polynomial.html#a3203cba3df445996d52df15e791a5f5a":[10,0,26,0],
 "structc__polynomial.html#a9289654453aff28e17a45500169e665e":[10,0,26,1],
 "structc__quaternion.html":[10,0,27],
 "structc__quaternion.html#a160dfb26903afd73a178d54b2171d4f3":[10,0,27,1],
@@ -70,6 +76,7 @@ var NAVTREEINDEX2 =
 "structc__variational__integrator__settings.html#a78fcd5499cf921eba6ee91b5bf50211e":[10,0,40,4],
 "structc__variational__integrator__settings.html#a8e81d22e279549a99fd08e9f3695d1f3":[10,0,40,6],
 "structc__variational__integrator__settings.html#aae0f20d28a587bd046746757c0c15a55":[10,0,40,2],
+"structc__variational__integrator__settings.html#ac292b46a55b4601db96588ffb453e687":[10,0,40,7],
 "structc__variational__state.html":[10,0,41],
 "structc__variational__state.html#a13004ecb258fdd73d384cb3222ac89fb":[10,0,41,1],
 "structc__variational__state.html#a7f340e7e3e326a619b9c74425596e096":[10,0,41,2],

@@ -1026,77 +1026,65 @@ end function
 
 ! ------------------------------------------------------------------------------
 pure function b3d_mass_matrix(this, rule) result(rst)
-    !! Computes the mass matrix for the element.
+    !! Computes the consistent mass matrix for the element.
+    !! Translational and bending terms scale with \(m = \rho A L\), and the
+    !! torsional terms scale with \(\rho I_{xx} L\).
     class(beam_element_3d), intent(in) :: this
         !! The beam_element_3d object.
     integer(int32), intent(in), optional :: rule
-        !! The integration rule.  The rule must be one of the following:
-        !!
-        !! - MECH_ONE_POINT_INTEGRATION_RULE
-        !!
-        !! - MECH_TWO_POINT_INTEGRATION_RULE
-        !!
-        !! - MECH_THREE_POINT_INTEGRATION_RULE
-        !!
-        !! - MECH_FOUR_POINT_INTEGRATION_RULE
-        !!
-        !! The default integration rule is MECH_TWO_POINT_INTEGRATION_RULE.
+        !! The integration rule.  This argument is unused and is present for
+        !! interface compatibility; the mass matrix is computed in closed
+        !! form.
     real(real64), allocatable, dimension(:,:) :: rst
         !! The resulting matrix.
 
     ! Local Variables
-    real(real64) :: rho, L
+    integer(int32) :: i
+    real(real64) :: m, jm, L
     real(real64), allocatable, dimension(:,:) :: T, Tt
 
     ! Initialization
-    rho = this%material%density
     L = this%length()
+    m = this%material%density * this%area * L
+    jm = this%material%density * this%Ixx * L
 
     ! Compute the rotation matrix
     T = this%rotation_matrix()
     Tt = transpose(T)
 
-    ! Compute the mass matrix
+    ! Define the lower triangle of the local mass matrix
     allocate(rst(12, 12), source = 0.0d0)
-    rst(1,1) = L * rho / 3.0d0
-    rst(7,1) = L * rho / 6.0d0
-    rst(2,2) = 1.3d1 * L * rho / 3.5d1
-    rst(6,2) = 1.1d1 * rho * L**2 / 2.1d2
-    rst(8,2) = 9.0d0 * L * rho / 7.0d1
-    rst(12,2) = -1.3d1 * rho * L**2 / 4.2d2
-    rst(3,3) = 1.3d0 * rho * L / 3.5d1
-    rst(5,3) = -1.1d0 * rho * L**2 / 2.1d2
-    rst(9,3) = 9.0d0 * rho * L / 7.0d1
-    rst(11,3) = 1.3d1 * rho * L**2 / 4.2d2
-    rst(4,4) = rho * L / 3.0d0
-    rst(10,4) = rho * L / 6.0d0
-    rst(3,5) = rst(5,3)
-    rst(5,5) = rho * L**3 / 1.05d2
-    rst(9,5) = -1.3d1 * rho * L**2 / 4.2d2
-    rst(11,5) = -rho * L**3 / 1.4d2
-    rst(2,6) = rst(6,2)
-    rst(6,6) = rho * L**3 / 1.05d2
-    rst(8,6) = 1.3d1 * rho * L**2 / 4.2d2
-    rst(12,6) = -rho * L**3 / 1.4d2
-    rst(1,7) = rst(7,1)
+    rst(1,1) = m / 3.0d0
+    rst(7,1) = m / 6.0d0
+    rst(2,2) = 1.3d1 * m / 3.5d1
+    rst(6,2) = 1.1d1 * m * L / 2.1d2
+    rst(8,2) = 9.0d0 * m / 7.0d1
+    rst(12,2) = -1.3d1 * m * L / 4.2d2
+    rst(3,3) = 1.3d1 * m / 3.5d1
+    rst(5,3) = -1.1d1 * m * L / 2.1d2
+    rst(9,3) = 9.0d0 * m / 7.0d1
+    rst(11,3) = 1.3d1 * m * L / 4.2d2
+    rst(4,4) = jm / 3.0d0
+    rst(10,4) = jm / 6.0d0
+    rst(5,5) = m * L**2 / 1.05d2
+    rst(9,5) = -1.3d1 * m * L / 4.2d2
+    rst(11,5) = -m * L**2 / 1.4d2
+    rst(6,6) = m * L**2 / 1.05d2
+    rst(8,6) = 1.3d1 * m * L / 4.2d2
+    rst(12,6) = -m * L**2 / 1.4d2
     rst(7,7) = rst(1,1)
-    rst(2,8) = rst(8,2)
-    rst(6,8) = rst(8,6)
     rst(8,8) = rst(2,2)
-    rst(12,8) = -1.1d1 * rho * L**2 / 2.1d2
-    rst(3,9) = rst(9,3)
-    rst(5,9) = rst(9,5)
+    rst(12,8) = -1.1d1 * m * L / 2.1d2
     rst(9,9) = rst(3,3)
-    rst(11,9) = 1.1d1 * rho * L**2 / 2.1d2
-    rst(4,10) = rst(10,4)
+    rst(11,9) = 1.1d1 * m * L / 2.1d2
     rst(10,10) = rst(4,4)
-    rst(3,11) = rst(11,3)
-    rst(9,11) = rst(11,9)
     rst(11,11) = rst(5,5)
-    rst(2,12) = rst(12,2)
-    rst(6,12) = rst(12,6)
-    rst(8,12) = rst(12,8)
     rst(12,12) = rst(6,6)
+
+    ! Mirror the lower triangle into the upper triangle
+    do i = 2, 12
+        rst(1:i-1,i) = rst(i,1:i-1)
+    end do
 
     ! Apply the transformation
     rst = matmul(Tt, matmul(rst, T))
