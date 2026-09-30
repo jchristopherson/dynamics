@@ -40,7 +40,6 @@ module dynamics_structural
     public :: restore_constrained_values
     public :: solve_static_system
     public :: line_element
-    public :: csr_matrix
 
 ! ******************************************************************************
 ! CONSTANTS
