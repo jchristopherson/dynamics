@@ -688,6 +688,62 @@ end do
 
 ![Forced response of the simple truss example](images/harmonic_truss_example.png?raw=true)
 
+## Shell Element Example
+
+The [`shell_element_example`](examples/shell_element_example.f90) computes the first six modes of a flat 0.75 m by 1.25 m aluminum plate, 10 mm thick, clamped along its two long edges ($x=0$ and $x=0.75$ m). The plate is meshed with a 50-by-50 grid of nodes and 2401 `rectangular_shell_element` objects. Each node has six degrees of freedom: three translations and three rotations. Fplot draws each mode as a surface of the out-of-plane ($z$) displacement over the mesh.
+
+The core of the example builds the mesh from a `meshgrid`, assembles sparse mass and stiffness matrices, clamps the two edges, and solves for the modes:
+
+```fortran
+! Create the mesh
+xc = linspace(0.0d0, width, ndiv)
+yc = linspace(0.0d0, length, ndiv)
+xy = meshgrid(xc, yc)
+kk = 0
+do j = 1, ndiv
+    do i = 1, ndiv
+        kk = kk + 1
+        nodes(kk) = node(kk, dof_per_node, xy(i,j,1), xy(i,j,2), 0.0d0)
+    end do
+end do
+
+! Nodes are listed counter-clockwise to define the element normal
+elements(kk) = rectangular_shell_element(mat, thickness, &
+    nodes(n1), nodes(n2), nodes(n3), nodes(n4))
+
+! Assemble, constrain, and solve
+call assemble_dynamic_system(global_dof_count, elements, nodes, M, K)
+Mbc = apply_boundary_conditions(bc, M)
+Kbc = apply_boundary_conditions(bc, K)
+call modal_response(Mbc, Kbc, mode_count, freqs, shapesbc)
+freqs = freqs / (2.0d0 * pi)
+
+! Restore the constrained DOF and plot the z-displacement of each mode
+do i = 1, mode_count
+    shapes(:,i) = restore_constrained_values(bc, shapesbc(:,i))
+    call extract_nodal_displacements(shapes(:,i), u)
+    call plot_mode_shape(i, freqs(i), xy(:,:,1), xy(:,:,2), u)
+end do
+```
+
+```txt
+MODAL RESPONSE:
+Mode 1: 97.801 Hz
+Mode 2: 104.521 Hz
+Mode 3: 130.581 Hz
+Mode 4: 183.377 Hz
+Mode 5: 268.814 Hz
+Mode 6: 269.948 Hz
+```
+
+The first six natural frequencies and corresponding mode shapes are:
+
+| Mode 1: 97.801 Hz | Mode 2: 104.521 Hz | Mode 3: 130.581 Hz |
+|:--:|:--:|:--:|
+| ![Mode 1](images/shell_example_mode_1.png?raw=true) | ![Mode 2](images/shell_example_mode_2.png?raw=true) | ![Mode 3](images/shell_example_mode_3.png?raw=true) |
+| **Mode 4: 183.377 Hz** | **Mode 5: 268.814 Hz** | **Mode 6: 269.948 Hz** |
+| ![Mode 4](images/shell_example_mode_4.png?raw=true) | ![Mode 5](images/shell_example_mode_5.png?raw=true) | ![Mode 6](images/shell_example_mode_6.png?raw=true) |
+
 ## References
 1. J. D. Hartog, "Mechanical Vibrations," New York: Dover Publications, Inc., 1985.
 2. S. S. Rau, "Mechanical Vibrations," 3rd ed., Reading, MA: Addison-Wesley Publishing Co., 1995.
