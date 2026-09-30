@@ -4,6 +4,8 @@
 #include <stdbool.h>
 
 bool c_test_frequency_response();
+bool c_test_general_damping_frf();
+bool c_test_dynamic_stiffness_dense();
 bool c_test_modal_response();
 bool c_test_frf_sweep();
 bool c_test_frf_fit();

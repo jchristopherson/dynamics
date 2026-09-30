@@ -1763,7 +1763,7 @@ function test_beam3d_mass_matrix() result(rst)
 
     ! Local Variables
     real(real64) :: x1, y1, z1, x2, y2, z2, x3, y3, z3, A, rho, E, nu, Ixx, &
-        Iyy, Izz, L, G, s
+        Iyy, Izz, L, G, s, v(12)
     real(real64), allocatable, dimension(:,:) :: T, M, ans
     type(beam_element_3d) :: b
     type(material) :: mat
@@ -1810,41 +1810,43 @@ function test_beam3d_mass_matrix() result(rst)
     L = b%length()
     T = b%rotation_matrix()
 
-    ! Define the answer
+    ! Define the answer (m = rho A L; torsion uses rho Ixx L)
+    s = rho * A * L
     allocate(ans(12, 12), source = 0.0d0)
-    ans(1,1) = L * rho / 3.0d0
-    ans(7,1) = L * rho / 6.0d0
-    ans(2,2) = 1.3d1 * L * rho / 3.5d1
-    ans(6,2) = 1.1d1 * rho * L**2 / 2.1d2
-    ans(8,2) = 9.0d0 * L * rho / 7.0d1
-    ans(12,2) = -1.3d1 * rho * L**2 / 4.2d2
-    ans(3,3) = 1.3d0 * rho * L / 3.5d1
-    ans(5,3) = -1.1d0 * rho * L**2 / 2.1d2
-    ans(9,3) = 9.0d0 * rho * L / 7.0d1
-    ans(11,3) = 1.3d1 * rho * L**2 / 4.2d2
-    ans(4,4) = rho * L / 3.0d0
-    ans(10,4) = rho * L / 6.0d0
+    ans(1,1) = s / 3.0d0
+    ans(7,1) = s / 6.0d0
+    ans(2,2) = 1.3d1 * s / 3.5d1
+    ans(6,2) = 1.1d1 * s * L / 2.1d2
+    ans(8,2) = 9.0d0 * s / 7.0d1
+    ans(12,2) = -1.3d1 * s * L / 4.2d2
+    ans(3,3) = 1.3d1 * s / 3.5d1
+    ans(5,3) = -1.1d1 * s * L / 2.1d2
+    ans(9,3) = 9.0d0 * s / 7.0d1
+    ans(11,3) = 1.3d1 * s * L / 4.2d2
+    ans(4,4) = rho * Ixx * L / 3.0d0
+    ans(10,4) = rho * Ixx * L / 6.0d0
     ans(3,5) = ans(5,3)
-    ans(5,5) = rho * L**3 / 1.05d2
-    ans(9,5) = -1.3d1 * rho * L**2 / 4.2d2
-    ans(11,5) = -rho * L**3 / 1.4d2
+    ans(5,5) = s * L**2 / 1.05d2
+    ans(9,5) = -1.3d1 * s * L / 4.2d2
+    ans(11,5) = -s * L**2 / 1.4d2
     ans(2,6) = ans(6,2)
-    ans(6,6) = rho * L**3 / 1.05d2
-    ans(8,6) = 1.3d1 * rho * L**2 / 4.2d2
-    ans(12,6) = -rho * L**3 / 1.4d2
+    ans(6,6) = s * L**2 / 1.05d2
+    ans(8,6) = 1.3d1 * s * L / 4.2d2
+    ans(12,6) = -s * L**2 / 1.4d2
     ans(1,7) = ans(7,1)
     ans(7,7) = ans(1,1)
     ans(2,8) = ans(8,2)
     ans(6,8) = ans(8,6)
     ans(8,8) = ans(2,2)
-    ans(12,8) = -1.1d1 * rho * L**2 / 2.1d2
+    ans(12,8) = -1.1d1 * s * L / 2.1d2
     ans(3,9) = ans(9,3)
     ans(5,9) = ans(9,5)
     ans(9,9) = ans(3,3)
-    ans(11,9) = 1.1d1 * rho * L**2 / 2.1d2
+    ans(11,9) = 1.1d1 * s * L / 2.1d2
     ans(4,10) = ans(10,4)
     ans(10,10) = ans(4,4)
     ans(3,11) = ans(11,3)
+    ans(5,11) = ans(11,5)
     ans(9,11) = ans(11,9)
     ans(11,11) = ans(5,5)
     ans(2,12) = ans(12,2)
@@ -1860,6 +1862,16 @@ function test_beam3d_mass_matrix() result(rst)
     if (.not.assert(M, ans, tol * maxval(abs(ans)))) then
         rst = .false.
         print "(A)", "TEST FAILED: test_beam3d_mass_matrix -1"
+    end if
+
+    ! A rigid translation must carry the total element mass
+    v = 0.0d0
+    v([1, 7]) = 1.0d0
+    if (.not.is_symmetric(M) .or. &
+        abs(dot_product(v, matmul(M, v)) - rho * A * L) > &
+        tol * rho * A * L) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_beam3d_mass_matrix -2"
     end if
 end function
 
@@ -2186,6 +2198,42 @@ function test_generalized_alpha_integrator() result(rst)
         rst = .false.
         print "(A)", "TEST FAILED: test_generalized_alpha_integrator sparse changed dt"
     end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_integration_rules() result(rst)
+    ! A linear truss mass matrix integrates a quadratic, so the 2-, 3-, and
+    ! 4-point rules are exact and the 1-point rule samples the midpoint.
+    logical :: rst
+    real(real64), parameter :: tol = 1.0d-12
+    real(real64), parameter :: len = 2.0d0
+    real(real64), parameter :: area = 0.5d0
+    real(real64), parameter :: rho = 3.0d0
+    integer(int32) :: rule
+    real(real64) :: mtot
+    real(real64), allocatable, dimension(:,:) :: m
+    type(truss_element_2d) :: truss
+
+    rst = .true.
+    mtot = rho * area * len
+    truss = truss_element_2d(material(1.0d0, 0.3d0, rho), area, &
+        node(1, 2, 0.0d0, 0.0d0, 0.0d0), node(2, 2, len, 0.0d0, 0.0d0))
+
+    m = truss%mass_matrix(DYN_ONE_POINT_INTEGRATION_RULE)
+    if (abs(m(1,1) - 0.25d0 * mtot) > tol .or. &
+        abs(m(1,3) - 0.25d0 * mtot) > tol) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_integration_rules - rule 1"
+    end if
+
+    do rule = DYN_TWO_POINT_INTEGRATION_RULE, DYN_FOUR_POINT_INTEGRATION_RULE
+        m = truss%mass_matrix(rule)
+        if (abs(m(1,1) - mtot / 3.0d0) > tol .or. &
+            abs(m(1,3) - mtot / 6.0d0) > tol) then
+            rst = .false.
+            print "(A, I0)", "TEST FAILED: test_integration_rules - rule ", rule
+        end if
+    end do
 end function
 
 end module

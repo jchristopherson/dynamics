@@ -156,6 +156,91 @@ subroutine sparse_modal_frf_forcing_term(freq, f, args)
     f(1) = cmplx(1.0d0, 0.25d0 * freq, real64)
 end subroutine
 
+subroutine general_damping_frf_forcing_term(freq, f, args)
+    real(real64), intent(in) :: freq
+    complex(real64), intent(out), dimension(:) :: f
+    class(*), intent(inout), optional :: args
+
+    f(1) = cmplx(1.0d0, 0.1d0 * freq, real64)
+    f(2) = cmplx(0.5d0, -0.25d0 * freq, real64)
+end subroutine
+
+! ------------------------------------------------------------------------------
+function test_dynamic_stiffness_dense() result(rst)
+    logical :: rst
+
+    real(real64), parameter :: omega = 1.5d0
+    real(real64), parameter :: tol = 1.0d-12
+    real(real64) :: mass(2,2), damp(2,2), stiff(2,2)
+    complex(real64) :: actual(2,2), expected(2,2)
+
+    rst = .true.
+    mass = reshape([2.0d0, 0.0d0, 0.0d0, 1.0d0], [2,2])
+    damp = reshape([0.2d0, 0.3d0, 0.1d0, 0.4d0], [2,2])
+    stiff = reshape([10.0d0, 1.0d0, 2.0d0, 8.0d0], [2,2])
+    expected = stiff - omega**2 * mass + &
+        cmplx(0.0d0, omega, real64) * damp
+    call dynamic_stiffness(omega, mass, damp, stiff, actual)
+
+    if (maxval(abs(actual - expected)) > tol) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_dynamic_stiffness_dense"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_general_damping_frf() result(rst)
+    logical :: rst
+
+    integer(int32), parameter :: nfreq = 3
+    real(real64), parameter :: tol = 1.0d-10
+    real(real64), parameter :: freq(nfreq) = [0.5d0, 1.0d0, 1.5d0]
+    real(real64) :: mass(2,2), damp(2,2), stiff(2,2)
+    integer(int32) :: ranks_1(nfreq), ranks_2(nfreq), i
+    complex(real64) :: a, b, c, d, determinant, force1, force2
+    complex(real64) :: expected(nfreq,2)
+    procedure(modal_excite), pointer :: fcn
+    type(frf) :: rsp_1, rsp_2
+
+    rst = .true.
+    mass = reshape([2.0d0, 0.0d0, 0.0d0, 1.0d0], [2,2])
+    damp = reshape([0.2d0, 0.3d0, 0.1d0, 0.4d0], [2,2])
+    stiff = reshape([10.0d0, 1.0d0, 2.0d0, 8.0d0], [2,2])
+    fcn => general_damping_frf_forcing_term
+
+    do i = 1, nfreq
+        a = cmplx(stiff(1,1) - freq(i)**2 * mass(1,1), &
+            freq(i) * damp(1,1), real64)
+        b = cmplx(stiff(1,2), freq(i) * damp(1,2), real64)
+        c = cmplx(stiff(2,1), freq(i) * damp(2,1), real64)
+        d = cmplx(stiff(2,2) - freq(i)**2 * mass(2,2), &
+            freq(i) * damp(2,2), real64)
+        determinant = a * d - b * c
+        force1 = cmplx(1.0d0, 0.1d0 * freq(i), real64)
+        force2 = cmplx(0.5d0, -0.25d0 * freq(i), real64)
+        expected(i,1) = (d * force1 - b * force2) / determinant
+        expected(i,2) = (-c * force1 + a * force2) / determinant
+    end do
+
+    rsp_1 = frequency_response(mass, damp, stiff, freq, fcn, ranks = ranks_1)
+    rsp_2 = frequency_response(mass, damp, stiff, nfreq, freq(1), freq(nfreq), &
+        fcn, ranks = ranks_2)
+
+    if (maxval(abs(rsp_1%responses - expected)) > tol) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_general_damping_frf explicit frequencies"
+    end if
+    if (maxval(abs(rsp_2%responses - expected)) > tol .or. &
+        maxval(abs(rsp_2%frequency - freq)) > tol) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_general_damping_frf frequency sweep"
+    end if
+    if (any(ranks_1 /= 2) .or. any(ranks_2 /= 2)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_general_damping_frf ranks"
+    end if
+end function
+
 ! Use the example from: https://github.com/jchristopherson/linalg
 function test_proportional_damping_frf() result(rst)
     ! Arguments

@@ -75,6 +75,30 @@ The variational API supports two workflows:
 
 Initialize `c_variational_integrator_settings` with
 `c_default_variational_integrator_settings` before changing individual fields.
+The `force_evaluation` field selects the applied-load sampling rule for both
+direct and linkage solves:
+
+- `DYN_VI_FORCE_LEFT_ENDPOINT` (default) evaluates loads at the current state;
+	this is explicit and least expensive.
+- `DYN_VI_FORCE_IMPLICIT_ENDPOINT` evaluates loads at the trial next state in
+	every Newton residual evaluation. This is more robust for stiff damping but
+	increases nonlinear work and also endpoint-samples springs and user loads.
+- `DYN_VI_FORCE_MIDPOINT` evaluates loads at the time/state midpoint in every
+	Newton residual evaluation. Translation, time, and linear velocity are
+	averaged; orientation uses the unit-quaternion geodesic midpoint, and angular
+	velocity is averaged in world coordinates then expressed in the midpoint
+	body frame. This is midpoint force sampling, not a complete implicit-midpoint
+	state integrator.
+
+For a scalar mass-damper equation `m * dv/dt = -c * v`, with $r=h c/m$, the velocity
+amplification factors are $1-r$ (left endpoint), $1/(1+r)$ (implicit endpoint),
+and $(1-r/2)/(1+r/2)$ (midpoint). Thus the explicit mode can grow energy for
+$r>2$, the implicit mode strongly damps stiff modes, and midpoint is stable but
+approaches a sign-alternating factor of $-1$ for very stiff modes. All applied
+loads use the selected sampling rule, not only damper elements. Force callbacks
+in the implicit and midpoint modes are called repeatedly during Newton and
+should be deterministic functions of their input state, time, and user data.
+
 The direct and linkage solve routines write caller-owned histories using these
 column-major shapes:
 

@@ -191,6 +191,12 @@
 #define DYN_VI_DENSE_SOLVER 1
 /** Graph-factorized solver for variational-integrator Newton systems. */
 #define DYN_VI_GRAPH_FACTORIZED_SOLVER 2
+/** Evaluate applied loads at the current state (explicit left endpoint). */
+#define DYN_VI_FORCE_LEFT_ENDPOINT 1
+/** Evaluate applied loads at the trial next state inside Newton. */
+#define DYN_VI_FORCE_IMPLICIT_ENDPOINT 2
+/** Evaluate applied loads at an interpolated midpoint state inside Newton. */
+#define DYN_VI_FORCE_MIDPOINT 3
 
 /** No error has been recorded. */
 #define DYN_NO_ERROR 0
@@ -810,6 +816,10 @@ typedef struct {
     int maximum_line_search_iterations;
     /** DYN_VI_DENSE_SOLVER or DYN_VI_GRAPH_FACTORIZED_SOLVER. */
     int linear_solver;
+    /** One of DYN_VI_FORCE_LEFT_ENDPOINT, DYN_VI_FORCE_IMPLICIT_ENDPOINT, or
+     * DYN_VI_FORCE_MIDPOINT.
+     */
+    int force_evaluation;
 } c_variational_integrator_settings;
 
 /** @brief World-frame joint reaction exerted on the joint's child link. */
@@ -1679,6 +1689,68 @@ void c_frequency_response(int n, int nfreq, const double *mass, int ldm,
     const double *stiff, int ldk, double alpha, double beta, const double *freq,
     const c_modal_excite frc, double *modes, double *modeshapes, int ldms,
     double complex *rsp, int ldr, void *user_data);
+/**
+ * Compute dense dynamic stiffness, K - omega^2 M + i omega C.
+ * Matrices use column-major storage.
+ * @param n Matrix order.
+ * @param omega Excitation frequency in radians per second.
+ * @param mass Mass matrix.
+ * @param ldm Leading dimension of mass.
+ * @param damp General damping matrix.
+ * @param ldc Leading dimension of damp.
+ * @param stiff Stiffness matrix.
+ * @param ldk Leading dimension of stiff.
+ * @param dyn_stiff Output complex dynamic stiffness matrix.
+ * @param ldd Leading dimension of dyn_stiff.
+ */
+void c_dynamic_stiffness_dense(int n, double omega, const double *mass, int ldm,
+    const double *damp, int ldc, const double *stiff, int ldk,
+    double complex *dyn_stiff, int ldd);
+/**
+ * Compute a general-damping frequency response at explicit frequencies.
+ * Matrices and response use column-major storage.
+ * @param n System order.
+ * @param nfreq Frequency count.
+ * @param mass Mass matrix.
+ * @param ldm Leading dimension of mass.
+ * @param damp General damping matrix.
+ * @param ldc Leading dimension of damp.
+ * @param stiff Stiffness matrix.
+ * @param ldk Leading dimension of stiff.
+ * @param freq Frequencies in radians per second.
+ * @param frc Force callback.
+ * @param rsp Output complex response matrix.
+ * @param ldr Leading dimension of rsp.
+ * @param ranks Output rank of each dynamic stiffness matrix.
+ * @param user_data Opaque caller data forwarded to frc.
+ */
+void c_frf_general_damp_1(int n, int nfreq, const double *mass, int ldm,
+    const double *damp, int ldc, const double *stiff, int ldk,
+    const double *freq, const c_modal_excite frc, double complex *rsp, int ldr,
+    int *ranks, void *user_data);
+/**
+ * Compute a general-damping frequency response over an evenly spaced interval.
+ * Matrices and response use column-major storage.
+ * @param n System order.
+ * @param nfreq Frequency count, at least 2.
+ * @param freq1 Starting frequency in radians per second.
+ * @param freq2 Ending frequency in radians per second.
+ * @param mass Mass matrix.
+ * @param ldm Leading dimension of mass.
+ * @param damp General damping matrix.
+ * @param ldc Leading dimension of damp.
+ * @param stiff Stiffness matrix.
+ * @param ldk Leading dimension of stiff.
+ * @param frc Force callback.
+ * @param rsp Output complex response matrix.
+ * @param ldr Leading dimension of rsp.
+ * @param ranks Output rank of each dynamic stiffness matrix.
+ * @param user_data Opaque caller data forwarded to frc.
+ */
+void c_frf_general_damp_2(int n, int nfreq, double freq1, double freq2,
+    const double *mass, int ldm, const double *damp, int ldc,
+    const double *stiff, int ldk, const c_modal_excite frc, double complex *rsp,
+    int ldr, int *ranks, void *user_data);
 /**
  * Compute modal damping from Rayleigh coefficients.
  * @param lambda Modal eigenvalue.
@@ -2706,7 +2778,9 @@ void c_default_variational_integrator_settings(
  * @param user_data Opaque pointer forwarded unchanged to all callbacks; may be
  * NULL.
  * @param settings Integration settings, commonly initialized by
- * c_default_variational_integrator_settings.
+ * c_default_variational_integrator_settings. force_evaluation selects explicit
+ * left-endpoint, implicit trial-endpoint, or midpoint applied-load evaluation;
+ * see the Variational and linkage dynamics guide for equations and tradeoffs.
  * @param position Output world-frame position history with shape
  * 3-by-nbody-by-ntime.
  * @param orientation Output quaternion history with shape nbody-by-ntime.

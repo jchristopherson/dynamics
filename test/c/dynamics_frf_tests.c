@@ -91,6 +91,91 @@ bool c_test_frequency_response()
     return rst;
 }
 
+void c_general_damping_frf_forcing_term(int n, double freq, double complex *f,
+    void *user_data)
+{
+    f[0] = 1.0 + 0.1 * freq * I;
+    f[1] = 0.5 - 0.25 * freq * I;
+}
+
+bool c_test_general_damping_frf()
+{
+    bool rst = true;
+    const int nfreq = 3;
+    const double tol = 1.0e-12;
+    const double mass[4] = {2.0, 0.0, 0.0, 1.0};
+    const double damp[4] = {0.2, 0.3, 0.1, 0.4};
+    const double stiff[4] = {10.0, 1.0, 2.0, 8.0};
+    const double freq[3] = {0.5, 1.0, 1.5};
+    double complex response_1[6], response_2[6], expected[6];
+    int ranks_1[3], ranks_2[3], i;
+
+    c_frf_general_damp_1(2, nfreq, mass, 2, damp, 2, stiff, 2, freq,
+        c_general_damping_frf_forcing_term, response_1, nfreq, ranks_1, NULL);
+    c_frf_general_damp_2(2, nfreq, freq[0], freq[nfreq - 1], mass, 2, damp, 2,
+        stiff, 2, c_general_damping_frf_forcing_term, response_2, nfreq,
+        ranks_2, NULL);
+
+    for (i = 0; i < nfreq; ++i)
+    {
+        double omega = freq[i];
+        double complex a = stiff[0] - omega * omega * mass[0] +
+            omega * damp[0] * I;
+        double complex b = stiff[2] + omega * damp[2] * I;
+        double complex c = stiff[1] + omega * damp[1] * I;
+        double complex d = stiff[3] - omega * omega * mass[3] +
+            omega * damp[3] * I;
+        double complex force1 = 1.0 + 0.1 * omega * I;
+        double complex force2 = 0.5 - 0.25 * omega * I;
+        double complex determinant = a * d - b * c;
+
+        expected[i] = (d * force1 - b * force2) / determinant;
+        expected[nfreq + i] = (-c * force1 + a * force2) / determinant;
+    }
+
+    if (!compare_complex_arrays(2 * nfreq, expected, response_1, tol) ||
+        !compare_complex_arrays(2 * nfreq, expected, response_2, tol))
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_general_damping_frf response\n");
+    }
+    for (i = 0; i < nfreq; ++i)
+    {
+        if (ranks_1[i] != 2 || ranks_2[i] != 2)
+        {
+            rst = false;
+            printf("TEST FAILED: c_test_general_damping_frf ranks\n");
+            break;
+        }
+    }
+    return rst;
+}
+
+bool c_test_dynamic_stiffness_dense()
+{
+    bool rst = true;
+    const int n = 2;
+    const double omega = 1.5;
+    const double tol = 1.0e-12;
+    const double mass[4] = {2.0, 0.0, 0.0, 1.0};
+    const double damp[4] = {0.2, 0.3, 0.1, 0.4};
+    const double stiff[4] = {10.0, 1.0, 2.0, 8.0};
+    double complex actual[4], expected[4];
+
+    expected[0] = stiff[0] - omega * omega * mass[0] + omega * damp[0] * I;
+    expected[1] = stiff[1] - omega * omega * mass[1] + omega * damp[1] * I;
+    expected[2] = stiff[2] - omega * omega * mass[2] + omega * damp[2] * I;
+    expected[3] = stiff[3] - omega * omega * mass[3] + omega * damp[3] * I;
+    c_dynamic_stiffness_dense(n, omega, mass, n, damp, n, stiff, n, actual, n);
+
+    if (!compare_complex_arrays(n * n, expected, actual, tol))
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_dynamic_stiffness_dense\n");
+    }
+    return rst;
+}
+
 
 
 bool c_test_modal_response()

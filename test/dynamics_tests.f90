@@ -28,6 +28,7 @@ program main
     use dynamics_variational_integrator_tests
     use dynamics_linkage_dynamics_tests
     use dynamics_discrete_elements_tests
+    use dynamics_shell_elements_tests
     implicit none
 
     ! Variables
@@ -51,6 +52,12 @@ program main
     ! Tests
     check = test_frf_sweep()
     if (.not.check) flag = 1
+
+    check = test_dynamic_stiffness_dense()
+    if (.not.check) flag = 161
+
+    check = test_general_damping_frf()
+    if (.not.check) flag = 162
 
     check = test_proportional_damping_frf()
     if (.not.check) flag = 2
@@ -112,6 +119,9 @@ program main
     check = test_truss_elements()
     if (.not.check) flag = 153
 
+    check = test_integration_rules()
+    if (.not.check) flag = 168
+
     check = test_generalized_alpha_integrator()
     if (.not.check) flag = 152
 
@@ -129,6 +139,21 @@ program main
 
     check = test_assemble_discrete_system()
     if (.not.check) flag = 160
+
+    check = test_shell_rigid_body_modes()
+    if (.not.check) flag = 163
+
+    check = test_shell_patch_tests()
+    if (.not.check) flag = 164
+
+    check = test_shell_mass_and_load()
+    if (.not.check) flag = 165
+
+    check = test_shell_cantilever_static()
+    if (.not.check) flag = 166
+
+    check = test_shell_cantilever_modal()
+    if (.not.check) flag = 167
 
     check = test_forward_kinematics()
     if (.not.check) flag = 12
@@ -465,6 +490,9 @@ program main
 
     check = test_open_chain_equivalence()
     if (.not.check) flag = 107
+
+    check = test_variational_force_evaluation()
+    if (.not.check) flag = 149
 
     check = test_variational_free_body()
     if (.not.check) flag = 130

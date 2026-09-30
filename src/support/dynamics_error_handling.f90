@@ -47,5 +47,8 @@ module dynamics_error_handling
         !! Defines an error when too few iterations were allowed.
     integer(int32), parameter :: DYN_CONVERGENCE_ERROR = NL_CONVERGENCE_ERROR
         !! Defines an error related to convergence issues.
+    integer(int32), parameter :: DYN_NONSQUARE_MATRIX_ERROR = 100106
+        !! Defines an error relating to finding a non-square matrix when a 
+        !! square matrix was expected.
 
 end module

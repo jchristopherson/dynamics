@@ -54,6 +54,7 @@ The `dynamics` module aggregates tools for analysis, modeling, and identificatio
     - 2D/3D beam element utilities and material/node/element abstractions, with local-coordinate [beam system documentation](images/beam_coordinate_system.svg).
     - 2D/3D axial truss elements with consistent mass and no rotational degrees of freedom.
     - Position-dependent beam shear-force and bending-moment extraction in 2D and 3D.
+    - Flat 3D shell elements with 6 DOF per node: a 3-node triangle (CST membrane + DKT thin-plate bending) and a 4-node quadrilateral (bilinear membrane + MITC4 Mindlin-Reissner bending), both with Hughes-Brezzi drilling stabilization, consistent mass, and membrane/moment/shear stress-resultant recovery.
     - Connectivity matrix construction and boundary-condition application.
     - Sparse/CSR-oriented structural assembly helpers.
     - Generalized-alpha time stepping for linear structural systems with dense or CSR mass, damping, and stiffness matrices.
@@ -122,7 +123,7 @@ Add `dynamics` to your `fpm.toml` dependencies:
 
 ```toml
 [dependencies]
-dynamics = { git = "https://github.com/jchristopherson/dynamics.git", tag = "v1.4.2" }
+dynamics = { git = "https://github.com/jchristopherson/dynamics.git" }
 ```
 
 Then build and run your project:
@@ -255,6 +256,44 @@ Notice that the linkage is drawn by querying the mechanism itself.  The `body_tr
 
 ![](images/four_bar_example_1.png?raw=true)
 
+## Variational Integrator Example
+The [`variational_integrator_example`](examples/variational_integrator_example.f90) simulates a planar double pendulum in maximal coordinates. Both connecting rods have distributed mass, finite cross-section inertia, and gravity loading at their centers of mass. Six holonomic constraints pin the first rod to ground and join the two rod endpoints.
+
+The example selects the graph-factorized solver from Brüdigam et al. (2023), supplies force and constraint callbacks, and provides an analytic reduced constraint Jacobian for efficient Newton iterations:
+
+```fortran
+type(rigid_body), dimension(2) :: bodies
+type(variational_state) :: initial_state
+type(variational_state), allocatable, dimension(:) :: solution
+type(variational_integrator) :: integrator
+
+! Each connecting rod carries its own mass and center-of-mass inertia tensor.
+bodies(1) = rigid_body(mass1, rod_inertia(mass1, length1, width1))
+bodies(2) = rigid_body(mass2, rod_inertia(mass2, length2, width2))
+
+call initialize_variational_state(initial_state, 2)
+initial_state%orientation(1) = quaternion(angle1_initial, &
+    [0.0d0, 0.0d0, 1.0d0])
+initial_state%orientation(2) = quaternion(angle2_initial, &
+    [0.0d0, 0.0d0, 1.0d0])
+
+! Set compatible center-of-mass positions for the two endpoint constraints.
+direction1 = [sin(angle1_initial), -cos(angle1_initial), 0.0d0]
+direction2 = [sin(angle2_initial), -cos(angle2_initial), 0.0d0]
+initial_state%position(:,1) = 0.5d0 * length1 * direction1
+initial_state%position(:,2) = length1 * direction1 + &
+    0.5d0 * length2 * direction2
+
+integrator%settings%linear_solver = VI_GRAPH_FACTORIZED_SOLVER
+solution = integrator%solve(bodies, initial_state, dt, ntime, &
+    constraint_count = 6, &
+    constraint = pendulum_constraints, &
+    force_function = gravity_forces, &
+    constraint_jacobian = pendulum_constraint_jacobian, &
+    args = parameters)
+```
+![Double-pendulum rod angles produced by the variational integrator example](images/variational_integrator_example.png?raw=true)
+
 ## Motor-Driven Parallel Linkage Example
 The linkage dynamics analysis capabilities also allow the addition of motors to drive motion, along with spring and damper elements.  The [`four_bar_example_2`](examples/four_bar_example_2.f90) analyzes a four-bar linkage driven at the crank by a motor, and utilizes a torsional spring and damper at the rocker-ground revolute joint.  The analysis illustrates how, given the motor motion, to extract the motor torque required to achieve the motion, along with the joint reaction forces in terms of the world coordinate frame.  The solver always places prescribed-motion constraints after all the joint constraints; therefore, the motor torque is the last row in the Lagrange multiplier output.  For this example, the motor torque is the required torque to overcome the inertia of the mechanism, and the spring and damper at the rocker-ground revolute joint.
 
@@ -383,8 +422,44 @@ torque = constraint_multipliers(nmult,:)    ! motor torque
 ![](images/four_bar_example_2a.png?raw=true)
 ![](images/four_bar_example_2b.png?raw=true)
 
+### Nonconservative Loads and Damping
+The variational integrator accepts applied forces and torques, including dissipative loads such as viscous dampers. They enter as nonconservative forces in the forced discrete Euler-Lagrange equations. The `force_evaluation` setting selects when **all** applied loads are sampled; it changes the force quadrature, not the conservative state update or its formal order.
+
+Let $t_k,y_k$ be the current time and state, and $t_{k+1},y_{k+1}$ the trial next time and state. The translational momentum balance uses the selected force sample $F_*$:
+$$
+m\frac{v_{k+1}-v_k}{h}=F_*.
+$$
+The rotational discrete momentum balance uses the torque sampled at the same point. The available modes are:
+
+| Mode | Force sample | Tradeoffs |
+|---|---|---|
+| `VI_FORCE_LEFT_ENDPOINT` (default) | $F(t_k,y_k)$ | Explicit in the step and least expensive. Large damping or a large step can make the discrete velocity grow. |
+| `VI_FORCE_IMPLICIT_ENDPOINT` | $F(t_{k+1},y_{k+1})$ | Evaluates loads on each Newton trial. More robust for stiff damping, but adds nonlinear work and endpoint-samples every load, including springs and user-defined loads. |
+| `VI_FORCE_MIDPOINT` | $F(t_{k+1/2},y_{k+1/2})$ | Evaluates loads on each Newton trial at an interpolated midpoint. A centered force sample, but not a complete implicit-midpoint integrator and not L-stable for very stiff modes. |
+
+For `VI_FORCE_MIDPOINT`, time, position, and translational velocity are arithmetic midpoints. Orientation follows the unit-quaternion geodesic midpoint
+$$
+q_{k+1/2}=q_k\left(q_k^{-1}q_{k+1}\right)^{1/2}.
+$$
+Angular velocity is averaged in world coordinates, then expressed in the midpoint body frame:
+$$
+\omega_{k+1/2}=R(q_{k+1/2})^T\frac{R(q_k)\omega_k+R(q_{k+1})\omega_{k+1}}{2}.
+$$
+
+For an isolated mass $m$ with viscous force $F=-cv$, define $r=hc/m$. The velocity amplification factors are
+$$
+\frac{v_{k+1}}{v_k}=\begin{cases}
+1-r, & \text{left endpoint},\\
+\dfrac{1}{1+r}, & \text{implicit endpoint},\\
+\dfrac{1-r/2}{1+r/2}, & \text{midpoint}.
+\end{cases}
+$$
+The left-endpoint update can grow kinetic energy when $r>2$. The implicit endpoint is unconditionally stable for this scalar linear problem and strongly damps stiff modes. The midpoint factor does not grow for $r\ge0$, but approaches $-1$ as damping becomes very stiff, so those modes alternate rather than being rapidly suppressed. These scalar properties do not guarantee an energy law for a constrained multibody simulation; check timestep convergence and energy/work behavior for the system of interest.
+
+Select a Fortran mode with `integrator%settings%force_evaluation`, for example `VI_FORCE_MIDPOINT`. In C, set `c_variational_integrator_settings.force_evaluation` to `DYN_VI_FORCE_LEFT_ENDPOINT`, `DYN_VI_FORCE_IMPLICIT_ENDPOINT`, or `DYN_VI_FORCE_MIDPOINT`; initialize the settings with `c_default_variational_integrator_settings` first. Force callbacks may be reevaluated repeatedly during Newton iterations and should compute loads deterministically from their input time, state, and user data.
+
 ## Frequency Response Example
-Consider the following 3 DOF system. The [`frf_proportional_example_1`](examples/frf_proportional_example_1.f90) example illustrates how to use this library to compute the frequency response functions for this system.
+Consider the following 3 DOF system. The [`frf_example_1`](examples/frf_example_1.f90) example illustrates how to use this library to compute the frequency response functions for this system.
 
 ![](images/3%20DOF%20Schematic.PNG?raw=true)
 
@@ -394,16 +469,10 @@ The equations describing this system are as follows.
 \begin{bmatrix} m_1 & 0 & 0 \\ 0 & m_2 & 0 \\ 0 & 0 & m_3 \end{bmatrix} \begin{Bmatrix} \ddot{x}_1 \\ \ddot{x}_2 \\ \ddot{x}_3 \end{Bmatrix} + \begin{bmatrix} b_1 + b_2 & -b_2 & 0 \\ -b_2 & b_2 + b_3 & -b_3 \\ 0 & -b_3 & b_3 + b_4 \end{bmatrix} \begin{Bmatrix} \dot{x}_1 \\ \dot{x}_2 \\ \dot{x}_3 \end{Bmatrix} + \begin{bmatrix} k_1 + k_2 & -k_2 & 0 \\ -k_2 & k_2 + k_3 & -k_3 \\ 0 & -k_3 & k_3 + k_4 \end{bmatrix} \begin{Bmatrix} x_{1} \\ x_{2} \\ x_{3} \end{Bmatrix} = \begin{Bmatrix} F(t) \\ 0 \\ 0 \end{Bmatrix}
 ```
 
-This analysis makes use of proportional damping.  Using proportional damping, the damping matrix is determined as follows.
-
-```math
-B = \alpha M + \beta K
-```
-
 The essential excitation and solution setup is:
 
 ```fortran
-real(real64), dimension(3,3) :: mass, stiffness
+real(real64), dimension(3,3) :: mass, stiffness, damp
 type(frf) :: response
 procedure(modal_excite), pointer :: excitation
 
@@ -413,9 +482,12 @@ mass = reshape([0.5d0, 0.0d0, 0.0d0, &
 stiffness = reshape([15.0d6, -10.0d6, 0.0d0, &
     -10.0d6, 20.0d6, -10.0d6, &
     0.0d0, -10.0d6, 15.0d6], [3,3])
+damp = reshape([150.0d0, -25.0d0, 0.0d0, &
+    -25.0d0, 50.0d0, -25.0d0, &
+    0.0d0, -25.0d0, 40.0d0], [3,3])
 
 excitation => modal_frf_forcing_term
-response = frequency_response(mass, stiffness, 1.0d-3, 2.0d-6, &
+response = frequency_response(mass, damp, stiffness, &
     1000, 2.0d0*pi*10.0d0, 2.0d0*pi*1.0d3, excitation)
 
 contains
@@ -429,7 +501,7 @@ end subroutine
 
 The computed frequency response functions.
 
-![](images/frf_proportional_example_1.png?raw=true)
+![](images/frf_example_1.png?raw=true)
 
 ## Nonlinear FRF Example
 Computing the frequency response function for a nonlinear system is not as straight-forward. A technique for capturing nonlinear behaviors, such as jump phenomenon, is to sweep through frequency, in both an ascending and a descending manner. The [`frf_sweep_example_1`](examples/frf_sweep_example_1.f90) example illustrates such a frequency sweep using the famous Duffing equation as the model.
@@ -524,6 +596,73 @@ DAMPING TERM:
 ```
 ![](images/siso_least_squares_fit_example.png?raw=true)
 
+## Structural Example
+
+The [`structural_example`](examples/structural_example.f90) analyzes a two-dimensional aluminum frame shaped as a triangular truss with a center member. Each of its five members is divided into 50 Euler-Bernoulli beam elements, giving 250 elements and 249 nodes. Each node has two translational degrees of freedom and one in-plane rotation. The lower-left node is fixed in all three degrees of freedom, the lower-right node is supported vertically, and a 10 kN downward load is applied at the apex.
+
+The example assembles global stiffness and mass matrices, solves the constrained static system, recovers support reactions, and computes the six lowest modes. It then forms a Rayleigh-damped frequency response from 10 Hz to 1 kHz, exciting the apex vertically. The central analysis calls are:
+
+```fortran
+call assemble_dynamic_system(gdof, beams, nodes, M, K)
+
+allocate(F(size(K, 1)), source = 0.0d0)
+F(5) = -applied_force
+bc = [1, 2, 3, 8]
+Fbc = apply_boundary_conditions(bc, F)
+Kbc = apply_boundary_conditions(bc, K)
+Mbc = apply_boundary_conditions(bc, M)
+
+ubc = solve_static_system(Kbc, Fbc)
+u = restore_constrained_values(bc, ubc)
+call modal_response(Mbc, Kbc, n_plot_modes, freqs, shapesbc)
+
+excitefcn => modal_frf_forcing_term
+frsp = frequency_response(Mbc, Kbc, alpha, beta, n_plot_modes, nfreq, &
+    minfreq, maxfreq, excitefcn)
+```
+
+The static plot overlays the undeformed frame with the deformed shape, magnified for visibility. The text output below reports the first four nodes' displacement components multiplied by 1000 and the summed support reactions.
+
+![Static deformation of the five-member frame; deformation is magnified for visibility](images/structural_example_static_deformation.png?raw=true)
+
+```txt
+NODAL DISPLACEMENTS (x 1000)
+Node       X              Y                Theta
+1       0.000E+0        0.000E+0        0.000E+0
+2       -41.247E-3      -229.425E-3     -60.831E-3
+3       -81.263E-3      0.000E+0        692.776E-3
+4       -39.967E-3      -228.573E-3     -65.412E-3
+
+REACTION LOADS
+Node      FX              FY               MZ
+1       9.234E-9        5.209E+3        208.794E+0
+3       600.829E-12     4.791E+3        1.364E-12
+SUM     9.834E-9        10.000E+3       208.794E+0
+
+MODAL RESPONSE
+Mode 1: 379.810 Hz
+Mode 2: 553.835 Hz
+Mode 3: 670.329 Hz
+Mode 4: 804.472 Hz
+Mode 5: 949.697 Hz
+Mode 6: 1283.488 Hz
+```
+
+The first six natural frequencies and corresponding mode shapes are:
+
+| Mode 1: 379.810 Hz | Mode 2: 553.835 Hz | Mode 3: 670.329 Hz |
+|:--:|:--:|:--:|
+| ![Mode 1](images/structural_example_mode_1.png?raw=true) | ![Mode 2](images/structural_example_mode_2.png?raw=true) | ![Mode 3](images/structural_example_mode_3.png?raw=true) |
+| **Mode 4: 804.472 Hz** | **Mode 5: 949.697 Hz** | **Mode 6: 1283.488 Hz** |
+| ![Mode 4](images/structural_example_mode_4.png?raw=true) | ![Mode 5](images/structural_example_mode_5.png?raw=true) | ![Mode 6](images/structural_example_mode_6.png?raw=true) |
+
+For the harmonic analysis, the example uses proportional damping, $C=\alpha M+\beta K$, with $\alpha=10^{-3}$ and $\beta=2\times10^{-6}$. The following plot shows the normalized magnitude and phase of the apex vertical response (degree of freedom 5) under a 10 kN harmonic force.
+
+![Frequency response of the apex vertical degree of freedom from 10 Hz to 1 kHz](images/structural_example_frf.png?raw=true)
+
+Build with `BUILD_DYNAMICS_EXAMPLES=ON`, then build and run the `structural_example` target.
+
+
 ## Harmonic Truss Example
 
 The [`harmonic_truss_example`](examples/harmonic_truss_example.f90) models a four-node, five-bar pin-jointed truss with a pinned support and a roller. It assembles axial stiffness and consistent translational mass matrices, applies the support constraints, and advances the response to a vertical 20 Hz load at the apex with `dense_generalized_alpha_integrator`. Fplot saves vertical apex and midspan motion and horizontal midspan and roller motion to `harmonic_truss_response.png` in the process's working directory. Build the `harmonic_truss_example` CMake target with examples enabled, then run it from the build's examples directory.
@@ -549,46 +688,61 @@ end do
 
 ![Forced response of the simple truss example](images/harmonic_truss_example.png?raw=true)
 
-## Variational Integrator Example
-The [`variational_integrator_example`](examples/variational_integrator_example.f90) simulates a planar double pendulum in maximal coordinates. Both connecting rods have distributed mass, finite cross-section inertia, and gravity loading at their centers of mass. Six holonomic constraints pin the first rod to ground and join the two rod endpoints.
+## Shell Element Example
 
-The example selects the graph-factorized solver from Brüdigam et al. (2023), supplies force and constraint callbacks, and provides an analytic reduced constraint Jacobian for efficient Newton iterations:
+The [`shell_element_example`](examples/shell_element_example.f90) computes the first six modes of a flat 0.75 m by 1.25 m aluminum plate, 10 mm thick, clamped along its two long edges ($x=0$ and $x=0.75$ m). The plate is meshed with a 50-by-50 grid of nodes and 2401 `rectangular_shell_element` objects. Each node has six degrees of freedom: three translations and three rotations. Fplot draws each mode as a surface of the out-of-plane ($z$) displacement over the mesh.
+
+The core of the example builds the mesh from a `meshgrid`, assembles sparse mass and stiffness matrices, clamps the two edges, and solves for the modes:
 
 ```fortran
-type(rigid_body), dimension(2) :: bodies
-type(variational_state) :: initial_state
-type(variational_state), allocatable, dimension(:) :: solution
-type(variational_integrator) :: integrator
+! Create the mesh
+xc = linspace(0.0d0, width, ndiv)
+yc = linspace(0.0d0, length, ndiv)
+xy = meshgrid(xc, yc)
+kk = 0
+do j = 1, ndiv
+    do i = 1, ndiv
+        kk = kk + 1
+        nodes(kk) = node(kk, dof_per_node, xy(i,j,1), xy(i,j,2), 0.0d0)
+    end do
+end do
 
-! Each connecting rod carries its own mass and center-of-mass inertia tensor.
-bodies(1) = rigid_body(mass1, rod_inertia(mass1, length1, width1))
-bodies(2) = rigid_body(mass2, rod_inertia(mass2, length2, width2))
+! Nodes are listed counter-clockwise to define the element normal
+elements(kk) = rectangular_shell_element(mat, thickness, &
+    nodes(n1), nodes(n2), nodes(n3), nodes(n4))
 
-call initialize_variational_state(initial_state, 2)
-initial_state%orientation(1) = quaternion(angle1_initial, &
-    [0.0d0, 0.0d0, 1.0d0])
-initial_state%orientation(2) = quaternion(angle2_initial, &
-    [0.0d0, 0.0d0, 1.0d0])
+! Assemble, constrain, and solve
+call assemble_dynamic_system(global_dof_count, elements, nodes, M, K)
+Mbc = apply_boundary_conditions(bc, M)
+Kbc = apply_boundary_conditions(bc, K)
+call modal_response(Mbc, Kbc, mode_count, freqs, shapesbc)
+freqs = freqs / (2.0d0 * pi)
 
-! Set compatible center-of-mass positions for the two endpoint constraints.
-direction1 = [sin(angle1_initial), -cos(angle1_initial), 0.0d0]
-direction2 = [sin(angle2_initial), -cos(angle2_initial), 0.0d0]
-initial_state%position(:,1) = 0.5d0 * length1 * direction1
-initial_state%position(:,2) = length1 * direction1 + &
-    0.5d0 * length2 * direction2
-
-integrator%settings%linear_solver = VI_GRAPH_FACTORIZED_SOLVER
-solution = integrator%solve(bodies, initial_state, dt, ntime, &
-    constraint_count = 6, &
-    constraint = pendulum_constraints, &
-    force_function = gravity_forces, &
-    constraint_jacobian = pendulum_constraint_jacobian, &
-    args = parameters)
+! Restore the constrained DOF and plot the z-displacement of each mode
+do i = 1, mode_count
+    shapes(:,i) = restore_constrained_values(bc, shapesbc(:,i))
+    call extract_nodal_displacements(shapes(:,i), u)
+    call plot_mode_shape(i, freqs(i), xy(:,:,1), xy(:,:,2), u)
+end do
 ```
 
-The complete example includes the massive-rod inertia calculation, gravity and endpoint-constraint callbacks, analytic quaternion-tangent Jacobian, and plots of both rod angles. Build it with `BUILD_DYNAMICS_EXAMPLES=ON` and run the `variational_integrator_example` target.
+```txt
+MODAL RESPONSE:
+Mode 1: 97.801 Hz
+Mode 2: 104.521 Hz
+Mode 3: 130.581 Hz
+Mode 4: 183.377 Hz
+Mode 5: 268.814 Hz
+Mode 6: 269.948 Hz
+```
 
-![Double-pendulum rod angles produced by the variational integrator example](images/variational_integrator_example.png?raw=true)
+The first six natural frequencies and corresponding mode shapes are:
+
+| Mode 1: 97.801 Hz | Mode 2: 104.521 Hz | Mode 3: 130.581 Hz |
+|:--:|:--:|:--:|
+| ![Mode 1](images/shell_example_mode_1.png?raw=true) | ![Mode 2](images/shell_example_mode_2.png?raw=true) | ![Mode 3](images/shell_example_mode_3.png?raw=true) |
+| **Mode 4: 183.377 Hz** | **Mode 5: 268.814 Hz** | **Mode 6: 269.948 Hz** |
+| ![Mode 4](images/shell_example_mode_4.png?raw=true) | ![Mode 5](images/shell_example_mode_5.png?raw=true) | ![Mode 6](images/shell_example_mode_6.png?raw=true) |
 
 ## References
 1. J. D. Hartog, "Mechanical Vibrations," New York: Dover Publications, Inc., 1985.
@@ -602,3 +756,7 @@ The complete example includes the massive-rod inertia calculation, gravity and e
 9. Jolicoeur, M.P., Roumy, J.G., Vanreusel, S., Dionne, D., Douville, H., Boulet, B., Michalska, H., Masson, P., & Berry, A. (2005). "Reduction of structure-borne noise in automobiles by multivariable feedback." 1397 - 1402. 10.1109/CCA.2005.1507327. 
 10. Brunton, Steven & Proctor, Joshua & Kutz, J.. (2015). "Discovering governing equations from data: Sparse identification of nonlinear dynamical systems." Proceedings of the National Academy of Sciences. 113. 3932–3937. 10.1073/pnas.1517384113. 
 11. Brüdigam, Jan & Sosnowski, Stefan & Manchester, Zac & Hirche, Sandra. (2023). Variational integrators and graph-based solvers for multibody dynamics in maximal coordinates. Multibody System Dynamics. 61. 1-34. 10.1007/s11044-023-09949-x. 
+12. J.-L. Batoz, K.-J. Bathe, and L.-W. Ho, "A study of three-node triangular plate bending elements," International Journal for Numerical Methods in Engineering, vol. 15, no. 12, pp. 1771-1812, 1980. 10.1002/nme.1620151205.
+13. E. N. Dvorkin and K.-J. Bathe, "A continuum mechanics based four-node shell element for general non-linear analysis," Engineering Computations, vol. 1, no. 1, pp. 77-88, 1984. 10.1108/eb023562.
+14. T. J. R. Hughes and F. Brezzi, "On drilling degrees of freedom," Computer Methods in Applied Mechanics and Engineering, vol. 72, no. 1, pp. 105-121, 1989. 10.1016/0045-7825(89)90124-2.
+15. R. D. Cook, D. S. Malkus, M. E. Plesha, and R. J. Witt, "Concepts and Applications of Finite Element Analysis," 4th ed., New York: John Wiley & Sons, Inc., 2002.

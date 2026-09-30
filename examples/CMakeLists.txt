@@ -2,6 +2,7 @@
 include(FetchContent)
 find_package(fplot 1.8.12 QUIET)
 find_package(diffeq 1.2.0 QUIET)
+find_package(linalg 2.3.0 QUIET)
 
 if (NOT fplot_FOUND)
     FetchContent_Declare(
@@ -28,6 +29,18 @@ else()
     set(DIFFEQ_LIBRARIES diffeq::diffeq)
 endif()
 
+if (NOT linalg_FOUND)
+    FetchContent_Declare(
+        linalg
+        GIT_TAG "origin/master"
+        GIT_REPOSITORY https://github.com/jchristopherson/linalg
+    )
+    FetchContent_MakeAvailable(linalg)
+    set(LINALG_LIBRARIES linalg)
+else()
+    set(LINALG_LIBRARIES linalg::linalg)
+endif()
+
 # FRF Sweep Example 1
 add_executable(
     frf_sweep_example_1
@@ -39,13 +52,13 @@ target_link_libraries(
     ${FPLOT_LIBRARIES}
 )
 
-# FRF Proportional Damping Example 1
+# FRF Example 1
 add_executable(
-    frf_proportional_example_1
-    frf_proportional_example_1.f90
+    frf_example_1
+    frf_example_1.f90
 )
 target_link_libraries(
-    frf_proportional_example_1
+    frf_example_1
     ${PROJECT_NAME}
     ${FPLOT_LIBRARIES}
 )
@@ -258,11 +271,11 @@ endif()
 
 # Structural Example
 add_executable(structural_example structural_example.f90)
-target_link_libraries(structural_example ${PROJECT_NAME} ${FPLOT_LIBRARIES})
+target_link_libraries(structural_example ${PROJECT_NAME} ${FPLOT_LIBRARIES} ${LINALG_LIBRARIES})
 
 # Harmonic Truss Example
 add_executable(harmonic_truss_example harmonic_truss_example.f90)
-target_link_libraries(harmonic_truss_example ${PROJECT_NAME} ${FPLOT_LIBRARIES})
+target_link_libraries(harmonic_truss_example ${PROJECT_NAME} ${FPLOT_LIBRARIES} ${LINALG_LIBRARIES})
 
 # Variational Integrator Example
 add_executable(variational_integrator_example variational_integrator_example.f90)
@@ -271,6 +284,10 @@ target_link_libraries(variational_integrator_example ${PROJECT_NAME} ${FPLOT_LIB
 # Motor-Driven Four-Bar Dynamics Example
 add_executable(motor_driven_four_bar_example motor_driven_four_bar_example.f90)
 target_link_libraries(motor_driven_four_bar_example ${PROJECT_NAME} ${FPLOT_LIBRARIES})
+
+# Shell Element Example
+add_executable(shell_element_example shell_element_example.f90)
+target_link_libraries(shell_element_example ${PROJECT_NAME} ${FPLOT_LIBRARIES} ${LINALG_LIBRARIES})
 
 if (${BUILD_SHARED_LIBS} AND WIN32)
     add_custom_command(

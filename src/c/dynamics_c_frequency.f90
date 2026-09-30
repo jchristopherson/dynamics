@@ -59,6 +59,117 @@ subroutine c_frequency_response(n, nfreq, mass, ldm, stiff, ldk, alpha, beta, &
 end subroutine
 
 ! --------------------
+subroutine c_dynamic_stiffness_dense(n, omega, mass, ldm, damp, ldc, stiff, &
+    ldk, dyn_stiff, ldd) bind(C, name = "c_dynamic_stiffness_dense")
+    integer(c_int), intent(in), value :: n
+    integer(c_int), intent(in), value :: ldm
+    integer(c_int), intent(in), value :: ldc
+    integer(c_int), intent(in), value :: ldk
+    integer(c_int), intent(in), value :: ldd
+    real(c_double), intent(in), value :: omega
+    real(c_double), intent(in) :: mass(ldm,n)
+    real(c_double), intent(in) :: damp(ldc,n)
+    real(c_double), intent(in) :: stiff(ldk,n)
+    complex(c_double_complex), intent(out) :: dyn_stiff(ldd,n)
+
+    if (c_api_error(n < 1 .or. ldm < n .or. ldc < n .or. ldk < n .or. &
+        ldd < n, DYN_INVALID_INPUT_ERROR, &
+        "c_dynamic_stiffness_dense: dimensions must be positive and leading dimensions >= n.")) return
+
+    call dynamic_stiffness(omega, mass(1:n,1:n), damp(1:n,1:n), &
+        stiff(1:n,1:n), dyn_stiff(1:n,1:n))
+end subroutine
+
+! --------------------
+subroutine c_frf_general_damp_1(n, nfreq, mass, ldm, damp, ldc, stiff, ldk, &
+    freq, frc, rsp, ldr, ranks, user_data) &
+    bind(C, name = "c_frf_general_damp_1")
+    integer(c_int), intent(in), value :: n
+    integer(c_int), intent(in), value :: nfreq
+    integer(c_int), intent(in), value :: ldm
+    integer(c_int), intent(in), value :: ldc
+    integer(c_int), intent(in), value :: ldk
+    integer(c_int), intent(in), value :: ldr
+    real(c_double), intent(in) :: mass(ldm,n)
+    real(c_double), intent(in) :: damp(ldc,n)
+    real(c_double), intent(in) :: stiff(ldk,n)
+    real(c_double), intent(in) :: freq(nfreq)
+    type(c_funptr), intent(in), value :: frc
+    complex(c_double_complex), intent(out) :: rsp(ldr,n)
+    integer(c_int), intent(out) :: ranks(nfreq)
+    type(c_ptr), intent(in), value :: user_data
+
+    type(frf) :: frsp
+    type(c_modal_excite_container) :: arg
+    procedure(c_modal_excite), pointer :: fptr
+    procedure(modal_excite), pointer :: fcn
+    integer(int32), allocatable :: rank_values(:)
+
+    if (c_api_error(n < 1 .or. nfreq < 1 .or. ldm < n .or. ldc < n .or. &
+        ldk < n .or. ldr < nfreq, DYN_INVALID_INPUT_ERROR, &
+        "c_frf_general_damp_1: dimensions must be positive and leading dimensions >= their row counts.")) return
+    if (c_api_error(.not.c_associated(frc), DYN_NULL_POINTER_ERROR, &
+        "c_frf_general_damp_1: frc must not be NULL.")) return
+
+    call c_f_procpointer(frc, fptr)
+    arg%fcn => fptr
+    arg%user_data = user_data
+    fcn => cfr_fcn
+    allocate(rank_values(nfreq))
+    frsp = frequency_response(mass(1:n,1:n), damp(1:n,1:n), &
+        stiff(1:n,1:n), freq, fcn, ranks = rank_values, args = arg)
+    rsp(1:nfreq,1:n) = frsp%responses
+    ranks = rank_values
+end subroutine
+
+! --------------------
+subroutine c_frf_general_damp_2(n, nfreq, freq1, freq2, mass, ldm, damp, &
+    ldc, stiff, ldk, frc, rsp, ldr, ranks, user_data) &
+    bind(C, name = "c_frf_general_damp_2")
+    integer(c_int), intent(in), value :: n
+    integer(c_int), intent(in), value :: nfreq
+    integer(c_int), intent(in), value :: ldm
+    integer(c_int), intent(in), value :: ldc
+    integer(c_int), intent(in), value :: ldk
+    integer(c_int), intent(in), value :: ldr
+    real(c_double), intent(in), value :: freq1
+    real(c_double), intent(in), value :: freq2
+    real(c_double), intent(in) :: mass(ldm,n)
+    real(c_double), intent(in) :: damp(ldc,n)
+    real(c_double), intent(in) :: stiff(ldk,n)
+    type(c_funptr), intent(in), value :: frc
+    complex(c_double_complex), intent(out) :: rsp(ldr,n)
+    integer(c_int), intent(out) :: ranks(nfreq)
+    type(c_ptr), intent(in), value :: user_data
+
+    type(frf) :: frsp
+    type(c_modal_excite_container) :: arg
+    procedure(c_modal_excite), pointer :: fptr
+    procedure(modal_excite), pointer :: fcn
+    integer(int32), allocatable :: rank_values(:)
+
+    if (c_api_error(n < 1 .or. nfreq < 2 .or. ldm < n .or. ldc < n .or. &
+        ldk < n .or. ldr < nfreq, DYN_INVALID_INPUT_ERROR, &
+        "c_frf_general_damp_2: dimensions must be positive and leading dimensions >= their row counts.")) return
+    if (c_api_error(.not.c_associated(frc), DYN_NULL_POINTER_ERROR, &
+        "c_frf_general_damp_2: frc must not be NULL.")) return
+    if (c_api_error(abs(freq1 - freq2) < sqrt(epsilon(freq1)), &
+        DYN_INVALID_INPUT_ERROR, &
+        "c_frf_general_damp_2: freq1 and freq2 must be distinct.")) return
+
+    call c_f_procpointer(frc, fptr)
+    arg%fcn => fptr
+    arg%user_data = user_data
+    fcn => cfr_fcn
+    allocate(rank_values(nfreq))
+    frsp = frequency_response(mass(1:n,1:n), damp(1:n,1:n), &
+        stiff(1:n,1:n), nfreq, freq1, freq2, fcn, ranks = rank_values, &
+        args = arg)
+    rsp(1:nfreq,1:n) = frsp%responses
+    ranks = rank_values
+end subroutine
+
+! --------------------
 subroutine cfr_fcn(freq, frc, args)
     real(real64), intent(in) :: freq
     complex(real64), intent(out), dimension(:) :: frc

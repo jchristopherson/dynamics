@@ -40,8 +40,6 @@ program example
     real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
     real(real64), parameter :: fmin = 2.0d0 * pi * 10.0d0
     real(real64), parameter :: fmax = 2.0d0 * pi * 1.0d3
-    real(real64), parameter :: alpha = 1.0d-3
-    real(real64), parameter :: beta = 2.0d-6
 
     ! Define the model parameters
     real(real64), parameter :: m1 = 0.5d0
@@ -51,10 +49,14 @@ program example
     real(real64), parameter :: k2 = 10.0d6
     real(real64), parameter :: k3 = 10.0d6
     real(real64), parameter :: k4 = 5.0d6
+    real(real64), parameter :: b1 = 1.25d2
+    real(real64), parameter :: b2 = 2.5d1
+    real(real64), parameter :: b3 = 2.5d1
+    real(real64), parameter :: b4 = 1.5d1
 
     ! Local Variables
     integer(int32) :: i
-    real(real64) :: m(3,3), k(3,3)
+    real(real64) :: m(3,3), k(3,3), b(3,3)
     type(frf) :: rsp
     real(real64), allocatable, dimension(:) :: freq
     real(real64), allocatable, dimension(:,:) :: mag, phase
@@ -77,8 +79,12 @@ program example
     k = reshape([k1 + k2, -k2, 0.0d0, -k2, k2 + k3, -k3, 0.0d0, -k3, k3 + k4], &
         [3, 3])
 
+    ! Define the damping matrix
+    b = reshape([b1 + b2, -b2, 0.0d0, -b2, b2 + b3, -b3, 0.0d0, -b3, b3 + b4], &
+        [3, 3])
+
     ! Compute the frequency response functions
-    rsp = frequency_response(m, k, alpha, beta, nfreq, fmin, fmax, fcn)
+    rsp = frequency_response(m, b, k, nfreq, fmin, fmax, fcn)
 
     ! Extract the magnitude and phase information.
     freq = rsp%frequency / (2.0d0 * pi)
@@ -89,7 +95,7 @@ program example
 ! PLOTTING CODE ONLY
 ! ------------------------------------------------------------------------------
     ! Plot the frequency response functions
-    call plt%initialize(2, 1)
+    call plt%initialize(2, 1, width = 1000, height = 500)
     call plt1%initialize()
     xAxis => plt1%get_x_axis()
     yAxis => plt1%get_y_axis()
@@ -102,6 +108,7 @@ program example
     call lgnd%set_is_visible(.true.)
     call lgnd%set_layout(LEGEND_ARRANGE_HORIZONTALLY)
     call lgnd%set_draw_border(.false.)
+    call lgnd%set_vertical_position(LEGEND_BOTTOM)
 
     call pd1%define_data(freq, mag(:,1))
     call pd1%set_line_width(2.0)

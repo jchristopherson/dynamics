@@ -12,6 +12,15 @@ static void fixed_force(const c_variational_state *state, double *force,
     torque[0] = 0.0; torque[1] = 0.0; torque[2] = 0.0;
 }
 
+static void linear_damping_force(const c_variational_state *state,
+    double *force, double *torque, void *user_data)
+{
+    (void)user_data;
+    force[0] = -4.0 * state->velocity[0];
+    force[1] = force[2] = 0.0;
+    torque[0] = torque[1] = torque[2] = 0.0;
+}
+
 static void fixed_constraint(const c_variational_state *state, int n,
     double *value, void *user_data)
 {
@@ -53,6 +62,9 @@ bool c_test_variational_integrator(void)
     double w0[3] = {0.0, 0.0, 0.0};
     double p[9], v[9], w[9], multipliers[9];
     int converged, iterations, jacobian_singular, completed_steps;
+    const int force_modes[3] = {DYN_VI_FORCE_LEFT_ENDPOINT,
+        DYN_VI_FORCE_IMPLICIT_ENDPOINT, DYN_VI_FORCE_MIDPOINT};
+    const double expected_velocity[3] = {0.8, 1.0 / 1.2, 0.9 / 1.1};
 
     body.mass = 2.0;
     body.inertia[0] = body.inertia[4] = body.inertia[8] = 1.0;
@@ -66,6 +78,12 @@ bool c_test_variational_integrator(void)
         fabs(p[8]) > 1.0e-10 || fabs(multipliers[2] - 19.62) > 1.0e-6)
     {
         printf("TEST FAILED: c_test_variational_integrator\n");
+        return false;
+    }
+
+    if (settings.force_evaluation != DYN_VI_FORCE_LEFT_ENDPOINT)
+    {
+        printf("TEST FAILED: default force evaluation mode\n");
         return false;
     }
         settings.maximum_iterations = 1;
@@ -82,6 +100,21 @@ bool c_test_variational_integrator(void)
                 iterations, jacobian_singular, completed_steps);
             return false;
         }
+
+    c_default_variational_integrator_settings(&settings);
+    v0[0] = 1.0;
+    for (int i = 0; i < 3; ++i) {
+        settings.force_evaluation = force_modes[i];
+        c_variational_integrator_solve(1, &body, 2, 0.1, p0, &q0, v0, w0, 0,
+            linear_damping_force, NULL, NULL, NULL, &settings, p, q, v, w,
+            multipliers, &converged, &iterations, &jacobian_singular,
+            &completed_steps);
+        if (converged != 1 || completed_steps != 1 ||
+            fabs(v[3] - expected_velocity[i]) > 1.0e-9) {
+            printf("TEST FAILED: C force evaluation mode %d\n", force_modes[i]);
+            return false;
+        }
+    }
     return true;
 }
 

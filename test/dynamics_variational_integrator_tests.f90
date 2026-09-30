@@ -12,7 +12,7 @@
 ! implied, including but not limited to the warranties of merchantability,
 ! fitness for a particular purpose and noninfringement.
 module dynamics_variational_integrator_tests
-    use iso_fortran_env, only : real64
+    use iso_fortran_env, only : int32, real64
     use fortran_test_helper
     use dynamics
     implicit none
@@ -20,6 +20,38 @@ module dynamics_variational_integrator_tests
     real(real64), save, dimension(3) :: scaled_target_position
 
 contains
+! ------------------------------------------------------------------------------
+function test_variational_force_evaluation() result(rst)
+    !! Verifies the three applied-load evaluation points with a scalar linear
+    !! viscous damper.
+    logical :: rst
+    integer(int32), parameter :: mode(3) = [VI_FORCE_LEFT_ENDPOINT, &
+        VI_FORCE_IMPLICIT_ENDPOINT, VI_FORCE_MIDPOINT]
+    real(real64), parameter :: expected(3) = [0.8d0, 1.0d0 / 1.2d0, &
+        0.9d0 / 1.1d0]
+    type(rigid_body) :: bodies(1)
+    type(variational_state) :: state
+    type(variational_integrator) :: integrator
+    procedure(variational_force), pointer :: force_ptr
+    integer(int32) :: i
+
+    rst = .true.
+    bodies(1) = rigid_body(2.0d0)
+    force_ptr => linear_damping_force
+    do i = 1, size(mode)
+        call initialize_variational_state(state, 1)
+        state%velocity(1,1) = 1.0d0
+        integrator%settings%force_evaluation = mode(i)
+        call integrator%step(bodies, state, 0.1d0, &
+            force_function = force_ptr)
+        if (abs(state%velocity(1,1) - expected(i)) > 1.0d-9) then
+            rst = .false.
+            print "(A,I0)", &
+                "TEST FAILED: test_variational_force_evaluation mode ", mode(i)
+        end if
+    end do
+end function
+
 ! ------------------------------------------------------------------------------
 function test_variational_free_body() result(rst)
     !! Tests momentum preservation and quaternion advancement for a free body.
@@ -381,6 +413,18 @@ subroutine constant_force(t, state, force, torque, args)
     force = 0.0d0
     torque = 0.0d0
     force(3,1) = -19.62d0
+end subroutine
+
+! ------------------------------------------------------------------------------
+subroutine linear_damping_force(t, state, force, torque, args)
+    real(real64), intent(in) :: t
+    type(variational_state), intent(in) :: state
+    real(real64), intent(out), dimension(:,:) :: force, torque
+    class(*), intent(inout), optional :: args
+
+    force = 0.0d0
+    torque = 0.0d0
+    force(1,1) = -4.0d0 * state%velocity(1,1)
 end subroutine
 
 ! ------------------------------------------------------------------------------
