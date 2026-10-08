@@ -54,6 +54,11 @@ add_test(
     WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
     COMMAND $<TARGET_FILE:dynamics_tests> generalized-alpha
 )
+add_test(
+    NAME dynamics_variational_startup_tests
+    WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+    COMMAND $<TARGET_FILE:dynamics_tests> variational-startup
+)
 
 # Test the C API
 if (BUILD_DYNAMICS_C_INTERFACE)
