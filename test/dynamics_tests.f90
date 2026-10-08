@@ -42,6 +42,10 @@ program main
         block
             character(32) :: selection
             call get_command_argument(1, selection)
+            if (selection == "variational-startup") then
+                if (.not.test_variational_startup()) stop 179
+                stop
+            end if
             if (selection == "generalized-alpha") then
                 if (.not.test_generalized_alpha_integrator()) stop 152
                 stop
@@ -490,6 +494,9 @@ program main
 
     check = test_open_chain_equivalence()
     if (.not.check) flag = 107
+
+    check = test_variational_startup()
+    if (.not.check) flag = 179
 
     check = test_variational_force_evaluation()
     if (.not.check) flag = 149

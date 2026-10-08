@@ -422,6 +422,15 @@ torque = constraint_multipliers(nmult,:)    ! motor torque
 ![](images/four_bar_example_2a.png?raw=true)
 ![](images/four_bar_example_2b.png?raw=true)
 
+### Initial Discrete Momenta
+`integrator%solve` interprets a new state's velocities as physical initial velocities. Its first step uses a discrete Legendre transform rather than treating those velocities as incoming discrete interval velocities. For translation, the startup balance is
+$$
+2m\frac{v_1-v_0}{h}=F_*+J_0^T\lambda_0.
+$$
+The rotational startup likewise matches the physical body-frame momentum $I\omega_0$ to the outgoing rotational discrete momentum, with half-step applied and constraint impulses. This avoids the half-acceleration startup load artifact for accelerating prescribed motion. It does not remove finite-step load errors or physical discontinuities in the prescribed motion.
+
+The initial trajectory sample retains its physical velocities. Subsequent samples contain discrete interval velocities and have `state%discrete_momenta = .true.`. Passing a returned state into another `solve` continues without repeating startup. Reset this flag to `.false.` when replacing velocities with new physical initial values; set it to `.true.` when supplying already initialized discrete velocities. Standalone `step` calls retain their existing discrete update by default; use `initialize_momenta = .true.` on the first call to start from physical velocities. Failed startup steps leave the state and its flag unchanged.
+
 ### Nonconservative Loads and Damping
 The variational integrator accepts applied forces and torques, including dissipative loads such as viscous dampers. They enter as nonconservative forces in the forced discrete Euler-Lagrange equations. The `force_evaluation` setting selects when **all** applied loads are sampled; it changes the force quadrature, not the conservative state update or its formal order.
 
