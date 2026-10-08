@@ -76,6 +76,9 @@ module dynamics_variational_integrators
             !! Body-frame angular velocities, dimensioned 3-by-nbody.
         real(real64) :: time = 0.0d0
             !! The time associated with the state.
+        logical :: discrete_momenta = .false.
+            !! False for physical initial velocities; true after a discrete
+            !! step. Reset to false when supplying new physical velocities.
     end type
 
     type variational_integrator_info
@@ -213,6 +216,7 @@ subroutine initialize_variational_state(state, nbody)
     state%velocity = 0.0d0
     state%angular_velocity = 0.0d0
     state%time = 0.0d0
+    state%discrete_momenta = .false.
     do i = 1, nbody
         state%orientation(i) = quaternion([1.0d0, 0.0d0, 0.0d0, 0.0d0])
     end do
@@ -220,7 +224,7 @@ end subroutine
 
 ! ------------------------------------------------------------------------------
 subroutine vi_step(this, bodies, state, dt, constraint_count, constraint, &
-    force_function, constraint_jacobian, multipliers, args, info)
+    force_function, constraint_jacobian, multipliers, args, info, initialize_momenta)
     !! Advances a rigid-body system by one fixed time step. The unknown vector
     !! contains the next translational and body-frame angular velocities,
     !! followed by the equality-constraint multipliers. Orientations are
@@ -257,13 +261,16 @@ subroutine vi_step(this, bodies, state, dt, constraint_count, constraint, &
         !! Optional convergence diagnostics. When present, convergence failures
         !! are returned instead of terminating execution; when absent, the
         !! legacy error-stop behavior is retained.
+    logical, intent(in), optional :: initialize_momenta
+        !! If true, use the initial discrete Legendre transform with physical
+        !! input velocities. The default is false for standalone steps.
 
     ! Local Variables
     integer(int32) :: i, iteration, iterations_used, line_iteration, &
         nbody, nconstraint, nvar
     integer(int32), allocatable, dimension(:) :: pivot
     real(real64) :: alpha, trial_norm, residual_norm
-    logical :: jacobian_singular, graph_singular
+    logical :: jacobian_singular, graph_singular, startup
     real(real64), allocatable, dimension(:) :: unknown, trial, residual, &
         trial_residual, delta, perturbed, perturbed_value, &
         base_constraint_value, constraint_value
@@ -275,6 +282,8 @@ subroutine vi_step(this, bodies, state, dt, constraint_count, constraint, &
     nbody = size(bodies)
     nconstraint = 0
     if (present(constraint_count)) nconstraint = constraint_count
+    startup = .false.
+    if (present(initialize_momenta)) startup = initialize_momenta
     call check_inputs(this%settings, bodies, state, dt, nconstraint, &
         present(constraint))
     jacobian_singular = .false.
@@ -371,6 +380,7 @@ subroutine vi_step(this, bodies, state, dt, constraint_count, constraint, &
     ! state used by state_from_unknown.
     call state_from_unknown(unknown, accepted_state)
     accepted_state%time = state%time + dt
+    accepted_state%discrete_momenta = .true.
     state = accepted_state
     if (present(multipliers)) then
         allocate(multipliers(nconstraint))
@@ -490,6 +500,16 @@ contains
                 momentum2 - cross_product(omega1, momentum1) - &
                 sqrt(4.0d0 / dt**2 - dot_product(omega1, omega1)) * &
                 momentum1 - 2.0d0 * applied_torque(:,body_index)
+            if (startup) then
+                value(first:first+2) = 2.0d0 * bodies(body_index)%mass * &
+                    (x(first:first+2) - state%velocity(:,body_index)) / dt - &
+                    applied_force(:,body_index)
+                value(first+3:first+5) = 2.0d0 * (&
+                    cross_product(omega2, momentum2) + &
+                    sqrt(4.0d0 / dt**2 - dot_product(omega2, omega2)) * &
+                    momentum2 - 2.0d0 * momentum1 / dt) - &
+                    2.0d0 * applied_torque(:,body_index)
+            end if
         end do
 
             ! Apply constraint forces through the reduced configuration Jacobian
@@ -610,6 +630,9 @@ function vi_solve(this, bodies, state, dt, ntime, constraint_count, &
     result(rst)
     !! Computes the solution for the rigid-body system for the specified number
     !! of sequential time steps.
+    !! Physical initial velocities are converted through a discrete Legendre
+    !! startup step unless state%discrete_momenta is already true. Returned
+    !! noninitial velocities describe discrete intervals, not nodal velocities.
     class(variational_integrator), intent(in) :: this
         !! The variational integrator.
     type(rigid_body), intent(in), dimension(:) :: bodies
@@ -679,7 +702,8 @@ function vi_solve(this, bodies, state, dt, ntime, constraint_count, &
                 constraint = constraint, &
                 force_function = force_function, &
                 constraint_jacobian = constraint_jacobian, &
-                multipliers = mult, args = args, info = step_info)
+                multipliers = mult, args = args, info = step_info, &
+                initialize_momenta = .not.new_state%discrete_momenta)
             info%iterations = info%iterations + step_info%iterations
             info%jacobian_singular = info%jacobian_singular .or. &
                 step_info%jacobian_singular
@@ -699,7 +723,8 @@ function vi_solve(this, bodies, state, dt, ntime, constraint_count, &
                 constraint = constraint, &
                 force_function = force_function, &
                 constraint_jacobian = constraint_jacobian, &
-                multipliers = mult, args = args)
+                multipliers = mult, args = args, &
+                initialize_momenta = .not.new_state%discrete_momenta)
         end if
         rst(i) = new_state
         if (present(multipliers)) then
@@ -719,7 +744,8 @@ function vi_solve(this, bodies, state, dt, ntime, constraint_count, &
                 constraint = constraint, &
                 force_function = force_function, &
                 constraint_jacobian = constraint_jacobian, &
-                multipliers = mult, args = args, info = step_info)
+                multipliers = mult, args = args, info = step_info, &
+                initialize_momenta = .not.look_ahead_state%discrete_momenta)
             info%iterations = info%iterations + step_info%iterations
             info%jacobian_singular = info%jacobian_singular .or. &
                 step_info%jacobian_singular
@@ -735,7 +761,8 @@ function vi_solve(this, bodies, state, dt, ntime, constraint_count, &
                 constraint = constraint, &
                 force_function = force_function, &
                 constraint_jacobian = constraint_jacobian, &
-                multipliers = mult, args = args)
+                multipliers = mult, args = args, &
+                initialize_momenta = .not.look_ahead_state%discrete_momenta)
         end if
         multiplier_history(:,ntime) = mult
     end if
