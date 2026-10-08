@@ -12,14 +12,29 @@
 
     <title>frequency_response &ndash; DYNAMICS</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
-    <link href="../css/pygments.css" rel="stylesheet">
-    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <!-- Font Awesome -->
+    <link href="../css/fontawesome.min.css" rel="stylesheet">
+    <link href="../css/brands.min.css" rel="stylesheet">
+    <link href="../css/regular.min.css" rel="stylesheet">
+    <link href="../css/solid.min.css" rel="stylesheet">
+    <link href="../css/v4-font-face.min.css" rel="stylesheet">
+    <link href="../css/v4-shims.min.css" rel="stylesheet">
+    <!-- MathJax -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { equationNumbers: { autoNumber: "AMS" } }
+      });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.9/MathJax.js?config=TeX-AMS-MML_HTMLorMML" async
+            integrity="sha256-DViIOMYdwlM/axqoGDPeUyf0urLoHMN4QACBKyB58Uw=" crossorigin="anonymous"></script>
+    <!-- Other scripts and stylesheets -->
     <link href="../css/local.css" rel="stylesheet">
-      <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
-
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <link href="../css/pygments.css" rel="stylesheet">
     <script src="../js/svg-pan-zoom.min.js"></script>
   </head>
 
@@ -75,8 +90,7 @@
         <ul class="list-inline" style="margin-bottom:0px;display:inline">
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
-              <a data-bs-toggle="tooltip"
-                 data-bs-placement="bottom" data-html="true"
+              <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
                  title="<p> 0.7% of total for procedures.</p>Including implementation: 296 statements, 21.0% of total for procedures.">10 statements</a>
             </li>
 
@@ -98,9 +112,11 @@
     </div>
   </div>
   <script>
-    $(function () {
-    $('[data-bs-toggle="tooltip"]').tooltip()
-    })
+    // Enable Bootstrap tooltips
+    (function () {
+      const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+      const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+    })();
   </script>
 
   </div>
@@ -183,7 +199,7 @@ matrices by proportional damping coefficients <script type="math/tex"> \alpha </
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-mass~8"></span>
+              <span class="anchor" id="variable-mass~7"></span>
               real(kind=real64),
             </td>
 <td>intent(in),</td>
@@ -215,7 +231,7 @@ symmetric.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-alpha~8"></span>
+              <span class="anchor" id="variable-alpha~5"></span>
               real(kind=real64),
             </td>
 <td>intent(in)</td>
@@ -261,7 +277,7 @@ frequency response functions, in units of rad/s.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-frc~3"></span>
+              <span class="anchor" id="variable-frc~2"></span>
               procedure(<a href='modal_excite.html'>modal_excite</a>),
             </td>
 <td>intent(in),</td>
@@ -310,7 +326,7 @@ its own column.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-args~22"></span>
+              <span class="anchor" id="variable-args~20"></span>
               class(*),
             </td>
 <td>intent(inout),</td>
@@ -357,7 +373,7 @@ The damping matrix is defined by <script type="math/tex">C=\alpha M+\beta K</scr
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-mass~9"></span>
+              <span class="anchor" id="variable-mass~8"></span>
               type(csr_matrix),
             </td>
 <td>intent(in)</td>
@@ -387,7 +403,7 @@ The damping matrix is defined by <script type="math/tex">C=\alpha M+\beta K</scr
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-alpha~9"></span>
+              <span class="anchor" id="variable-alpha~6"></span>
               real(kind=real64),
             </td>
 <td>intent(in)</td>
@@ -448,7 +464,7 @@ must be greater than zero and less than N.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-frc~4"></span>
+              <span class="anchor" id="variable-frc~3"></span>
               procedure(<a href='modal_excite.html'>modal_excite</a>),
             </td>
 <td>intent(in),</td>
@@ -495,7 +511,7 @@ retained mode shapes.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-args~23"></span>
+              <span class="anchor" id="variable-args~21"></span>
               class(*),
             </td>
 <td>intent(inout),</td>
@@ -546,7 +562,7 @@ and the physical response is reconstructed from the mode shapes.
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-mass~10"></span>
+              <span class="anchor" id="variable-mass~9"></span>
               real(kind=real64),
             </td>
 <td>intent(in),</td>
@@ -578,7 +594,7 @@ symmetric.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-alpha~10"></span>
+              <span class="anchor" id="variable-alpha~7"></span>
               real(kind=real64),
             </td>
 <td>intent(in)</td>
@@ -654,7 +670,7 @@ at least 2.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-frc~5"></span>
+              <span class="anchor" id="variable-frc~4"></span>
               procedure(<a href='modal_excite.html'>modal_excite</a>),
             </td>
 <td>intent(in),</td>
@@ -703,7 +719,7 @@ its own column.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-args~24"></span>
+              <span class="anchor" id="variable-args~22"></span>
               class(*),
             </td>
 <td>intent(inout),</td>
@@ -750,7 +766,7 @@ The damping matrix is defined by <script type="math/tex">C=\alpha M+\beta K</scr
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-mass~11"></span>
+              <span class="anchor" id="variable-mass~10"></span>
               type(csr_matrix),
             </td>
 <td>intent(in)</td>
@@ -780,7 +796,7 @@ The damping matrix is defined by <script type="math/tex">C=\alpha M+\beta K</scr
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-alpha~11"></span>
+              <span class="anchor" id="variable-alpha~8"></span>
               real(kind=real64),
             </td>
 <td>intent(in)</td>
@@ -872,7 +888,7 @@ at least 2.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-frc~6"></span>
+              <span class="anchor" id="variable-frc~5"></span>
               procedure(<a href='modal_excite.html'>modal_excite</a>),
             </td>
 <td>intent(in),</td>
@@ -919,7 +935,7 @@ retained mode shapes.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-args~25"></span>
+              <span class="anchor" id="variable-args~23"></span>
               class(*),
             </td>
 <td>intent(inout),</td>
@@ -967,7 +983,7 @@ F(\omega) </script>.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-mass~13"></span>
+              <span class="anchor" id="variable-mass~12"></span>
               real(kind=real64),
             </td>
 <td>intent(in),</td>
@@ -1028,7 +1044,7 @@ frequency response functions, in units of rad/s.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-frc~7"></span>
+              <span class="anchor" id="variable-frc~6"></span>
               procedure(<a href='modal_excite.html'>modal_excite</a>),
             </td>
 <td>intent(in),</td>
@@ -1061,7 +1077,7 @@ length as freq.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-args~28"></span>
+              <span class="anchor" id="variable-args~26"></span>
               class(*),
             </td>
 <td>intent(inout),</td>
@@ -1110,7 +1126,7 @@ F(\omega) </script>.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-mass~16"></span>
+              <span class="anchor" id="variable-mass~15"></span>
               real(kind=real64),
             </td>
 <td>intent(in),</td>
@@ -1201,7 +1217,7 @@ at least 2.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-frc~10"></span>
+              <span class="anchor" id="variable-frc~9"></span>
               procedure(<a href='modal_excite.html'>modal_excite</a>),
             </td>
 <td>intent(in),</td>
@@ -1234,7 +1250,7 @@ length as freq.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-args~31"></span>
+              <span class="anchor" id="variable-args~29"></span>
               class(*),
             </td>
 <td>intent(inout),</td>
@@ -1280,7 +1296,7 @@ system.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-x~63"></span>
+              <span class="anchor" id="variable-x~50"></span>
               real(kind=real64),
             </td>
 <td>intent(in),</td>
@@ -1295,7 +1311,7 @@ system.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-y~23"></span>
+              <span class="anchor" id="variable-y~16"></span>
               real(kind=real64),
             </td>
 <td>intent(in),</td>
@@ -1398,7 +1414,7 @@ signals.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-x~64"></span>
+              <span class="anchor" id="variable-x~51"></span>
               real(kind=real64),
             </td>
 <td>intent(in),</td>
@@ -1413,7 +1429,7 @@ signals.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-y~24"></span>
+              <span class="anchor" id="variable-y~17"></span>
               real(kind=real64),
             </td>
 <td>intent(in),</td>
@@ -1503,40 +1519,21 @@ signals.</p>
     <footer>
       <div class="container">
         <div class="row justify-content-between">
-          <div class="col"><p>DYNAMICS was developed by Jason Christopherson<br>&copy; 2026 
+          <div class="col">
+            <p>
+              DYNAMICS
+ was developed by Jason Christopherson<br>              &copy; 2026 
 </p>
           </div>
           <div class="col">
             <p class="text-end">
               Documentation generated by
               <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-09-30 07:39              </p>
+ on 2026-10-08 14:45 -0500             </p>
           </div>
         </div>
         <br>
       </div> <!-- /container -->
     </footer>
-
-    <!-- Bootstrap core JavaScript -->
-    <!-- Placed at the end of the document so the pages load faster -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>    
-
-    <!-- MathJax JavaScript
-             ================================================== -->
-             <!-- Placed at the end of the document so the pages load faster -->
-        <script type="text/x-mathjax-config">
-          MathJax.Hub.Config({
-          TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
-          jax: ['input/TeX','input/MathML','output/HTML-CSS'],
-          extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
-          });
-        </script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-          <script src="../tipuesearch/tipuesearch_content.js"></script>
-          <script src="../tipuesearch/tipuesearch_set.js"></script>
-          <script src="../tipuesearch/tipuesearch.js"></script>
-
   </body>
 </html>
