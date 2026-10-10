@@ -5,76 +5,9 @@ A library of routines used for the analysis of dynamic systems.
 [![CMake](https://github.com/jchristopherson/dynamics/actions/workflows/cmake.yml/badge.svg)](https://github.com/jchristopherson/dynamics/actions/workflows/cmake.yml)
 [![Actions Status](https://github.com/jchristopherson/dynamics/workflows/fpm/badge.svg)](https://github.com/jchristopherson/dynamics/actions)
 
-## Highlights
-
-| Area | Capabilities |
-|--------|------------|
-| Vibrations & Modal Testing | FRFs, damping estimation, modal fitting, nonlinear sweeps |
-| Controls | State-space models, transfer functions, simulation |
-| Robotics | DH parameters, forward/inverse kinematics, Jacobians |
-| Multibody Dynamics | Variational integration, serial and parallel mechanisms |
-| Finite Elements | Beams, trusses, shell elements, structural dynamics |
-| Geometry | Points, lines, planes, projections, intersections |
-| Optimization & Identification | Least-squares parameter estimation and model fitting |
-| Performance | Native Fortran implementation with BLAS/LAPACK support |
-| Interoperability | Fortran API, C API, CMake, FPM |
-
-
 ## Documentation
 - [Fortran API documentation](https://jchristopherson.github.io/dynamics/)
 - [C API documentation](https://jchristopherson.github.io/dynamics/c-api/)
-
-## Capabilities
-The `dynamics` module aggregates tools for analysis, modeling, and identification of dynamic systems.
-
-- Frequency response and modal analysis
-    - SISO and MIMO FRF computation for linear systems.
-    - Modal response and proportional/modal damping support.
-    - Nonlinear frequency sweep workflows (ascending/descending) to expose effects such as jump behavior.
-    - FRF model fitting (for example, accelerance and receptance models).
-- Vibrations and response characterization
-    - Q-factor and bandwidth estimation.
-    - Damping estimation (for example, logarithmic decrement and overshoot-based methods).
-    - Free-response property extraction (resonant frequency, damping ratio, settling amplitude, etc.).
-    - Step-response metrics such as rise time and settling behavior.
-- Controls and system representations
-    - State-space and transfer-function representations.
-    - LTI simulation utilities and polynomial helpers.
-- System identification
-    - Least-squares parameter estimation of dynamic models from measured input/output data.
-    - Regression statistics and solver controls for fit quality and convergence behavior.
-- Kinematics, rigid-body motion, and robotics utilities
-    - Denavit-Hartenberg parameter sets, transformations, and forward/inverse kinematics. See the [DH parameter diagram](images/dh_parameter_set.svg).
-    - Jacobian-related helpers for mechanism analysis.
-    - Serial-link linkage modeling (including revolute/prismatic joint handling).
-    - Closed-loop (parallel) mechanism modeling with loop-closure constraints, mobility calculations, and constraint-partitioned Jacobians.
-    - Graph-based mechanism topology utilities (spanning trees, independent loop identification).
-    - Rotation transforms, angle-axis conversion, and quaternion algebra.
-- Variational multibody integration
-    - Structure-preserving rigid-body integration in maximal coordinates using the formulation of Brüdigam et al. (2023).
-    - Direct dynamic analysis of serial, spatial parallel, and planar parallel linkages using link mass properties and joint attachment frames.
-    - World-frame joint reaction forces and moments recovered from dynamic-analysis constraint multipliers.
-    - Tension/compression linear springs with free-length preload and axial-only linear viscous dampers between body or ground attachment points.
-    - Revolute-joint torsional springs with free-angle preload and twist-rate-only torsional dampers, with extensible force-law base types for future nonlinear elements.
-    - Holonomic equality constraints enforced at the position level with Lagrange multipliers.
-    - Unit-quaternion orientation updates with body-frame angular velocities and inertia tensors.
-    - Dense LU and graph-factorized block solvers for the coupled Newton equations.
-    - Callback interfaces for applied forces, body-frame torques, constraints, and optional analytic constraint Jacobians.
-- Geometry and vector utilities
-    - Point, plane, line, and Plucker-line representations and constructors. See the [geometry operations diagram](images/geometry_operations.svg).
-    - Point/line/plane projection and distance calculations.
-    - Intersection/parallelism checks and common-normal calculations.
-    - Vector helper routines such as cross products and skew-symmetric forms.
-- Structural dynamics
-    - 2D/3D beam element utilities and material/node/element abstractions, with local-coordinate [beam system documentation](images/beam_coordinate_system.svg).
-    - 2D/3D axial truss elements with consistent mass and no rotational degrees of freedom.
-    - Position-dependent beam shear-force and bending-moment extraction in 2D and 3D.
-    - Flat 3D shell elements with 6 DOF per node: a 3-node triangle (CST membrane + DKT thin-plate bending) and a 4-node quadrilateral (bilinear membrane + MITC4 Mindlin-Reissner bending), both with Hughes-Brezzi drilling stabilization, consistent mass, and membrane/moment/shear stress-resultant recovery.
-    - Connectivity matrix construction and boundary-condition application.
-    - Sparse/CSR-oriented structural assembly helpers.
-    - Generalized-alpha time stepping for linear structural systems with dense or CSR mass, damping, and stiffness matrices.
-- Stability analysis
-    - Local fixed-point stability classification helpers.
 
 ## Feature Matrix
 
@@ -99,7 +32,6 @@ The `dynamics` module aggregates tools for analysis, modeling, and identificatio
 | CMake Integration | Package export, install targets, downstream support | ✅ | ✅ | ✅ |
 | FPM Integration | Native Fortran Package Manager support | ✅ | ✅ | ✅ |
 | Unit Testing | Automated test suite | ✅ | N/A | N/A |
-
 
 ## Building
 
