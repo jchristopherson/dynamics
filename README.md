@@ -5,6 +5,21 @@ A library of routines used for the analysis of dynamic systems.
 [![CMake](https://github.com/jchristopherson/dynamics/actions/workflows/cmake.yml/badge.svg)](https://github.com/jchristopherson/dynamics/actions/workflows/cmake.yml)
 [![Actions Status](https://github.com/jchristopherson/dynamics/workflows/fpm/badge.svg)](https://github.com/jchristopherson/dynamics/actions)
 
+## Highlights
+
+| Area | Capabilities |
+|--------|------------|
+| Vibrations & Modal Testing | FRFs, damping estimation, modal fitting, nonlinear sweeps |
+| Controls | State-space models, transfer functions, simulation |
+| Robotics | DH parameters, forward/inverse kinematics, Jacobians |
+| Multibody Dynamics | Variational integration, serial and parallel mechanisms |
+| Finite Elements | Beams, trusses, shell elements, structural dynamics |
+| Geometry | Points, lines, planes, projections, intersections |
+| Optimization & Identification | Least-squares parameter estimation and model fitting |
+| Performance | Native Fortran implementation with BLAS/LAPACK support |
+| Interoperability | Fortran API, C API, CMake, FPM |
+
+
 ## Documentation
 - [Fortran API documentation](https://jchristopherson.github.io/dynamics/)
 - [C API documentation](https://jchristopherson.github.io/dynamics/c-api/)
