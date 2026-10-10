@@ -76,6 +76,31 @@ The `dynamics` module aggregates tools for analysis, modeling, and identificatio
 - Stability analysis
     - Local fixed-point stability classification helpers.
 
+## Feature Matrix
+
+| Category | Functionality | Status | Documentation | Examples |
+|-----------|---------------|----------|---------------|----------|
+| Frequency Response Analysis | SISO/MIMO FRFs, nonlinear frequency sweeps, modal response | ✅ | ✅ | ✅ |
+| Modal Analysis | Modal parameter extraction, damping estimation, FRF fitting | ✅ | ✅ | ✅ |
+| System Identification | Least-squares model fitting, regression statistics | ✅ | ✅ | ✅ |
+| Controls & LTI Systems | State-space models, transfer functions, simulation tools | ✅ | ✅ | ✅ |
+| Vibration Analysis | Q-factor, damping ratio, settling metrics, free-response characterization | ✅ | ✅ | ✅ |
+| Kinematics | Denavit-Hartenberg models, forward and inverse kinematics | ✅ | ✅ | ✅ |
+| Robotics Utilities | Jacobians, transformations, quaternion algebra | ✅ | ✅ | ✅ |
+| Serial-Link Mechanisms | Revolute/prismatic linkages and motion analysis | ✅ | ✅ | ✅ |
+| Parallel Mechanisms | Loop-closure constraints, mobility analysis, Jacobian partitioning | ✅ | ✅ | ✅ |
+| Multibody Dynamics | Variational integrators, rigid-body dynamics, constraint handling | ✅ | ✅ | ✅ |
+| Force Elements | Springs, dampers, torsional elements, custom force models | ✅ | ✅ | ⚠️ |
+| Geometry | Points, lines, planes, Plücker lines, intersections, projections | ✅ | ✅ | ✅ |
+| Structural Mechanics | Beam, truss, and shell finite elements | ✅ | ✅ | ✅ |
+| Structural Dynamics | Generalized-α integration, dense and sparse assemblies | ✅ | ✅ | ⚠️ |
+| Stability Analysis | Fixed-point stability classification | ✅ | ✅ | ⚠️ |
+| C Interface | Native C API | ✅ | ✅ | ⚠️ |
+| CMake Integration | Package export, install targets, downstream support | ✅ | ✅ | ✅ |
+| FPM Integration | Native Fortran Package Manager support | ✅ | ✅ | ✅ |
+| Unit Testing | Automated test suite | ✅ | N/A | N/A |
+
+
 ## Building
 
 ### Prerequisites
