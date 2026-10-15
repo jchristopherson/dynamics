@@ -64,7 +64,9 @@ bool c_test_variational_integrator(void)
     int converged, iterations, jacobian_singular, completed_steps;
     const int force_modes[3] = {DYN_VI_FORCE_LEFT_ENDPOINT,
         DYN_VI_FORCE_IMPLICIT_ENDPOINT, DYN_VI_FORCE_MIDPOINT};
-    const double expected_velocity[3] = {0.8, 1.0 / 1.2, 0.9 / 1.1};
+    /* Physical initial velocities use h/2 in the startup momentum balance. */
+    const double startup_velocity[3] = {0.9, 1.0 / 1.1, 0.95 / 1.05};
+    const double step_factor[3] = {0.8, 1.0 / 1.2, 0.9 / 1.1};
 
     body.mass = 2.0;
     body.inertia[0] = body.inertia[4] = body.inertia[8] = 1.0;
@@ -105,13 +107,23 @@ bool c_test_variational_integrator(void)
     v0[0] = 1.0;
     for (int i = 0; i < 3; ++i) {
         settings.force_evaluation = force_modes[i];
-        c_variational_integrator_solve(1, &body, 2, 0.1, p0, &q0, v0, w0, 0,
+        c_variational_integrator_solve(1, &body, 3, 0.1, p0, &q0, v0, w0, 0,
             linear_damping_force, NULL, NULL, NULL, &settings, p, q, v, w,
             multipliers, &converged, &iterations, &jacobian_singular,
             &completed_steps);
-        if (converged != 1 || completed_steps != 1 ||
-            fabs(v[3] - expected_velocity[i]) > 1.0e-9) {
-            printf("TEST FAILED: C force evaluation mode %d\n", force_modes[i]);
+        const double next_velocity = startup_velocity[i] * step_factor[i];
+        const double final_position = 0.1 * (startup_velocity[i] + next_velocity);
+        if (converged != 1 || completed_steps != 2 || jacobian_singular != 0 ||
+            fabs(v[0] - v0[0]) > 1.0e-9 ||
+            fabs(v[3] - startup_velocity[i]) > 1.0e-9 ||
+            fabs(v[6] - next_velocity) > 1.0e-9 ||
+            fabs(p[3] - 0.1 * startup_velocity[i]) > 1.0e-9 ||
+            fabs(p[6] - final_position) > 1.0e-9) {
+            printf("TEST FAILED: C force evaluation mode %d "
+                "(converged=%d, completed=%d, singular=%d, "
+                "startup=%.12g expected=%.12g, next=%.12g expected=%.12g)\n",
+                force_modes[i], converged, completed_steps, jacobian_singular,
+                v[3], startup_velocity[i], v[6], next_velocity);
             return false;
         }
     }
@@ -179,7 +191,11 @@ static bool test_joint_drivers(void)
     bool result = true;
 
     c_default_variational_integrator_settings(&settings);
-    c_alloc_serial_linkage(1, &serial);
+    if (c_alloc_serial_linkage(1, &serial) != 0) {
+        printf("TEST FAILED: allocating C joint-driver linkage\n");
+        return false;
+    }
+    serial.links[0] = (c_binary_link){0};
     serial.links[0].mass = 2.0;
     serial.links[0].link_length = 0.0;
     serial.links[0].inertia[0] = serial.links[0].inertia[4] =
@@ -289,7 +305,11 @@ bool c_test_linkage_dynamics(void)
     int converged, iterations, jacobian_singular, completed_steps;
     bool result = test_joint_drivers();
 
-    c_alloc_serial_linkage(1, &serial);
+    if (c_alloc_serial_linkage(1, &serial) != 0) {
+        printf("TEST FAILED: allocating C dynamics linkage\n");
+        return false;
+    }
+    serial.links[0] = (c_binary_link){0};
     serial.links[0].joint_type = DYN_REVOLUTE_JOINT;
     serial.links[0].link_length = 1.0;
     serial.links[0].mass = 1.0;

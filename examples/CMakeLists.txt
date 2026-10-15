@@ -1,4 +1,5 @@
 # Get Dependencies
+set(BUILD_TESTING OFF)
 include(FetchContent)
 find_package(fplot 1.8.12 QUIET)
 find_package(diffeq 1.2.0 QUIET)
