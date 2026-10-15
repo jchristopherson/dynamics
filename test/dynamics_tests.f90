@@ -42,6 +42,17 @@ program main
         block
             character(32) :: selection
             call get_command_argument(1, selection)
+            if (index(selection, "motion-") == 1) then
+                call invalid_prescribed_joint_motion(trim(selection))
+                stop
+            end if
+            if (selection == "linkage-motion") then
+                if (.not.test_prescribed_joint_motion()) stop 180
+                if (.not.test_prescribed_serial_translation()) stop 181
+                if (.not.test_prescribed_joint_turns()) stop 182
+                if (.not.test_parallel_linkage_dynamics()) stop 135
+                stop
+            end if
             if (selection == "variational-startup") then
                 if (.not.test_variational_startup()) stop 179
                 stop
@@ -533,6 +544,15 @@ program main
 
     check = test_parallel_linkage_dynamics()
     if (.not.check) flag = 135
+
+    check = test_prescribed_joint_motion()
+    if (.not.check) flag = 180
+
+    check = test_prescribed_serial_translation()
+    if (.not.check) flag = 181
+
+    check = test_prescribed_joint_turns()
+    if (.not.check) flag = 182
 
     check = test_spatial_joint_dynamics()
     if (.not.check) flag = 138

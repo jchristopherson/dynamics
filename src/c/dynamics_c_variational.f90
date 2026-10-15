@@ -568,6 +568,46 @@ subroutine c_vi_model_solve(obj,nbody,nconstraint,settings,ntime,dt,gravity, &
     bind(C,name="c_linkage_dynamic_solve")
     type(c_ptr), intent(in), value :: obj,user_data
     integer(c_int), intent(in), value :: nbody,nconstraint,ntime,prescribed_body
+    integer(c_int), intent(out) :: converged,iterations,jacobian_singular,completed_steps
+    real(c_double), intent(in), value :: dt
+    type(c_variational_settings_vi), intent(in) :: settings
+    real(c_double), intent(in) :: gravity(3),body_force(3,nbody),body_torque(3,nbody)
+    type(c_funptr), intent(in), value :: motion_cb
+    real(c_double), intent(out) :: p(3,nbody,ntime),v(3,nbody,ntime), &
+        w(3,nbody,ntime),m(nconstraint,ntime)
+    type(c_quaternion_vi), intent(out) :: q(nbody,ntime)
+
+    call solve_linkage_model(obj,nbody,nconstraint,settings,ntime,dt,gravity, &
+        body_force,body_torque,prescribed_body,motion_cb,user_data,p,q,v,w,m, &
+        converged,iterations,jacobian_singular,completed_steps)
+end subroutine
+
+subroutine c_vi_model_solve_joint(obj,nbody,nconstraint,settings,ntime,dt,gravity, &
+    body_force,body_torque,prescribed_joint,motion_cb,user_data,p,q,v,w,m, &
+    converged,iterations,jacobian_singular,completed_steps) &
+    bind(C,name="c_linkage_dynamic_solve_joint")
+    type(c_ptr), intent(in), value :: obj,user_data
+    integer(c_int), intent(in), value :: nbody,nconstraint,ntime,prescribed_joint
+    integer(c_int), intent(out) :: converged,iterations,jacobian_singular,completed_steps
+    real(c_double), intent(in), value :: dt
+    type(c_variational_settings_vi), intent(in) :: settings
+    real(c_double), intent(in) :: gravity(3),body_force(3,nbody),body_torque(3,nbody)
+    type(c_funptr), intent(in), value :: motion_cb
+    real(c_double), intent(out) :: p(3,nbody,ntime),v(3,nbody,ntime), &
+        w(3,nbody,ntime),m(nconstraint,ntime)
+    type(c_quaternion_vi), intent(out) :: q(nbody,ntime)
+
+    call solve_linkage_model(obj,nbody,nconstraint,settings,ntime,dt,gravity, &
+        body_force,body_torque,0_c_int,motion_cb,user_data,p,q,v,w,m, &
+        converged,iterations,jacobian_singular,completed_steps, &
+        prescribed_joint=prescribed_joint)
+end subroutine
+
+subroutine solve_linkage_model(obj,nbody,nconstraint,settings,ntime,dt,gravity, &
+    body_force,body_torque,prescribed_body,motion_cb,user_data,p,q,v,w,m, &
+    converged,iterations,jacobian_singular,completed_steps,prescribed_joint)
+    type(c_ptr), intent(in), value :: obj,user_data
+    integer(c_int), intent(in), value :: nbody,nconstraint,ntime,prescribed_body
     integer(c_int), intent(out) :: converged,iterations,jacobian_singular, &
         completed_steps
     real(c_double), intent(in), value :: dt
@@ -582,23 +622,44 @@ subroutine c_vi_model_solve(obj,nbody,nconstraint,settings,ntime,dt,gravity, &
     type(variational_state), allocatable, dimension(:) :: solution
     real(real64), allocatable, dimension(:,:) :: fm
     type(variational_integrator_info) :: info
+    integer(c_int), intent(in), optional :: prescribed_joint
+    type(dynamic_joint) :: descriptor
+    character(len=:), allocatable :: routine
     converged=0; iterations=0; jacobian_singular=0; completed_steps=0
     p=0.0d0; v=0.0d0; w=0.0d0; m=0.0d0
     q=c_quaternion_vi(1.0d0,0.0d0,0.0d0,0.0d0)
+    routine = "c_linkage_dynamic_solve"
+    if (present(prescribed_joint)) routine = "c_linkage_dynamic_solve_joint"
     model=>get_model(obj)
-    if (invalid_model(model, "c_linkage_dynamic_solve")) return
-    if (invalid_body_count(model, nbody, "c_linkage_dynamic_solve")) return
+    if (invalid_model(model, routine)) return
+    if (invalid_body_count(model, nbody, routine)) return
     if (c_api_error(nconstraint /= model%get_constraint_count() + &
         merge(1,0,c_associated(motion_cb)), DYN_ARRAY_SIZE_ERROR, &
-        "c_linkage_dynamic_solve: nconstraint does not match the model.")) &
+        routine // ": nconstraint does not match the model.")) &
         return
     integrator%settings=convert_settings(settings)
     if(c_associated(motion_cb)) then
+        if (present(prescribed_joint)) then
+            if (c_api_error(prescribed_joint < 1 .or. &
+                prescribed_joint > model%get_joint_count(), DYN_INVALID_INPUT_ERROR, &
+                "c_linkage_dynamic_solve_joint: invalid joint index.")) return
+            descriptor=model%get_joint(int(prescribed_joint,int32))
+            if (c_api_error(descriptor%joint_type /= REVOLUTE_JOINT .and. &
+                descriptor%joint_type /= PRISMATIC_JOINT, DYN_INVALID_INPUT_ERROR, &
+                "c_linkage_dynamic_solve_joint: joint must be revolute or prismatic.")) return
+        end if
         call c_f_procpointer(motion_cb,active_motion); active_motion_data=user_data
-        solution=model%solve(integrator,dt,int(ntime,int32),gravity=gravity, &
-            body_force=body_force,body_torque=body_torque, &
-            prescribed_body=int(prescribed_body,int32), &
-            prescribed_motion=motion_bridge,multipliers=fm,info=info)
+        if (present(prescribed_joint)) then
+            solution=model%solve(integrator,dt,int(ntime,int32),gravity=gravity, &
+                body_force=body_force,body_torque=body_torque, &
+                prescribed_joint=int(prescribed_joint,int32), &
+                prescribed_motion=motion_bridge,multipliers=fm,info=info)
+        else
+            solution=model%solve(integrator,dt,int(ntime,int32),gravity=gravity, &
+                body_force=body_force,body_torque=body_torque, &
+                prescribed_body=int(prescribed_body,int32), &
+                prescribed_motion=motion_bridge,multipliers=fm,info=info)
+        end if
         nullify(active_motion); active_motion_data=c_null_ptr
     else
         solution=model%solve(integrator,dt,int(ntime,int32),gravity=gravity, &
@@ -606,7 +667,7 @@ subroutine c_vi_model_solve(obj,nbody,nconstraint,settings,ntime,dt,gravity, &
             info=info)
     end if
     if (c_api_error(size(fm,1)/=nconstraint, DYN_ARRAY_SIZE_ERROR, &
-        "c_linkage_dynamic_solve: unexpected multiplier count.")) return
+        routine // ": unexpected multiplier count.")) return
     call copy_solution(solution,fm,p,q,v,w,m)
     converged=merge(1_c_int,0_c_int,info%converged)
     iterations=int(info%iterations,c_int)

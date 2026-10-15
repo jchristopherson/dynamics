@@ -70,8 +70,9 @@ The variational API supports two workflows:
 	and optionally an analytic reduced constraint Jacobian.
 2. `c_create_serial_linkage_dynamic_model` and
 	`c_create_linkage_dynamic_model` convert linkage descriptions into opaque
-	dynamic-model handles. `c_linkage_dynamic_solve` then applies gravity,
-	constant body loads, and optional prescribed planar motion.
+	dynamic-model handles. `c_linkage_dynamic_solve_joint` then applies gravity,
+	constant body loads, and optional relative revolute or prismatic motion.
+	`c_linkage_dynamic_solve` remains available for absolute planar body-angle input.
 
 Initialize `c_variational_integrator_settings` with
 `c_default_variational_integrator_settings` before changing individual fields.
@@ -108,8 +109,9 @@ column-major shapes:
 
 Multiplier column `i` belongs to simulation point `i`. The final column is
 computed with a noncommitting look-ahead step. For prescribed linkage motion,
-the prescribed-angle multiplier is appended after the linkage constraints and
-represents the required actuator torque.
+the driving multiplier is appended after all joint and planar constraints and
+represents the required actuator torque (angular input) or axial force
+(prismatic input), positive toward increasing prescribed coordinate.
 
 Use `c_linkage_dynamic_joint_reactions` to convert one state and multiplier
 column into world-frame joint forces and moments. Reactions are returned in
@@ -136,6 +138,67 @@ Opaque dynamic-model handles own copied linkage and mass-property data; release
 them with `c_free_linkage_dynamic_model`. Callback state views are temporary and
 must not be retained after a callback returns. The prescribed-motion callback
 bridge is synchronous and not reentrant.
+
+### Prescribed joint motion
+
+`c_linkage_dynamic_solve_joint` has the same argument layout as the existing
+`c_linkage_dynamic_solve`, but replaces `prescribed_body` with `prescribed_joint`.
+The original function and its ABI are unchanged. Both use the scalar
+`c_linkage_prescribed_motion` callback:
+
+| Entry point / selected joint | Callback return value |
+| --- | --- |
+| `c_linkage_dynamic_solve_joint`, `DYN_REVOLUTE_JOINT` | Relative child-to-parent joint-frame angle about the parent's positive z-axis, radians |
+| `c_linkage_dynamic_solve_joint`, `DYN_PRISMATIC_JOINT` | Signed attachment-origin separation along the parent joint frame's positive z-axis, model length units |
+| `c_linkage_dynamic_solve` | Absolute moving-body world-z angle, radians; planar models only |
+
+The joint-based entry point supports serial, planar, and spatial models, including
+moving parents and arbitrarily oriented sliding axes. The library constructs the
+driver internally; no constraint callback or axis argument is required.
+Coincident joint frames define zero, not the initial configuration.
+
+For example, after constructing a model whose second joint is prismatic and has
+initial displacement `0.25`:
+
+```c
+static double displacement(double t, void *user_data)
+{
+    const double start = *(const double *)user_data;
+    return start + 0.01 * (1.0 - cos(2.0*t)); /* zero initial rate */
+}
+
+/* In the calling function; settings and histories have been allocated. */
+double start = 0.25;
+int nbody = c_linkage_dynamic_body_count(model);
+int nconstraint = c_linkage_dynamic_constraint_count(model) + 1;
+c_linkage_dynamic_solve_joint(model, nbody, nconstraint, &settings, ntime, dt,
+    gravity, body_force, body_torque, 2, displacement, &start,
+    position, orientation, velocity, angular_velocity, multipliers,
+    &converged, &iterations, &jacobian_singular, &completed_steps);
+```
+
+Include `<math.h>` for `cos`. Use one-based **joint** indices, not moving-body or
+joint-variable indices: serial joint `i` is link `i`'s proximal joint; other models
+use the original mechanism joint order. The joint's `actuated` flag is not required.
+Only one input per solve is supported. Unsupported joint types, such as cylindrical
+or spherical, and out-of-range indices are reported through `c_get_last_error`.
+
+With a NULL callback, the selector is ignored and `nconstraint` must equal the
+base count. With a non-NULL callback, allocate exactly one additional multiplier
+row. The last row is torque for a revolute input or force for a prismatic input,
+acting on the child relative to the parent toward increasing coordinate.
+`c_linkage_dynamic_joint_reactions` excludes this actuator load.
+
+The initial coordinate must match the callback at time zero within
+`settings.tolerance`. The C linkage solver starts with the model's stored pose and
+zero velocities, so choose a zero-initial-rate law for smooth startup. Initial
+coordinate incompatibility is a deep Fortran input error and terminates the
+process; C-level index/type/count errors return normally with an error code.
+Angular residuals are wrapped modulo `2*pi`, permitting branch crossings and
+multiple turns; resolve less than `pi` radians per time step.
+The callback must be deterministic because it is evaluated repeatedly, including
+for the final noncommitting look-ahead step. A dependent driver may overconstrain
+a closed mechanism; inspect the convergence outputs rather than assuming success.
 
 ## Reference
 

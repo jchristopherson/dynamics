@@ -160,6 +160,111 @@ static double fixed_motion(double t, void *user_data)
     return *(const double*)user_data;
 }
 
+static double accelerating_motion(double t, void *user_data)
+{
+    return *(const double*)user_data + t*t;
+}
+
+static bool test_joint_drivers(void)
+{
+    const int ntime = 6;
+    c_serial_linkage serial = {0};
+    c_variational_integrator_settings settings;
+    c_linkage_dynamic_model model;
+    double initial = 0.25, gravity[3] = {0.0};
+    double force[3] = {0.0}, torque[3] = {0.0};
+    double p[18], v[18], w[18], multipliers[36];
+    c_quaternion q[6];
+    int converged, iterations, singular, completed;
+    bool result = true;
+
+    c_default_variational_integrator_settings(&settings);
+    c_alloc_serial_linkage(1, &serial);
+    serial.links[0].mass = 2.0;
+    serial.links[0].link_length = 0.0;
+    serial.links[0].inertia[0] = serial.links[0].inertia[4] =
+        serial.links[0].inertia[8] = 1.0;
+    for (int kind = DYN_REVOLUTE_JOINT; kind <= DYN_PRISMATIC_JOINT; ++kind) {
+        serial.links[0].joint_type = kind;
+        force[2] = kind == DYN_PRISMATIC_JOINT ? 3.0 : 0.0;
+        torque[2] = kind == DYN_REVOLUTE_JOINT ? 1.0 : 0.0;
+        model = c_create_serial_linkage_dynamic_model(&serial, 1, &initial);
+        if (!model) { result = false; break; }
+        c_clear_error();
+        c_linkage_dynamic_solve_joint(model, 1, 6, &settings, ntime, 0.01,
+            gravity, force, torque, 1, accelerating_motion, &initial,
+            p, q, v, w, multipliers, &converged, &iterations, &singular, &completed);
+        if (c_get_last_error() != DYN_NO_ERROR || converged != 1 ||
+            singular != 0 || completed != ntime - 1) {
+            result = false;
+            printf("C driver kind %d: error=%d converged=%d singular=%d completed=%d\n",
+                kind, c_get_last_error(), converged, singular, completed);
+        }
+        for (int i = 0; i < ntime; ++i) {
+            const double expected = initial + (i*0.01)*(i*0.01);
+            const double actual = kind == DYN_PRISMATIC_JOINT ? p[3*i+2] :
+                2.0*atan2(q[i].z, q[i].w);
+            if (fabs(actual - expected) > 1.0e-8 ||
+                fabs(multipliers[6*i+5] - 1.0) > 0.001) {
+                result = false;
+                printf("C driver %d step %d: coordinate=%.12g expected=%.12g load=%.12g\n",
+                    kind, i, actual, expected, multipliers[6*i+5]);
+            }
+        }
+        /* A NULL callback ignores the joint selector and uses base constraints. */
+        c_linkage_dynamic_solve_joint(model, 1, 5, &settings, 2, 0.01,
+            gravity, force, torque, -1, NULL, NULL,
+            p, q, v, w, multipliers, &converged, &iterations, &singular, &completed);
+        if (converged != 1 || completed != 1) result = false;
+        for (int index = 0; index <= 2; index += 2) {
+            c_clear_error();
+            c_linkage_dynamic_solve_joint(model, 1, 6, &settings, 2, 0.01,
+                gravity, force, torque, index, accelerating_motion, &initial,
+                p, q, v, w, multipliers, &converged, &iterations, &singular, &completed);
+            if (c_get_last_error() != DYN_INVALID_INPUT_ERROR ||
+                converged != 0 || completed != 0) result = false;
+        }
+        c_clear_error();
+        c_linkage_dynamic_solve_joint(model, 1, 5, &settings, 2, 0.01,
+            gravity, force, torque, 1, accelerating_motion, &initial,
+            p, q, v, w, multipliers, &converged, &iterations, &singular, &completed);
+        if (c_get_last_error() != DYN_ARRAY_SIZE_ERROR) result = false;
+        c_clear_error();
+        c_free_linkage_dynamic_model(model);
+    }
+    c_free_serial_linkage(&serial);
+
+    /* Unsupported multi-DOF joints must report a C error, not abort. */
+    {
+        c_mechanism_link links[2];
+        c_joint joint = {0};
+        double coordinates[2] = {0.0};
+        for (int i = 0; i < 2; ++i) {
+            c_alloc_mechanism_link(1, &links[i]);
+            identity(links[i].frames);
+            links[i].mass = 1.0;
+            links[i].inertia[0] = links[i].inertia[4] = links[i].inertia[8] = 1.0;
+        }
+        joint.joint_type = DYN_CYLINDRICAL_JOINT;
+        joint.parent_link = 1; joint.child_link = 2;
+        joint.parent_frame = joint.child_frame = 1;
+        model = c_create_linkage_dynamic_model(false, 2, links, 1, &joint, 1, 2, coordinates);
+        if (!model) result = false;
+        else {
+            c_linkage_dynamic_solve_joint(model, 1, 5, &settings, 2, 0.01,
+                gravity, force, torque, 1, fixed_motion, &initial,
+                p, q, v, w, multipliers, &converged, &iterations, &singular, &completed);
+            if (c_get_last_error() != DYN_INVALID_INPUT_ERROR ||
+                converged != 0 || completed != 0) result = false;
+            c_clear_error();
+            c_free_linkage_dynamic_model(model);
+        }
+        for (int i = 0; i < 2; ++i) c_free_mechanism_link(&links[i]);
+    }
+    if (!result) printf("TEST FAILED: C joint drivers\n");
+    return result;
+}
+
 bool c_test_linkage_dynamics(void)
 {
     c_mechanism_link links[4];
@@ -182,7 +287,7 @@ bool c_test_linkage_dynamics(void)
     c_quaternion orientation[6];
     double multipliers[36]; /* (17 linkage + 1 prescribed) by 2 times */
     int converged, iterations, jacobian_singular, completed_steps;
-    bool result = true;
+    bool result = test_joint_drivers();
 
     c_alloc_serial_linkage(1, &serial);
     serial.links[0].joint_type = DYN_REVOLUTE_JOINT;
@@ -257,6 +362,13 @@ bool c_test_linkage_dynamics(void)
             if (!isfinite(reactions[0].force[i])) result = false;
         if (!isfinite(axial_results[0].force) ||
             !isfinite(torsional_results[0].torque)) result = false;
+        c_linkage_dynamic_solve_joint(model, 3, 18, &settings, 2, 1.0e-4, gravity,
+            force, torque, 1, fixed_motion, &theta, position, orientation,
+            velocity, angular_velocity, multipliers, &converged, &iterations,
+            &jacobian_singular, &completed_steps);
+        if (converged != 1 || completed_steps != 1 ||
+            fabs(2.0*atan2(orientation[3].z, orientation[3].w) - theta) > 1.0e-8)
+            result = false;
     }
     if (!result) printf("TEST FAILED: c_test_linkage_dynamics\n");
     c_free_linkage_dynamic_model(model);

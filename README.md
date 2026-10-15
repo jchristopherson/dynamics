@@ -295,6 +295,81 @@ solution = integrator%solve(bodies, initial_state, dt, ntime, &
 ![Double-pendulum rod angles produced by the variational integrator example](images/variational_integrator_example.png?raw=true)
 
 ## Motor-Driven Parallel Linkage Example
+### Prescribed joint motion: rotary and linear actuators
+
+Use `prescribed_joint` to drive a revolute or prismatic joint with a scalar
+`linkage_prescribed_motion(t, args)` callback. The library constructs and enforces
+the driving constraint internally; no user-written constraint function is needed.
+This works for serial, planar, and spatial dynamic models.
+
+```fortran
+procedure(linkage_prescribed_motion), pointer :: input_motion
+! ... construct model and integrator ...
+input_motion => displacement
+solution = model%solve(integrator, dt, ntime, &
+    prescribed_joint = 2, prescribed_motion = input_motion, &
+    multipliers = constraint_multipliers)
+
+! In the program/module's procedure section:
+function displacement(t, args) result(q)
+    real(real64), intent(in) :: t
+    class(*), intent(inout), optional :: args
+    real(real64) :: q
+    q = 0.25d0 + 0.01d0 * (1.0d0 - cos(2.0d0*t))
+end function
+```
+
+Here joint 2 must initially have coordinate `0.25`; the example motion has zero
+initial rate. The same callback signature serves either joint type:
+
+| Selector / joint type | Meaning of the callback result | Last multiplier row |
+| --- | --- | --- |
+| `prescribed_joint`, revolute | Child joint-frame angle relative to the parent joint frame about its positive z-axis, in radians | Required actuator torque |
+| `prescribed_joint`, prismatic | Signed separation of the child and parent attachment origins along the parent joint frame's positive z-axis, in model length units | Required axial actuator force |
+| `prescribed_body` (existing interface) | Absolute moving-body angle about world z, in radians; planar models only | Required body-driving torque |
+
+Joint indices are one-based **joint indices, not moving-body or joint-variable
+indices**. For serial models, joint `i` is the proximal joint of link `i`; for
+parallel/planar models, indices follow the mechanism's joint array.
+`model%get_joint(i)` returns a copy of its type, body indices, and attachment
+frames. The positive sliding axis is the joint frame's z-axis even when that axis
+lies in the world xy-plane in a planar mechanism.
+
+Coincident joint frames define coordinate zero; the callback returns the actual
+coordinate, **not an increment from the initial configuration**. A moving parent
+is supported: its motion does not change the relative coordinate being prescribed.
+The joint's `actuated` flag is not needed by this dynamic driver; selecting
+`prescribed_joint` chooses the input.
+
+Supply an associated callback and exactly one selector. Omitting both selectors
+and the callback leaves the model undriven. Supplying both selectors, an invalid
+index, an unsupported joint type (including cylindrical), or an unassociated
+callback is an input error. Only one prescribed scalar input is supported per
+solve. The original `prescribed_body` behavior is unchanged; it is not generally
+equivalent to driving a relative revolute coordinate.
+
+The initial joint coordinate must agree with the callback at the initial state's
+time, within `integrator%settings%tolerance`; an incompatible initial coordinate is
+reported as `DYN_INVALID_INPUT_ERROR`. Initial velocities should also agree with
+the motion's derivative for a smooth start; provide `initial_state` for a nonzero
+initial rate. The stored model state starts with zero velocities.
+Revolute driving residuals are wrapped modulo `2*pi`, so smooth motion can cross
+the angle branch cut and complete multiple turns. Choose a time step resolving
+less than `pi` radians of relative rotation; poses alone cannot distinguish whole
+turns between samples.
+
+The driver adds one multiplier row after all joint and planar restrictions.
+Its sign is positive toward increasing prescribed coordinate (acting on the child
+relative to the parent). It includes inertia and applied loads, not just a spring
+or damper load. `get_joint_reactions` excludes this actuator multiplier.
+Histories and the final look-ahead multiplier follow the existing solve conventions.
+Prescribing a dependent coordinate can overconstrain a closed mechanism; numerical
+failure is reported through `info` rather than being resolved by dropping constraints.
+
+The matching C entry point is `c_linkage_dynamic_solve_joint`; the existing
+`c_linkage_dynamic_solve` retains its absolute planar body-angle semantics and
+signature. See the [C API guide](c_docs/c-api.md#prescribed-joint-motion).
+
 The linkage dynamics analysis capabilities also allow the addition of motors to drive motion, along with spring and damper elements.  The [`four_bar_example_2`](examples/four_bar_example_2.f90) analyzes a four-bar linkage driven at the crank by a motor, and utilizes a torsional spring and damper at the rocker-ground revolute joint.  The analysis illustrates how, given the motor motion, to extract the motor torque required to achieve the motion, along with the joint reaction forces in terms of the world coordinate frame.  The solver always places prescribed-motion constraints after all the joint constraints; therefore, the motor torque is the last row in the Lagrange multiplier output.  For this example, the motor torque is the required torque to overcome the inertia of the mechanism, and the spring and damper at the rocker-ground revolute joint.
 
 ```fortran

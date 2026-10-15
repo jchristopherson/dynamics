@@ -30,6 +30,11 @@ add_test(
     WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
     COMMAND $<TARGET_FILE:dynamics_c_tests>
 )
+add_test(
+    NAME dynamics_c_linkage_motion_tests
+    WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+    COMMAND $<TARGET_FILE:dynamics_c_tests> linkage-motion
+)
 
 if (${BUILD_SHARED_LIBS} AND WIN32)
     add_custom_command(
