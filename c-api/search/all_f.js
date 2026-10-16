@@ -10,6 +10,7 @@ var searchData=
   ['points_5fper_5fcycle_7',['points_per_cycle',['../structc__frequency__sweep__controls.html#abcd0fb3708ccf462a50ac30035e07035',1,'c_frequency_sweep_controls']]],
   ['poissons_5fratio_8',['poissons_ratio',['../structc__material.html#a0ce0ba02f4e7edf5e0ae66900ae41d84',1,'c_material']]],
   ['position_9',['position',['../structc__variational__state.html#a7f340e7e3e326a619b9c74425596e096',1,'c_variational_state']]],
-  ['probability_10',['probability',['../structc__regression__statistics.html#ab22c3438c12cac1f7c0404c6bbc6e675',1,'c_regression_statistics']]],
-  ['public_20constants_11',['Public constants',['../group__dynamics__constants.html',1,'']]]
+  ['prescribed_20joint_20motion_10',['Prescribed joint motion',['../index.html#autotoc_md8',1,'']]],
+  ['probability_11',['probability',['../structc__regression__statistics.html#ab22c3438c12cac1f7c0404c6bbc6e675',1,'c_regression_statistics']]],
+  ['public_20constants_12',['Public constants',['../group__dynamics__constants.html',1,'']]]
 ];

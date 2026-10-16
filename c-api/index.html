@@ -142,7 +142,7 @@ Variational and linkage dynamics</h1>
 <p>The variational API supports two workflows:</p>
 <ol type="1">
 <li><code>c_variational_integrator_solve</code> integrates caller-defined rigid bodies in maximal coordinates. C callbacks supply applied loads, equality constraints, and optionally an analytic reduced constraint Jacobian.</li>
-<li><code>c_create_serial_linkage_dynamic_model</code> and <code>c_create_linkage_dynamic_model</code> convert linkage descriptions into opaque dynamic-model handles. <code>c_linkage_dynamic_solve</code> then applies gravity, constant body loads, and optional prescribed planar motion.</li>
+<li><code>c_create_serial_linkage_dynamic_model</code> and <code>c_create_linkage_dynamic_model</code> convert linkage descriptions into opaque dynamic-model handles. <code>c_linkage_dynamic_solve_joint</code> then applies gravity, constant body loads, and optional relative revolute or prismatic motion. <code>c_linkage_dynamic_solve</code> remains available for absolute planar body-angle input.</li>
 </ol>
 <p>Initialize <code><a class="el" href="structc__variational__integrator__settings.html" title="Numerical controls for the maximal-coordinate variational integrator.">c_variational_integrator_settings</a></code> with <code>c_default_variational_integrator_settings</code> before changing individual fields. The <code>force_evaluation</code> field selects the applied-load sampling rule for both direct and linkage solves:</p>
 <ul>
@@ -157,7 +157,7 @@ Variational and linkage dynamics</h1>
 <li>orientation: <code>nbody × ntime</code>;</li>
 <li>multipliers: <code>nconstraint × ntime</code>.</li>
 </ul>
-<p>Multiplier column <code>i</code> belongs to simulation point <code>i</code>. The final column is computed with a noncommitting look-ahead step. For prescribed linkage motion, the prescribed-angle multiplier is appended after the linkage constraints and represents the required actuator torque.</p>
+<p>Multiplier column <code>i</code> belongs to simulation point <code>i</code>. The final column is computed with a noncommitting look-ahead step. For prescribed linkage motion, the driving multiplier is appended after all joint and planar constraints and represents the required actuator torque (angular input) or axial force (prismatic input), positive toward increasing prescribed coordinate.</p>
 <p>Use <code>c_linkage_dynamic_joint_reactions</code> to convert one state and multiplier column into world-frame joint forces and moments. Reactions are returned in mechanism joint order and act on each joint's child link. The reaction on the parent link is equal and opposite.</p>
 <p>Linkage dynamic models may also contain linear force elements:</p>
 <ul>
@@ -168,7 +168,42 @@ Variational and linkage dynamics</h1>
 </ul>
 <p>Body index zero denotes a ground attachment whose point is expressed in world coordinates. Other attachment points are expressed in their body frame. Use the element count and result routines to query current length/rate/force or angle/rate/torque values.</p>
 <p>Opaque dynamic-model handles own copied linkage and mass-property data; release them with <code>c_free_linkage_dynamic_model</code>. Callback state views are temporary and must not be retained after a callback returns. The prescribed-motion callback bridge is synchronous and not reentrant.</p>
-<h1><a class="anchor" id="autotoc_md8"></a>
+<h2><a class="anchor" id="autotoc_md8"></a>
+Prescribed joint motion</h2>
+<p><code>c_linkage_dynamic_solve_joint</code> has the same argument layout as the existing <code>c_linkage_dynamic_solve</code>, but replaces <code>prescribed_body</code> with <code>prescribed_joint</code>. The original function and its ABI are unchanged. Both use the scalar <code>c_linkage_prescribed_motion</code> callback:</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">Entry point / selected joint   </th><th class="markdownTableHeadNone">Callback return value    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>c_linkage_dynamic_solve_joint</code>, <code>DYN_REVOLUTE_JOINT</code>   </td><td class="markdownTableBodyNone">Relative child-to-parent joint-frame angle about the parent's positive z-axis, radians    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>c_linkage_dynamic_solve_joint</code>, <code>DYN_PRISMATIC_JOINT</code>   </td><td class="markdownTableBodyNone">Signed attachment-origin separation along the parent joint frame's positive z-axis, model length units    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>c_linkage_dynamic_solve</code>   </td><td class="markdownTableBodyNone">Absolute moving-body world-z angle, radians; planar models only   </td></tr>
+</table>
+<p>The joint-based entry point supports serial, planar, and spatial models, including moving parents and arbitrarily oriented sliding axes. The library constructs the driver internally; no constraint callback or axis argument is required. Coincident joint frames define zero, not the initial configuration.</p>
+<p>For example, after constructing a model whose second joint is prismatic and has initial displacement <code>0.25</code>:</p>
+<div class="fragment"><div class="line"><span class="keyword">static</span> <span class="keywordtype">double</span> displacement(<span class="keywordtype">double</span> t, <span class="keywordtype">void</span> *user_data)</div>
+<div class="line">{</div>
+<div class="line">    <span class="keyword">const</span> <span class="keywordtype">double</span> start = *(<span class="keyword">const</span> <span class="keywordtype">double</span> *)user_data;</div>
+<div class="line">    <span class="keywordflow">return</span> start + 0.01 * (1.0 - cos(2.0*t)); <span class="comment">/* zero initial rate */</span></div>
+<div class="line">}</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">/* In the calling function; settings and histories have been allocated. */</span></div>
+<div class="line"><span class="keywordtype">double</span> start = 0.25;</div>
+<div class="line"><span class="keywordtype">int</span> nbody = <a class="code hl_function" href="group__dynamics__variational.html#ga8acc63d6698bf9f3f58ac1ef6986c9cf">c_linkage_dynamic_body_count</a>(model);</div>
+<div class="line"><span class="keywordtype">int</span> nconstraint = <a class="code hl_function" href="group__dynamics__variational.html#ga330122620c6cc3aedf8ae1bd18934a44">c_linkage_dynamic_constraint_count</a>(model) + 1;</div>
+<div class="line"><a class="code hl_function" href="group__dynamics__variational.html#gae377493c163803ccd3abb3cd8b8e2c8b">c_linkage_dynamic_solve_joint</a>(model, nbody, nconstraint, &amp;settings, ntime, dt,</div>
+<div class="line">    gravity, body_force, body_torque, 2, displacement, &amp;start,</div>
+<div class="line">    position, orientation, velocity, angular_velocity, multipliers,</div>
+<div class="line">    &amp;converged, &amp;iterations, &amp;jacobian_singular, &amp;completed_steps);</div>
+<div class="ttc" id="agroup__dynamics__variational_html_ga330122620c6cc3aedf8ae1bd18934a44"><div class="ttname"><a href="group__dynamics__variational.html#ga330122620c6cc3aedf8ae1bd18934a44">c_linkage_dynamic_constraint_count</a></div><div class="ttdeci">int c_linkage_dynamic_constraint_count(c_linkage_dynamic_model obj)</div><div class="ttdoc">Return the linkage constraint count before any prescribed-motion constraint is added.</div></div>
+<div class="ttc" id="agroup__dynamics__variational_html_ga8acc63d6698bf9f3f58ac1ef6986c9cf"><div class="ttname"><a href="group__dynamics__variational.html#ga8acc63d6698bf9f3f58ac1ef6986c9cf">c_linkage_dynamic_body_count</a></div><div class="ttdeci">int c_linkage_dynamic_body_count(c_linkage_dynamic_model obj)</div><div class="ttdoc">Return the number of moving rigid bodies in a dynamic model.</div></div>
+<div class="ttc" id="agroup__dynamics__variational_html_gae377493c163803ccd3abb3cd8b8e2c8b"><div class="ttname"><a href="group__dynamics__variational.html#gae377493c163803ccd3abb3cd8b8e2c8b">c_linkage_dynamic_solve_joint</a></div><div class="ttdeci">void c_linkage_dynamic_solve_joint(c_linkage_dynamic_model obj, int nbody, int nconstraint, const c_variational_integrator_settings *settings, int ntime, double dt, const double gravity[3], const double *body_force, const double *body_torque, int prescribed_joint, c_linkage_prescribed_motion prescribed_motion, void *user_data, double *position, c_quaternion *orientation, double *velocity, double *angular_velocity, double *multipliers, int *converged, int *iterations, int *jacobian_singular, int *completed_steps)</div><div class="ttdoc">Solve linkage dynamics with optional relative joint motion.</div></div>
+</div><!-- fragment --><p>Include <code>&lt;math.h&gt;</code> for <code>cos</code>. Use one-based <b>joint</b> indices, not moving-body or joint-variable indices: serial joint <code>i</code> is link <code>i</code>'s proximal joint; other models use the original mechanism joint order. The joint's <code>actuated</code> flag is not required. Only one input per solve is supported. Unsupported joint types, such as cylindrical or spherical, and out-of-range indices are reported through <code>c_get_last_error</code>.</p>
+<p>With a NULL callback, the selector is ignored and <code>nconstraint</code> must equal the base count. With a non-NULL callback, allocate exactly one additional multiplier row. The last row is torque for a revolute input or force for a prismatic input, acting on the child relative to the parent toward increasing coordinate. <code>c_linkage_dynamic_joint_reactions</code> excludes this actuator load.</p>
+<p>The initial coordinate must match the callback at time zero within <code>settings.tolerance</code>. The C linkage solver starts with the model's stored pose and zero velocities, so choose a zero-initial-rate law for smooth startup. Initial coordinate incompatibility is a deep Fortran input error and terminates the process; C-level index/type/count errors return normally with an error code. Angular residuals are wrapped modulo <code>2*pi</code>, permitting branch crossings and multiple turns; resolve less than <code>pi</code> radians per time step. The callback must be deterministic because it is evaluated repeatedly, including for the final noncommitting look-ahead step. A dependent driver may overconstrain a closed mechanism; inspect the convergence outputs rather than assuming success.</p>
+<h1><a class="anchor" id="autotoc_md9"></a>
 Reference</h1>
 <p>The generated reference is organized by API area:</p>
 <ul>

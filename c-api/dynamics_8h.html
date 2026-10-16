@@ -426,7 +426,7 @@ Typedefs</h2></td></tr>
 <tr class="memdesc:a5463af4a08475da2bbd6c0efc2a81b3d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reduced constraint-Jacobian callback.  <br /></td></tr>
 <tr class="separator:a5463af4a08475da2bbd6c0efc2a81b3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9c85de8937622f1899ccc8c00d672190" id="r_a9c85de8937622f1899ccc8c00d672190"><td class="memItemLeft" align="right" valign="top">typedef double(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="dynamics_8h.html#a9c85de8937622f1899ccc8c00d672190">c_linkage_prescribed_motion</a>) (double t, void *user_data)</td></tr>
-<tr class="memdesc:a9c85de8937622f1899ccc8c00d672190"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prescribed planar-link angular motion callback.  <br /></td></tr>
+<tr class="memdesc:a9c85de8937622f1899ccc8c00d672190"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prescribed scalar linkage motion callback.  <br /></td></tr>
 <tr class="separator:a9c85de8937622f1899ccc8c00d672190"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a648ecd506f76fb32e425ee02e3ca36c5" id="r_a648ecd506f76fb32e425ee02e3ca36c5"><td class="memItemLeft" align="right" valign="top">typedef void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="dynamics_8h.html#a648ecd506f76fb32e425ee02e3ca36c5">c_mechanism</a></td></tr>
 <tr class="memdesc:a648ecd506f76fb32e425ee02e3ca36c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Opaque handle to a closed-loop mechanism.  <br /></td></tr>
@@ -952,8 +952,11 @@ Functions</h2></td></tr>
 <tr class="memdesc:gad43632aeb7dee21bf0a2b0635dcfaf21"><td class="mdescLeft">&#160;</td><td class="mdescRight">Query all torsional elements at one state.  <br /></td></tr>
 <tr class="separator:gad43632aeb7dee21bf0a2b0635dcfaf21"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga5bc1663a76977c48e23574d99781ea61" id="r_ga5bc1663a76977c48e23574d99781ea61"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__variational.html#ga5bc1663a76977c48e23574d99781ea61">c_linkage_dynamic_solve</a> (<a class="el" href="dynamics_8h.html#a5da8b2bbebb1bb22fac8b63ee0afe676">c_linkage_dynamic_model</a> obj, int nbody, int nconstraint, const <a class="el" href="structc__variational__integrator__settings.html">c_variational_integrator_settings</a> *settings, int ntime, double dt, const double gravity[3], const double *body_force, const double *body_torque, int prescribed_body, <a class="el" href="dynamics_8h.html#a9c85de8937622f1899ccc8c00d672190">c_linkage_prescribed_motion</a> prescribed_motion, void *user_data, double *position, <a class="el" href="structc__quaternion.html">c_quaternion</a> *orientation, double *velocity, double *angular_velocity, double *multipliers, int *converged, int *iterations, int *jacobian_singular, int *completed_steps)</td></tr>
-<tr class="memdesc:ga5bc1663a76977c48e23574d99781ea61"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve linkage dynamics.  <br /></td></tr>
+<tr class="memdesc:ga5bc1663a76977c48e23574d99781ea61"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve linkage dynamics with optional legacy absolute planar body-angle input.  <br /></td></tr>
 <tr class="separator:ga5bc1663a76977c48e23574d99781ea61"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae377493c163803ccd3abb3cd8b8e2c8b" id="r_gae377493c163803ccd3abb3cd8b8e2c8b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__variational.html#gae377493c163803ccd3abb3cd8b8e2c8b">c_linkage_dynamic_solve_joint</a> (<a class="el" href="dynamics_8h.html#a5da8b2bbebb1bb22fac8b63ee0afe676">c_linkage_dynamic_model</a> obj, int nbody, int nconstraint, const <a class="el" href="structc__variational__integrator__settings.html">c_variational_integrator_settings</a> *settings, int ntime, double dt, const double gravity[3], const double *body_force, const double *body_torque, int prescribed_joint, <a class="el" href="dynamics_8h.html#a9c85de8937622f1899ccc8c00d672190">c_linkage_prescribed_motion</a> prescribed_motion, void *user_data, double *position, <a class="el" href="structc__quaternion.html">c_quaternion</a> *orientation, double *velocity, double *angular_velocity, double *multipliers, int *converged, int *iterations, int *jacobian_singular, int *completed_steps)</td></tr>
+<tr class="memdesc:gae377493c163803ccd3abb3cd8b8e2c8b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve linkage dynamics with optional relative joint motion.  <br /></td></tr>
+<tr class="separator:gae377493c163803ccd3abb3cd8b8e2c8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gacf6f1340ea2771e37411f6fd1cd236ff" id="r_gacf6f1340ea2771e37411f6fd1cd236ff"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__variational.html#gacf6f1340ea2771e37411f6fd1cd236ff">c_linkage_dynamic_joint_reactions</a> (<a class="el" href="dynamics_8h.html#a5da8b2bbebb1bb22fac8b63ee0afe676">c_linkage_dynamic_model</a> obj, int nbody, int nconstraint, double time, const double *position, const <a class="el" href="structc__quaternion.html">c_quaternion</a> *orientation, const double *velocity, const double *angular_velocity, const double *multipliers, <a class="el" href="structc__joint__reaction.html">c_joint_reaction</a> *reactions)</td></tr>
 <tr class="memdesc:gacf6f1340ea2771e37411f6fd1cd236ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert one state's linkage multipliers into joint reaction wrenches.  <br /></td></tr>
 <tr class="separator:gacf6f1340ea2771e37411f6fd1cd236ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1569,15 +1572,15 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Prescribed planar-link angular motion callback. </p>
+<p>Prescribed scalar linkage motion callback. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">t</td><td>Simulation time. </td></tr>
-    <tr><td class="paramname">user_data</td><td>Opaque caller data supplied to c_linkage_dynamic_solve. </td></tr>
+    <tr><td class="paramname">user_data</td><td>Opaque caller data supplied to the linkage solve routine. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Prescribed absolute world-z angle in radians. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>With c_linkage_dynamic_solve: absolute world-z body angle (radians). With c_linkage_dynamic_solve_joint: relative revolute angle (radians) or signed prismatic displacement (model length units), selected by joint type. </dd></dl>
 
 </div>
 </div>

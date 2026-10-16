@@ -280,6 +280,7 @@ var dynamics_8h =
     [ "c_linkage_dynamic_axial_element_results", "group__dynamics__variational.html#ga12b09e2a005c3b046bf612e79f2fe392", null ],
     [ "c_linkage_dynamic_torsional_element_results", "group__dynamics__variational.html#gad43632aeb7dee21bf0a2b0635dcfaf21", null ],
     [ "c_linkage_dynamic_solve", "group__dynamics__variational.html#ga5bc1663a76977c48e23574d99781ea61", null ],
+    [ "c_linkage_dynamic_solve_joint", "group__dynamics__variational.html#gae377493c163803ccd3abb3cd8b8e2c8b", null ],
     [ "c_linkage_dynamic_joint_reactions", "group__dynamics__variational.html#gacf6f1340ea2771e37411f6fd1cd236ff", null ],
     [ "c_alloc_polynomial", "group__dynamics__state.html#ga5b3138ce385d12057157228875ebe2bc", null ],
     [ "c_free_polynomial", "group__dynamics__state.html#ga5d0fbd0ad48d49a137a783934a66bf12", null ],

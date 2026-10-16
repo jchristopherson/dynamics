@@ -145,8 +145,11 @@ Functions</h2></td></tr>
 <tr class="memdesc:gad43632aeb7dee21bf0a2b0635dcfaf21"><td class="mdescLeft">&#160;</td><td class="mdescRight">Query all torsional elements at one state.  <br /></td></tr>
 <tr class="separator:gad43632aeb7dee21bf0a2b0635dcfaf21"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga5bc1663a76977c48e23574d99781ea61" id="r_ga5bc1663a76977c48e23574d99781ea61"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__variational.html#ga5bc1663a76977c48e23574d99781ea61">c_linkage_dynamic_solve</a> (<a class="el" href="dynamics_8h.html#a5da8b2bbebb1bb22fac8b63ee0afe676">c_linkage_dynamic_model</a> obj, int nbody, int nconstraint, const <a class="el" href="structc__variational__integrator__settings.html">c_variational_integrator_settings</a> *settings, int ntime, double dt, const double gravity[3], const double *body_force, const double *body_torque, int prescribed_body, <a class="el" href="dynamics_8h.html#a9c85de8937622f1899ccc8c00d672190">c_linkage_prescribed_motion</a> prescribed_motion, void *user_data, double *position, <a class="el" href="structc__quaternion.html">c_quaternion</a> *orientation, double *velocity, double *angular_velocity, double *multipliers, int *converged, int *iterations, int *jacobian_singular, int *completed_steps)</td></tr>
-<tr class="memdesc:ga5bc1663a76977c48e23574d99781ea61"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve linkage dynamics.  <br /></td></tr>
+<tr class="memdesc:ga5bc1663a76977c48e23574d99781ea61"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve linkage dynamics with optional legacy absolute planar body-angle input.  <br /></td></tr>
 <tr class="separator:ga5bc1663a76977c48e23574d99781ea61"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae377493c163803ccd3abb3cd8b8e2c8b" id="r_gae377493c163803ccd3abb3cd8b8e2c8b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__variational.html#gae377493c163803ccd3abb3cd8b8e2c8b">c_linkage_dynamic_solve_joint</a> (<a class="el" href="dynamics_8h.html#a5da8b2bbebb1bb22fac8b63ee0afe676">c_linkage_dynamic_model</a> obj, int nbody, int nconstraint, const <a class="el" href="structc__variational__integrator__settings.html">c_variational_integrator_settings</a> *settings, int ntime, double dt, const double gravity[3], const double *body_force, const double *body_torque, int prescribed_joint, <a class="el" href="dynamics_8h.html#a9c85de8937622f1899ccc8c00d672190">c_linkage_prescribed_motion</a> prescribed_motion, void *user_data, double *position, <a class="el" href="structc__quaternion.html">c_quaternion</a> *orientation, double *velocity, double *angular_velocity, double *multipliers, int *converged, int *iterations, int *jacobian_singular, int *completed_steps)</td></tr>
+<tr class="memdesc:gae377493c163803ccd3abb3cd8b8e2c8b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve linkage dynamics with optional relative joint motion.  <br /></td></tr>
+<tr class="separator:gae377493c163803ccd3abb3cd8b8e2c8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gacf6f1340ea2771e37411f6fd1cd236ff" id="r_gacf6f1340ea2771e37411f6fd1cd236ff"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dynamics__variational.html#gacf6f1340ea2771e37411f6fd1cd236ff">c_linkage_dynamic_joint_reactions</a> (<a class="el" href="dynamics_8h.html#a5da8b2bbebb1bb22fac8b63ee0afe676">c_linkage_dynamic_model</a> obj, int nbody, int nconstraint, double time, const double *position, const <a class="el" href="structc__quaternion.html">c_quaternion</a> *orientation, const double *velocity, const double *angular_velocity, const double *multipliers, <a class="el" href="structc__joint__reaction.html">c_joint_reaction</a> *reactions)</td></tr>
 <tr class="memdesc:gacf6f1340ea2771e37411f6fd1cd236ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert one state's linkage multipliers into joint reaction wrenches.  <br /></td></tr>
 <tr class="separator:gacf6f1340ea2771e37411f6fd1cd236ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1091,8 +1094,8 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Solve linkage dynamics. </p>
-<p>Query body and constraint counts first to allocate output arrays. When prescribed_motion is non-NULL, prescribed_body is the one-based moving-body index and multipliers needs one additional row. This callback bridge is synchronous and not reentrant. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Solve linkage dynamics with optional legacy absolute planar body-angle input. </p>
+<p>For relative revolute or prismatic input, use c_linkage_dynamic_solve_joint. Query body and constraint counts first to allocate output arrays. When prescribed_motion is non-NULL, prescribed_body is the one-based moving-body index and multipliers needs one additional row. This callback bridge is synchronous and not reentrant. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">obj</td><td>Dynamic-model handle. </td></tr>
     <tr><td class="paramname">nbody</td><td>Moving-body count returned by c_linkage_dynamic_body_count. </td></tr>
@@ -1115,6 +1118,177 @@ Functions</h2></td></tr>
     <tr><td class="paramname">iterations</td><td>Total Newton iterations across attempted steps. </td></tr>
     <tr><td class="paramname">jacobian_singular</td><td>Set to 1 if a Newton Jacobian was detected as singular. </td></tr>
     <tr><td class="paramname">completed_steps</td><td>Number of completed time advances. The output histories contain the initial state and these completed steps; unused trailing entries are zero (identity quaternions for orientation). </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="gae377493c163803ccd3abb3cd8b8e2c8b" name="gae377493c163803ccd3abb3cd8b8e2c8b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gae377493c163803ccd3abb3cd8b8e2c8b">&#9670;&#160;</a></span>c_linkage_dynamic_solve_joint()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void c_linkage_dynamic_solve_joint </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="dynamics_8h.html#a5da8b2bbebb1bb22fac8b63ee0afe676">c_linkage_dynamic_model</a>&#160;</td>
+          <td class="paramname"><em>obj</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>nbody</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>nconstraint</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structc__variational__integrator__settings.html">c_variational_integrator_settings</a> *&#160;</td>
+          <td class="paramname"><em>settings</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ntime</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>dt</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double&#160;</td>
+          <td class="paramname"><em>gravity</em>[3], </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double *&#160;</td>
+          <td class="paramname"><em>body_force</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double *&#160;</td>
+          <td class="paramname"><em>body_torque</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>prescribed_joint</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="dynamics_8h.html#a9c85de8937622f1899ccc8c00d672190">c_linkage_prescribed_motion</a>&#160;</td>
+          <td class="paramname"><em>prescribed_motion</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>user_data</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>position</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structc__quaternion.html">c_quaternion</a> *&#160;</td>
+          <td class="paramname"><em>orientation</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>velocity</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>angular_velocity</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double *&#160;</td>
+          <td class="paramname"><em>multipliers</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>converged</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>iterations</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>jacobian_singular</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>completed_steps</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Solve linkage dynamics with optional relative joint motion. </p>
+<p>Arguments, history shapes, convergence outputs, and look-ahead multiplier convention are identical to c_linkage_dynamic_solve, except for the input selector. Supports serial, planar, and spatial models without caller-defined constraints. The original c_linkage_dynamic_solve retains its absolute planar body-angle semantics and ABI.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">obj</td><td>Dynamic-model handle. </td></tr>
+    <tr><td class="paramname">nbody</td><td>Moving-body count returned by c_linkage_dynamic_body_count. </td></tr>
+    <tr><td class="paramname">nconstraint</td><td>Base constraint count plus one with a non-NULL motion callback; otherwise the base count. </td></tr>
+    <tr><td class="paramname">settings</td><td>Integration settings. </td></tr>
+    <tr><td class="paramname">ntime</td><td>Number of returned points, including the initial point. </td></tr>
+    <tr><td class="paramname">dt</td><td>Positive fixed time step. </td></tr>
+    <tr><td class="paramname">gravity</td><td>Uniform world-frame gravitational acceleration, length 3. </td></tr>
+    <tr><td class="paramname">body_force</td><td>Constant world-frame forces, shape 3-by-nbody. </td></tr>
+    <tr><td class="paramname">body_torque</td><td>Constant body-frame torques, shape 3-by-nbody. </td></tr>
+    <tr><td class="paramname">prescribed_joint</td><td>One-based joint index in mechanism joint order (serial: proximal joint of link i), NOT a moving-body or joint-variable index. Must identify DYN_REVOLUTE_JOINT or DYN_PRISMATIC_JOINT when the callback is non-NULL. Ignored when the callback is NULL. Other joint kinds are rejected. </td></tr>
+    <tr><td class="paramname">prescribed_motion</td><td>Scalar coordinate callback, or NULL for no driver. Revolute: child joint frame's relative angle about the parent joint frame's positive z-axis, in radians. Prismatic: signed child attachment separation along the parent joint frame's positive z-axis, in model length units. Coincident joint frames define zero; the initial coordinate is NOT subtracted. Initial position must match the callback at time zero (within settings tolerance). The C linkage solve starts from the model's stored state with zero velocities; use a motion law with zero initial rate for a smooth start. Angular residuals are wrapped modulo 2*pi, allowing multiple turns; time steps must resolve less than pi radians of relative rotation. </td></tr>
+    <tr><td class="paramname">user_data</td><td>Opaque callback data; may be NULL. The callback must be deterministic; the synchronous callback bridge is not reentrant. </td></tr>
+    <tr><td class="paramname">position</td><td>Output positions, shape 3-by-nbody-by-ntime. </td></tr>
+    <tr><td class="paramname">orientation</td><td>Output quaternions, shape nbody-by-ntime. </td></tr>
+    <tr><td class="paramname">velocity</td><td>Output velocities, shape 3-by-nbody-by-ntime. </td></tr>
+    <tr><td class="paramname">angular_velocity</td><td>Output body-frame angular velocities, same shape. </td></tr>
+    <tr><td class="paramname">multipliers</td><td>Output nconstraint-by-ntime history. The last row is the required actuator torque (revolute) or axial force (prismatic), positive toward increasing prescribed coordinate, exerted on the child relative to the parent. c_linkage_dynamic_joint_reactions excludes this actuator load. </td></tr>
+    <tr><td class="paramname">converged</td><td>Set to 1 on success, 0 on numerical failure. </td></tr>
+    <tr><td class="paramname">iterations</td><td>Total Newton iterations. </td></tr>
+    <tr><td class="paramname">jacobian_singular</td><td>Set to 1 if a singular Jacobian was detected. </td></tr>
+    <tr><td class="paramname">completed_steps</td><td>Completed time advances, excluding the initial point. Invalid joint indices/types are reported through c_get_last_error. Incompatible initial coordinates are detected in the Fortran solver and terminate the process, like other deep Fortran argument errors. </td></tr>
   </table>
   </dd>
 </dl>

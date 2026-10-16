@@ -90,7 +90,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title="<p> 4.1% of total for derived types.</p>Including implementation: 219 statements,  3.4% of total for derived types.">27 statements</a>
+               title="<p> 4.2% of total for derived types.</p>Including implementation: 243 statements,  3.7% of total for derived types.">28 statements</a>
           </li>
 
             <li id="source-file">
@@ -167,6 +167,7 @@
             <a class="list-group-item" href="../type/linkage_dynamic_model.html#boundprocedure-get_body_count">get_body_count</a>
             <a class="list-group-item" href="../type/linkage_dynamic_model.html#boundprocedure-get_constraint_count~3">get_constraint_count</a>
             <a class="list-group-item" href="../type/linkage_dynamic_model.html#boundprocedure-get_initial_state">get_initial_state</a>
+            <a class="list-group-item" href="../type/linkage_dynamic_model.html#boundprocedure-get_joint~2">get_joint</a>
             <a class="list-group-item" href="../type/linkage_dynamic_model.html#boundprocedure-get_joint_count~5">get_joint_count</a>
             <a class="list-group-item" href="../type/linkage_dynamic_model.html#boundprocedure-get_joint_reactions">get_joint_reactions</a>
             <a class="list-group-item" href="../type/linkage_dynamic_model.html#boundprocedure-get_torsional_element_count">get_torsional_element_count</a>
@@ -240,6 +241,7 @@ Body index zero in a joint descriptor denotes the fixed ground link.</p>
             <a class="list-group-item" href="../type/linkage_dynamic_model.html#boundprocedure-get_body_count">get_body_count</a>
             <a class="list-group-item" href="../type/linkage_dynamic_model.html#boundprocedure-get_constraint_count~3">get_constraint_count</a>
             <a class="list-group-item" href="../type/linkage_dynamic_model.html#boundprocedure-get_initial_state">get_initial_state</a>
+            <a class="list-group-item" href="../type/linkage_dynamic_model.html#boundprocedure-get_joint~2">get_joint</a>
             <a class="list-group-item" href="../type/linkage_dynamic_model.html#boundprocedure-get_joint_count~5">get_joint_count</a>
             <a class="list-group-item" href="../type/linkage_dynamic_model.html#boundprocedure-get_joint_reactions">get_joint_reactions</a>
             <a class="list-group-item" href="../type/linkage_dynamic_model.html#boundprocedure-get_torsional_element_count">get_torsional_element_count</a>
@@ -1077,6 +1079,70 @@ dynamic model.</p>
   </div>
 
             <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-get_joint~2"></span><h3>procedure, public :: <strong>get_joint</strong>  => ldm_get_joint         
+    </h3></div>
+    <ul class="list-group">
+        <li class="list-group-item">
+                  <h3>
+    private  function ldm_get_joint(this, index) result(rst)  
+</h3>
+  <p>Gets a copy of a joint descriptor in the model's joint ordering.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='../type/linkage_dynamic_model.html'>linkage_dynamic_model</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>this</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>index</strong></td>
+            <td>
+                <p>The one-based joint index, not a moving-body index.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(<a href='../type/dynamic_joint.html'>dynamic_joint</a>)</small>
+    </h4>
+    
+
+        </li>
+    </ul>
+  </div>
+
+            <div class="panel panel-default">
     <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-get_joint_count~5"></span><h3>procedure, public :: <strong>get_joint_count</strong>  => ldm_get_joint_count         
     </h3></div>
     <ul class="list-group">
@@ -1325,7 +1391,7 @@ planar-body constraints or a prescribed-motion constraint are excluded.</p>
     <ul class="list-group">
         <li class="list-group-item">
                   <h3>
-    private  function ldm_solve(this, integrator, dt, ntime, initial_state, gravity, body_force, body_torque, prescribed_body, prescribed_motion, multipliers, args, info) result(rst)  
+    private  function ldm_solve(this, integrator, dt, ntime, initial_state, gravity, body_force, body_torque, prescribed_body, prescribed_motion, multipliers, args, info, prescribed_joint) result(rst)  
 </h3>
   <p>Integrates the linkage dynamics under an optional uniform world-frame
 gravitational acceleration and optional constant body loads.</p>
@@ -1398,7 +1464,7 @@ gravitational acceleration and optional constant body loads.</p>
             <td>::</td>
             <td><strong>ntime</strong></td>
             <td>
-                <p>The number of time steps to integrate.</p>
+                <p>The number of returned simulation points, including the initial point.</p>
             </td>
         </tr>
         <tr>
@@ -1474,7 +1540,9 @@ this argument is absent.</p>
             <td>::</td>
             <td><strong>prescribed_body</strong></td>
             <td>
-                <p>The moving body whose absolute planar angle is prescribed.</p>
+                <p>The one-based moving body whose absolute world-z planar angle is
+prescribed (legacy input). Only planar models support this selector.
+Mutually exclusive with prescribed_joint.</p>
             </td>
         </tr>
         <tr>
@@ -1489,7 +1557,8 @@ this argument is absent.</p>
             <td>::</td>
             <td><strong>prescribed_motion</strong></td>
             <td>
-                <p>The prescribed absolute planar angle as a function of time.</p>
+                <p>The scalar motion callback. Supply exactly one of prescribed_body
+or prescribed_joint with this associated procedure pointer.</p>
             </td>
         </tr>
         <tr>
@@ -1504,8 +1573,11 @@ this argument is absent.</p>
             <td>::</td>
             <td><strong>multipliers</strong></td>
             <td>
-                <p>Constraint multipliers for each completed time step. When a motion is
-prescribed, the last row is the required motor torque.</p>
+                <p>Constraint multipliers for each returned simulation point, with the
+final column computed by a noncommitting look-ahead step. When motion is
+prescribed, the last row is the required actuator torque (angular
+input) or axial force (prismatic input), positive in the direction
+of increasing prescribed coordinate. Joint reactions exclude it.</p>
             </td>
         </tr>
         <tr>
@@ -1537,6 +1609,32 @@ user-defined routines (e.g. presribed_motion).</p>
             <td><strong>info</strong></td>
             <td>
                 <p>Optional convergence diagnostics aggregated over the trajectory.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer(kind=int32),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>prescribed_joint</strong></td>
+            <td>
+                <p>The one-based revolute or prismatic joint in model joint order
+(serial: proximal joint of link i; parallel: mechanism joint order).
+Supported for planar and spatial models. Revolute input is the
+child joint frame's rotation relative to the parent about its
+positive z-axis, in radians. Prismatic input is the child attachment
+origin's signed separation from the parent along the parent's
+positive joint z-axis, in model length units. Zero is defined by
+coincident joint frames, not by the initial configuration.
+The initial coordinate must match the callback at initial time;
+initial velocities should match its time derivative. Angular
+residuals are wrapped modulo 2*pi; use time steps resolving less
+than pi radians of joint rotation. Constraints are built internally.</p>
             </td>
         </tr>
     </tbody>
@@ -1571,7 +1669,7 @@ completed integration step.</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-10-10 20:53            </p>
+ on 2026-10-16 15:13            </p>
         </div>
       </div>
       <br>
