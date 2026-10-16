@@ -625,6 +625,7 @@ subroutine solve_linkage_model(obj,nbody,nconstraint,settings,ntime,dt,gravity, 
     integer(c_int), intent(in), optional :: prescribed_joint
     type(dynamic_joint) :: descriptor
     character(len=:), allocatable :: routine
+    procedure(linkage_prescribed_motion), pointer :: motion_fcn
     converged=0; iterations=0; jacobian_singular=0; completed_steps=0
     p=0.0d0; v=0.0d0; w=0.0d0; m=0.0d0
     q=c_quaternion_vi(1.0d0,0.0d0,0.0d0,0.0d0)
@@ -638,6 +639,7 @@ subroutine solve_linkage_model(obj,nbody,nconstraint,settings,ntime,dt,gravity, 
         routine // ": nconstraint does not match the model.")) &
         return
     integrator%settings=convert_settings(settings)
+    motion_fcn => motion_bridge
     if(c_associated(motion_cb)) then
         if (present(prescribed_joint)) then
             if (c_api_error(prescribed_joint < 1 .or. &
@@ -653,12 +655,12 @@ subroutine solve_linkage_model(obj,nbody,nconstraint,settings,ntime,dt,gravity, 
             solution=model%solve(integrator,dt,int(ntime,int32),gravity=gravity, &
                 body_force=body_force,body_torque=body_torque, &
                 prescribed_joint=int(prescribed_joint,int32), &
-                prescribed_motion=motion_bridge,multipliers=fm,info=info)
+                prescribed_motion=motion_fcn,multipliers=fm,info=info)
         else
             solution=model%solve(integrator,dt,int(ntime,int32),gravity=gravity, &
                 body_force=body_force,body_torque=body_torque, &
                 prescribed_body=int(prescribed_body,int32), &
-                prescribed_motion=motion_bridge,multipliers=fm,info=info)
+                prescribed_motion=motion_fcn,multipliers=fm,info=info)
         end if
         nullify(active_motion); active_motion_data=c_null_ptr
     else
