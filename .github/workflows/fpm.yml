@@ -151,9 +151,13 @@ jobs:
             export PATH="$PATH:/c/msys64/mingw64/bin"
           fi
           FLAGS=""
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            ALIAS_DIR="$(cygpath -u "$RUNNER_TEMP")/blas-lapack-alias"
+            FLAGS="--flag=-L$ALIAS_DIR --flag=-L/c/msys64/mingw64/lib"
+          fi
           if [[ "$SHARED" == "true" ]]; then
             if [[ "$RUNNER_OS" == "Windows" ]]; then
-              FLAGS="--flag=-Wl,--export-all-symbols"
+              FLAGS="$FLAGS --flag=-Wl,--export-all-symbols"
             else
               FLAGS="--flag=-fPIC"
             fi
