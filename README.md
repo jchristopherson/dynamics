@@ -29,9 +29,6 @@ A library of routines used for the analysis of dynamic systems.
 | Structural Dynamics | Generalized-α integration, dense and sparse assemblies | ✅ | ✅ | ✅ |
 | Stability Analysis | Fixed-point stability classification | ✅ | ✅ | ⚠️ |
 | C Interface | Native C API | ✅ | ✅ | ⚠️ |
-| CMake Integration | Package export, install targets, downstream support | ✅ | ✅ | ✅ |
-| FPM Integration | Native Fortran Package Manager support | ✅ | ✅ | ✅ |
-| Unit Testing | Automated test suite | ✅ | N/A | N/A |
 
 ## Building
 
