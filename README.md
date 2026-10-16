@@ -9,57 +9,29 @@ A library of routines used for the analysis of dynamic systems.
 - [Fortran API documentation](https://jchristopherson.github.io/dynamics/)
 - [C API documentation](https://jchristopherson.github.io/dynamics/c-api/)
 
-## Capabilities
-The `dynamics` module aggregates tools for analysis, modeling, and identification of dynamic systems.
+## Feature Matrix
 
-- Frequency response and modal analysis
-    - SISO and MIMO FRF computation for linear systems.
-    - Modal response and proportional/modal damping support.
-    - Nonlinear frequency sweep workflows (ascending/descending) to expose effects such as jump behavior.
-    - FRF model fitting (for example, accelerance and receptance models).
-- Vibrations and response characterization
-    - Q-factor and bandwidth estimation.
-    - Damping estimation (for example, logarithmic decrement and overshoot-based methods).
-    - Free-response property extraction (resonant frequency, damping ratio, settling amplitude, etc.).
-    - Step-response metrics such as rise time and settling behavior.
-- Controls and system representations
-    - State-space and transfer-function representations.
-    - LTI simulation utilities and polynomial helpers.
-- System identification
-    - Least-squares parameter estimation of dynamic models from measured input/output data.
-    - Regression statistics and solver controls for fit quality and convergence behavior.
-- Kinematics, rigid-body motion, and robotics utilities
-    - Denavit-Hartenberg parameter sets, transformations, and forward/inverse kinematics. See the [DH parameter diagram](images/dh_parameter_set.svg).
-    - Jacobian-related helpers for mechanism analysis.
-    - Serial-link linkage modeling (including revolute/prismatic joint handling).
-    - Closed-loop (parallel) mechanism modeling with loop-closure constraints, mobility calculations, and constraint-partitioned Jacobians.
-    - Graph-based mechanism topology utilities (spanning trees, independent loop identification).
-    - Rotation transforms, angle-axis conversion, and quaternion algebra.
-- Variational multibody integration
-    - Structure-preserving rigid-body integration in maximal coordinates using the formulation of Brüdigam et al. (2023).
-    - Direct dynamic analysis of serial, spatial parallel, and planar parallel linkages using link mass properties and joint attachment frames.
-    - World-frame joint reaction forces and moments recovered from dynamic-analysis constraint multipliers.
-    - Tension/compression linear springs with free-length preload and axial-only linear viscous dampers between body or ground attachment points.
-    - Revolute-joint torsional springs with free-angle preload and twist-rate-only torsional dampers, with extensible force-law base types for future nonlinear elements.
-    - Holonomic equality constraints enforced at the position level with Lagrange multipliers.
-    - Unit-quaternion orientation updates with body-frame angular velocities and inertia tensors.
-    - Dense LU and graph-factorized block solvers for the coupled Newton equations.
-    - Callback interfaces for applied forces, body-frame torques, constraints, and optional analytic constraint Jacobians.
-- Geometry and vector utilities
-    - Point, plane, line, and Plucker-line representations and constructors. See the [geometry operations diagram](images/geometry_operations.svg).
-    - Point/line/plane projection and distance calculations.
-    - Intersection/parallelism checks and common-normal calculations.
-    - Vector helper routines such as cross products and skew-symmetric forms.
-- Structural dynamics
-    - 2D/3D beam element utilities and material/node/element abstractions, with local-coordinate [beam system documentation](images/beam_coordinate_system.svg).
-    - 2D/3D axial truss elements with consistent mass and no rotational degrees of freedom.
-    - Position-dependent beam shear-force and bending-moment extraction in 2D and 3D.
-    - Flat 3D shell elements with 6 DOF per node: a 3-node triangle (CST membrane + DKT thin-plate bending) and a 4-node quadrilateral (bilinear membrane + MITC4 Mindlin-Reissner bending), both with Hughes-Brezzi drilling stabilization, consistent mass, and membrane/moment/shear stress-resultant recovery.
-    - Connectivity matrix construction and boundary-condition application.
-    - Sparse/CSR-oriented structural assembly helpers.
-    - Generalized-alpha time stepping for linear structural systems with dense or CSR mass, damping, and stiffness matrices.
-- Stability analysis
-    - Local fixed-point stability classification helpers.
+| Category | Functionality | Status | Documentation | Examples |
+|-----------|---------------|----------|---------------|----------|
+| Frequency Response Analysis | SISO/MIMO FRFs, nonlinear frequency sweeps, modal response | ✅ | ✅ | ✅ |
+| Modal Analysis | Modal parameter extraction, damping estimation, FRF fitting | ✅ | ✅ | ✅ |
+| System Identification | Least-squares model fitting, regression statistics | ✅ | ✅ | ✅ |
+| Controls & LTI Systems | State-space models, transfer functions, simulation tools | ✅ | ✅ | ✅ |
+| Vibration Analysis | Q-factor, damping ratio, settling metrics, free-response characterization | ✅ | ✅ | ✅ |
+| Kinematics | Denavit-Hartenberg models, forward and inverse kinematics | ✅ | ✅ | ✅ |
+| Robotics Utilities | Jacobians, transformations, quaternion algebra | ✅ | ✅ | ✅ |
+| Serial-Link Mechanisms | Revolute/prismatic linkages and motion analysis | ✅ | ✅ | ✅ |
+| Parallel Mechanisms | Loop-closure constraints, mobility analysis, Jacobian partitioning | ✅ | ✅ | ✅ |
+| Multibody Dynamics | Variational integrators, rigid-body dynamics, constraint handling | ✅ | ✅ | ✅ |
+| Force Elements | Springs, dampers, torsional elements, custom force models | ✅ | ✅ | ✅ |
+| Geometry | Points, lines, planes, Plücker lines, intersections, projections | ✅ | ✅ | ✅ |
+| Structural Mechanics | Beam, truss, and shell finite elements | ✅ | ✅ | ✅ |
+| Structural Dynamics | Generalized-α integration, dense and sparse assemblies | ✅ | ✅ | ✅ |
+| Stability Analysis | Fixed-point stability classification | ✅ | ✅ | ⚠️ |
+| C Interface | Native C API | ✅ | ✅ | ⚠️ |
+| CMake Integration | Package export, install targets, downstream support | ✅ | ✅ | ✅ |
+| FPM Integration | Native Fortran Package Manager support | ✅ | ✅ | ✅ |
+| Unit Testing | Automated test suite | ✅ | N/A | N/A |
 
 ## Building
 
@@ -295,81 +267,6 @@ solution = integrator%solve(bodies, initial_state, dt, ntime, &
 ![Double-pendulum rod angles produced by the variational integrator example](images/variational_integrator_example.png?raw=true)
 
 ## Motor-Driven Parallel Linkage Example
-### Prescribed joint motion: rotary and linear actuators
-
-Use `prescribed_joint` to drive a revolute or prismatic joint with a scalar
-`linkage_prescribed_motion(t, args)` callback. The library constructs and enforces
-the driving constraint internally; no user-written constraint function is needed.
-This works for serial, planar, and spatial dynamic models.
-
-```fortran
-procedure(linkage_prescribed_motion), pointer :: input_motion
-! ... construct model and integrator ...
-input_motion => displacement
-solution = model%solve(integrator, dt, ntime, &
-    prescribed_joint = 2, prescribed_motion = input_motion, &
-    multipliers = constraint_multipliers)
-
-! In the program/module's procedure section:
-function displacement(t, args) result(q)
-    real(real64), intent(in) :: t
-    class(*), intent(inout), optional :: args
-    real(real64) :: q
-    q = 0.25d0 + 0.01d0 * (1.0d0 - cos(2.0d0*t))
-end function
-```
-
-Here joint 2 must initially have coordinate `0.25`; the example motion has zero
-initial rate. The same callback signature serves either joint type:
-
-| Selector / joint type | Meaning of the callback result | Last multiplier row |
-| --- | --- | --- |
-| `prescribed_joint`, revolute | Child joint-frame angle relative to the parent joint frame about its positive z-axis, in radians | Required actuator torque |
-| `prescribed_joint`, prismatic | Signed separation of the child and parent attachment origins along the parent joint frame's positive z-axis, in model length units | Required axial actuator force |
-| `prescribed_body` (existing interface) | Absolute moving-body angle about world z, in radians; planar models only | Required body-driving torque |
-
-Joint indices are one-based **joint indices, not moving-body or joint-variable
-indices**. For serial models, joint `i` is the proximal joint of link `i`; for
-parallel/planar models, indices follow the mechanism's joint array.
-`model%get_joint(i)` returns a copy of its type, body indices, and attachment
-frames. The positive sliding axis is the joint frame's z-axis even when that axis
-lies in the world xy-plane in a planar mechanism.
-
-Coincident joint frames define coordinate zero; the callback returns the actual
-coordinate, **not an increment from the initial configuration**. A moving parent
-is supported: its motion does not change the relative coordinate being prescribed.
-The joint's `actuated` flag is not needed by this dynamic driver; selecting
-`prescribed_joint` chooses the input.
-
-Supply an associated callback and exactly one selector. Omitting both selectors
-and the callback leaves the model undriven. Supplying both selectors, an invalid
-index, an unsupported joint type (including cylindrical), or an unassociated
-callback is an input error. Only one prescribed scalar input is supported per
-solve. The original `prescribed_body` behavior is unchanged; it is not generally
-equivalent to driving a relative revolute coordinate.
-
-The initial joint coordinate must agree with the callback at the initial state's
-time, within `integrator%settings%tolerance`; an incompatible initial coordinate is
-reported as `DYN_INVALID_INPUT_ERROR`. Initial velocities should also agree with
-the motion's derivative for a smooth start; provide `initial_state` for a nonzero
-initial rate. The stored model state starts with zero velocities.
-Revolute driving residuals are wrapped modulo `2*pi`, so smooth motion can cross
-the angle branch cut and complete multiple turns. Choose a time step resolving
-less than `pi` radians of relative rotation; poses alone cannot distinguish whole
-turns between samples.
-
-The driver adds one multiplier row after all joint and planar restrictions.
-Its sign is positive toward increasing prescribed coordinate (acting on the child
-relative to the parent). It includes inertia and applied loads, not just a spring
-or damper load. `get_joint_reactions` excludes this actuator multiplier.
-Histories and the final look-ahead multiplier follow the existing solve conventions.
-Prescribing a dependent coordinate can overconstrain a closed mechanism; numerical
-failure is reported through `info` rather than being resolved by dropping constraints.
-
-The matching C entry point is `c_linkage_dynamic_solve_joint`; the existing
-`c_linkage_dynamic_solve` retains its absolute planar body-angle semantics and
-signature. See the [C API guide](c_docs/c-api.md#prescribed-joint-motion).
-
 The linkage dynamics analysis capabilities also allow the addition of motors to drive motion, along with spring and damper elements.  The [`four_bar_example_2`](examples/four_bar_example_2.f90) analyzes a four-bar linkage driven at the crank by a motor, and utilizes a torsional spring and damper at the rocker-ground revolute joint.  The analysis illustrates how, given the motor motion, to extract the motor torque required to achieve the motion, along with the joint reaction forces in terms of the world coordinate frame.  The solver always places prescribed-motion constraints after all the joint constraints; therefore, the motor torque is the last row in the Lagrange multiplier output.  For this example, the motor torque is the required torque to overcome the inertia of the mechanism, and the spring and damper at the rocker-ground revolute joint.
 
 ```fortran
