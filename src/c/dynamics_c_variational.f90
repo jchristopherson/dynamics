@@ -304,6 +304,12 @@ subroutine c_vi_solve(nbody, bodies, ntime, dt, p0, q0, v0, w0, nconstraint, &
     type(c_callback_context) :: ctx
     real(real64), allocatable, dimension(:,:) :: fm
     type(variational_integrator_info) :: info
+    procedure(variational_constraint), pointer :: constraint_ptr
+    procedure(variational_force), pointer :: force_ptr
+    procedure(variational_constraint_jacobian), pointer :: jacobian_ptr
+    constraint_ptr => constraint_bridge
+    force_ptr => force_bridge
+    jacobian_ptr => jacobian_bridge
     converged = 0; iterations = 0; jacobian_singular = 0
     completed_steps = 0
     p = 0.0d0; v = 0.0d0; w = 0.0d0; m = 0.0d0
@@ -322,13 +328,13 @@ subroutine c_vi_solve(nbody, bodies, ntime, dt, p0, q0, v0, w0, nconstraint, &
     ctx%user_data=user_data
     if (associated(ctx%jacobian)) then
         solution=integrator%solve(fb,state,dt,int(ntime,int32), &
-            constraint_count=int(nconstraint,int32),constraint=constraint_bridge, &
-            force_function=force_bridge,constraint_jacobian=jacobian_bridge, &
+            constraint_count=int(nconstraint,int32),constraint=constraint_ptr, &
+            force_function=force_ptr,constraint_jacobian=jacobian_ptr, &
             multipliers=fm,args=ctx,info=info)
     else
         solution=integrator%solve(fb,state,dt,int(ntime,int32), &
-            constraint_count=int(nconstraint,int32),constraint=constraint_bridge, &
-            force_function=force_bridge,multipliers=fm,args=ctx,info=info)
+            constraint_count=int(nconstraint,int32),constraint=constraint_ptr, &
+            force_function=force_ptr,multipliers=fm,args=ctx,info=info)
     end if
     call copy_solution(solution,fm,p,q,v,w,m)
     converged = merge(1_c_int, 0_c_int, info%converged)
