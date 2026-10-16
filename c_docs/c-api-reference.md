@@ -41,7 +41,8 @@ object they own.
 
 ## Variational history conventions
 
-`c_variational_integrator_solve` and `c_linkage_dynamic_solve` use
+`c_variational_integrator_solve`, `c_linkage_dynamic_solve`, and
+`c_linkage_dynamic_solve_joint` use
 column-major history arrays. Translational and angular histories have shape
 `3 × nbody × ntime`, quaternion histories have shape `nbody × ntime`, and
 multiplier histories have shape `nconstraint × ntime`.
@@ -51,10 +52,33 @@ with the interval beginning at simulation point `i`. The final multiplier is
 evaluated by a noncommitting look-ahead step so that forces and reactions are
 defined at all returned simulation points.
 
-For a prescribed planar-link motion, the total constraint count is the value
+For either kind of prescribed linkage motion, the total constraint count is the value
 returned by `c_linkage_dynamic_constraint_count` plus one. The last multiplier
-row is the required actuator torque. The prescribed-motion callback receives
+row is the required actuator torque (revolute or legacy body-angle input) or axial
+force (prismatic input), positive toward increasing prescribed coordinate.
+The prescribed-motion callback receives
 simulation time and the caller's `user_data` pointer.
+
+`c_linkage_dynamic_solve_joint` selects a one-based revolute or prismatic joint,
+not a moving body or a joint-variable index. Its scalar callback returns the
+relative child joint-frame angle about parent joint z (radians), or signed
+attachment-origin separation along parent joint z (model length units).
+Coincident attachment frames define zero. Serial joint indices select proximal
+link joints; parallel/planar indices follow mechanism joint order. All three
+model kinds are supported; no user-defined constraint is needed. Other joint
+types are rejected with a C input error.
+
+`c_linkage_dynamic_solve` keeps its existing signature and absolute planar
+world-z body-angle semantics. The two entry points are not interchangeable:
+relative joint motion differs from absolute body motion with a moving or
+rotated parent. A NULL callback ignores the selector and adds no constraint.
+
+For joint driving, the stored initial coordinate must match the callback at
+time zero within the solver tolerance; incompatibility is a deep Fortran input
+error. The C linkage solver starts with zero velocities. Angular residuals are
+wrapped modulo `2*pi`; time steps must resolve less than `pi` radians of
+relative rotation. See the [joint-motion guide](c-api.md#prescribed-joint-motion)
+for a complete call example, initialization requirements, and error conventions.
 
 ## Linkage reaction conventions
 

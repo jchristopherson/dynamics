@@ -17,7 +17,268 @@ module dynamics_linkage_dynamics_tests
     use dynamics
     implicit none
 
+    type joint_motion_law
+        real(real64) :: coefficients(3)
+    end type
+
 contains
+subroutine invalid_prescribed_joint_motion(selection)
+    character(len=*), intent(in) :: selection
+    type(binary_link) :: links(1)
+    type(serial_linkage) :: mechanism
+    type(parallel_linkage) :: cylindrical
+    type(linkage_dynamic_model) :: model
+    type(variational_integrator) :: integrator
+    type(variational_state), allocatable :: solution(:)
+    procedure(linkage_prescribed_motion), pointer :: motion
+
+    links(1) = binary_link(length = 1.0d0, mass = 1.0d0, jtype = PRISMATIC_JOINT)
+    mechanism = serial_linkage(links)
+    model = linkage_dynamic_model(mechanism, [0.25d0])
+    motion => accelerating_translation
+    select case (selection)
+    case ("motion-both-selectors")
+        solution = model%solve(integrator, 0.01d0, 2, prescribed_body = 1, &
+            prescribed_joint = 1, prescribed_motion = motion)
+    case ("motion-missing-callback")
+        solution = model%solve(integrator, 0.01d0, 2, prescribed_joint = 1)
+    case ("motion-missing-selector")
+        solution = model%solve(integrator, 0.01d0, 2, prescribed_motion = motion)
+    case ("motion-null-callback")
+        nullify(motion)
+        solution = model%solve(integrator, 0.01d0, 2, prescribed_joint = 1, &
+            prescribed_motion = motion)
+    case ("motion-bad-index")
+        solution = model%solve(integrator, 0.01d0, 2, prescribed_joint = 2, &
+            prescribed_motion = motion)
+    case ("motion-bad-type")
+        cylindrical = build_spatial_joint_mechanism(CYLINDRICAL_JOINT)
+        model = linkage_dynamic_model(cylindrical, [0.25d0, 0.0d0])
+        solution = model%solve(integrator, 0.01d0, 2, prescribed_joint = 1, &
+            prescribed_motion = motion)
+    case ("motion-initial-mismatch")
+        model = linkage_dynamic_model(mechanism, [0.0d0])
+        solution = model%solve(integrator, 0.01d0, 2, prescribed_joint = 1, &
+            prescribed_motion = motion)
+    end select
+end subroutine
+
+! ------------------------------------------------------------------------------
+function test_prescribed_joint_motion() result(rst)
+    !! Drives joints relative to a moving parent, in planar and spatial models.
+    logical :: rst
+    integer(int32) :: mode, kind, i, jtype
+    type(joint_motion_law), target :: law
+    real(real64) :: expected, actual
+    real(real64), dimension(3,3) :: inertia
+    real(real64), dimension(4,4,1) :: one_frame
+    real(real64), dimension(4,4,2) :: two_frames
+    real(real64), allocatable, dimension(:,:) :: multipliers
+    real(real64), allocatable, dimension(:) :: residual
+    type(link_container) :: links(3)
+    type(joint) :: joints(2)
+    type(parallel_linkage) :: spatial
+    type(planar_linkage) :: planar
+    type(linkage_dynamic_model) :: model
+    type(variational_integrator) :: integrator
+    type(variational_integrator_info) :: info
+    type(variational_state), allocatable :: solution(:)
+    procedure(linkage_prescribed_motion), pointer :: motion
+
+    rst = .true.
+    motion => polynomial_joint_motion
+    inertia = 0.0d0
+    do i = 1, 3
+        inertia(i,i) = 1.0d0
+    end do
+    law%coefficients = [0.2d0, 0.0d0, 2.0d0]
+    do mode = 1, 2
+        do kind = 1, 2
+            jtype = REVOLUTE_JOINT
+            if (kind == 2) jtype = PRISMATIC_JOINT
+            one_frame(:,:,1) = translate_x(0.0d0)
+            allocate(links(1)%item, source = multi_joint_link(one_frame))
+            two_frames(:,:,1) = one_frame(:,:,1)
+            two_frames(:,:,2) = one_frame(:,:,1)
+            if (kind == 2) two_frames(:,:,2) = rotate_frame_y(0.5d0 * acos(-1.0d0))
+            if (kind == 1 .and. mode == 2) two_frames(:,:,2) = rotate_frame_y(0.5d0)
+            one_frame(:,:,1) = two_frames(:,:,2)
+            two_frames(1,4,2) = 0.7d0
+            allocate(links(2)%item, source = multi_joint_link(two_frames, &
+                mass = 1.0d0, inertia = inertia))
+            allocate(links(3)%item, source = multi_joint_link(one_frame, &
+                mass = 1.0d0, inertia = inertia))
+            joints(1) = joint(REVOLUTE_JOINT, 1, 2, 1, 1)
+            joints(2) = joint(jtype, 2, 3, 2, 1)
+            if (mode == 1) then
+                planar = planar_linkage(links, joints, base = 1)
+                model = linkage_dynamic_model(planar, [0.4d0, law%coefficients(1)])
+            else
+                spatial = parallel_linkage(links, joints, base = 1)
+                model = linkage_dynamic_model(spatial, [0.4d0, law%coefficients(1)])
+            end if
+            solution = model%solve(integrator, 0.01d0, 6, &
+                prescribed_joint = 2, prescribed_motion = motion, args = law, &
+                multipliers = multipliers, info = info)
+            if (.not.info%converged .or. size(solution) /= 6) then
+                rst = .false.
+                print *, "Joint motion convergence:", mode, kind, info%converged, size(solution)
+            end if
+            if (size(multipliers,1) /= model%get_constraint_count() + 1 .or. &
+                size(multipliers,2) /= size(solution)) rst = .false.
+            do i = 1, size(solution)
+                expected = polynomial_joint_motion(solution(i)%time, law)
+                actual = test_joint_coordinate(model, solution(i), 2)
+                if (abs(actual - expected) > 1.0d-8) then
+                    rst = .false.
+                    print *, "Joint coordinate:", mode, kind, i, actual, expected
+                end if
+                residual = model%constraint_residual(solution(i))
+                if (maxval(abs(residual)) > 1.0d-8) then
+                    rst = .false.
+                    print *, "Joint constraints:", mode, kind, i, maxval(abs(residual))
+                end if
+            end do
+            deallocate(links(1)%item, links(2)%item, links(3)%item)
+        end do
+    end do
+    if (.not.rst) print "(A)", "TEST FAILED: test_prescribed_joint_motion"
+end function
+
+function test_prescribed_serial_translation() result(rst)
+    !! Checks the actuator force magnitude/sign and no-args callback path.
+    logical :: rst
+    integer(int32) :: i
+    real(real64) :: inertia(3,3), force(3,1)
+    real(real64), allocatable :: multipliers(:,:)
+    type(binary_link) :: links(1)
+    type(serial_linkage) :: mechanism
+    type(linkage_dynamic_model) :: model
+    type(variational_integrator) :: integrator
+    type(variational_integrator_info) :: info
+    type(variational_state), allocatable :: solution(:)
+    procedure(linkage_prescribed_motion), pointer :: motion
+
+    rst = .true.
+    inertia = 0.0d0
+    do i = 1, 3
+        inertia(i,i) = 1.0d0
+    end do
+    links(1) = binary_link(length = 1.0d0, mass = 2.0d0, inertia = inertia, &
+        jtype = PRISMATIC_JOINT)
+    mechanism = serial_linkage(links)
+    model = linkage_dynamic_model(mechanism, [0.25d0])
+    motion => accelerating_translation
+    force(:,1) = [0.0d0, 0.0d0, 3.0d0]
+    solution = model%solve(integrator, 0.01d0, 6, body_force = force, &
+        prescribed_joint = 1, prescribed_motion = motion, &
+        multipliers = multipliers, info = info)
+    if (.not.info%converged .or. size(solution) /= 6) rst = .false.
+    do i = 1, size(solution)
+        if (abs(test_joint_coordinate(model, solution(i), 1) - &
+            accelerating_translation(solution(i)%time)) > 1.0d-9) rst = .false.
+    end do
+    ! m*a - applied force = 2*2 - 3 = +1, including startup and look-ahead.
+    if (maxval(abs(multipliers(size(multipliers,1),:) - 1.0d0)) > 1.0d-5) rst = .false.
+    if (.not.rst) print "(A)", "TEST FAILED: test_prescribed_serial_translation"
+end function
+
+function test_prescribed_joint_turns() result(rst)
+    !! Checks branch crossings, multiple turns, and required actuator torque.
+    logical :: rst
+    integer(int32) :: i
+    type(joint_motion_law), target :: law
+    real(real64) :: inertia(3,3), frames(4,4,1), torque(3,1), angle, target
+    real(real64), allocatable :: multipliers(:,:)
+    type(link_container) :: links(2)
+    type(joint) :: joints(1)
+    type(parallel_linkage) :: mechanism
+    type(linkage_dynamic_model) :: model
+    type(variational_integrator) :: integrator
+    type(variational_integrator_info) :: info
+    type(variational_state) :: initial
+    type(variational_state), allocatable :: solution(:)
+    procedure(linkage_prescribed_motion), pointer :: motion
+
+    rst = .true.
+    frames(:,:,1) = translate_x(0.0d0)
+    inertia = 0.0d0
+    do i = 1, 3
+        inertia(i,i) = 1.0d0
+    end do
+    allocate(links(1)%item, source = multi_joint_link(frames))
+    allocate(links(2)%item, source = multi_joint_link(frames, mass = 1.0d0, inertia = inertia))
+    joints(1) = joint(REVOLUTE_JOINT, 1, 2, 1, 1)
+    mechanism = parallel_linkage(links, joints, base = 1)
+    law%coefficients = [3.1d0, 10.0d0, 0.0d0]
+    model = linkage_dynamic_model(mechanism, [law%coefficients(1)])
+    initial = model%get_initial_state()
+    initial%angular_velocity(3,1) = law%coefficients(2)
+    torque(:,1) = [0.0d0, 0.0d0, 3.0d0]
+    motion => polynomial_joint_motion
+    solution = model%solve(integrator, 0.01d0, 150, initial_state = initial, &
+        body_torque = torque, prescribed_joint = 1, prescribed_motion = motion, &
+        args = law, multipliers = multipliers, info = info)
+    if (.not.info%converged .or. size(solution) /= 150) rst = .false.
+    do i = 1, size(solution)
+        angle = test_joint_coordinate(model, solution(i), 1)
+        target = polynomial_joint_motion(solution(i)%time, law)
+        if (abs(atan2(sin(angle-target), cos(angle-target))) > 1.0d-8) rst = .false.
+    end do
+    ! After startup the constant-speed driver opposes the applied torque.
+    if (maxval(abs(multipliers(size(multipliers,1),2:) + 3.0d0)) > 1.0d-4) rst = .false.
+    if (.not.rst) print "(A)", "TEST FAILED: test_prescribed_joint_turns"
+end function
+
+function polynomial_joint_motion(t, args) result(rst)
+    real(real64), intent(in) :: t
+    class(*), intent(inout), optional :: args
+    real(real64) :: rst
+    select type (args)
+    type is (joint_motion_law)
+        rst = args%coefficients(1) + args%coefficients(2)*t + &
+            0.5d0*args%coefficients(3)*t*t
+    class default
+        error stop "Invalid polynomial motion data"
+    end select
+end function
+
+function accelerating_translation(t, args) result(rst)
+    real(real64), intent(in) :: t
+    class(*), intent(inout), optional :: args
+    real(real64) :: rst
+    rst = 0.25d0 + t*t
+end function
+
+function test_joint_coordinate(model, state, index) result(rst)
+    !! Test models use zero CG offsets, so positions are body-frame origins.
+    type(linkage_dynamic_model), intent(in) :: model
+    type(variational_state), intent(in) :: state
+    integer(int32), intent(in) :: index
+    real(real64) :: rst, parent(4,4), child(4,4), transform(4,4), relative(3,3)
+    type(dynamic_joint) :: descriptor
+
+    descriptor = model%get_joint(index)
+    parent = descriptor%parent_frame
+    child = descriptor%child_frame
+    if (descriptor%parent_body /= 0) then
+        transform = translate_x(0.0d0)
+        transform(1:3,1:3) = state%orientation(descriptor%parent_body)%to_matrix()
+        transform(1:3,4) = state%position(:,descriptor%parent_body)
+        parent = matmul(transform, parent)
+    end if
+    transform = translate_x(0.0d0)
+    transform(1:3,1:3) = state%orientation(descriptor%child_body)%to_matrix()
+    transform(1:3,4) = state%position(:,descriptor%child_body)
+    child = matmul(transform, child)
+    if (descriptor%joint_type == REVOLUTE_JOINT) then
+        relative = matmul(transpose(parent(1:3,1:3)), child(1:3,1:3))
+        rst = atan2(relative(2,1), relative(1,1))
+    else
+        rst = dot_product(child(1:3,4) - parent(1:3,4), parent(1:3,3))
+    end if
+end function
+
 ! ------------------------------------------------------------------------------
 function test_serial_linkage_dynamics() result(rst)
     !! Verifies serial-link conversion, gravity response, and constraint

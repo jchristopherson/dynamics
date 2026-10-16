@@ -1,8 +1,7 @@
 # Get Dependencies
+set(BUILD_TESTING OFF)
 include(FetchContent)
 find_package(fplot 1.8.12 QUIET)
-find_package(diffeq 1.2.0 QUIET)
-find_package(linalg 2.3.0 QUIET)
 
 if (NOT fplot_FOUND)
     FetchContent_Declare(
@@ -14,31 +13,6 @@ if (NOT fplot_FOUND)
     set(FPLOT_LIBRARIES fplot)
 else()
     set(FPLOT_LIBRARIES fplot::fplot)
-endif()
-
-if (NOT diffeq_FOUND)
-    message(STATUS "DIFFEQ could not be found.  A reference version will be employed.")
-    FetchContent_Declare(
-        diffeq
-        GIT_REPOSITORY "https://github.com/jchristopherson/diffeq"
-        GIT_TAG main
-    )
-    FetchContent_MakeAvailable(diffeq)
-    set(DIFFEQ_LIBRARIES diffeq)
-else()
-    set(DIFFEQ_LIBRARIES diffeq::diffeq)
-endif()
-
-if (NOT linalg_FOUND)
-    FetchContent_Declare(
-        linalg
-        GIT_TAG "origin/master"
-        GIT_REPOSITORY https://github.com/jchristopherson/linalg
-    )
-    FetchContent_MakeAvailable(linalg)
-    set(LINALG_LIBRARIES linalg)
-else()
-    set(LINALG_LIBRARIES linalg::linalg)
 endif()
 
 # FRF Sweep Example 1
@@ -111,7 +85,6 @@ target_link_libraries(
     siso_frf_example_1
     ${PROJECT_NAME}
     ${FPLOT_LIBRARIES}
-    ${DIFFEQ_LIBRARIES}
 )
 
 # MIMO FRF Example 1
@@ -123,7 +96,6 @@ target_link_libraries(
     mimo_frf_example_1
     ${PROJECT_NAME}
     ${FPLOT_LIBRARIES}
-    ${DIFFEQ_LIBRARIES}
 )
 
 # FRF Fitting Example 1
@@ -168,7 +140,6 @@ target_link_libraries(
     siso_lsq_fit_example
     ${PROJECT_NAME}
     ${FPLOT_LIBRARIES}
-    ${DIFFEQ_LIBRARIES}
 )
 
 # Poincare Example
@@ -180,7 +151,6 @@ target_link_libraries(
     poincare_example
     ${PROJECT_NAME}
     ${FPLOT_LIBRARIES}
-    ${DIFFEQ_LIBRARIES}
 )
 
 # Duffing Poincare Example
@@ -192,7 +162,6 @@ target_link_libraries(
     duffing_poincare_example
     ${PROJECT_NAME}
     ${FPLOT_LIBRARIES}
-    ${DIFFEQ_LIBRARIES}
 )
 
 # Discrete Structural Example
@@ -204,7 +173,6 @@ target_link_libraries(
     discrete_structural_example
     ${PROJECT_NAME}
     ${FPLOT_LIBRARIES}
-    ${DIFFEQ_LIBRARIES}
 )
 
 # C DH_Table Example
@@ -271,11 +239,11 @@ endif()
 
 # Structural Example
 add_executable(structural_example structural_example.f90)
-target_link_libraries(structural_example ${PROJECT_NAME} ${FPLOT_LIBRARIES} ${LINALG_LIBRARIES})
+target_link_libraries(structural_example ${PROJECT_NAME} ${FPLOT_LIBRARIES})
 
 # Harmonic Truss Example
 add_executable(harmonic_truss_example harmonic_truss_example.f90)
-target_link_libraries(harmonic_truss_example ${PROJECT_NAME} ${FPLOT_LIBRARIES} ${LINALG_LIBRARIES})
+target_link_libraries(harmonic_truss_example ${PROJECT_NAME} ${FPLOT_LIBRARIES})
 
 # Variational Integrator Example
 add_executable(variational_integrator_example variational_integrator_example.f90)
@@ -287,7 +255,7 @@ target_link_libraries(motor_driven_four_bar_example ${PROJECT_NAME} ${FPLOT_LIBR
 
 # Shell Element Example
 add_executable(shell_element_example shell_element_example.f90)
-target_link_libraries(shell_element_example ${PROJECT_NAME} ${FPLOT_LIBRARIES} ${LINALG_LIBRARIES})
+target_link_libraries(shell_element_example ${PROJECT_NAME} ${FPLOT_LIBRARIES})
 
 if (${BUILD_SHARED_LIBS} AND WIN32)
     add_custom_command(
@@ -296,42 +264,6 @@ if (${BUILD_SHARED_LIBS} AND WIN32)
         COMMAND ${CMAKE_COMMAND} -E copy
         $<TARGET_RUNTIME_DLLS:duffing_poincare_example>
         $<TARGET_FILE_DIR:duffing_poincare_example>
-        COMMAND_EXPAND_LISTS
-    )
-
-    add_custom_command(
-        TARGET harmonic_truss_example
-        POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        $<TARGET_RUNTIME_DLLS:harmonic_truss_example>
-        $<TARGET_FILE_DIR:harmonic_truss_example>
-        COMMAND_EXPAND_LISTS
-    )
-
-    add_custom_command(
-        TARGET frf_sweep_example_1
-        POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy 
-        $<TARGET_RUNTIME_DLLS:frf_sweep_example_1> 
-        $<TARGET_FILE_DIR:frf_sweep_example_1>
-        COMMAND_EXPAND_LISTS
-    )
-
-    add_custom_command(
-        TARGET variational_integrator_example
-        POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        $<TARGET_RUNTIME_DLLS:variational_integrator_example>
-        $<TARGET_FILE_DIR:variational_integrator_example>
-        COMMAND_EXPAND_LISTS
-    )
-
-    add_custom_command(
-        TARGET motor_driven_four_bar_example
-        POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        $<TARGET_RUNTIME_DLLS:motor_driven_four_bar_example>
-        $<TARGET_FILE_DIR:motor_driven_four_bar_example>
         COMMAND_EXPAND_LISTS
     )
 endif()

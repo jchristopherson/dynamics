@@ -23,15 +23,12 @@ A library of routines used for the analysis of dynamic systems.
 | Serial-Link Mechanisms | Revolute/prismatic linkages and motion analysis | ✅ | ✅ | ✅ |
 | Parallel Mechanisms | Loop-closure constraints, mobility analysis, Jacobian partitioning | ✅ | ✅ | ✅ |
 | Multibody Dynamics | Variational integrators, rigid-body dynamics, constraint handling | ✅ | ✅ | ✅ |
-| Force Elements | Springs, dampers, torsional elements, custom force models | ✅ | ✅ | ⚠️ |
+| Force Elements | Springs, dampers, torsional elements, custom force models | ✅ | ✅ | ✅ |
 | Geometry | Points, lines, planes, Plücker lines, intersections, projections | ✅ | ✅ | ✅ |
 | Structural Mechanics | Beam, truss, and shell finite elements | ✅ | ✅ | ✅ |
-| Structural Dynamics | Generalized-α integration, dense and sparse assemblies | ✅ | ✅ | ⚠️ |
+| Structural Dynamics | Generalized-α integration, dense and sparse assemblies | ✅ | ✅ | ✅ |
 | Stability Analysis | Fixed-point stability classification | ✅ | ✅ | ⚠️ |
 | C Interface | Native C API | ✅ | ✅ | ⚠️ |
-| CMake Integration | Package export, install targets, downstream support | ✅ | ✅ | ✅ |
-| FPM Integration | Native Fortran Package Manager support | ✅ | ✅ | ✅ |
-| Unit Testing | Automated test suite | ✅ | N/A | N/A |
 
 ## Building
 

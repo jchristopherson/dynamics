@@ -11,14 +11,18 @@
 #include "dynamics_variational_tests.h"
 #include "dynamics_structural_tests.h"
 #include <stdbool.h>
+#include <string.h>
 
-int main()
+int main(int argc, char **argv)
 {
     // Local Variables
     int flag;
 
     // Initialization
     flag = 0;
+
+    if (argc > 1 && strcmp(argv[1], "linkage-motion") == 0)
+        return c_test_linkage_dynamics() ? 0 : 77;
 
     // Tests
     if (!c_test_q_factor()) flag = 1;

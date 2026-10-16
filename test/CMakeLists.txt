@@ -61,6 +61,22 @@ add_test(
 )
 
 # Test the C API
+add_test(
+    NAME dynamics_linkage_motion_tests
+    WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+    COMMAND $<TARGET_FILE:dynamics_tests> linkage-motion
+)
+foreach(case IN ITEMS both-selectors missing-callback missing-selector
+    null-callback bad-index bad-type initial-mismatch)
+    add_test(
+        NAME dynamics_linkage_motion_error_${case}
+        WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+        COMMAND $<TARGET_FILE:dynamics_tests> motion-${case}
+    )
+    set_tests_properties(dynamics_linkage_motion_error_${case}
+        PROPERTIES WILL_FAIL TRUE)
+endforeach()
+
 if (BUILD_DYNAMICS_C_INTERFACE)
     add_subdirectory(c)
 endif()

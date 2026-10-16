@@ -18,6 +18,8 @@ set(dynamics_c_sources
 
 # Build the tests
 add_executable(dynamics_c_tests ${dynamics_c_sources})
+# Static Fortran dependencies require the Fortran and OpenMP runtimes.
+set_target_properties(dynamics_c_tests PROPERTIES LINKER_LANGUAGE Fortran)
 target_link_libraries(dynamics_c_tests dynamics m)
 target_include_directories(dynamics_c_tests PRIVATE
     "${PROJECT_SOURCE_DIR}/src/c"
@@ -29,6 +31,11 @@ add_test(
     NAME dynamics_c_tests
     WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
     COMMAND $<TARGET_FILE:dynamics_c_tests>
+)
+add_test(
+    NAME dynamics_c_linkage_motion_tests
+    WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+    COMMAND $<TARGET_FILE:dynamics_c_tests> linkage-motion
 )
 
 if (${BUILD_SHARED_LIBS} AND WIN32)

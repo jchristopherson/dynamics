@@ -46,14 +46,17 @@ module dynamics_linkage_dynamics
 
     abstract interface
         function linkage_prescribed_motion(t, args) result(rst)
-            !! Computes a prescribed angular displacement as a function of time.
+            !! Computes a prescribed scalar motion coordinate as a function of
+            !! time. The solve selector determines its meaning.
             import :: real64
             real(real64), intent(in) :: t
                 !! The simulation time.
 			class(*), intent(inout), optional :: args
 				!! A mechanism for passing information in/out of this routine.
             real(real64) :: rst
-                !! The prescribed absolute angle, in radians.
+                !! With prescribed_joint: relative revolute angle (radians) or
+                !! signed prismatic displacement (model length units). With
+                !! prescribed_body: absolute planar body angle (radians).
         end function
     end interface
 
@@ -208,6 +211,7 @@ module dynamics_linkage_dynamics
     contains
         procedure, public :: get_body_count => ldm_get_body_count
         procedure, public :: get_joint_count => ldm_get_joint_count
+        procedure, public :: get_joint => ldm_get_joint
         procedure, public :: get_constraint_count => ldm_get_constraint_count
         procedure, public :: get_initial_state => ldm_get_initial_state
         procedure, public :: constraint_residual => ldm_constraint_residual
@@ -244,10 +248,12 @@ module dynamics_linkage_dynamics
         integer(int32) :: prescribed_body = 0
             !! The one-based planar body whose absolute angle is prescribed, or
             !! zero when no prescribed motion is active.
+        integer(int32) :: prescribed_joint = 0
+            !! The one-based driven revolute or prismatic joint, or zero.
         procedure(linkage_prescribed_motion), pointer, nopass :: &
             prescribed_motion => null()
-            !! The callback defining the prescribed body's absolute angle, or a
-            !! null pointer when no prescribed motion is active.
+            !! The callback defining the selected body or joint coordinate, or
+            !! a null pointer when no prescribed motion is active.
 		class(*), pointer :: user_args
 			!! User-specified data to pass along.
     end type
@@ -447,6 +453,19 @@ pure function ldm_get_joint_count(this) result(rst)
         !! The joint count.
 
     rst = size(this%m_joints)
+end function
+
+! ------------------------------------------------------------------------------
+function ldm_get_joint(this, index) result(rst)
+    !! Gets a copy of a joint descriptor in the model's joint ordering.
+    class(linkage_dynamic_model), intent(in) :: this
+    integer(int32), intent(in) :: index
+        !! The one-based joint index, not a moving-body index.
+    type(dynamic_joint) :: rst
+
+    if (index < 1 .or. index > this%get_joint_count()) &
+        error stop DYN_INVALID_INPUT_ERROR
+    rst = this%m_joints(index)
 end function
 
 ! ------------------------------------------------------------------------------
@@ -752,7 +771,7 @@ end subroutine
 ! ------------------------------------------------------------------------------
 function ldm_solve(this, integrator, dt, ntime, initial_state, gravity, &
     body_force, body_torque, prescribed_body, prescribed_motion, multipliers, &
-    args, info) result(rst)
+    args, info, prescribed_joint) result(rst)
     !! Integrates the linkage dynamics under an optional uniform world-frame
     !! gravitational acceleration and optional constant body loads.
     class(linkage_dynamic_model), intent(in), target :: this
@@ -762,7 +781,7 @@ function ldm_solve(this, integrator, dt, ntime, initial_state, gravity, &
     real(real64), intent(in) :: dt
         !! The time step in seconds.
     integer(int32), intent(in) :: ntime
-        !! The number of time steps to integrate.
+        !! The number of returned simulation points, including the initial point.
     type(variational_state), intent(in), optional :: initial_state
         !! An optional starting state; the model's initial state is used when
         !! this argument is absent.
@@ -773,24 +792,44 @@ function ldm_solve(this, integrator, dt, ntime, initial_state, gravity, &
     real(real64), intent(in), optional, dimension(:,:) :: body_torque
         !! Constant 3-by-nbody body-frame torque array.
     integer(int32), intent(in), optional :: prescribed_body
-        !! The moving body whose absolute planar angle is prescribed.
+        !! The one-based moving body whose absolute world-z planar angle is
+        !! prescribed (legacy input). Only planar models support this selector.
+        !! Mutually exclusive with prescribed_joint.
     procedure(linkage_prescribed_motion), pointer, intent(in), optional :: prescribed_motion
-        !! The prescribed absolute planar angle as a function of time.
+        !! The scalar motion callback. Supply exactly one of prescribed_body
+        !! or prescribed_joint with this associated procedure pointer.
     real(real64), allocatable, intent(out), optional, dimension(:,:) :: multipliers
-        !! Constraint multipliers for each completed time step. When a motion is
-        !! prescribed, the last row is the required motor torque.
+        !! Constraint multipliers for each returned simulation point, with the
+        !! final column computed by a noncommitting look-ahead step. When motion is
+        !! prescribed, the last row is the required actuator torque (angular
+        !! input) or axial force (prismatic input), positive in the direction
+        !! of increasing prescribed coordinate. Joint reactions exclude it.
 	class(*), intent(inout), target, optional :: args
 		!! A mechanism for the caller to pass information to/from the 
 		!! user-defined routines (e.g. presribed_motion).
     type(variational_integrator_info), intent(out), optional :: info
         !! Optional convergence diagnostics aggregated over the trajectory.
+    integer(int32), intent(in), optional :: prescribed_joint
+        !! The one-based revolute or prismatic joint in model joint order
+        !! (serial: proximal joint of link i; parallel: mechanism joint order).
+        !! Supported for planar and spatial models. Revolute input is the
+        !! child joint frame's rotation relative to the parent about its
+        !! positive z-axis, in radians. Prismatic input is the child attachment
+        !! origin's signed separation from the parent along the parent's
+        !! positive joint z-axis, in model length units. Zero is defined by
+        !! coincident joint frames, not by the initial configuration.
+        !! The initial coordinate must match the callback at initial time;
+        !! initial velocities should match its time derivative. Angular
+        !! residuals are wrapped modulo 2*pi; use time steps resolving less
+        !! than pi radians of joint rotation. Constraints are built internally.
     type(variational_state), allocatable, dimension(:) :: rst
             !! The state at the initial time followed by the state after each
             !! completed integration step.
 
     type(linkage_solve_context) :: context
     type(variational_state) :: state
-    integer(int32) :: constraint_count
+    integer(int32) :: constraint_count, joint_type
+    real(real64) :: initial_residual
     procedure(variational_force), pointer :: frc
     procedure(variational_constraint), pointer :: constraint
 
@@ -812,8 +851,14 @@ function ldm_solve(this, integrator, dt, ntime, initial_state, gravity, &
             error stop DYN_ARRAY_SIZE_ERROR
         context%body_torque = body_torque
     end if
-    if (present(prescribed_body) .neqv. present(prescribed_motion)) &
+    if (present(prescribed_body) .and. present(prescribed_joint)) &
         error stop DYN_INVALID_INPUT_ERROR
+    if ((present(prescribed_body) .or. present(prescribed_joint)) .neqv. &
+        present(prescribed_motion)) &
+        error stop DYN_INVALID_INPUT_ERROR
+    if (present(prescribed_motion)) then
+        if (.not.associated(prescribed_motion)) error stop DYN_INVALID_INPUT_ERROR
+    end if
     constraint_count = this%m_constraint_count
     if (present(prescribed_body)) then
         if (.not.this%m_planar .or. prescribed_body < 1 .or. &
@@ -821,6 +866,19 @@ function ldm_solve(this, integrator, dt, ntime, initial_state, gravity, &
             error stop DYN_INVALID_INPUT_ERROR
         context%prescribed_body = prescribed_body
         context%prescribed_motion => prescribed_motion
+        constraint_count = constraint_count + 1
+    end if
+    if (present(prescribed_joint)) then
+        if (prescribed_joint < 1 .or. prescribed_joint > this%get_joint_count()) &
+            error stop DYN_INVALID_INPUT_ERROR
+        joint_type = this%m_joints(prescribed_joint)%joint_type
+        if (joint_type /= REVOLUTE_JOINT .and. joint_type /= PRISMATIC_JOINT) &
+            error stop DYN_INVALID_INPUT_ERROR
+        context%prescribed_joint = prescribed_joint
+        context%prescribed_motion => prescribed_motion
+        initial_residual = prescribed_joint_residual(state, context)
+        if (abs(initial_residual) > integrator%settings%tolerance) &
+            error stop DYN_INVALID_INPUT_ERROR
         constraint_count = constraint_count + 1
     end if
     frc => linkage_gravity
@@ -849,20 +907,53 @@ subroutine linkage_constraints(state, value, args)
         value(1:context%model%m_constraint_count) = &
             context%model%constraint_residual(state)
         if (associated(context%prescribed_motion)) then
-			if (associated(context%user_args)) then
-				value(size(value)) = planar_body_angle(state, &
-					context%prescribed_body) - &
-					context%prescribed_motion(state%time, context%user_args)
-			else
-				value(size(value)) = planar_body_angle(state, &
-					context%prescribed_body) - &
-					context%prescribed_motion(state%time)
-			end if
+            if (context%prescribed_joint /= 0) then
+                value(size(value)) = prescribed_joint_residual(state, context)
+            else if (associated(context%user_args)) then
+                value(size(value)) = planar_body_angle(state, &
+                    context%prescribed_body) - &
+                    context%prescribed_motion(state%time, context%user_args)
+            else
+                value(size(value)) = planar_body_angle(state, &
+                    context%prescribed_body) - &
+                    context%prescribed_motion(state%time)
+            end if
         end if
     class default
         error stop DYN_INVALID_INPUT_ERROR
     end select
 end subroutine
+
+! ------------------------------------------------------------------------------
+function prescribed_joint_residual(state, context) result(rst)
+    !! Evaluates a relative joint-coordinate driver, independent of world pose.
+    type(variational_state), intent(in) :: state
+    type(linkage_solve_context), intent(inout) :: context
+    real(real64) :: rst, target, angle
+    real(real64), dimension(4,4) :: parent, child, relative
+    type(dynamic_joint) :: descriptor
+
+    descriptor = context%model%m_joints(context%prescribed_joint)
+    parent = joint_world_transform(context%model, state, descriptor%parent_body, &
+        descriptor%parent_frame)
+    child = joint_world_transform(context%model, state, descriptor%child_body, &
+        descriptor%child_frame)
+    if (associated(context%user_args)) then
+        target = context%prescribed_motion(state%time, context%user_args)
+    else
+        target = context%prescribed_motion(state%time)
+    end if
+    select case (descriptor%joint_type)
+    case (REVOLUTE_JOINT)
+        relative = matmul(transform_inverse(parent), child)
+        angle = atan2(relative(2,1), relative(1,1))
+        rst = atan2(sin(angle - target), cos(angle - target))
+    case (PRISMATIC_JOINT)
+        rst = dot_product(child(1:3,4) - parent(1:3,4), parent(1:3,3)) - target
+    case default
+        error stop DYN_INVALID_INPUT_ERROR
+    end select
+end function
 
 ! ------------------------------------------------------------------------------
 function planar_body_angle(state, body) result(rst)
@@ -1135,6 +1226,7 @@ subroutine append_joint_constraints(model, state, descriptor, value, index)
     integer(int32), intent(inout) :: index
         !! The one-based insertion position, advanced past the appended values.
     real(real64), dimension(4,4) :: parent, child, relative
+    real(real64), dimension(3,3) :: world_rotation
     real(real64), dimension(3) :: displacement, axis, normal
     real(real64) :: angle
 
@@ -1157,8 +1249,11 @@ subroutine append_joint_constraints(model, state, descriptor, value, index)
         case (PRISMATIC_JOINT)
             axis = parent(1:3,3)
             normal = [-axis(2), axis(1), 0.0d0]
+            ! The sliding frame's z-axis lies in-plane, so its local z-angle
+            ! cannot constrain rotation about the world plane normal.
+            world_rotation = matmul(child(1:3,1:3), transpose(parent(1:3,1:3)))
             value(index) = dot_product(displacement, normal)
-            value(index+1) = angle
+            value(index+1) = atan2(world_rotation(2,1), world_rotation(1,1))
             index = index + 2
         case default
             error stop DYN_INVALID_INPUT_ERROR

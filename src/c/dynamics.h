@@ -359,10 +359,12 @@ typedef void (*c_variational_constraint_jacobian)(
     const c_variational_state *state, int nconstraint, double *jacobian,
     int ldj, void *user_data);
 /**
- * Prescribed planar-link angular motion callback.
+ * Prescribed scalar linkage motion callback.
  * @param t Simulation time.
- * @param user_data Opaque caller data supplied to c_linkage_dynamic_solve.
- * @return Prescribed absolute world-z angle in radians.
+ * @param user_data Opaque caller data supplied to the linkage solve routine.
+ * @return With c_linkage_dynamic_solve: absolute world-z body angle (radians).
+ * With c_linkage_dynamic_solve_joint: relative revolute angle (radians) or
+ * signed prismatic displacement (model length units), selected by joint type.
  */
 typedef double (*c_linkage_prescribed_motion)(double t, void *user_data);
 
@@ -2929,7 +2931,9 @@ void c_linkage_dynamic_torsional_element_results(c_linkage_dynamic_model obj,
     const c_quaternion *orientation, const double *velocity,
     const double *angular_velocity, c_torsional_element_result *results);
 /**
- * Solve linkage dynamics. Query body and constraint counts first to allocate
+ * Solve linkage dynamics with optional legacy absolute planar body-angle input.
+ * For relative revolute or prismatic input, use c_linkage_dynamic_solve_joint.
+ * Query body and constraint counts first to allocate
  * output arrays. When prescribed_motion is non-NULL, prescribed_body is the
  * one-based moving-body index and multipliers needs one additional row. This
  * callback bridge is synchronous and not reentrant.
@@ -2972,6 +2976,64 @@ void c_linkage_dynamic_solve(c_linkage_dynamic_model obj, int nbody,
     int nconstraint, const c_variational_integrator_settings *settings,
     int ntime, double dt, const double gravity[3], const double *body_force,
     const double *body_torque, int prescribed_body,
+    c_linkage_prescribed_motion prescribed_motion, void *user_data,
+    double *position, c_quaternion *orientation, double *velocity,
+    double *angular_velocity, double *multipliers, int *converged,
+    int *iterations, int *jacobian_singular, int *completed_steps);
+/**
+ * Solve linkage dynamics with optional relative joint motion. Arguments,
+ * history shapes, convergence outputs, and look-ahead multiplier convention
+ * are identical to c_linkage_dynamic_solve, except for the input selector.
+ * Supports serial, planar, and spatial models without caller-defined constraints.
+ * The original c_linkage_dynamic_solve retains its absolute planar body-angle
+ * semantics and ABI.
+ *
+ * @param obj Dynamic-model handle.
+ * @param nbody Moving-body count returned by c_linkage_dynamic_body_count.
+ * @param nconstraint Base constraint count plus one with a non-NULL motion
+ * callback; otherwise the base count.
+ * @param settings Integration settings.
+ * @param ntime Number of returned points, including the initial point.
+ * @param dt Positive fixed time step.
+ * @param gravity Uniform world-frame gravitational acceleration, length 3.
+ * @param body_force Constant world-frame forces, shape 3-by-nbody.
+ * @param body_torque Constant body-frame torques, shape 3-by-nbody.
+ * @param prescribed_joint One-based joint index in mechanism joint order
+ * (serial: proximal joint of link i), NOT a moving-body or joint-variable index.
+ * Must identify DYN_REVOLUTE_JOINT or DYN_PRISMATIC_JOINT when the callback is
+ * non-NULL. Ignored when the callback is NULL. Other joint kinds are rejected.
+ * @param prescribed_motion Scalar coordinate callback, or NULL for no driver.
+ * Revolute: child joint frame's relative angle about the parent joint frame's
+ * positive z-axis, in radians. Prismatic: signed child attachment separation
+ * along the parent joint frame's positive z-axis, in model length units.
+ * Coincident joint frames define zero; the initial coordinate is NOT subtracted.
+ * Initial position must match the callback at time zero (within settings
+ * tolerance). The C linkage solve starts from the model's stored state with
+ * zero velocities; use a motion law with zero initial rate for a smooth start.
+ * Angular residuals are wrapped modulo 2*pi, allowing multiple turns; time
+ * steps must resolve less than pi radians of relative rotation.
+ * @param user_data Opaque callback data; may be NULL. The callback must be
+ * deterministic; the synchronous callback bridge is not reentrant.
+ * @param position Output positions, shape 3-by-nbody-by-ntime.
+ * @param orientation Output quaternions, shape nbody-by-ntime.
+ * @param velocity Output velocities, shape 3-by-nbody-by-ntime.
+ * @param angular_velocity Output body-frame angular velocities, same shape.
+ * @param multipliers Output nconstraint-by-ntime history. The last row is the
+ * required actuator torque (revolute) or axial force (prismatic), positive
+ * toward increasing prescribed coordinate, exerted on the child relative to
+ * the parent. c_linkage_dynamic_joint_reactions excludes this actuator load.
+ * @param converged Set to 1 on success, 0 on numerical failure.
+ * @param iterations Total Newton iterations.
+ * @param jacobian_singular Set to 1 if a singular Jacobian was detected.
+ * @param completed_steps Completed time advances, excluding the initial point.
+ * Invalid joint indices/types are reported through c_get_last_error.
+ * Incompatible initial coordinates are detected in the Fortran solver and
+ * terminate the process, like other deep Fortran argument errors.
+ */
+void c_linkage_dynamic_solve_joint(c_linkage_dynamic_model obj, int nbody,
+    int nconstraint, const c_variational_integrator_settings *settings,
+    int ntime, double dt, const double gravity[3], const double *body_force,
+    const double *body_torque, int prescribed_joint,
     c_linkage_prescribed_motion prescribed_motion, void *user_data,
     double *position, c_quaternion *orientation, double *velocity,
     double *angular_velocity, double *multipliers, int *converged,
@@ -3829,5 +3891,4 @@ void c_structural_integrator_solve(c_structural_integrator obj, int n,
 }
 #endif
 #endif
-
 
