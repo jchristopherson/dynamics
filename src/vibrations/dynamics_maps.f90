@@ -315,7 +315,7 @@ contains
             ! Release the prior solution before solving the next interval.
             ! The last state becomes the next chunk's initial condition.
             call integrator%clear_buffer()
-            call integrator%solve(sys, times(:solve_count), state, args)
+            call integrator%solve(sys, times(:solve_count), state, args = args)
             solution = integrator%get_solution()
             if (size(solution,1) /= solve_count) error stop DYN_INVALID_INPUT_ERROR
             state = solution(solve_count,2:)
