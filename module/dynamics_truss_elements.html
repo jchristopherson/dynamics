@@ -186,9 +186,9 @@ bending or has nodal rotational degrees of freedom.</p>
       <ul class="list-group">
           <li class="list-group-item">
             <ul class="list-inline">
-                <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
                 <li><a href='../module/dynamics_structural.html'>dynamics_structural</a></li>
                 <li><a href='../module/dynamics_helper.html'>dynamics_helper</a></li>
+                <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
             </ul>
           </li>
       </ul>
@@ -482,7 +482,7 @@ Use the parent mass_matrix and the global axial stiffness override.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-area~5"></span>
+              <span class="anchor" id="variable-area"></span>
               real(kind=real64),
             </td>
               <td>public</td>
@@ -516,311 +516,7 @@ Use the parent mass_matrix and the global axial stiffness override.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-node_1~3"></span>
-              type(<a href='../type/node.html'>node</a>),
-            </td>
-              <td>public</td>
-            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>node_1</strong></td>
-                <td></td>
-                <td></td>
-            <td>
-<p>The node at natural coordinate s = -1.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-node_2~3"></span>
-              type(<a href='../type/node.html'>node</a>),
-            </td>
-              <td>public</td>
-            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>node_2</strong></td>
-                <td></td>
-                <td></td>
-            <td>
-<p>The node at natural coordinate s = 1.</p>
-            </td>
-        </tr>
-    </tbody>
-  </table>
-
-
-        <h4>Constructor</h4>
-          
-        <table class="table table-striped varlist">
-          <tbody>
-                <tr>
-                  <td>
-                        private
-
-                    pure
-                    function
-                    <strong>t2d_init</strong>
-                    (mat, area, nd1, nd2)
-                  </td>
-                  <td><p>Initializes a [[truss_element_2d]].</p></td>
-                </tr>
-          </tbody>
-        </table>
-
-
-        <h4>Type-Bound Procedures</h4>
-        <table class="table table-striped varlist">
-          <tbody>
-              <tr>
-                <td>
-                    procedure
-                    ,                  public
-                  :: <strong><a href='../type/truss_element_2d.html#boundprocedure-constitutive_matrix~4'>constitutive_matrix</a></strong>
- =>
-                    t2d_constitutive_matrix
-<small>Function</small>                </td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>
-                    procedure
-                    ,                  public
-                  :: <strong><a href='../type/truss_element_2d.html#boundprocedure-evaluate_shape_function~6'>evaluate_shape_function</a></strong>
- =>
-                    t2d_shape_function
-<small>Function</small>                </td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>
-                    procedure
-                    ,                  public
-                  :: <strong><a href='../type/line_element.html#boundprocedure-external_force_vector'>external_force_vector</a></strong>
- =>
-                    le_ext_force_vector
-<small>Function</small>                </td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>
-                    procedure
-                    ,                  public
-                  :: <strong><a href='../type/truss_element_2d.html#boundprocedure-get_dimensionality~4'>get_dimensionality</a></strong>
- =>
-                    t2d_dimensionality
-<small>Function</small>                </td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>
-                    procedure
-                    ,                  public
-                  :: <strong><a href='../type/truss_element_2d.html#boundprocedure-get_dof_per_node~4'>get_dof_per_node</a></strong>
- =>
-                    t2d_dof_per_node
-<small>Function</small>                </td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>
-                    procedure
-                    ,                  public
-                  :: <strong><a href='../type/truss_element_2d.html#boundprocedure-get_node~6'>get_node</a></strong>
- =>
-                    t2d_get_node
-<small>Function</small>                </td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>
-                    procedure
-                    ,                  public
-                  :: <strong><a href='../type/truss_element_2d.html#boundprocedure-get_node_count~6'>get_node_count</a></strong>
- =>
-                    t2d_node_count
-<small>Function</small>                </td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>
-                    procedure
-                    ,                  public
-                  :: <strong><a href='../type/line_element.html#boundprocedure-get_node_natural_coordinates'>get_node_natural_coordinates</a></strong>
- =>
-                    le_get_node_natural_coordinates
-<small>Function</small>                </td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>
-                    procedure
-                    ,                  public
-                  :: <strong><a href='../type/truss_element_2d.html#boundprocedure-get_terminal_nodes~3'>get_terminal_nodes</a></strong>
- =>
-                    t2d_terminal_nodes
-<small>Subroutine</small>                </td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>
-                    procedure
-                    ,                  public
-                  :: <strong><a href='../type/truss_element_2d.html#boundprocedure-jacobian~5'>jacobian</a></strong>
- =>
-                    t2d_jacobian
-<small>Function</small>                </td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>
-                    procedure
-                    ,                  public
-                  :: <strong><a href='../type/line_element.html#boundprocedure-length~7'>length</a></strong>
- =>
-                    le_length
-<small>Function</small>                </td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>
-                    procedure
-                    ,                  public
-                  :: <strong><a href='../type/line_element.html#boundprocedure-mass_matrix~4'>mass_matrix</a></strong>
- =>
-                    le_mass_matrix
-<small>Function</small>                </td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>
-                    procedure
-                    ,                  public
-                  :: <strong><a href='../type/truss_element_2d.html#boundprocedure-rotation_matrix~4'>rotation_matrix</a></strong>
- =>
-                    t2d_rotation_matrix
-<small>Function</small>                </td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>
-                    procedure
-                    ,                  public
-                  :: <strong><a href='../type/truss_element_2d.html#boundprocedure-shape_function_matrix~4'>shape_function_matrix</a></strong>
- =>
-                    t2d_shape_matrix
-<small>Function</small>                </td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>
-                    procedure
-                    ,                  public
-                  :: <strong><a href='../type/truss_element_2d.html#boundprocedure-stiffness_matrix~4'>stiffness_matrix</a></strong>
- =>
-                    t2d_stiffness_matrix
-<small>Function</small>                </td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>
-                    procedure
-                    ,                  public
-                  :: <strong><a href='../type/line_element.html#boundprocedure-strain'>strain</a></strong>
- =>
-                    le_strain
-<small>Function</small>                </td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>
-                    procedure
-                    ,                  public
-                  :: <strong><a href='../type/truss_element_2d.html#boundprocedure-strain_displacement_matrix~6'>strain_displacement_matrix</a></strong>
- =>
-                    t2d_strain_matrix
-<small>Function</small>                </td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>
-                    procedure
-                    ,                  public
-                  :: <strong><a href='../type/line_element.html#boundprocedure-stress'>stress</a></strong>
- =>
-                    le_stress
-<small>Function</small>                </td>
-                <td></td>
-              </tr>
-          </tbody>
-        </table>
-    </div>
-  </div>
-
-       <div class="panel panel-default">
-    <div class="panel-heading codesum">
-      <span class="anchor" id="type-truss_element_3d"></span>
-      <h3>
-        type, public, extends(<a href='../type/line_element.html'>line_element</a>)&nbsp;::&nbsp;
-        <a href='../type/truss_element_3d.html'>truss_element_3d</a>
-        
-      </h3>
-    </div>
-    <div class="panel-body">
-      <p>Defines a pin-jointed 3D bar with three translations per node.
-The local transverse axes are arbitrary; only the longitudinal
-direction influences axial strain and stiffness.</p>
-
-        <h4>Components</h4>
-          <table class="table table-striped varlist">
-    <thead>
-      <tr>
-        <th>Type</th>
-<th>Visibility</th>        <th>Attributes</th>
-        <th></th>
-        <th>Name</th>
-<th></th><th>Initial</th>        <th></th>
-    </thead>
-    <tbody>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-area~5"></span>
-              real(kind=real64),
-            </td>
-              <td>public</td>
-            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>area</strong></td>
-                <td></td>
-                <td></td>
-            <td>
-<p>The element cross-sectional area.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-material"></span>
-              type(<a href='../type/material.html'>material</a>),
-            </td>
-              <td>public</td>
-            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>material</strong></td>
-                <td></td>
-                <td></td>
-            <td>
-<p>The material.</p>
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-node_1~4"></span>
+              <span class="anchor" id="variable-node_1~5"></span>
               type(<a href='../type/node.html'>node</a>),
             </td>
               <td>public</td>
@@ -866,6 +562,310 @@ direction influences axial strain and stiffness.</p>
 
                     pure
                     function
+                    <strong>t2d_init</strong>
+                    (mat, area, nd1, nd2)
+                  </td>
+                  <td><p>Initializes a [[truss_element_2d]].</p></td>
+                </tr>
+          </tbody>
+        </table>
+
+
+        <h4>Type-Bound Procedures</h4>
+        <table class="table table-striped varlist">
+          <tbody>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/truss_element_2d.html#boundprocedure-constitutive_matrix~8'>constitutive_matrix</a></strong>
+ =>
+                    t2d_constitutive_matrix
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/truss_element_2d.html#boundprocedure-evaluate_shape_function~8'>evaluate_shape_function</a></strong>
+ =>
+                    t2d_shape_function
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/line_element.html#boundprocedure-external_force_vector~2'>external_force_vector</a></strong>
+ =>
+                    le_ext_force_vector
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/truss_element_2d.html#boundprocedure-get_dimensionality~11'>get_dimensionality</a></strong>
+ =>
+                    t2d_dimensionality
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/truss_element_2d.html#boundprocedure-get_dof_per_node~7'>get_dof_per_node</a></strong>
+ =>
+                    t2d_dof_per_node
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/truss_element_2d.html#boundprocedure-get_node~8'>get_node</a></strong>
+ =>
+                    t2d_get_node
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/truss_element_2d.html#boundprocedure-get_node_count~8'>get_node_count</a></strong>
+ =>
+                    t2d_node_count
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/line_element.html#boundprocedure-get_node_natural_coordinates~2'>get_node_natural_coordinates</a></strong>
+ =>
+                    le_get_node_natural_coordinates
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/truss_element_2d.html#boundprocedure-get_terminal_nodes~4'>get_terminal_nodes</a></strong>
+ =>
+                    t2d_terminal_nodes
+<small>Subroutine</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/truss_element_2d.html#boundprocedure-jacobian~9'>jacobian</a></strong>
+ =>
+                    t2d_jacobian
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/line_element.html#boundprocedure-length~7'>length</a></strong>
+ =>
+                    le_length
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/line_element.html#boundprocedure-mass_matrix~2'>mass_matrix</a></strong>
+ =>
+                    le_mass_matrix
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/truss_element_2d.html#boundprocedure-rotation_matrix~5'>rotation_matrix</a></strong>
+ =>
+                    t2d_rotation_matrix
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/truss_element_2d.html#boundprocedure-shape_function_matrix~7'>shape_function_matrix</a></strong>
+ =>
+                    t2d_shape_matrix
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/truss_element_2d.html#boundprocedure-stiffness_matrix~8'>stiffness_matrix</a></strong>
+ =>
+                    t2d_stiffness_matrix
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/line_element.html#boundprocedure-strain~2'>strain</a></strong>
+ =>
+                    le_strain
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/truss_element_2d.html#boundprocedure-strain_displacement_matrix~8'>strain_displacement_matrix</a></strong>
+ =>
+                    t2d_strain_matrix
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>
+                    procedure
+                    ,                  public
+                  :: <strong><a href='../type/line_element.html#boundprocedure-stress~2'>stress</a></strong>
+ =>
+                    le_stress
+<small>Function</small>                </td>
+                <td></td>
+              </tr>
+          </tbody>
+        </table>
+    </div>
+  </div>
+
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="type-truss_element_3d"></span>
+      <h3>
+        type, public, extends(<a href='../type/line_element.html'>line_element</a>)&nbsp;::&nbsp;
+        <a href='../type/truss_element_3d.html'>truss_element_3d</a>
+        
+      </h3>
+    </div>
+    <div class="panel-body">
+      <p>Defines a pin-jointed 3D bar with three translations per node.
+The local transverse axes are arbitrary; only the longitudinal
+direction influences axial strain and stiffness.</p>
+
+        <h4>Components</h4>
+          <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Visibility</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+<th></th><th>Initial</th>        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-area"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>area</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>The element cross-sectional area.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-material"></span>
+              type(<a href='../type/material.html'>material</a>),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>material</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>The material.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-node_1~6"></span>
+              type(<a href='../type/node.html'>node</a>),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>node_1</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>The node at natural coordinate s = -1.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-node_2~5"></span>
+              type(<a href='../type/node.html'>node</a>),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>node_2</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+<p>The node at natural coordinate s = 1.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+        <h4>Constructor</h4>
+          
+        <table class="table table-striped varlist">
+          <tbody>
+                <tr>
+                  <td>
+                        private
+
+                    pure
+                    function
                     <strong>t3d_init</strong>
                     (mat, area, nd1, nd2)
                   </td>
@@ -882,7 +882,7 @@ direction influences axial strain and stiffness.</p>
                 <td>
                     procedure
                     ,                  public
-                  :: <strong><a href='../type/truss_element_3d.html#boundprocedure-constitutive_matrix~5'>constitutive_matrix</a></strong>
+                  :: <strong><a href='../type/truss_element_3d.html#boundprocedure-constitutive_matrix~9'>constitutive_matrix</a></strong>
  =>
                     t3d_constitutive_matrix
 <small>Function</small>                </td>
@@ -892,7 +892,7 @@ direction influences axial strain and stiffness.</p>
                 <td>
                     procedure
                     ,                  public
-                  :: <strong><a href='../type/truss_element_3d.html#boundprocedure-evaluate_shape_function~7'>evaluate_shape_function</a></strong>
+                  :: <strong><a href='../type/truss_element_3d.html#boundprocedure-evaluate_shape_function~9'>evaluate_shape_function</a></strong>
  =>
                     t3d_shape_function
 <small>Function</small>                </td>
@@ -902,7 +902,7 @@ direction influences axial strain and stiffness.</p>
                 <td>
                     procedure
                     ,                  public
-                  :: <strong><a href='../type/line_element.html#boundprocedure-external_force_vector'>external_force_vector</a></strong>
+                  :: <strong><a href='../type/line_element.html#boundprocedure-external_force_vector~2'>external_force_vector</a></strong>
  =>
                     le_ext_force_vector
 <small>Function</small>                </td>
@@ -912,7 +912,7 @@ direction influences axial strain and stiffness.</p>
                 <td>
                     procedure
                     ,                  public
-                  :: <strong><a href='../type/truss_element_3d.html#boundprocedure-get_dimensionality~5'>get_dimensionality</a></strong>
+                  :: <strong><a href='../type/truss_element_3d.html#boundprocedure-get_dimensionality~12'>get_dimensionality</a></strong>
  =>
                     t3d_dimensionality
 <small>Function</small>                </td>
@@ -922,7 +922,7 @@ direction influences axial strain and stiffness.</p>
                 <td>
                     procedure
                     ,                  public
-                  :: <strong><a href='../type/truss_element_3d.html#boundprocedure-get_dof_per_node~5'>get_dof_per_node</a></strong>
+                  :: <strong><a href='../type/truss_element_3d.html#boundprocedure-get_dof_per_node~8'>get_dof_per_node</a></strong>
  =>
                     t3d_dof_per_node
 <small>Function</small>                </td>
@@ -932,7 +932,7 @@ direction influences axial strain and stiffness.</p>
                 <td>
                     procedure
                     ,                  public
-                  :: <strong><a href='../type/truss_element_3d.html#boundprocedure-get_node~7'>get_node</a></strong>
+                  :: <strong><a href='../type/truss_element_3d.html#boundprocedure-get_node~9'>get_node</a></strong>
  =>
                     t3d_get_node
 <small>Function</small>                </td>
@@ -942,7 +942,7 @@ direction influences axial strain and stiffness.</p>
                 <td>
                     procedure
                     ,                  public
-                  :: <strong><a href='../type/truss_element_3d.html#boundprocedure-get_node_count~7'>get_node_count</a></strong>
+                  :: <strong><a href='../type/truss_element_3d.html#boundprocedure-get_node_count~9'>get_node_count</a></strong>
  =>
                     t3d_node_count
 <small>Function</small>                </td>
@@ -952,7 +952,7 @@ direction influences axial strain and stiffness.</p>
                 <td>
                     procedure
                     ,                  public
-                  :: <strong><a href='../type/line_element.html#boundprocedure-get_node_natural_coordinates'>get_node_natural_coordinates</a></strong>
+                  :: <strong><a href='../type/line_element.html#boundprocedure-get_node_natural_coordinates~2'>get_node_natural_coordinates</a></strong>
  =>
                     le_get_node_natural_coordinates
 <small>Function</small>                </td>
@@ -962,7 +962,7 @@ direction influences axial strain and stiffness.</p>
                 <td>
                     procedure
                     ,                  public
-                  :: <strong><a href='../type/truss_element_3d.html#boundprocedure-get_terminal_nodes~4'>get_terminal_nodes</a></strong>
+                  :: <strong><a href='../type/truss_element_3d.html#boundprocedure-get_terminal_nodes~5'>get_terminal_nodes</a></strong>
  =>
                     t3d_terminal_nodes
 <small>Subroutine</small>                </td>
@@ -972,7 +972,7 @@ direction influences axial strain and stiffness.</p>
                 <td>
                     procedure
                     ,                  public
-                  :: <strong><a href='../type/truss_element_3d.html#boundprocedure-jacobian~6'>jacobian</a></strong>
+                  :: <strong><a href='../type/truss_element_3d.html#boundprocedure-jacobian~10'>jacobian</a></strong>
  =>
                     t3d_jacobian
 <small>Function</small>                </td>
@@ -992,7 +992,7 @@ direction influences axial strain and stiffness.</p>
                 <td>
                     procedure
                     ,                  public
-                  :: <strong><a href='../type/line_element.html#boundprocedure-mass_matrix~4'>mass_matrix</a></strong>
+                  :: <strong><a href='../type/line_element.html#boundprocedure-mass_matrix~2'>mass_matrix</a></strong>
  =>
                     le_mass_matrix
 <small>Function</small>                </td>
@@ -1002,7 +1002,7 @@ direction influences axial strain and stiffness.</p>
                 <td>
                     procedure
                     ,                  public
-                  :: <strong><a href='../type/truss_element_3d.html#boundprocedure-rotation_matrix~5'>rotation_matrix</a></strong>
+                  :: <strong><a href='../type/truss_element_3d.html#boundprocedure-rotation_matrix~6'>rotation_matrix</a></strong>
  =>
                     t3d_rotation_matrix
 <small>Function</small>                </td>
@@ -1012,7 +1012,7 @@ direction influences axial strain and stiffness.</p>
                 <td>
                     procedure
                     ,                  public
-                  :: <strong><a href='../type/truss_element_3d.html#boundprocedure-shape_function_matrix~5'>shape_function_matrix</a></strong>
+                  :: <strong><a href='../type/truss_element_3d.html#boundprocedure-shape_function_matrix~8'>shape_function_matrix</a></strong>
  =>
                     t3d_shape_matrix
 <small>Function</small>                </td>
@@ -1022,7 +1022,7 @@ direction influences axial strain and stiffness.</p>
                 <td>
                     procedure
                     ,                  public
-                  :: <strong><a href='../type/truss_element_3d.html#boundprocedure-stiffness_matrix~5'>stiffness_matrix</a></strong>
+                  :: <strong><a href='../type/truss_element_3d.html#boundprocedure-stiffness_matrix~9'>stiffness_matrix</a></strong>
  =>
                     t3d_stiffness_matrix
 <small>Function</small>                </td>
@@ -1032,7 +1032,7 @@ direction influences axial strain and stiffness.</p>
                 <td>
                     procedure
                     ,                  public
-                  :: <strong><a href='../type/line_element.html#boundprocedure-strain'>strain</a></strong>
+                  :: <strong><a href='../type/line_element.html#boundprocedure-strain~2'>strain</a></strong>
  =>
                     le_strain
 <small>Function</small>                </td>
@@ -1042,7 +1042,7 @@ direction influences axial strain and stiffness.</p>
                 <td>
                     procedure
                     ,                  public
-                  :: <strong><a href='../type/truss_element_3d.html#boundprocedure-strain_displacement_matrix~7'>strain_displacement_matrix</a></strong>
+                  :: <strong><a href='../type/truss_element_3d.html#boundprocedure-strain_displacement_matrix~9'>strain_displacement_matrix</a></strong>
  =>
                     t3d_strain_matrix
 <small>Function</small>                </td>
@@ -1052,7 +1052,7 @@ direction influences axial strain and stiffness.</p>
                 <td>
                     procedure
                     ,                  public
-                  :: <strong><a href='../type/line_element.html#boundprocedure-stress'>stress</a></strong>
+                  :: <strong><a href='../type/line_element.html#boundprocedure-stress~2'>stress</a></strong>
  =>
                     le_stress
 <small>Function</small>                </td>
@@ -1085,7 +1085,7 @@ direction influences axial strain and stiffness.</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-10-26 20:27            </p>
+ on 2026-10-31 12:53            </p>
         </div>
       </div>
       <br>
