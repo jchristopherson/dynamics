@@ -1,5 +1,5 @@
 name = "dynamics"
-version = "1.9.3"
+version = "1.9.4"
 license = "MIT"
 author = "Jason Christopherson"
 maintainer = "Jason Christopherson"
@@ -11,12 +11,13 @@ homepage = "https://github.com/jchristopherson/dynamics"
 source-dir = "src"
 
 [dependencies]
-linalg = { git = "https://github.com/jchristopherson/linalg" }
-nonlin = { git = "https://github.com/jchristopherson/nonlin" }
-diffeq = { git = "https://github.com/jchristopherson/diffeq" }
-spectrum = { git = "https://github.com/jchristopherson/spectrum" }
-fstats = { git = "https://github.com/jchristopherson/fstats" } 
+linalg = { git = "https://github.com/jchristopherson/linalg", tag = "v2.3.0" }
+nonlin = { git = "https://github.com/jchristopherson/nonlin", tag = "v2.3.0" }
+diffeq = { git = "https://github.com/jchristopherson/diffeq", tag = "v2.1.0" }
+spectrum = { git = "https://github.com/jchristopherson/spectrum", tag = "v1.5.0" }
+fstats = { git = "https://github.com/jchristopherson/fstats", tag = "v1.8.0" } 
 peaks = { git = "https://github.com/jchristopherson/peaks" }
+collections = { git = "https://github.com/jchristopherson/collections", tag = "v1.2.0" }
 
 [dev-dependencies]
 fortran_test_helper = { git = "https://github.com/jchristopherson/fortran_test_helper" }
