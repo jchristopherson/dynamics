@@ -68,7 +68,7 @@ module dynamics_maps
                 !! Total number of requested samples.
             real(real64), intent(in) :: time
                 !! Time at the end of the completed chunk.
-            class(*), intent(in), optional :: args
+            class(*), intent(inout), optional :: args
                 !! Optional user data shared with the ODE callbacks.
         end subroutine
     end interface
@@ -245,7 +245,7 @@ contains
         procedure(poincare_coordinates), optional :: coordinates
             !! Maps each sampled time and ODE state to section coordinates.
             !! Defaults to the first three state components.
-        class(*), intent(in), optional :: args
+        class(*), intent(inout), optional :: args
             !! Optional user data forwarded to each ODE solver call.
         procedure(poincare_map_progress), intent(in), pointer, optional :: &
             progress_callback

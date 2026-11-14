@@ -928,7 +928,7 @@ end subroutine
 function prescribed_joint_residual(state, context) result(rst)
     !! Evaluates a relative joint-coordinate driver, independent of world pose.
     type(variational_state), intent(in) :: state
-    type(linkage_solve_context), intent(inout) :: context
+    type(linkage_solve_context), intent(in) :: context
     real(real64) :: rst, target, angle
     real(real64), dimension(4,4) :: parent, child, relative
     type(dynamic_joint) :: descriptor

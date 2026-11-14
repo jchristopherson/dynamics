@@ -10,8 +10,7 @@ module dynamics_c_maps
     implicit none
 
     ! The active C coordinate callback; the Fortran interface has no user data.
-    procedure(c_poincare_coordinates), pointer, private :: &
-        active_coordinates => null()
+    type(c_funptr), private :: active_coordinates = c_null_funptr
     type(c_ptr), private :: active_user_data = c_null_ptr
     !$omp threadprivate(active_coordinates, active_user_data)
 
@@ -134,12 +133,12 @@ subroutine c_poincare_map_ode(fcn, tspan, n, iv, sample_count, pln, side, &
 
     ! Process
     if (c_associated(coordinates)) then
-        call c_f_procpointer(coordinates, active_coordinates)
+        active_coordinates = coordinates
         active_user_data = user_data
         rst = poincare_map(sys, tspan, iv, sample_count, pln = p, &
             side = side, solver = integrator_obj, &
             coordinates = cpm_coordinates, args = arg)
-        active_coordinates => null()
+        active_coordinates = c_null_funptr
         active_user_data = c_null_ptr
     else
         rst = poincare_map(sys, tspan, iv, sample_count, pln = p, &
@@ -170,7 +169,9 @@ subroutine cpm_coordinates(t, state, coordinates_out)
     real(real64), intent(in) :: t
     real(real64), intent(in), dimension(:) :: state
     real(real64), intent(out), dimension(3) :: coordinates_out
-    call active_coordinates(size(state), t, state, coordinates_out, &
+    procedure(c_poincare_coordinates), pointer :: coordinates_fcn
+    call c_f_procpointer(active_coordinates, coordinates_fcn)
+    call coordinates_fcn(size(state), t, state, coordinates_out, &
         active_user_data)
 end subroutine
 

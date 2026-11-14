@@ -14,6 +14,7 @@
 module equation_container
     use iso_fortran_env
     use dynamics
+    use fstats_interp, only : base_interpolator
     implicit none
 
 contains
@@ -25,13 +26,15 @@ contains
 
         ! Local Variables
         real(real64) :: zeta, wn, F
+        class(base_interpolator), pointer :: excitation
 
         ! Extract the model information
         select type (args)
         class is (model_information)
             wn = args%model(1)
             zeta = args%model(2)
-            F = args%excitation%interpolate_value(t)
+            excitation => args%excitation
+            F = excitation%interpolate_value(t)
         end select
 
         ! The ODE:
