@@ -49,7 +49,7 @@ module dynamics_system_id
             real(real64), intent(out), dimension(:) :: fc
                 !! An M-element array where the values of the constraint 
                 !! equations should be written.
-            class(*), intent(inout), optional :: args
+            class(*), intent(in), optional :: args
                 !! An optional argument that can be used to pass data in/out
                 !! of this routine.
         end subroutine
@@ -187,7 +187,7 @@ subroutine siso_model_fit_least_squares_1(fcn, x, ic, p, integrator, ind, &
         !! course can be imagined.
     real(real64), intent(in), optional, dimension(:) :: weights
         !! An optional array containing weighting factors for every equation.
-    class(*), intent(inout), optional, target :: args
+    class(*), intent(in), optional, target :: args
         !! User-defined information to pass along to fcn.  These arguments,
         !! if supplied, will be passed through to fcn by means of the
         !! [[model_information]] type.
@@ -357,7 +357,7 @@ subroutine siso_model_fit_least_squares_2(fcn, x, ic, p, integrator, ind, &
         !! course can be imagined.
     real(real64), intent(in), optional, dimension(:) :: weights
         !! An optional array containing weighting factors for every equation.
-    class(*), intent(inout), optional, target :: args
+    class(*), intent(in), optional, target :: args
         !! User-defined information to pass along to fcn.  These arguments,
         !! if supplied, will be passed through to fcn by means of the
         !! [[model_information]] type.
@@ -452,7 +452,7 @@ subroutine siso_model_fit_least_squares_2(fcn, x, ic, p, integrator, ind, &
 end subroutine
 
 ! --------------------
-subroutine nlsq_fun(t, p, f, check, args)
+subroutine nlsq_fun(t, p, f, args)
     !! The routine called by the nonlinear least-squares solver from the
     !! siso_model_fit_least_squares routine.
     real(real64), intent(in), dimension(:) :: t
@@ -464,10 +464,7 @@ subroutine nlsq_fun(t, p, f, check, args)
     real(real64), intent(out), dimension(:) :: f
         !! An array, the same size as t, where the function values will be
         !! written.
-    logical, intent(out) :: check
-        !! Set to true to force a stop to the iteration process; else, set
-        !! to false to allow iterations to proceed normally.
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
         !! A regression_information object containing information on how to
         !! arrange and solve the differential equations.
 
@@ -502,7 +499,6 @@ subroutine nlsq_fun(t, p, f, check, args)
     end select
 
     ! Initialization
-    check = .false.
     n = size(limits, 1)
     ode_info%model = p
 

@@ -125,7 +125,7 @@ module dynamics_controls
                 !! The time value at which to compute the excitation.
             real(real64), intent(out), dimension(:) :: u
                 !! The excitation vector.
-            class(*), intent(inout), optional :: args
+            class(*), intent(in), optional :: args
                 !! An optional argument used to pass objects in and out of the
                 !! routine.
         end subroutine
@@ -981,7 +981,7 @@ function lti_solve(mdl, u, t, ic, solver, args) result(rst)
     class(ode_integrator), intent(in), optional, target :: solver
         !! The ODE solver to utilize.  If not specified, the default solver
         !! is a 4th/5th order Runge-Kutta integrator.
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
         !! An optional container for arguments to pass to the excitation
         !! routine.
     real(real64), allocatable, dimension(:,:) :: rst
@@ -1039,7 +1039,7 @@ subroutine ode_solver_routine(t, x, dxdt, args)
     ! The routine called by the LTI solver
     real(real64), intent(in) :: t, x(:)
     real(real64), intent(out) :: dxdt(:)
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
 
     ! Local Variables
     integer(int32) :: n, p

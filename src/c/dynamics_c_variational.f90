@@ -213,7 +213,7 @@ subroutine force_bridge(t, state, force, torque, args)
     real(real64), intent(in) :: t
     type(variational_state), intent(in) :: state
     real(real64), intent(out), dimension(:,:) :: force, torque
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
     type(c_variational_state_vi) :: cs
     real(c_double), allocatable, target, dimension(:,:) :: p, v, w
     type(c_quaternion_vi), allocatable, target, dimension(:) :: q
@@ -229,7 +229,7 @@ end subroutine
 subroutine constraint_bridge(state, value, args)
     type(variational_state), intent(in) :: state
     real(real64), intent(out), dimension(:) :: value
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
     type(c_variational_state_vi) :: cs
     real(c_double), allocatable, target, dimension(:,:) :: p, v, w
     type(c_quaternion_vi), allocatable, target, dimension(:) :: q
@@ -245,7 +245,7 @@ end subroutine
 subroutine jacobian_bridge(state, jac, args)
     type(variational_state), intent(in) :: state
     real(real64), intent(out), dimension(:,:) :: jac
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
     type(c_variational_state_vi) :: cs
     real(c_double), allocatable, target, dimension(:,:) :: p, v, w
     type(c_quaternion_vi), allocatable, target, dimension(:) :: q
@@ -563,7 +563,7 @@ end subroutine
 
 function motion_bridge(t, args) result(rst)
     real(real64), intent(in) :: t
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
     real(real64) :: rst
     rst=active_motion(t,active_motion_data)
 end function

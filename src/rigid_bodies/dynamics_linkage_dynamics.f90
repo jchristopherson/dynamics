@@ -51,7 +51,7 @@ module dynamics_linkage_dynamics
             import :: real64
             real(real64), intent(in) :: t
                 !! The simulation time.
-			class(*), intent(inout), optional :: args
+			class(*), intent(in), optional :: args
 				!! A mechanism for passing information in/out of this routine.
             real(real64) :: rst
                 !! With prescribed_joint: relative revolute angle (radians) or
@@ -804,7 +804,7 @@ function ldm_solve(this, integrator, dt, ntime, initial_state, gravity, &
         !! prescribed, the last row is the required actuator torque (angular
         !! input) or axial force (prismatic input), positive in the direction
         !! of increasing prescribed coordinate. Joint reactions exclude it.
-	class(*), intent(inout), target, optional :: args
+	class(*), intent(in), target, optional :: args
 		!! A mechanism for the caller to pass information to/from the 
 		!! user-defined routines (e.g. presribed_motion).
     type(variational_integrator_info), intent(out), optional :: info
@@ -898,7 +898,7 @@ subroutine linkage_constraints(state, value, args)
     real(real64), intent(out), dimension(:) :: value
         !! The output constraint residual vector, including an optional
         !! prescribed-motion residual as its final entry.
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
         !! A linkage_solve_context containing the model and optional motion
         !! prescription.
 
@@ -980,7 +980,7 @@ subroutine linkage_gravity(t, state, force, torque, args)
         !! The state used to evaluate force and torque elements.
     real(real64), intent(out), dimension(:,:) :: force, torque
         !! The output world-frame forces and body-frame torques for each body.
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
         !! A linkage_solve_context containing gravity, body loads, and the
         !! dynamic model.
     integer(int32) :: i

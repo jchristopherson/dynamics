@@ -232,7 +232,7 @@ end function
 
 function polynomial_joint_motion(t, args) result(rst)
     real(real64), intent(in) :: t
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
     real(real64) :: rst
     select type (args)
     type is (joint_motion_law)
@@ -245,7 +245,7 @@ end function
 
 function accelerating_translation(t, args) result(rst)
     real(real64), intent(in) :: t
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
     real(real64) :: rst
     rst = 0.25d0 + t*t
 end function
@@ -714,7 +714,7 @@ end function
 function fixed_crank_motion(t, args) result(rst)
     !! Supplies the fixed crank angle used to exercise prescribed motion.
     real(real64), intent(in) :: t
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
     real(real64) :: rst
 
     rst = 0.7d0

@@ -167,7 +167,7 @@ function crank_motion(t, args) result(rst)
     !! at its lower displacement limit with zero commanded velocity.
     real(real64), intent(in) :: t
         !! The simulation time.
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
         !! Optional, user-defined communication argument.
     real(real64) :: rst
         !! The prescribed absolute crank angle, in radians.

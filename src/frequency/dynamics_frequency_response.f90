@@ -49,7 +49,7 @@ module dynamics_frequency_response
             complex(real64), intent(out), dimension(:) :: frc
                 !! An N-element array where the forcing function should be
                 !! written.
-            class(*), intent(inout), optional :: args
+            class(*), intent(in), optional :: args
                 !! An optional argument that can be used to communicate with
                 !! the outside world.
         end subroutine
@@ -150,7 +150,7 @@ contains
             !! An optional N-by-N allocatable matrix that, if supplied, will be
             !! used to retrieve the N mode shapes with each vector occupying
             !! its own column.
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
             !! An optional argument that can be used to communicate with
             !! the outside world.
         type(frf) :: rst
@@ -255,7 +255,7 @@ contains
             modeshapes
             !! An optional N-by-NMODES matrix containing the mass-normalized
             !! retained mode shapes.
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
             !! An optional argument passed to the forcing function.
         type(frf) :: rst
             !! The modal-truncated frequency responses.
@@ -360,7 +360,7 @@ contains
             !! An optional N-by-N allocatable matrix that, if supplied, will be
             !! used to retrieve the N mode shapes with each vector occupying
             !! its own column.
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
             !! An optional argument that can be used to communicate with
             !! the outside world.
         type(frf) :: rst
@@ -418,7 +418,7 @@ contains
             modeshapes
             !! An optional N-by-NMODES matrix containing the mass-normalized
             !! retained mode shapes.
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
             !! An optional argument passed to the forcing function.
         type(frf) :: rst
             !! The modal-truncated frequency responses.
@@ -584,7 +584,7 @@ end function
 ! V1.0.6 ADDITIONS
 ! ------------------------------------------------------------------------------
 ! SEE: https://www.researchgate.net/publication/224619803_Reduction_of_structure-borne_noise_in_automobiles_by_multivariable_feedback
-subroutine frf_accel_fit_fcn(xdata, mdl, rst, stop, args)
+subroutine frf_accel_fit_fcn(xdata, mdl, rst, args)
     !! The FRF fitting function for an accelerance FRF (acceleration-excited).
     real(real64), intent(in), dimension(:) :: xdata
         !! The independent variable data.
@@ -592,9 +592,7 @@ subroutine frf_accel_fit_fcn(xdata, mdl, rst, stop, args)
         !! The model parameters.
     real(real64), intent(out), dimension(:) :: rst
         !! The model results.
-    logical, intent(out) :: stop
-        !! Stop the simulation?
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
         !! Optional arguments from the calling code.
 
     ! Local Variables
@@ -606,7 +604,6 @@ subroutine frf_accel_fit_fcn(xdata, mdl, rst, stop, args)
     ! The amplitude portion of the response is stored in the first "N" locations
     ! in the output with the phase portion (in radians) is stored in the
     ! second "N" locations.
-    stop = .false.
     n = size(xdata) / 2
     do i = 1, n
         h = evaluate_accelerance_frf_model(mdl, xdata(i))
@@ -616,7 +613,7 @@ subroutine frf_accel_fit_fcn(xdata, mdl, rst, stop, args)
 end subroutine
 
 ! ------------------------------------------------------------------------------
-subroutine frf_force_fit_fcn(xdata, mdl, rst, stop, args)
+subroutine frf_force_fit_fcn(xdata, mdl, rst, args)
     !! The FRF fitting function for an force-excited FRF.
     real(real64), intent(in), dimension(:) :: xdata
         !! The independent variable data.
@@ -624,9 +621,7 @@ subroutine frf_force_fit_fcn(xdata, mdl, rst, stop, args)
         !! The model parameters.
     real(real64), intent(out), dimension(:) :: rst
         !! The model results.
-    logical, intent(out) :: stop
-        !! Stop the simulation?
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
         !! Optional arguments from the calling code.
 
     ! Local Variables
@@ -638,7 +633,6 @@ subroutine frf_force_fit_fcn(xdata, mdl, rst, stop, args)
     ! The amplitude portion of the response is stored in the first "N" locations
     ! in the output with the phase portion (in radians) is stored in the
     ! second "N" locations.
-    stop = .false.
     n = size(xdata) / 2
     do i = 1, n
         h = evaluate_receptance_frf_model(mdl, xdata(i))
@@ -1036,7 +1030,7 @@ end function
             !! Provides information on the rank of the dynamic stiffness matrix
             !! for each frequency.  If provided, this array must be the same
             !! length as freq.
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
             !! An optional argument that can be used to communicate with
             !! the outside world.
         type(frf) :: rst
@@ -1084,7 +1078,7 @@ end function
             !! Provides information on the rank of the dynamic stiffness matrix
             !! for each frequency.  If provided, this array must be the same
             !! length as freq.
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
             !! An optional argument that can be used to communicate with
             !! the outside world.
         type(frf) :: rst
@@ -1176,7 +1170,7 @@ end function
             !! Provides information on the rank of the dynamic stiffness matrix
             !! for each frequency.  If provided, this array must be the same
             !! length as freq.
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
             !! An optional argument that can be used to communicate with
             !! the outside world.
         type(frf) :: rst
@@ -1309,7 +1303,7 @@ end function
             !! Provides information on the rank of the dynamic stiffness matrix
             !! for each frequency.  If provided, this array must be the same
             !! length as freq.
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
             !! An optional argument that can be used to communicate with
             !! the outside world.
         type(frf) :: rst

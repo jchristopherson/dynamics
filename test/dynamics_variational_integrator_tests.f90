@@ -105,7 +105,7 @@ end function
 subroutine accelerating_pose(state, value, args)
     type(variational_state), intent(in) :: state
     real(real64), intent(out) :: value(:)
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
     real(real64) :: rotation(3,3)
 
     rotation = state%orientation(1)%to_matrix()
@@ -253,7 +253,7 @@ end function
 subroutine late_inconsistent_constraint(state, value, args)
     type(variational_state), intent(in) :: state
     real(real64), intent(out), dimension(:) :: value
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
 
     value = merge(1.0d0, 0.0d0, state%time > 0.015d0)
 end subroutine
@@ -262,7 +262,7 @@ end subroutine
 subroutine zero_constraint_jacobian(state, jacobian, args)
     type(variational_state), intent(in) :: state
     real(real64), intent(out), dimension(:,:) :: jacobian
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
 
     jacobian = 0.0d0
 end subroutine
@@ -500,7 +500,7 @@ subroutine constant_force(t, state, force, torque, args)
         !! The current state; unused by this callback.
     real(real64), intent(out) :: force(:,:), torque(:,:)
         !! The output force and torque arrays.
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
         !! Optional user data; unused by this callback.
 
     force = 0.0d0
@@ -513,7 +513,7 @@ subroutine linear_damping_force(t, state, force, torque, args)
     real(real64), intent(in) :: t
     type(variational_state), intent(in) :: state
     real(real64), intent(out), dimension(:,:) :: force, torque
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
 
     force = 0.0d0
     torque = 0.0d0
@@ -527,7 +527,7 @@ subroutine fixed_position(state, value, args)
         !! The state at which to evaluate the constraint.
     real(real64), intent(out) :: value(:)
         !! The three position residuals.
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
         !! Optional user data; unused by this callback.
 
     value = state%position(:,1)
@@ -538,7 +538,7 @@ subroutine fixed_position_jacobian(state, jacobian, args)
     !! Supplies the exact reduced Jacobian for fixed center-of-mass position.
     type(variational_state), intent(in) :: state
     real(real64), intent(out), dimension(:,:) :: jacobian
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
 
     jacobian = 0.0d0
     jacobian(1,1) = 1.0d0
@@ -553,7 +553,7 @@ subroutine relative_position_constraint(state, value, args)
         !! The maximal-coordinate state to evaluate.
     real(real64), intent(out) :: value(:)
         !! The three relative-position constraint residuals.
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
         !! Optional user data; unused by this test callback.
 
     value = state%position(:,2) - state%position(:,1) - &
@@ -565,7 +565,7 @@ subroutine scaled_fixed_pose(state, value, args)
     !! Fixes a body pose at large translational coordinates.
     type(variational_state), intent(in) :: state
     real(real64), intent(out), dimension(:) :: value
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
 
     value(1:3) = state%position(:,1) - scaled_target_position
     value(4:6) = aimag(state%orientation(1))

@@ -643,7 +643,7 @@ contains
             !! An optional set of lower limits on each of the joint variables.
             !! If not provided, the default is the negative of the output of 
             !! the 'huge' intrinsic function.
-        class(*), intent(inout), optional, target :: args
+        class(*), intent(in), optional, target :: args
             !! An optional argument that can be used to communicate with mdl.
         real(real64), allocatable, dimension(:) :: rst
             !! An M-element array containing the computed joint variables.
@@ -708,7 +708,7 @@ contains
         ! Routine called by the inverse kinematics solver
         real(real64), intent(in), dimension(:) :: x
         real(real64), intent(out), dimension(:) :: f
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
 
         ! Process
         select type (args)

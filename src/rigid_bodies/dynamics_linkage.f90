@@ -522,7 +522,7 @@ contains
             !! The N joint variables
         real(real64), intent(out), dimension(:) :: f
             !! The 6 kinematic constraint equations.
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
             !! A container for the serial_linkage_solver_data object.
 
         ! Local Variables

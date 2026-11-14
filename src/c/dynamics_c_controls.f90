@@ -204,7 +204,7 @@ end subroutine
 subroutine c_lti_solver_routine(t, u, args)
     real(real64), intent(in) :: t
     real(real64), intent(out), dimension(:) :: u
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
 
     integer(int32) :: n
     n = size(u)

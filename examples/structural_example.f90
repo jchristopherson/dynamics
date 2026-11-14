@@ -231,7 +231,7 @@ contains
             !! The frequency value.
         complex(real64), intent(out), dimension(:) :: f_
             !! The output forcing vector.
-        class(*), intent(inout), optional :: args_
+        class(*), intent(in), optional :: args_
 
         complex(real64), parameter :: zero = (0.0d0, 0.0d0)
 

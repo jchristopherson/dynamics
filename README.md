@@ -472,7 +472,7 @@ contains
 subroutine modal_frf_forcing_term(freq, force, args)
     real(real64), intent(in) :: freq
     complex(real64), intent(out), dimension(:) :: force
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
     force = [(1.0d3, 0.0d0), (0.0d0, 0.0d0), (0.0d0, 0.0d0)]
 end subroutine
 ```
@@ -505,7 +505,7 @@ pure subroutine duffing_ode(frequency, t, state, derivative, args)
     real(real64), intent(in) :: frequency, t
     real(real64), intent(in), dimension(:) :: state
     real(real64), intent(out), dimension(:) :: derivative
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
 
     derivative(1) = state(2)
     derivative(2) = sin(frequency*t) - 0.1d0*state(2) - &
@@ -549,7 +549,7 @@ subroutine eom(t, state, derivative, args)
     real(real64), intent(in) :: t
     real(real64), intent(in), dimension(:) :: state
     real(real64), intent(out), dimension(:) :: derivative
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
     ! Extract wn, zeta, and forcing from args; then evaluate the SDOF model.
 end subroutine
 ```

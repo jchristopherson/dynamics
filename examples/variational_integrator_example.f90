@@ -159,7 +159,7 @@ contains
 			!! The world-frame forces acting on the bodies.
 		real(real64), intent(out), dimension(:,:) :: torque
 			!! The body-frame torques acting on the bodies.
-		class(*), intent(inout), optional :: args
+		class(*), intent(in), optional :: args
 			!! The double-pendulum parameters.
 
 		real(real64) :: acceleration
@@ -185,7 +185,7 @@ contains
 			!! The maximal-coordinate state to evaluate.
 		real(real64), intent(out), dimension(:) :: value
 			!! The six endpoint-compatibility residuals.
-		class(*), intent(inout), optional :: args
+		class(*), intent(in), optional :: args
 			!! The double-pendulum parameters.
 
 		real(real64) :: first_length, second_length
@@ -224,7 +224,7 @@ contains
 			!! The maximal-coordinate state at which to evaluate the Jacobian.
 		real(real64), intent(out), dimension(:,:) :: jacobian
 			!! The 6-by-12 reduced constraint Jacobian.
-		class(*), intent(inout), optional :: args
+		class(*), intent(in), optional :: args
 			!! The double-pendulum parameters.
 
 		real(real64) :: first_length, second_length

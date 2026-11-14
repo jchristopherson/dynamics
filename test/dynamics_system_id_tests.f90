@@ -25,7 +25,7 @@ contains
         real(real64), intent(in) :: t               ! the current time value
         real(real64), intent(in) :: x(:)            ! the current state vector
         real(real64), intent(out) :: dxdt(:)        ! the derivatives
-        class(*), intent(inout), optional :: args   ! model information
+        class(*), intent(in), optional :: args   ! model information
 
         ! Local Variables
         real(real64) :: zeta, wn, F
@@ -48,7 +48,7 @@ contains
     subroutine constraints(xg, fg, xc, p, fc, args)
         real(real64), intent(in), dimension(:) :: xg, fg, xc, p
         real(real64), intent(out), dimension(:) :: fc
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
 
         ! Constraint Equations
         fc(1) = p(1)

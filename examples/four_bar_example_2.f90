@@ -272,7 +272,7 @@ contains
         !! Defines the position of the crank motor at time t.
         real(real64), intent(in) :: t
             !! The simulation time.
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
             !! Optional user-defined communication argument.
         real(real64) :: rst
             !! The motor position, in radians.

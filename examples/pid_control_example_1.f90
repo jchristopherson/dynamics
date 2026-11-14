@@ -30,7 +30,7 @@ contains
             !! The current simulation time
         real(real64), intent(out) :: r(:)
             !! The command signal.
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
             !! An optional means of passing in arguments from the outside 
             !! world.
 

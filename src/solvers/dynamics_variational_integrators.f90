@@ -108,7 +108,7 @@ module dynamics_variational_integrators
                 !! The 3-by-nbody world-frame force array.
             real(real64), intent(out), dimension(:,:) :: torque
                 !! The 3-by-nbody body-frame torque array.
-            class(*), intent(inout), optional :: args
+            class(*), intent(in), optional :: args
                 !! Optional user-supplied data.
         end subroutine
 
@@ -121,7 +121,7 @@ module dynamics_variational_integrators
             real(real64), intent(out), dimension(:) :: value
                 !! The constraint residual vector, which is zero for a
                 !! constraint-compatible state.
-            class(*), intent(inout), optional :: args
+            class(*), intent(in), optional :: args
                 !! Optional user-supplied data.
         end subroutine
 
@@ -137,7 +137,7 @@ module dynamics_variational_integrators
             real(real64), intent(out), dimension(:,:) :: jacobian
                 !! The nconstraint-by-(6*nbody) Jacobian. Columns are ordered
                 !! [dx, quaternion-vector variation] for each body.
-            class(*), intent(inout), optional :: args
+            class(*), intent(in), optional :: args
                 !! Optional user-supplied data.
         end subroutine
     end interface
@@ -255,7 +255,7 @@ subroutine vi_step(this, bodies, state, dt, constraint_count, constraint, &
     real(real64), allocatable, intent(out), optional, dimension(:) :: multipliers
         !! The converged Lagrange multipliers; unallocated on recoverable
         !! failure.
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
         !! Optional user-supplied data forwarded to all callbacks.
     type(variational_integrator_info), intent(out), optional :: info
         !! Optional convergence diagnostics. When present, convergence failures
@@ -661,7 +661,7 @@ function vi_solve(this, bodies, state, dt, ntime, constraint_count, &
         !! A multiplier for the interval beginning at time point i is in column
         !! i because the discrete force uses the constraint Jacobian at that
         !! point.
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
         !! Optional user-supplied data forwarded to all callbacks.
     type(variational_integrator_info), intent(out), optional :: info
         !! Optional diagnostics; iterations are summed over attempted steps,

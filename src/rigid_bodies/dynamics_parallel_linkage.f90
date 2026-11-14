@@ -971,7 +971,7 @@ contains
         ! or the end-effector equations.
         real(real64), intent(in), dimension(:) :: x
         real(real64), intent(out), dimension(:) :: f
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
 
         integer(int32) :: nc
         real(real64) :: T(4, 4)
@@ -997,7 +997,7 @@ contains
         ! well conditioned as a joint variable approaches zero.
         real(real64), intent(in), dimension(:) :: x
         real(real64), intent(out), dimension(:,:) :: jac
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
 
         integer(int32) :: i, n, m
         real(real64) :: h

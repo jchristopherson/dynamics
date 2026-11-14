@@ -27,7 +27,7 @@ subroutine duffing_eom(t, state, derivative, args)
     real(real64), intent(in) :: t
     real(real64), intent(in), dimension(:) :: state
     real(real64), intent(out), dimension(:) :: derivative
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
 
     ! State is [displacement, velocity, forcing phase]. The phase state makes
     ! the periodically forced equation autonomous for section construction.

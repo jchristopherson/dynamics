@@ -35,7 +35,7 @@ contains
             ! The joint variables.
         real(real64), intent(out), dimension(:) :: equations
             ! The resulting kinematic equations.
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
             ! Optional argument that can be used for passing data, 
             ! communication with the outside world, etc.
 

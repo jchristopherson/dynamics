@@ -43,7 +43,7 @@ module dynamics_frequency_sweep
                 !! The value of the solution estimate at time t.
             real(real64), intent(out), dimension(:) :: dxdt
                 !! The derivatives as computed by this routine.
-            class(*), intent(inout), optional :: args
+            class(*), intent(in), optional :: args
                 !! An optional argument allowing the passing of data in/out of
                 !! this routine.
         end subroutine
@@ -140,7 +140,7 @@ contains
             !! Set to true if the units of the frequency vector are in Hz.  If
             !! false, the units are assumed as rad/s.  The default is false such
             !! that the frequency units are assumed to be rad/s.
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
             !! An optional argument allowing for passing of data in/out of the
             !! fcn subroutine.
         type(frf) :: rst
@@ -261,7 +261,7 @@ contains
         real(real64), intent(in) :: x
         real(real64), intent(in), dimension(:) :: y
         real(real64), intent(out), dimension(:) :: dydx
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
 
         select type (args)
         class is (frf_arg_container)
@@ -353,7 +353,7 @@ contains
             !! Set to true if the units of the frequency units are in Hz.  If
             !! false, the units are assumed as rad/s.  The default is false such
             !! that the frequency units are assumed to be rad/s.
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
             !! An optional argument allowing for passing of data in/out of the
             !! fcn subroutine.
         type(frf) :: rst

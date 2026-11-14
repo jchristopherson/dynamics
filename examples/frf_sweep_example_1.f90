@@ -32,7 +32,7 @@ contains
             ! An array of the N dependent variables.
         real(real64), intent(out), dimension(:) :: dydx
             ! An output array of length N where the derivatives are written.
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
             ! An optional object for input/output of additional information.
 
         ! Variables

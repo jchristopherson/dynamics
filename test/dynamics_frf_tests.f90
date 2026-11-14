@@ -56,7 +56,7 @@ pure subroutine example_2nd_order_sweep(freq, x, y, dydx, args)
     real(real64), intent(in) :: x
     real(real64), intent(in), dimension(:) :: y
     real(real64), intent(out), dimension(:) :: dydx
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
 
     ! Model Parameters
     real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
@@ -139,7 +139,7 @@ end function
 subroutine modal_frf_forcing_term(freq, f, args)
     real(real64), intent(in) :: freq
     complex(real64), intent(out), dimension(:) :: f
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
 
     complex(real64), parameter :: zero = (0.0d0, 0.0d0)
     complex(real64), parameter :: one = (1.0d0, 0.0d0)
@@ -150,7 +150,7 @@ end subroutine
 subroutine sparse_modal_frf_forcing_term(freq, f, args)
     real(real64), intent(in) :: freq
     complex(real64), intent(out), dimension(:) :: f
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
 
     f = (0.0d0, 0.0d0)
     f(1) = cmplx(1.0d0, 0.25d0 * freq, real64)
@@ -159,7 +159,7 @@ end subroutine
 subroutine general_damping_frf_forcing_term(freq, f, args)
     real(real64), intent(in) :: freq
     complex(real64), intent(out), dimension(:) :: f
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
 
     f(1) = cmplx(1.0d0, 0.1d0 * freq, real64)
     f(2) = cmplx(0.5d0, -0.25d0 * freq, real64)

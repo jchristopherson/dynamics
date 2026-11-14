@@ -222,7 +222,7 @@ end function
 subroutine record_poincare_progress(completed_samples, total_samples, time, args)
     integer(int32), intent(in) :: completed_samples, total_samples
     real(real64), intent(in) :: time
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
 
     select type (progress => args)
     type is (poincare_progress_test_data)
@@ -239,7 +239,7 @@ subroutine linear_section_ode(t, state, derivative, args)
     real(real64), intent(in) :: t
     real(real64), intent(in), dimension(:) :: state
     real(real64), intent(out), dimension(:) :: derivative
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
 
     derivative = [1.0d0, 2.0d0, 1.0d0]
 end subroutine

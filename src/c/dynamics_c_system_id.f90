@@ -201,7 +201,7 @@ subroutine siso_fit_ode(t, x, dxdt, args)
     real(real64), intent(in) :: t
     real(real64), intent(in), dimension(:) :: x
     real(real64), intent(out), dimension(:) :: dxdt
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
     class(*), pointer :: ptr
     real(real64) :: frc
     real(real64), allocatable, dimension(:) :: mdl
@@ -225,7 +225,7 @@ subroutine siso_constraint_equations(xg, fg, xc, p, fc, args)
     real(real64), intent(in), dimension(:) :: xc
     real(real64), intent(in), dimension(:) :: p
     real(real64), intent(out), dimension(:) :: fc
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
 
     select type (args)
     class is (c_siso_fit_container)

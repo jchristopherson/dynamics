@@ -30,7 +30,7 @@ contains
 subroutine ode_fcn(t, x, dxdt, args)
     real(real64), intent(in) :: t, x(:)
     real(real64), intent(out) :: dxdt(:)
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
 
     ! m x" + b x' + k x = U sin(w * t)
     dxdt(1) = x(2)
@@ -40,7 +40,7 @@ end subroutine
 subroutine ode_excite_fcn(t, f, args)
     real(real64), intent(in) :: t
     real(real64), intent(out) :: f(:)
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
     f = U * sin(w * t)
 end subroutine
 
