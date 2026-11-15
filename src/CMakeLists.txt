@@ -47,8 +47,9 @@ find_package(nonlin 3.0 QUIET)
 find_package(fstats 2.0 QUIET)
 find_package(diffeq 3.0 QUIET)
 find_package(peaks QUIET)
-find_package(spectrum 1.5.0 QUIET)
-find_package(collections 1.2.0 QUIET)
+find_package(spectrum 1.5 QUIET)
+find_package(collections 1.2 QUIET)
+find_package(autodiff 1.0 QUIET)
 
 if (NOT linalg_FOUND)
     message(STATUS "LINALG could not be found.  A reference version will be employed.")
@@ -153,6 +154,21 @@ else()
     set(BUILD_COLLECTIONS FALSE)
 endif()
 
+if (NOT autodiff_FOUND)
+    message(STATUS "AUTODIFF could not be found.  A reference version will be employed.")
+    FetchContent_Declare(
+        autodiff
+        GIT_REPOSITORY "https://github.com/jchristopherson/autodiff"
+        GIT_TAG main
+    )
+    FetchContent_MakeAvailable(autodiff)
+    set(AUTODIFF_LIBRARIES autodiff)
+    set(BUILD_AUTODIFF TRUE)
+else()
+    set(AUTODIFF_LIBRARIES autodiff::autodiff)
+    set(BUILD_AUTODIFF FALSE)
+endif()
+
 # Build
 add_library(${PROJECT_NAME} ${DYNAMICS_SOURCES})
 target_link_libraries(
@@ -165,6 +181,7 @@ target_link_libraries(
     ${PEAKS_LIBRARIES}
     ${SPECTRUM_LIBRARIES}
     ${COLLECTIONS_LIBRARIES}
+    ${AUTODIFF_LIBRARIES}
 )
 if (OpenMP_Fortran_FOUND)
     target_link_libraries(${PROJECT_NAME} PUBLIC OpenMP::OpenMP_Fortran)
@@ -257,6 +274,12 @@ if (${BUILD_SHARED_LIBS})
             LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         )
     endif()
+    if (${BUILD_AUTODIFF})
+        install(TARGETS ${AUTODIFF_LIBRARIES}
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        )
+    endif()
 else()
     if (${BUILD_LINALG})
         install(TARGETS ${LINALG_LIBRARIES}
@@ -296,6 +319,12 @@ else()
     endif()
     if (${BUILD_SPECTRUM})
         install(TARGETS ${SPECTRUM_LIBRARIES}
+            RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        )
+    endif()
+    if (${BUILD_AUTODIFF})
+        install(TARGETS ${AUTODIFF_LIBRARIES}
             RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}
             LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         )
