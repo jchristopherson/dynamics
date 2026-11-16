@@ -31,7 +31,6 @@ set(DYNAMICS_SOURCES
     ${dir}/solvers/dynamics_linear_structural_solvers.f90
     ${dir}/frequency/dynamics_frequency_sweep.f90
     ${dir}/frequency/dynamics_modal_analysis.f90
-    ${dir}/flexible_bodies/dynamics_flexible_types.f90
 )
 
 # C API
