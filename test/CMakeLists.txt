@@ -17,6 +17,7 @@ set(dynamics_test_sources
     dynamics_linkage_dynamics_tests.f90
     dynamics_discrete_elements_tests.f90
     dynamics_shell_elements_tests.f90
+    dynamics_flexible_bodies_tests.f90
 )
 
 # Dependencies

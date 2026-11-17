@@ -31,6 +31,11 @@ set(DYNAMICS_SOURCES
     ${dir}/solvers/dynamics_linear_structural_solvers.f90
     ${dir}/frequency/dynamics_frequency_sweep.f90
     ${dir}/frequency/dynamics_modal_analysis.f90
+    ${dir}/flexible_bodies/dynamics_flexible_bodies.f90
+    ${dir}/flexible_bodies/dynamics_flexible_types.f90
+    ${dir}/flexible_bodies/dynamics_flexible_materials.f90
+    ${dir}/flexible_bodies/dynamics_flexible_truss.f90
+    ${dir}/flexible_bodies/dynamics_flexible_discrete.f90
 )
 
 # C API
@@ -49,7 +54,7 @@ find_package(diffeq 3.0 QUIET)
 find_package(peaks QUIET)
 find_package(spectrum 1.5 QUIET)
 find_package(collections 1.2 QUIET)
-find_package(autodiff 1.0 QUIET)
+find_package(autodiff 1.1 QUIET)
 
 if (NOT linalg_FOUND)
     message(STATUS "LINALG could not be found.  A reference version will be employed.")
@@ -159,7 +164,7 @@ if (NOT autodiff_FOUND)
     FetchContent_Declare(
         autodiff
         GIT_REPOSITORY "https://github.com/jchristopherson/autodiff"
-        GIT_TAG main
+        GIT_TAG v1.1.0
     )
     FetchContent_MakeAvailable(autodiff)
     set(AUTODIFF_LIBRARIES autodiff)

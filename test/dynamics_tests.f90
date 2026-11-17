@@ -29,6 +29,7 @@ program main
     use dynamics_linkage_dynamics_tests
     use dynamics_discrete_elements_tests
     use dynamics_shell_elements_tests
+    use dynamics_flexible_bodies_tests
     implicit none
 
     ! Variables
@@ -169,6 +170,21 @@ program main
 
     check = test_shell_cantilever_modal()
     if (.not.check) flag = 167
+
+    check = test_flexible_truss_2d()
+    if (.not.check) flag = 190
+
+    check = test_flexible_rigid_translation()
+    if (.not.check) flag = 191
+
+    check = test_flexible_truss_3d_fd()
+    if (.not.check) flag = 192
+
+    check = test_flexible_spring()
+    if (.not.check) flag = 193
+
+    check = test_flexible_damper()
+    if (.not.check) flag = 194
 
     check = test_forward_kinematics()
     if (.not.check) flag = 12

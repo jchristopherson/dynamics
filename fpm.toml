@@ -18,6 +18,7 @@ spectrum = { git = "https://github.com/jchristopherson/spectrum", tag = "v1.5.0"
 fstats = { git = "https://github.com/jchristopherson/fstats", tag = "v1.8.0" } 
 peaks = { git = "https://github.com/jchristopherson/peaks" }
 collections = { git = "https://github.com/jchristopherson/collections", tag = "v1.2.0" }
+autodiff = { git = "https://github.com/jchristopherson/autodiff", tag = "v1.1.0" }
 
 [dev-dependencies]
 fortran_test_helper = { git = "https://github.com/jchristopherson/fortran_test_helper" }
