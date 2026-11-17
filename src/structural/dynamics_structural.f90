@@ -1786,10 +1786,10 @@ pure function solve_static_system_csr(K, F) result(rst)
     ! Build an ILU preconditioner with a tight drop tolerance, then let a
     ! restarted GMRES iteration converge on the true solution rather than
     ! trusting the incomplete factorization alone.
-    krylov = min(n, 300)
+    krylov = min(n, 50)
     allocate(ju(n))
     call lu_factor(K, lu, ju, droptol = epsilon(rnorm))
-    rst = pgmres_solver(K, lu, ju, F, im = krylov, tol = epsilon(rnorm), &
+    rst = pgmres_solver(K, lu, ju, F, im = krylov, tol = residual_tolerance, &
         maxits = 200)
 
     ! GMRES only monitors the preconditioned residual internally, so verify

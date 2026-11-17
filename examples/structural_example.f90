@@ -238,8 +238,10 @@ contains
         ! Set f_ to zeros
         f_ = zero
 
-        ! Assign the forcing term to the appropriate node
-        f_(5) = applied_force
+        ! Assign the forcing term to the apex's vertical DOF.  The system is
+        ! reduced by the boundary conditions (global DOFs 1-3 removed), so the
+        ! global DOF 5 maps to index 2 in the reduced system.
+        f_(2) = applied_force
     end subroutine
 
 ! ------------------------------------------------------------------------------
