@@ -54,34 +54,48 @@ module dynamics_flexible_truss
 contains
 ! ------------------------------------------------------------------------------
 function truss_2d_dof_count(this) result(n)
+    !! Returns the number of degrees of freedom of the 2D truss, which is four.
     class(flexible_truss_2d), intent(in) :: this
+        !! The element.
     integer(int32) :: n
+        !! The number of element degrees of freedom.
 
     n = 4
 end function
 
 ! ------------------------------------------------------------------------------
 function truss_3d_dof_count(this) result(n)
+    !! Returns the number of degrees of freedom of the 3D truss, which is six.
     class(flexible_truss_3d), intent(in) :: this
+        !! The element.
     integer(int32) :: n
+        !! The number of element degrees of freedom.
 
     n = 6
 end function
 
 ! ------------------------------------------------------------------------------
 function truss_2d_strain_energy(this, u) result(w)
+    !! Evaluates the strain energy of the 2D truss for hyper-dual displacements.
     class(flexible_truss_2d), intent(in) :: this
+        !! The element.
     type(hyperdual), intent(in), dimension(:) :: u
+        !! The hyper-dual nodal displacements, ordered by node.
     type(hyperdual) :: w
+        !! The strain energy.
 
     w = bar_strain_energy(this%reference_coordinates, this%area, this%material, u)
 end function
 
 ! ------------------------------------------------------------------------------
 function truss_3d_strain_energy(this, u) result(w)
+    !! Evaluates the strain energy of the 3D truss for hyper-dual displacements.
     class(flexible_truss_3d), intent(in) :: this
+        !! The element.
     type(hyperdual), intent(in), dimension(:) :: u
+        !! The hyper-dual nodal displacements, ordered by node.
     type(hyperdual) :: w
+        !! The strain energy.
 
     w = bar_strain_energy(this%reference_coordinates, this%area, this%material, u)
 end function
@@ -89,12 +103,19 @@ end function
 ! ------------------------------------------------------------------------------
 function bar_strain_energy(x0, area, mat, u) result(w)
     !! Strain energy of a truss with reference coordinates `x0` (one column per
-    !! node).  The Green-Lagrange strain is \(E = (L^2 - L_0^2) / (2 L_0^2)\).
+    !! node).  The Green-Lagrange strain is \(E = (L^2 - L_0^2) / (2 L_0^2)\),
+    !! and the energy is \(W = L_0 A W_m(E)\), where \(W_m\) is the material
+    !! strain energy density.
     real(real64), intent(in), dimension(:,:) :: x0
+        !! The reference nodal coordinates, one column per node.
     real(real64), intent(in) :: area
+        !! The cross-sectional area.
     class(flexible_material), intent(in) :: mat
+        !! The material model.
     type(hyperdual), intent(in), dimension(:) :: u
+        !! The hyper-dual nodal displacements.
     type(hyperdual) :: w
+        !! The strain energy.
 
     integer(int32) :: i, d
     real(real64) :: l0sq

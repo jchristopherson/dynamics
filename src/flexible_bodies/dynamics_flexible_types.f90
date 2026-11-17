@@ -61,49 +61,75 @@ module dynamics_flexible_types
 
     abstract interface
         function dof_count_function(this) result(n)
+            !! Returns the number of degrees of freedom of the element.
             import
             class(flexible_element), intent(in) :: this
+                !! The element.
             integer(int32) :: n
+                !! The number of element degrees of freedom.
         end function
 
         function strain_energy_function(this, u) result(w)
+            !! Evaluates the strain energy of the element.  The function must
+            !! be written for hyper-dual arguments so that its derivatives can
+            !! be obtained by automatic differentiation.
             import
             class(finite_element), intent(in) :: this
+                !! The element.
             type(hyperdual), intent(in), dimension(:) :: u
                 !! Hyper-dual element displacements.
             type(hyperdual) :: w
+                !! The strain energy.
         end function
 
         function dissipation_function(this, u, v) result(d)
+            !! Evaluates the dissipation function of the element.  The function
+            !! must be written for hyper-dual velocities so that the damping
+            !! matrix can be obtained by automatic differentiation.
             import
             class(dissipative_element), intent(in) :: this
+                !! The element.
             real(real64), intent(in), dimension(:) :: u
-                !! Element displacements.
+                !! Element displacements, held at their evaluation point.
             type(hyperdual), intent(in), dimension(:) :: v
                 !! Hyper-dual element velocities.
             type(hyperdual) :: d
+                !! The dissipation.
         end function
     end interface
 
 contains
 ! ------------------------------------------------------------------------------
 subroutine finite_element_internal_force(this, u, f, k)
-    !! Computes the internal force vector `f` and tangent stiffness matrix `k`
-    !! at the element displacements `u`.
+    !! Computes the internal force vector and tangent stiffness matrix of the
+    !! element at the displacements `u`.  The force is the gradient of the
+    !! strain energy and the tangent is its Hessian, both obtained by automatic
+    !! differentiation.  The tangent costs \(n(n+1)/2\) energy evaluations for
+    !! an element with \(n\) degrees of freedom.
     class(finite_element), intent(in) :: this
+        !! The element.
     real(real64), intent(in), dimension(:) :: u
+        !! The element displacements, of length `get_dof_count()`.
     real(real64), intent(out), dimension(:) :: f
+        !! On output, the internal force vector.
     real(real64), intent(out), dimension(:,:) :: k
+        !! On output, the tangent stiffness matrix.
 
     call hessian(strain_energy_wrapper, u, k, g = f, args = this)
 end subroutine
 
 ! ------------------------------------------------------------------------------
 function strain_energy_wrapper(x, args) result(w)
-    !! Adapts the strain energy method to the hyper-dual function interface.
+    !! Adapts the `strain_energy` type-bound method to the hyper-dual function
+    !! interface expected by the `hessian` driver.  The element is passed
+    !! through `args`.  If `args` does not hold a `finite_element`, the result
+    !! is zero.
     type(hyperdual), intent(in), dimension(:) :: x
+        !! The hyper-dual element displacements.
     class(*), intent(in), optional :: args
+        !! The finite element that supplies the strain energy.
     type(hyperdual) :: w
+        !! The strain energy.
 
     select type (args)
     class is (finite_element)
@@ -115,12 +141,17 @@ end function
 
 ! ------------------------------------------------------------------------------
 subroutine dissipative_element_damping_matrix(this, u, c)
-    !! Computes the damping matrix `c` at the element displacements `u`.  The
-    !! dissipation is quadratic in the velocities, so the Hessian is independent
-    !! of the evaluation point in velocity space.
+    !! Computes the damping matrix of the element at the displacements `u`.
+    !! The Hessian of the dissipation with respect to the velocities is taken
+    !! by automatic differentiation.  The dissipation is assumed quadratic in
+    !! the velocities, so the result does not depend on the velocity at which
+    !! it is evaluated, and the velocity is set to zero.
     class(dissipative_element), intent(in) :: this
+        !! The element.
     real(real64), intent(in), dimension(:) :: u
+        !! The element displacements, of length `get_dof_count()`.
     real(real64), intent(out), dimension(:,:) :: c
+        !! On output, the damping matrix.
 
     type(dissipation_context) :: ctx
     real(real64), allocatable, dimension(:) :: v
@@ -133,10 +164,16 @@ end subroutine
 
 ! ------------------------------------------------------------------------------
 function dissipation_wrapper(x, args) result(d)
-    !! Adapts the dissipation method to the hyper-dual function interface.
+    !! Adapts the `dissipation` type-bound method to the hyper-dual function
+    !! interface expected by the `hessian` driver.  The element and the real
+    !! displacements are taken from the `dissipation_context` in `args`.  If
+    !! `args` does not hold a `dissipation_context`, the result is zero.
     type(hyperdual), intent(in), dimension(:) :: x
+        !! The hyper-dual element velocities.
     class(*), intent(in), optional :: args
+        !! The dissipation context.
     type(hyperdual) :: d
+        !! The dissipation.
 
     select type (args)
     type is (dissipation_context)

@@ -54,8 +54,13 @@ module dynamics_flexible_materials
 
     abstract interface
         function energy_density_function(this, e) result(w)
+            !! Evaluates the strain energy density of the material for a
+            !! Green-Lagrange strain.  The function must be written for
+            !! hyper-dual arguments so that the element stress and tangent
+            !! follow by automatic differentiation.
             import
             class(flexible_material), intent(in) :: this
+                !! The material.
             type(hyperdual), intent(in) :: e
                 !! The Green-Lagrange strain.
             type(hyperdual) :: w
@@ -66,18 +71,27 @@ module dynamics_flexible_materials
 contains
 ! ------------------------------------------------------------------------------
 function linear_energy_density(this, e) result(w)
+    !! Evaluates the strain energy density \(W(E) = \frac{1}{2} M E^2\).
     class(linear_elastic_1d), intent(in) :: this
+        !! The material.
     type(hyperdual), intent(in) :: e
+        !! The Green-Lagrange strain.
     type(hyperdual) :: w
+        !! The strain energy density.
 
     w = 0.5d0 * this%modulus * e * e
 end function
 
 ! ------------------------------------------------------------------------------
 function polynomial_energy_density(this, e) result(w)
+    !! Evaluates the strain energy density
+    !! \(W(E) = \frac{1}{2} M E^2 + \frac{1}{3} a E^3 + \frac{1}{4} b E^4\).
     class(polynomial_elastic_1d), intent(in) :: this
+        !! The material.
     type(hyperdual), intent(in) :: e
+        !! The Green-Lagrange strain.
     type(hyperdual) :: w
+        !! The strain energy density.
 
     w = 0.5d0 * this%modulus * e * e + &
         this%quadratic * e * e * e / 3.0d0 + &

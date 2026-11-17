@@ -83,41 +83,57 @@ module dynamics_flexible_discrete
 contains
 ! ------------------------------------------------------------------------------
 function spring_2d_dof_count(this) result(n)
+    !! Returns the number of degrees of freedom of the 2D spring, which is four.
     class(flexible_spring_2d), intent(in) :: this
+        !! The element.
     integer(int32) :: n
+        !! The number of element degrees of freedom.
 
     n = 4
 end function
 
 ! ------------------------------------------------------------------------------
 function spring_3d_dof_count(this) result(n)
+    !! Returns the number of degrees of freedom of the 3D spring, which is six.
     class(flexible_spring_3d), intent(in) :: this
+        !! The element.
     integer(int32) :: n
+        !! The number of element degrees of freedom.
 
     n = 6
 end function
 
 ! ------------------------------------------------------------------------------
 function damper_2d_dof_count(this) result(n)
+    !! Returns the number of degrees of freedom of the 2D damper, which is four.
     class(flexible_damper_2d), intent(in) :: this
+        !! The element.
     integer(int32) :: n
+        !! The number of element degrees of freedom.
 
     n = 4
 end function
 
 ! ------------------------------------------------------------------------------
 function damper_3d_dof_count(this) result(n)
+    !! Returns the number of degrees of freedom of the 3D damper, which is six.
     class(flexible_damper_3d), intent(in) :: this
+        !! The element.
     integer(int32) :: n
+        !! The number of element degrees of freedom.
 
     n = 6
 end function
 
 ! ------------------------------------------------------------------------------
 function spring_2d_strain_energy(this, u) result(w)
+    !! Evaluates the strain energy of the 2D spring for hyper-dual displacements.
     class(flexible_spring_2d), intent(in) :: this
+        !! The element.
     type(hyperdual), intent(in), dimension(:) :: u
+        !! The hyper-dual nodal displacements, ordered by node.
     type(hyperdual) :: w
+        !! The strain energy.
 
     w = spring_energy(this%reference_coordinates, this%stiffness, &
         this%cubic_stiffness, u)
@@ -125,9 +141,13 @@ end function
 
 ! ------------------------------------------------------------------------------
 function spring_3d_strain_energy(this, u) result(w)
+    !! Evaluates the strain energy of the 3D spring for hyper-dual displacements.
     class(flexible_spring_3d), intent(in) :: this
+        !! The element.
     type(hyperdual), intent(in), dimension(:) :: u
+        !! The hyper-dual nodal displacements, ordered by node.
     type(hyperdual) :: w
+        !! The strain energy.
 
     w = spring_energy(this%reference_coordinates, this%stiffness, &
         this%cubic_stiffness, u)
@@ -135,31 +155,50 @@ end function
 
 ! ------------------------------------------------------------------------------
 function damper_2d_dissipation(this, u, v) result(d)
+    !! Evaluates the dissipation of the 2D damper for hyper-dual velocities.
     class(flexible_damper_2d), intent(in) :: this
+        !! The element.
     real(real64), intent(in), dimension(:) :: u
+        !! The nodal displacements, which set the current axis direction.
     type(hyperdual), intent(in), dimension(:) :: v
+        !! The hyper-dual nodal velocities, ordered by node.
     type(hyperdual) :: d
+        !! The dissipation.
 
     d = damper_dissipation(this%reference_coordinates, this%damping, u, v)
 end function
 
 ! ------------------------------------------------------------------------------
 function damper_3d_dissipation(this, u, v) result(d)
+    !! Evaluates the dissipation of the 3D damper for hyper-dual velocities.
     class(flexible_damper_3d), intent(in) :: this
+        !! The element.
     real(real64), intent(in), dimension(:) :: u
+        !! The nodal displacements, which set the current axis direction.
     type(hyperdual), intent(in), dimension(:) :: v
+        !! The hyper-dual nodal velocities, ordered by node.
     type(hyperdual) :: d
+        !! The dissipation.
 
     d = damper_dissipation(this%reference_coordinates, this%damping, u, v)
 end function
 
 ! ------------------------------------------------------------------------------
 function spring_energy(x0, k, k3, u) result(w)
-    !! Strain energy of a spring with reference coordinates `x0`.
+    !! Strain energy of a spring with reference coordinates `x0`.  The current
+    !! length is computed from the hyper-dual displacements, and the change in
+    !! length \(\delta = L - L_0\) gives \(W = \frac{1}{2} k \delta^2 +
+    !! \frac{1}{4} k_3 \delta^4\).
     real(real64), intent(in), dimension(:,:) :: x0
-    real(real64), intent(in) :: k, k3
+        !! The reference nodal coordinates, one column per node.
+    real(real64), intent(in) :: k
+        !! The linear stiffness.
+    real(real64), intent(in) :: k3
+        !! The nonlinear stiffness.
     type(hyperdual), intent(in), dimension(:) :: u
+        !! The hyper-dual nodal displacements.
     type(hyperdual) :: w
+        !! The strain energy.
 
     integer(int32) :: i, d
     type(hyperdual) :: l2, len, delta, dx
@@ -177,14 +216,20 @@ end function
 
 ! ------------------------------------------------------------------------------
 function damper_dissipation(x0, c, u, v) result(d)
-    !! Dissipation of a viscous damper.  The current axis direction is taken
-    !! from the real displacements `u`, and the rate of change of length is the
-    !! projection of the hyper-dual relative velocity onto that direction.
+    !! Dissipation of a viscous damper, \(D = \frac{1}{2} c \dot{L}^2\).  The
+    !! current axis direction is taken from the real displacements `u`, and the
+    !! rate of change of length is the projection of the hyper-dual relative
+    !! velocity onto that direction.
     real(real64), intent(in), dimension(:,:) :: x0
+        !! The reference nodal coordinates, one column per node.
     real(real64), intent(in) :: c
+        !! The viscous damping coefficient.
     real(real64), intent(in), dimension(:) :: u
+        !! The nodal displacements, which set the current axis direction.
     type(hyperdual), intent(in), dimension(:) :: v
+        !! The hyper-dual nodal velocities.
     type(hyperdual) :: d
+        !! The dissipation.
 
     integer(int32) :: i, n
     real(real64) :: dir(size(x0, 1)), length
