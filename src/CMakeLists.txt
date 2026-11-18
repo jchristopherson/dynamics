@@ -165,7 +165,7 @@ if (NOT autodiff_FOUND)
     FetchContent_Declare(
         autodiff
         GIT_REPOSITORY "https://github.com/jchristopherson/autodiff"
-        GIT_TAG v1.1.0
+        GIT_TAG main
     )
     FetchContent_MakeAvailable(autodiff)
     set(AUTODIFF_LIBRARIES autodiff)
