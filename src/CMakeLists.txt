@@ -36,6 +36,7 @@ set(DYNAMICS_SOURCES
     ${dir}/flexible_bodies/dynamics_flexible_materials.f90
     ${dir}/flexible_bodies/dynamics_flexible_truss.f90
     ${dir}/flexible_bodies/dynamics_flexible_discrete.f90
+    ${dir}/flexible_bodies/dynamics_flexible_beams.f90
 )
 
 # C API

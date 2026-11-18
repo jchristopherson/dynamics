@@ -13,6 +13,8 @@
 ! fitness for a particular purpose and noninfringement.
 module dynamics_flexible_bodies_tests
     use iso_fortran_env
+    use ieee_arithmetic, only : ieee_is_finite
+    use autodiff, only : hyperdual
     use dynamics
     implicit none
 
@@ -208,6 +210,137 @@ function test_flexible_damper() result(rst)
         print "(A)", "TEST FAILED: test_flexible_damper - 3D"
         rst = .false.
     end if
+end function
+
+! ------------------------------------------------------------------------------
+function test_flexible_beam_linear_limits() result(rst)
+    !! Compares unloaded tangents against the classical planar bending and
+    !! axial stiffnesses and checks spatial torsional stiffness independently.
+    logical :: rst
+    type(flexible_euler_bernoulli_2d) :: eb
+    type(flexible_timoshenko_2d) :: tm
+    type(flexible_euler_bernoulli_3d) :: eb3
+    type(flexible_timoshenko_3d) :: tm3
+    real(real64) :: f(6), k(6,6), f3(12), k3(12,12), expected(2,2)
+    integer, parameter :: tip(2) = [5, 6]
+    real(real64), parameter :: l = 2.0d0, ei = 3.0d0, ga = 7.0d0, gj = 11.0d0
+    real(real64), parameter :: tol = 1.0d-10, twist = 0.6d0
+    real(real64) :: u3(12)
+
+    eb%reference_coordinates(:,2) = [l, 0.0d0]
+    eb%bending_stiffness = ei
+    eb%area = 2.0d0
+    eb%material = linear_elastic_1d(5.0d0)
+    tm%reference_coordinates = eb%reference_coordinates
+    tm%bending_stiffness = ei
+    tm%shear_stiffness = ga
+    tm%area = eb%area
+    tm%material = eb%material
+
+    call eb%internal_force([0.0d0, 0.0d0, 0.0d0, 0.0d0, 0.0d0, 0.0d0], f, k)
+    expected = ei * reshape([12/l**3, -6/l**2, -6/l**2, 4/l], [2,2])
+    rst = all(ieee_is_finite(k)) .and. maxval(abs(k(tip,tip) - expected)) < tol .and. &
+        abs(k(4,4) - 10/l) < tol .and. maxval(abs(f)) < tol
+    if (.not. rst) then
+        print *, "TEST FAILED: Euler-Bernoulli planar linear stiffness"
+        return
+    end if
+
+    call tm%internal_force([0.0d0, 0.0d0, 0.0d0, 0.0d0, 0.0d0, 0.0d0], f, k)
+    expected = reshape([ga/l, -ga/2, -ga/2, ei/l + ga*l/4], [2,2])
+    rst = all(ieee_is_finite(k)) .and. maxval(abs(k(tip,tip) - expected)) < tol .and. &
+        abs(k(4,4) - 10/l) < tol .and. maxval(abs(f)) < tol
+    if (.not. rst) then
+        print *, "TEST FAILED: Timoshenko planar linear stiffness"
+        return
+    end if
+
+    eb3%reference_coordinates(:,2) = [l, 0.0d0, 0.0d0]
+    eb3%torsional_stiffness = gj
+    eb3%material = eb%material
+    tm3%reference_coordinates = eb3%reference_coordinates
+    tm3%torsional_stiffness = gj
+    tm3%material = eb%material
+    u3 = 0.0d0
+    call eb3%internal_force(u3, f3, k3)
+    rst = all(ieee_is_finite(k3)) .and. abs(k3(10,10) - gj/l) < tol
+    u3(10) = twist
+    call tm3%internal_force(u3, f3, k3)
+    rst = rst .and. all(ieee_is_finite(k3)) .and. abs(f3(10) - gj*twist/l) < tol .and. &
+        abs(k3(10,10) - gj/l) < tol
+    if (.not. rst) print *, "TEST FAILED: spatial beam torsion"
+end function
+
+function test_flexible_beam_objectivity() result(rst)
+    !! Verifies that a finite rigid motion gives no elastic force and that
+    !! superposing that motion on a strained state preserves its energy.
+    logical :: rst
+    type(flexible_euler_bernoulli_3d) :: eb
+    type(flexible_timoshenko_3d) :: tm
+    real(real64), parameter :: axis(3) = [2.0d0, -1.0d0, 2.0d0]/3.0d0
+    real(real64), parameter :: shift(3) = [0.2d0, -0.5d0, 0.4d0], theta = 1.1d0
+    real(real64) :: u(12), rigid(12), moved(12), p(3), r(3), unit_axis(3), angle
+    type(quaternion) :: superposed
+    integer :: i, j
+
+    eb%reference_coordinates(:,1) = [0.2d0, 0.1d0, -0.4d0]
+    eb%reference_coordinates(:,2) = [1.5d0, 1.0d0, 0.6d0]
+    eb%bending_stiffness = [2.0d0, 5.0d0]
+    eb%material = polynomial_elastic_1d(20.0d0, 9.0d0, 3.0d0)
+    tm%reference_coordinates = eb%reference_coordinates
+    tm%bending_stiffness = eb%bending_stiffness
+    tm%shear_stiffness = [3.0d0, 7.0d0]
+    tm%material = eb%material
+    u = [0.01d0, 0.04d0, -0.03d0, -0.15d0, 0.1d0, 0.05d0, &
+        0.2d0, -0.08d0, 0.1d0, 0.2d0, 0.15d0, -0.25d0]
+    do i = 1, 2
+        j = 6*(i-1)
+        p = eb%reference_coordinates(:,i)
+        rigid(j+1:j+3) = rotate_test_point(p, axis, theta) + shift - p
+        rigid(j+4:j+6) = theta*axis
+        moved(j+1:j+3) = rotate_test_point(p + u(j+1:j+3), axis, theta) + shift - p
+        r = u(j+4:j+6)
+        superposed = quaternion(theta, axis) * quaternion(norm2(r), r/norm2(r))
+        call superposed%to_angle_axis(angle, unit_axis)
+        moved(j+4:j+6) = angle*unit_axis
+    end do
+    rst = check_beam_objectivity(eb, u, rigid, moved) .and. check_beam_objectivity(tm, u, rigid, moved)
+    if (.not. rst) print *, "TEST FAILED: flexible beam finite-motion objectivity"
+end function
+
+function rotate_test_point(p, axis, angle) result(q)
+    !! Uses Rodrigues' formula to construct the independent rigid-motion test.
+    real(real64), intent(in) :: p(3), axis(3), angle
+    real(real64) :: q(3)
+
+    q = cos(angle)*p + sin(angle)*cross_product(axis, p) + (1-cos(angle))*dot_product(axis,p)*axis
+end function
+
+function check_beam_objectivity(el, u, rigid, moved) result(rst)
+    !! Checks energy invariance and compares the tangent at a strained state
+    !! with central differences of the internal force.
+    class(finite_element), intent(in) :: el
+    real(real64), intent(in) :: u(12), rigid(12), moved(12)
+    logical :: rst
+    real(real64) :: f(12), k(12,12), kfd(12,12)
+    type(hyperdual) :: seed(12), w, moved_w, rigid_w
+    integer :: i
+
+    do i = 1, 12
+        seed(i) = hyperdual(u(i), 0.0d0, 0.0d0, 0.0d0)
+    end do
+    w = el%strain_energy(seed)
+    seed%x = moved
+    moved_w = el%strain_energy(seed)
+    seed%x = rigid
+    rigid_w = el%strain_energy(seed)
+    call el%internal_force(rigid, f, k)
+    rst = el%get_dof_count() == 12 .and. abs(rigid_w%x) < 1.0d-12 .and. &
+        maxval(abs(f)) < 1.0d-10 .and. w%x > 1.0d-5 .and. abs(w%x - moved_w%x) < 1.0d-11
+    call el%internal_force(moved, f, k)
+    call fd_stiffness(el, moved, kfd)
+    rst = rst .and. all(ieee_is_finite(k)) .and. all(ieee_is_finite(kfd)) .and. &
+        maxval(abs(k - kfd)) < 1.0d-6 * max(1.0d0, maxval(abs(k)))
 end function
 
 ! ------------------------------------------------------------------------------

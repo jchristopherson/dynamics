@@ -26,9 +26,38 @@ A library of routines used for the analysis of dynamic systems.
 | Force Elements | Springs, dampers, torsional elements, custom force models | ✅ | ✅ | ✅ |
 | Geometry | Points, lines, planes, Plücker lines, intersections, projections | ✅ | ✅ | ✅ |
 | Structural Mechanics | Beam, truss, and shell finite elements | ✅ | ✅ | ✅ |
+| Flexible Bodies | 2D/3D trusses, springs, dampers, and finite-rotation beams | ✅ | ✅ | ⚠️ |
 | Structural Dynamics | Generalized-α integration, dense and sparse assemblies | ✅ | ✅ | ✅ |
 | Stability Analysis | Fixed-point stability classification | ✅ | ✅ | ⚠️ |
 | C Interface | Native C API | ✅ | ✅ | ⚠️ |
+
+### Flexible-body beams
+
+The `dynamics` module exports `flexible_euler_bernoulli_2d`,
+`flexible_euler_bernoulli_3d`, `flexible_timoshenko_2d`, and
+`flexible_timoshenko_3d`. Set the two reference nodes (one per column of
+`reference_coordinates`), the cross-sectional area, the section stiffnesses, and
+an axial `material` such as `linear_elastic_1d` or `polynomial_elastic_1d`.
+For a spatial beam, `reference_y` sets the section orientation and must not be
+parallel to the reference chord.
+
+The planar DOFs are `[ux, uy, theta_z]` per node; the spatial DOFs are
+`[ux, uy, uz, rx, ry, rz]` per node. The spatial rotation vector is expressed
+in the global basis and maps to a finite rotation of the reference frame.
+`internal_force(u, f, k)` differentiates the strain energy with respect to these
+coordinates, so the rotational entries in `f` are conjugate to the rotation-vector
+coordinates, not directly to spatial angular increments.
+
+Euler–Bernoulli follows the tangent of a cubic centerline and has no shear
+strain. Its centerline tangent and projected section frame must remain
+nondegenerate. Timoshenko interpolates the section along the shortest rotational
+arc and evaluates axial and shear strains at the midpoint to avoid linear shear
+locking; subdivide the beam where adjacent sections approach a relative rotation
+of 180 degrees. The axial material receives stretch minus one for Euler–Bernoulli
+and the chord stretch projected onto the midpoint section's axial director minus
+one for Timoshenko, not the Green–Lagrange strain used in the truss. Bending,
+torsion, and shear use quadratic section energies. The beam API currently
+provides elastic force and tangent, not mass or rigid-body/joint assembly.
 
 ## Building
 

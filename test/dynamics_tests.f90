@@ -62,6 +62,11 @@ program main
                 if (.not.test_generalized_alpha_integrator()) stop 152
                 stop
             end if
+            if (selection == "flexible-beams") then
+                if (.not.test_flexible_beam_linear_limits()) stop 195
+                if (.not.test_flexible_beam_objectivity()) stop 196
+                stop
+            end if
         end block
     end if
 
@@ -185,6 +190,12 @@ program main
 
     check = test_flexible_damper()
     if (.not.check) flag = 194
+
+    check = test_flexible_beam_linear_limits()
+    if (.not.check) flag = 195
+
+    check = test_flexible_beam_objectivity()
+    if (.not.check) flag = 196
 
     check = test_forward_kinematics()
     if (.not.check) flag = 12

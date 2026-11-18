@@ -13,9 +13,9 @@
 ! fitness for a particular purpose and noninfringement.
 module dynamics_flexible_materials
     !! Material models for flexible-body elements.  A material supplies its
-    !! strain energy density as a function of a Green-Lagrange strain, written
-    !! for hyper-dual inputs so that the element stress and tangent modulus
-    !! follow by automatic differentiation.
+    !! strain energy density as a function of the element's scalar axial strain
+    !! measure (Green-Lagrange for trusses, generalized extension for beams).
+    !! Hyper-dual inputs let the element differentiate the resulting energy.
     use iso_fortran_env
     use autodiff
     implicit none
@@ -28,7 +28,7 @@ module dynamics_flexible_materials
         !! Base type for one-dimensional elastic materials.
     contains
         procedure(energy_density_function), deferred :: strain_energy_density
-            !! Evaluates the strain energy density for a Green-Lagrange strain.
+            !! Evaluates the strain energy density for the supplied axial strain measure.
     end type
 
     type, extends(flexible_material) :: linear_elastic_1d
@@ -45,24 +45,24 @@ module dynamics_flexible_materials
         real(real64) :: modulus = 1.0d0
             !! The elastic modulus.
         real(real64) :: quadratic = 0.0d0
-            !! The cubic-stress coefficient, \(a\).
+            !! The quadratic-stress coefficient, \(a\).
         real(real64) :: quartic = 0.0d0
-            !! The quartic-stress coefficient, \(b\).
+            !! The cubic-stress coefficient, \(b\).
     contains
         procedure :: strain_energy_density => polynomial_energy_density
     end type
 
     abstract interface
         function energy_density_function(this, e) result(w)
-            !! Evaluates the strain energy density of the material for a
-            !! Green-Lagrange strain.  The function must be written for
+            !! Evaluates the strain energy density for the element's
+            !! scalar axial strain measure. The function must be written for
             !! hyper-dual arguments so that the element stress and tangent
             !! follow by automatic differentiation.
             import
             class(flexible_material), intent(in) :: this
                 !! The material.
             type(hyperdual), intent(in) :: e
-                !! The Green-Lagrange strain.
+                !! The hyper-dual axial strain.
             type(hyperdual) :: w
                 !! The strain energy density.
         end function
@@ -75,7 +75,7 @@ function linear_energy_density(this, e) result(w)
     class(linear_elastic_1d), intent(in) :: this
         !! The material.
     type(hyperdual), intent(in) :: e
-        !! The Green-Lagrange strain.
+        !! The hyper-dual axial strain.
     type(hyperdual) :: w
         !! The strain energy density.
 
@@ -89,7 +89,7 @@ function polynomial_energy_density(this, e) result(w)
     class(polynomial_elastic_1d), intent(in) :: this
         !! The material.
     type(hyperdual), intent(in) :: e
-        !! The Green-Lagrange strain.
+        !! The hyper-dual axial strain.
     type(hyperdual) :: w
         !! The strain energy density.
 

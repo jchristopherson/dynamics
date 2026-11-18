@@ -4,5 +4,6 @@ module dynamics_flexible_bodies
     use dynamics_flexible_materials
     use dynamics_flexible_truss
     use dynamics_flexible_discrete
+    use dynamics_flexible_beams
     implicit none
 end module

@@ -56,6 +56,11 @@ add_test(
     COMMAND $<TARGET_FILE:dynamics_tests> generalized-alpha
 )
 add_test(
+    NAME dynamics_flexible_beam_tests
+    WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+    COMMAND $<TARGET_FILE:dynamics_tests> flexible-beams
+)
+add_test(
     NAME dynamics_variational_startup_tests
     WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
     COMMAND $<TARGET_FILE:dynamics_tests> variational-startup
