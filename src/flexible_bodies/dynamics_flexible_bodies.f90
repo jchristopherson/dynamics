@@ -12,7 +12,9 @@
 ! implied, including but not limited to the warranties of merchantability,
 ! fitness for a particular purpose and noninfringement.
 module dynamics_flexible_bodies
-    !! Umbrella module for flexible-body elements.
+    !! Re-exports the flexible element interfaces, material models, trusses,
+    !! springs, dampers, beams, and beam section laws. These types are also
+    !! available through the top-level `dynamics` module.
     use dynamics_flexible_types
     use dynamics_flexible_materials
     use dynamics_flexible_truss

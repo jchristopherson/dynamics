@@ -29,6 +29,8 @@ module dynamics_flexible_types
 
     type, abstract :: flexible_element
         !! Base type for all flexible-body elements.
+        !! Concrete elements define the ordering of their degrees of freedom;
+        !! all input and output arrays use that same ordering.
     contains
         procedure(dof_count_function), deferred :: get_dof_count
             !! Returns the number of element degrees of freedom.
@@ -36,6 +38,7 @@ module dynamics_flexible_types
 
     type, extends(flexible_element), abstract :: finite_element
         !! Base type for elements that store strain energy.
+        !! The internal force uses the positive energy-gradient convention.
     contains
         procedure(strain_energy_function), deferred :: strain_energy
             !! Evaluates the strain energy for hyper-dual element displacements.
@@ -45,6 +48,7 @@ module dynamics_flexible_types
 
     type, extends(flexible_element), abstract :: dissipative_element
         !! Base type for elements that store a dissipation function.
+        !! The default damping matrix is the velocity Hessian at zero velocity.
     contains
         procedure(dissipation_function), deferred :: dissipation
             !! Evaluates the dissipation for displacements and hyper-dual velocities.
@@ -56,7 +60,9 @@ module dynamics_flexible_types
         !! Caller-owned context passed to the dissipation function during
         !! automatic differentiation.
         class(dissipative_element), allocatable :: element
+            !! Allocated copy of the element supplying the dissipation.
         real(real64), allocatable, dimension(:) :: u
+            !! Displacements held fixed while differentiating in velocity.
     end type
 
     abstract interface
@@ -77,9 +83,9 @@ module dynamics_flexible_types
             class(finite_element), intent(in) :: this
                 !! The element.
             type(hyperdual), intent(in), dimension(:) :: u
-                !! Hyper-dual element displacements.
+                !! Hyper-dual generalized displacements in element DOF order.
             type(hyperdual) :: w
-                !! The strain energy.
+                !! Total stored strain energy of the element.
         end function
 
         function dissipation_function(this, u, v) result(d)
@@ -92,9 +98,9 @@ module dynamics_flexible_types
             real(real64), intent(in), dimension(:) :: u
                 !! Element displacements, held at their evaluation point.
             type(hyperdual), intent(in), dimension(:) :: v
-                !! Hyper-dual element velocities.
+                !! Hyper-dual generalized velocities in the same DOF order as `u`.
             type(hyperdual) :: d
-                !! The dissipation.
+                !! Element dissipation potential; its velocity gradient is the damping force.
         end function
     end interface
 
@@ -111,9 +117,9 @@ subroutine finite_element_internal_force(this, u, f, k)
     real(real64), intent(in), dimension(:) :: u
         !! The element displacements, of length `get_dof_count()`.
     real(real64), intent(out), dimension(:) :: f
-        !! On output, the internal force vector.
+        !! Energy gradient, of length `get_dof_count()`.
     real(real64), intent(out), dimension(:,:) :: k
-        !! On output, the tangent stiffness matrix.
+        !! Energy Hessian, an \(n \times n\) matrix in element DOF order.
 
     call hessian(strain_energy_wrapper, u, k, g = f, args = this)
 end subroutine
@@ -151,7 +157,7 @@ subroutine dissipative_element_damping_matrix(this, u, c)
     real(real64), intent(in), dimension(:) :: u
         !! The element displacements, of length `get_dof_count()`.
     real(real64), intent(out), dimension(:,:) :: c
-        !! On output, the damping matrix.
+        !! Velocity Hessian, an \(n \times n\) matrix with \(n\) equal to `get_dof_count()`.
 
     type(dissipation_context) :: ctx
     real(real64), allocatable, dimension(:) :: v
@@ -171,7 +177,7 @@ function dissipation_wrapper(x, args) result(d)
     type(hyperdual), intent(in), dimension(:) :: x
         !! The hyper-dual element velocities.
     class(*), intent(in), optional :: args
-        !! The dissipation context.
+        !! Dissipation context with an allocated element and fixed displacements.
     type(hyperdual) :: d
         !! The dissipation.
 

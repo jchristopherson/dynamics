@@ -36,10 +36,19 @@ A library of routines used for the analysis of dynamic systems.
 The `dynamics` module exports `flexible_euler_bernoulli_2d`,
 `flexible_euler_bernoulli_3d`, `flexible_timoshenko_2d`, and
 `flexible_timoshenko_3d`. Set the two reference nodes (one per column of
-`reference_coordinates`), the cross-sectional area, the section stiffnesses, and
-an axial `material` such as `linear_elastic_1d` or `polynomial_elastic_1d`.
-For a spatial beam, `reference_y` sets the section orientation and must not be
-parallel to the reference chord.
+`reference_coordinates`), the section geometry, and a `material` such as
+`linear_elastic(youngs_modulus=..., poissons_ratio=...)`. The geometry is
+`area` and `second_moment_of_area` (scalar \(I_z\) in 2D, `[I_y, I_z]` in 3D).
+Spatial beams also use a Saint-Venant `torsion_constant` \(J\). Timoshenko
+beams use `effective_shear_area` (along local y in 2D, `[A_sy, A_sz]` in 3D),
+which includes the shear correction. For a spatial beam, `reference_y` sets
+the section orientation and must not be parallel to the reference chord.
+
+The beam forms \(EI\), \(GJ\), and \(GA_s\) from these geometric properties and
+the material moduli, so changing the material does not require updating the
+section. The built-in materials derive \(G = E/[2(1+\nu)]\).
+`polynomial_elastic` adds a nonlinear axial energy law but retains constant
+moduli for bending, torsion, and shear.
 
 The planar DOFs are `[ux, uy, theta_z]` per node; the spatial DOFs are
 `[ux, uy, uz, rx, ry, rz]` per node. The spatial rotation vector is expressed
@@ -58,6 +67,16 @@ and the chord stretch projected onto the midpoint section's axial director minus
 one for Timoshenko, not the Green–Lagrange strain used in the truss. Bending,
 torsion, and shear use quadratic section energies. The beam API currently
 provides elastic force and tangent, not mass or rigid-body/joint assembly.
+
+To customize the section response, extend `beam_section_energy_law`, implement
+`energy_density(this, geometry, material, strain)`, and allocate the beam's
+`section_law` with an instance. The law receives local generalized strains
+and returns a hyper-dual energy per unit reference length. The beam still
+handles kinematics, integration, and differentiation. Leaving `section_law`
+unallocated uses `quadratic_beam_section_energy`, which retains the material's
+axial law and uses quadratic bending, torsion, and shear terms. Euler–Bernoulli
+passes zero shear strains; planar beams use only axial extension, local
+z curvature, and (for Timoshenko) local y shear.
 
 ## Building
 

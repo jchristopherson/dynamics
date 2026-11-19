@@ -12,88 +12,133 @@
 ! implied, including but not limited to the warranties of merchantability,
 ! fitness for a particular purpose and noninfringement.
 module dynamics_flexible_materials
-    !! Material models for flexible-body elements.  A material supplies its
-    !! strain energy density as a function of the element's scalar axial strain
-    !! measure (Green-Lagrange for trusses, generalized extension for beams).
-    !! Hyper-dual inputs let the element differentiate the resulting energy.
-    use iso_fortran_env
+    !! Material models for flexible-body elements. A material supplies an
+    !! axial energy law and the moduli for quadratic bending, torsion and shear.
+    use iso_fortran_env, only : real64
+    use ieee_arithmetic, only : ieee_is_finite
     use autodiff
     implicit none
     private
     public :: flexible_material
-    public :: linear_elastic_1d
-    public :: polynomial_elastic_1d
+    public :: linear_elastic
+    public :: polynomial_elastic
 
     type, abstract :: flexible_material
-        !! Base type for one-dimensional elastic materials.
+        !! Base type for flexible-body elastic materials.
+        !! Trusses use the axial energy law directly. The default beam section
+        !! law also uses the elastic moduli to convert section geometry into
+        !! bending, torsion, and shear stiffnesses. Section geometry is not
+        !! part of the material model.
     contains
         procedure(energy_density_function), deferred :: strain_energy_density
-            !! Evaluates the strain energy density for the supplied axial strain measure.
+            !! Evaluates stored energy per unit reference volume for the supplied axial strain measure.
+        procedure(elastic_moduli_subroutine), deferred :: get_elastic_moduli
+            !! Returns the strain-independent Young's and shear moduli used by the default beam section law.
     end type
 
-    type, extends(flexible_material) :: linear_elastic_1d
-        !! Linear elastic material with \(W(E) = \frac{1}{2} M E^2\).
-        real(real64) :: modulus = 1.0d0
-            !! The elastic modulus.
+    type, extends(flexible_material) :: linear_elastic
+        !! Isotropic linear material with axial energy per unit reference
+        !! volume \(W(e) = \frac{1}{2} E e^2\). The shear modulus is derived
+        !! from \(E\) and \(\nu\); it does not enter the axial energy.
+        real(real64) :: youngs_modulus = 1.0d0
+            !! Young's modulus \(E\), in stress units.
+        real(real64) :: poissons_ratio = 0.3d0
+            !! Dimensionless Poisson's ratio \(\nu\); the moduli routine requires \(-1 < \nu < 0.5\).
     contains
         procedure :: strain_energy_density => linear_energy_density
+        procedure :: get_elastic_moduli => isotropic_elastic_moduli
     end type
 
-    type, extends(flexible_material) :: polynomial_elastic_1d
-        !! Nonlinear elastic material with
-        !! \(W(E) = \frac{1}{2} M E^2 + \frac{1}{3} a E^3 + \frac{1}{4} b E^4\).
-        real(real64) :: modulus = 1.0d0
-            !! The elastic modulus.
+    type, extends(linear_elastic) :: polynomial_elastic
+        !! Nonlinear axial energy per unit reference volume
+        !! \(W(e) = \frac{1}{2} E e^2 + \frac{1}{3} a e^3 + \frac{1}{4} b e^4\).
+        !! The inherited \(E\) is the axial tangent at zero strain. The
+        !! default beam section law still uses constant \(E\) and \(G\) for
+        !! bending, torsion, and shear. Setting \(a=b=0\) recovers the linear law.
         real(real64) :: quadratic = 0.0d0
-            !! The quadratic-stress coefficient, \(a\).
+            !! Coefficient \(a\) of the quadratic term in \(dW/de\), in stress units.
         real(real64) :: quartic = 0.0d0
-            !! The cubic-stress coefficient, \(b\).
+            !! Coefficient \(b\) of the cubic term in \(dW/de\), in stress units.
     contains
         procedure :: strain_energy_density => polynomial_energy_density
     end type
 
     abstract interface
         function energy_density_function(this, e) result(w)
-            !! Evaluates the strain energy density for the element's
-            !! scalar axial strain measure. The function must be written for
-            !! hyper-dual arguments so that the element stress and tangent
-            !! follow by automatic differentiation.
+            !! Evaluates stored energy for a scalar axial strain measure.
+            !! Implementations must preserve the hyper-dual derivative components
+            !! so the element can differentiate the energy for forces and tangent stiffness.
             import
             class(flexible_material), intent(in) :: this
-                !! The material.
+                !! Material model providing the axial constitutive law.
             type(hyperdual), intent(in) :: e
-                !! The hyper-dual axial strain.
+                !! Dimensionless axial strain supplied by the caller: Green-Lagrange
+                !! strain for trusses or generalized extension for the default beam section law.
             type(hyperdual) :: w
-                !! The strain energy density.
+                !! Stored axial strain energy per unit reference volume.
         end function
+
+        subroutine elastic_moduli_subroutine(this, e, g)
+            !! Supplies constant elastic moduli for quadratic section terms.
+            !! The default beam section law uses these independently of the current
+            !! axial strain and its tangent.
+            import :: flexible_material, real64
+            class(flexible_material), intent(in) :: this
+                !! Material model providing the elastic constants.
+            real(real64), intent(out) :: e
+                !! Finite positive Young's modulus \(E\), in stress units.
+            real(real64), intent(out) :: g
+                !! Finite positive shear modulus \(G\), in stress units.
+        end subroutine
     end interface
 
 contains
 ! ------------------------------------------------------------------------------
-function linear_energy_density(this, e) result(w)
-    !! Evaluates the strain energy density \(W(E) = \frac{1}{2} M E^2\).
-    class(linear_elastic_1d), intent(in) :: this
-        !! The material.
-    type(hyperdual), intent(in) :: e
-        !! The hyper-dual axial strain.
-    type(hyperdual) :: w
-        !! The strain energy density.
+subroutine isotropic_elastic_moduli(this, e, g)
+    !! Returns \(E\) and computes \(G = E/[2(1+\nu)]\) from isotropic elasticity.
+    !! Stops with an error if \(\nu\) is nonfinite or outside the open interval
+    !! \((-1, 0.5)\). The default beam section law checks the returned moduli.
+    class(linear_elastic), intent(in) :: this
+        !! Isotropic material holding Young's modulus and Poisson's ratio.
+    real(real64), intent(out) :: e
+        !! Finite positive Young's modulus \(E\), in stress units.
+    real(real64), intent(out) :: g
+        !! Finite positive shear modulus \(G\), in stress units.
+    real(real64) :: nu
 
-    w = 0.5d0 * this%modulus * e * e
+    e = this%youngs_modulus
+    nu = this%poissons_ratio
+    if (.not. ieee_is_finite(nu)) error stop "Poisson's ratio must be finite"
+    if (nu <= -1.0d0 .or. nu >= 0.5d0) error stop "Poisson's ratio must be between -1 and 0.5"
+    g = e / (2.0d0 * (1.0d0 + nu))
+end subroutine
+
+! ------------------------------------------------------------------------------
+function linear_energy_density(this, e) result(w)
+    !! Evaluates the quadratic axial energy \(W(e) = \frac{1}{2} E e^2\).
+    !! Poisson's ratio does not enter the axial law.
+    class(linear_elastic), intent(in) :: this
+        !! Material supplying Young's modulus \(E\).
+    type(hyperdual), intent(in) :: e
+        !! Dimensionless hyper-dual axial strain in the caller's strain measure.
+    type(hyperdual) :: w
+        !! Stored axial strain energy per unit reference volume.
+
+    w = 0.5d0 * this%youngs_modulus * e * e
 end function
 
 ! ------------------------------------------------------------------------------
 function polynomial_energy_density(this, e) result(w)
-    !! Evaluates the strain energy density
-    !! \(W(E) = \frac{1}{2} M E^2 + \frac{1}{3} a E^3 + \frac{1}{4} b E^4\).
-    class(polynomial_elastic_1d), intent(in) :: this
-        !! The material.
+    !! Evaluates \(W(e) = \frac{1}{2} E e^2 + \frac{1}{3} a e^3 + \frac{1}{4} b e^4\).
+    !! The conjugate axial stress is \(dW/de = E e + a e^2 + b e^3\).
+    class(polynomial_elastic), intent(in) :: this
+        !! Material supplying \(E\) and the nonlinear stress coefficients \(a\) and \(b\).
     type(hyperdual), intent(in) :: e
-        !! The hyper-dual axial strain.
+        !! Dimensionless hyper-dual axial strain in the caller's strain measure.
     type(hyperdual) :: w
-        !! The strain energy density.
+        !! Stored axial strain energy per unit reference volume.
 
-    w = 0.5d0 * this%modulus * e * e + &
+    w = 0.5d0 * this%youngs_modulus * e * e + &
         this%quadratic * e * e * e / 3.0d0 + &
         this%quartic * e * e * e * e / 4.0d0
 end function

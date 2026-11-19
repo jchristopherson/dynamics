@@ -14,6 +14,8 @@
 module dynamics_flexible_truss
     !! Two-node truss elements in two and three dimensions with a finite-strain
     !! (Green-Lagrange) axial strain measure.
+    !! The element integrates the material's axial energy density over the
+    !! reference volume; it has no bending or shear degrees of freedom.
     use iso_fortran_env
     use autodiff
     use dynamics_flexible_types
@@ -27,11 +29,11 @@ module dynamics_flexible_truss
         !! A two-dimensional truss element with two nodes and four degrees of
         !! freedom ordered as \([u_{1x}, u_{1y}, u_{2x}, u_{2y}]\).
         real(real64) :: reference_coordinates(2,2) = 0.0d0
-            !! The reference nodal coordinates, one column per node.
+            !! Reference nodal coordinates, one column per node; the nodes must be distinct.
         real(real64) :: area = 1.0d0
-            !! The cross-sectional area.
+            !! Reference cross-sectional area, in units of length squared.
         class(flexible_material), allocatable :: material
-            !! The material model.
+            !! Axial material law; must be allocated before evaluating the energy.
     contains
         procedure :: get_dof_count => truss_2d_dof_count
         procedure :: strain_energy => truss_2d_strain_energy
@@ -41,11 +43,11 @@ module dynamics_flexible_truss
         !! A three-dimensional truss element with two nodes and six degrees of
         !! freedom ordered as \([u_{1x}, u_{1y}, u_{1z}, u_{2x}, u_{2y}, u_{2z}]\).
         real(real64) :: reference_coordinates(3,2) = 0.0d0
-            !! The reference nodal coordinates, one column per node.
+            !! Reference nodal coordinates, one column per node; the nodes must be distinct.
         real(real64) :: area = 1.0d0
-            !! The cross-sectional area.
+            !! Reference cross-sectional area, in units of length squared.
         class(flexible_material), allocatable :: material
-            !! The material model.
+            !! Axial material law; must be allocated before evaluating the energy.
     contains
         procedure :: get_dof_count => truss_3d_dof_count
         procedure :: strain_energy => truss_3d_strain_energy
@@ -80,7 +82,7 @@ function truss_2d_strain_energy(this, u) result(w)
     class(flexible_truss_2d), intent(in) :: this
         !! The element.
     type(hyperdual), intent(in), dimension(:) :: u
-        !! The hyper-dual nodal displacements, ordered by node.
+        !! Four hyper-dual translational DOFs, ordered by node.
     type(hyperdual) :: w
         !! The strain energy.
 
@@ -93,7 +95,7 @@ function truss_3d_strain_energy(this, u) result(w)
     class(flexible_truss_3d), intent(in) :: this
         !! The element.
     type(hyperdual), intent(in), dimension(:) :: u
-        !! The hyper-dual nodal displacements, ordered by node.
+        !! Six hyper-dual translational DOFs, ordered by node.
     type(hyperdual) :: w
         !! The strain energy.
 
@@ -105,15 +107,16 @@ function bar_strain_energy(x0, area, mat, u) result(w)
     !! Strain energy of a truss with reference coordinates `x0` (one column per
     !! node).  The Green-Lagrange strain is \(E = (L^2 - L_0^2) / (2 L_0^2)\),
     !! and the energy is \(W = L_0 A W_m(E)\), where \(W_m\) is the material
-    !! strain energy density.
+    !! strain energy per unit reference volume. The reference length \(L_0\)
+    !! must be nonzero.
     real(real64), intent(in), dimension(:,:) :: x0
         !! The reference nodal coordinates, one column per node.
     real(real64), intent(in) :: area
-        !! The cross-sectional area.
+        !! Reference cross-sectional area.
     class(flexible_material), intent(in) :: mat
-        !! The material model.
+        !! Material supplying the axial law for the Green-Lagrange strain.
     type(hyperdual), intent(in), dimension(:) :: u
-        !! The hyper-dual nodal displacements.
+        !! Hyper-dual translational DOFs, with `size(x0,1)` components per node.
     type(hyperdual) :: w
         !! The strain energy.
 

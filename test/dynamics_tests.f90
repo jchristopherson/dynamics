@@ -65,6 +65,7 @@ program main
             if (selection == "flexible-beams") then
                 if (.not.test_flexible_beam_linear_limits()) stop 195
                 if (.not.test_flexible_beam_objectivity()) stop 196
+                if (.not.test_flexible_beam_section_energy()) stop 197
                 stop
             end if
         end block
@@ -196,6 +197,9 @@ program main
 
     check = test_flexible_beam_objectivity()
     if (.not.check) flag = 196
+
+    check = test_flexible_beam_section_energy()
+    if (.not.check) flag = 197
 
     check = test_forward_kinematics()
     if (.not.check) flag = 12

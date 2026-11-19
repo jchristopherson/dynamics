@@ -16,6 +16,9 @@ module dynamics_flexible_discrete
     !! The spring uses a nonlinear length-based energy.  The damper uses a
     !! quadratic dissipation function of the relative nodal velocity along the
     !! current element axis.
+    !! Only translations are active: the vectors contain all Cartesian
+    !! components of node 1 followed by those of node 2. Energy and dissipation
+    !! derivatives require a nonzero current distance between the nodes.
     use iso_fortran_env
     use autodiff
     use dynamics_flexible_types
@@ -33,9 +36,9 @@ module dynamics_flexible_discrete
         real(real64) :: reference_coordinates(2,2) = 0.0d0
             !! The reference nodal coordinates, one column per node.
         real(real64) :: stiffness = 1.0d0
-            !! The linear stiffness, \(k\).
+            !! Linear force coefficient \(k\), in force per unit length.
         real(real64) :: cubic_stiffness = 0.0d0
-            !! The nonlinear stiffness, \(k_3\).
+            !! Cubic force coefficient \(k_3\), in force per unit length cubed.
     contains
         procedure :: get_dof_count => spring_2d_dof_count
         procedure :: strain_energy => spring_2d_strain_energy
@@ -48,9 +51,9 @@ module dynamics_flexible_discrete
         real(real64) :: reference_coordinates(3,2) = 0.0d0
             !! The reference nodal coordinates, one column per node.
         real(real64) :: stiffness = 1.0d0
-            !! The linear stiffness, \(k\).
+            !! Linear force coefficient \(k\), in force per unit length.
         real(real64) :: cubic_stiffness = 0.0d0
-            !! The nonlinear stiffness, \(k_3\).
+            !! Cubic force coefficient \(k_3\), in force per unit length cubed.
     contains
         procedure :: get_dof_count => spring_3d_dof_count
         procedure :: strain_energy => spring_3d_strain_energy
@@ -62,7 +65,7 @@ module dynamics_flexible_discrete
         real(real64) :: reference_coordinates(2,2) = 0.0d0
             !! The reference nodal coordinates, one column per node.
         real(real64) :: damping = 1.0d0
-            !! The viscous damping coefficient, \(c\).
+            !! Axial damping coefficient \(c\), in force per unit speed.
     contains
         procedure :: get_dof_count => damper_2d_dof_count
         procedure :: dissipation => damper_2d_dissipation
@@ -74,7 +77,7 @@ module dynamics_flexible_discrete
         real(real64) :: reference_coordinates(3,2) = 0.0d0
             !! The reference nodal coordinates, one column per node.
         real(real64) :: damping = 1.0d0
-            !! The viscous damping coefficient, \(c\).
+            !! Axial damping coefficient \(c\), in force per unit speed.
     contains
         procedure :: get_dof_count => damper_3d_dof_count
         procedure :: dissipation => damper_3d_dissipation
@@ -189,6 +192,7 @@ function spring_energy(x0, k, k3, u) result(w)
     !! length is computed from the hyper-dual displacements, and the change in
     !! length \(\delta = L - L_0\) gives \(W = \frac{1}{2} k \delta^2 +
     !! \frac{1}{4} k_3 \delta^4\).
+    !! The current chord must be nonzero for the length derivatives to exist.
     real(real64), intent(in), dimension(:,:) :: x0
         !! The reference nodal coordinates, one column per node.
     real(real64), intent(in) :: k
@@ -196,7 +200,7 @@ function spring_energy(x0, k, k3, u) result(w)
     real(real64), intent(in) :: k3
         !! The nonlinear stiffness.
     type(hyperdual), intent(in), dimension(:) :: u
-        !! The hyper-dual nodal displacements.
+        !! Hyper-dual translations, with `size(x0,1)` components per node.
     type(hyperdual) :: w
         !! The strain energy.
 
@@ -220,6 +224,7 @@ function damper_dissipation(x0, c, u, v) result(d)
     !! current axis direction is taken from the real displacements `u`, and the
     !! rate of change of length is the projection of the hyper-dual relative
     !! velocity onto that direction.
+    !! The current chord must be nonzero to define the projection.
     real(real64), intent(in), dimension(:,:) :: x0
         !! The reference nodal coordinates, one column per node.
     real(real64), intent(in) :: c
@@ -227,9 +232,9 @@ function damper_dissipation(x0, c, u, v) result(d)
     real(real64), intent(in), dimension(:) :: u
         !! The nodal displacements, which set the current axis direction.
     type(hyperdual), intent(in), dimension(:) :: v
-        !! The hyper-dual nodal velocities.
+        !! Hyper-dual nodal velocities in the same order as `u`.
     type(hyperdual) :: d
-        !! The dissipation.
+        !! Rayleigh dissipation potential, in units of power.
 
     integer(int32) :: i, n
     real(real64) :: dir(size(x0, 1)), length

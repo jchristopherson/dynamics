@@ -14,9 +14,15 @@
 module dynamics_flexible_bodies_tests
     use iso_fortran_env
     use ieee_arithmetic, only : ieee_is_finite
-    use autodiff, only : hyperdual
+    use autodiff
     use dynamics
     implicit none
+
+    type, extends(quadratic_beam_section_energy), private :: coupled_section_energy
+        real(real64) :: coupling
+    contains
+        procedure :: energy_density => coupled_energy_density
+    end type
 
 contains
 ! ------------------------------------------------------------------------------
@@ -33,7 +39,7 @@ function test_flexible_truss_2d() result(rst)
     truss%reference_coordinates(:,1) = [0.0d0, 0.0d0]
     truss%reference_coordinates(:,2) = [1.0d0, 0.0d0]
     truss%area = 2.0d0
-    truss%material = linear_elastic_1d(modulus = 1000.0d0)
+    truss%material = linear_elastic(youngs_modulus = 1000.0d0)
 
     ! Stretched state: L = 1.01, E = (L^2 - L0^2) / (2 L0^2)
     u = [0.0d0, 0.0d0, 0.01d0, 0.0d0]
@@ -80,7 +86,7 @@ function test_flexible_rigid_translation() result(rst)
     truss%reference_coordinates(:,1) = [0.0d0, 0.0d0, 0.0d0]
     truss%reference_coordinates(:,2) = [1.0d0, 2.0d0, 2.0d0]
     truss%area = 1.5d0
-    truss%material = linear_elastic_1d(modulus = 200.0d0)
+    truss%material = linear_elastic(youngs_modulus = 200.0d0)
 
     u = [1.0d0, 2.0d0, 3.0d0, 1.0d0, 2.0d0, 3.0d0]
     call truss%internal_force(u, f, k)
@@ -104,7 +110,7 @@ function test_flexible_truss_3d_fd() result(rst)
     truss%reference_coordinates(:,1) = [0.0d0, 0.0d0, 0.0d0]
     truss%reference_coordinates(:,2) = [1.0d0, 2.0d0, 2.0d0]
     truss%area = 1.5d0
-    truss%material = polynomial_elastic_1d(modulus = 200.0d0, &
+    truss%material = polynomial_elastic(linear_elastic(youngs_modulus = 200.0d0), &
         quadratic = 5.0d0, quartic = 2.0d0)
 
     u = [0.1d0, -0.05d0, 0.2d0, 0.3d0, 0.2d0, -0.1d0]
@@ -224,16 +230,17 @@ function test_flexible_beam_linear_limits() result(rst)
     real(real64) :: f(6), k(6,6), f3(12), k3(12,12), expected(2,2)
     integer, parameter :: tip(2) = [5, 6]
     real(real64), parameter :: l = 2.0d0, ei = 3.0d0, ga = 7.0d0, gj = 11.0d0
+    real(real64), parameter :: e = 5.0d0, g = 2.5d0
     real(real64), parameter :: tol = 1.0d-10, twist = 0.6d0
     real(real64) :: u3(12)
 
     eb%reference_coordinates(:,2) = [l, 0.0d0]
-    eb%bending_stiffness = ei
+    eb%second_moment_of_area = ei/e
     eb%area = 2.0d0
-    eb%material = linear_elastic_1d(5.0d0)
+    eb%material = linear_elastic(youngs_modulus = e, poissons_ratio = 0.0d0)
     tm%reference_coordinates = eb%reference_coordinates
-    tm%bending_stiffness = ei
-    tm%shear_stiffness = ga
+    tm%second_moment_of_area = eb%second_moment_of_area
+    tm%effective_shear_area = ga/g
     tm%area = eb%area
     tm%material = eb%material
 
@@ -256,10 +263,10 @@ function test_flexible_beam_linear_limits() result(rst)
     end if
 
     eb3%reference_coordinates(:,2) = [l, 0.0d0, 0.0d0]
-    eb3%torsional_stiffness = gj
+    eb3%torsion_constant = gj/g
     eb3%material = eb%material
     tm3%reference_coordinates = eb3%reference_coordinates
-    tm3%torsional_stiffness = gj
+    tm3%torsion_constant = eb3%torsion_constant
     tm3%material = eb%material
     u3 = 0.0d0
     call eb3%internal_force(u3, f3, k3)
@@ -269,6 +276,77 @@ function test_flexible_beam_linear_limits() result(rst)
     rst = rst .and. all(ieee_is_finite(k3)) .and. abs(f3(10) - gj*twist/l) < tol .and. &
         abs(k3(10,10) - gj/l) < tol
     if (.not. rst) print *, "TEST FAILED: spatial beam torsion"
+    if (rst) rst = test_flexible_beam_material_swap()
+end function
+
+function test_flexible_beam_material_swap() result(rst)
+    logical :: rst
+    type(flexible_timoshenko_3d) :: beam
+    real(real64), parameter :: l = 2.0d0, tol = 1.0d-10
+    real(real64), parameter :: e(2) = [12.0d0, 18.0d0], g(2) = [5.0d0, 8.0d0]
+    real(real64), parameter :: nu(2) = [0.2d0, 0.125d0]
+    real(real64) :: u(12), f(12), k(12,12), expected(6)
+    integer :: i, j
+
+    beam%reference_coordinates(:,2) = [l, 0.0d0, 0.0d0]
+    beam%area = 2.0d0
+    beam%second_moment_of_area = [3.0d0, 4.0d0]
+    beam%torsion_constant = 5.0d0
+    beam%effective_shear_area = [0.5d0, 1.5d0]
+    u = 0.0d0
+    do i = 1, 2
+        beam%material = linear_elastic(youngs_modulus = e(i), poissons_ratio = nu(i))
+        call beam%internal_force(u, f, k)
+        ! Tip rotation about y uses shear along z, and vice versa.
+        expected = [2*e(i)/l, 0.5d0*g(i)/l, 1.5d0*g(i)/l, 5*g(i)/l, &
+            3*e(i)/l + 1.5d0*g(i)*l/4, 4*e(i)/l + 0.5d0*g(i)*l/4]
+        rst = all(ieee_is_finite(k)) .and. maxval(abs([(k(j,j), j=7,12)] - expected)) < tol
+        if (.not. rst) then
+            print *, "TEST FAILED: spatial beam material swap", i
+            return
+        end if
+    end do
+end function
+
+function coupled_energy_density(this, geometry, material, strain) result(w)
+    class(coupled_section_energy), intent(in) :: this
+    type(beam_section_geometry), intent(in) :: geometry
+    class(flexible_material), intent(in) :: material
+    type(beam_section_strain), intent(in) :: strain
+    type(hyperdual) :: w
+
+    w = this%quadratic_beam_section_energy%energy_density(geometry, material, strain) + &
+        this%coupling * geometry%area * strain%extension * strain%curvature(1)
+end function
+
+function test_flexible_beam_section_energy() result(rst)
+    logical :: rst
+    type(flexible_euler_bernoulli_3d) :: eb
+    type(flexible_timoshenko_3d) :: tm
+    real(real64), parameter :: l = 2.0d0, area = 1.5d0, coupling = 3.0d0, delta = 0.1d0
+    real(real64), parameter :: cross_tangent = area * coupling / l, tol = 1.0d-10
+    real(real64) :: u(12), f(12), k(12,12)
+
+    eb%reference_coordinates(1,2) = l
+    eb%area = area
+    eb%material = linear_elastic(youngs_modulus = 20.0d0)
+    allocate(eb%section_law, source = coupled_section_energy(coupling = coupling))
+    tm%reference_coordinates = eb%reference_coordinates
+    tm%area = eb%area
+    tm%material = eb%material
+    allocate(tm%section_law, source = eb%section_law)
+    u = 0.0d0
+    u(7) = delta
+
+    call eb%internal_force(u, f, k)
+    rst = abs(f(10) - cross_tangent*delta) < tol .and. abs(k(10,7) - cross_tangent) < tol
+    if (.not. rst) print *, "TEST FAILED: Euler-Bernoulli section energy coupling"
+
+    call tm%internal_force(u, f, k)
+    if (.not. (abs(f(10) - cross_tangent*delta) < tol .and. abs(k(10,7) - cross_tangent) < tol)) then
+        print *, "TEST FAILED: Timoshenko section energy coupling"
+        rst = .false.
+    end if
 end function
 
 function test_flexible_beam_objectivity() result(rst)
@@ -285,11 +363,13 @@ function test_flexible_beam_objectivity() result(rst)
 
     eb%reference_coordinates(:,1) = [0.2d0, 0.1d0, -0.4d0]
     eb%reference_coordinates(:,2) = [1.5d0, 1.0d0, 0.6d0]
-    eb%bending_stiffness = [2.0d0, 5.0d0]
-    eb%material = polynomial_elastic_1d(20.0d0, 9.0d0, 3.0d0)
+    eb%second_moment_of_area = [2.0d0, 5.0d0]/20.0d0
+    eb%torsion_constant = 1.0d0/8.0d0
+    eb%material = polynomial_elastic(linear_elastic(20.0d0, 0.25d0), quadratic = 9.0d0, quartic = 3.0d0)
     tm%reference_coordinates = eb%reference_coordinates
-    tm%bending_stiffness = eb%bending_stiffness
-    tm%shear_stiffness = [3.0d0, 7.0d0]
+    tm%second_moment_of_area = eb%second_moment_of_area
+    tm%torsion_constant = eb%torsion_constant
+    tm%effective_shear_area = [3.0d0, 7.0d0]/8.0d0
     tm%material = eb%material
     u = [0.01d0, 0.04d0, -0.03d0, -0.15d0, 0.1d0, 0.05d0, &
         0.2d0, -0.08d0, 0.1d0, 0.2d0, 0.15d0, -0.25d0]
