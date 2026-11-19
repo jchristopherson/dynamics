@@ -61,9 +61,9 @@ add_test(
     COMMAND $<TARGET_FILE:dynamics_tests> flexible-beams
 )
 add_test(
-    NAME dynamics_multibody_tests
+    NAME dynamics_spatial_element_mass_tests
     WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
-    COMMAND $<TARGET_FILE:dynamics_tests> multibody
+    COMMAND $<TARGET_FILE:dynamics_tests> spatial-element-mass
 )
 add_test(
     NAME dynamics_variational_startup_tests

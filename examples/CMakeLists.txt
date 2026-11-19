@@ -257,10 +257,6 @@ target_link_libraries(motor_driven_four_bar_example ${PROJECT_NAME} ${FPLOT_LIBR
 add_executable(shell_element_example shell_element_example.f90)
 target_link_libraries(shell_element_example ${PROJECT_NAME} ${FPLOT_LIBRARIES})
 
-# Flexible Double Pendulum Example
-add_executable(flexible_double_pendulum_example flexible_double_pendulum_example.f90)
-target_link_libraries(flexible_double_pendulum_example ${PROJECT_NAME} ${FPLOT_LIBRARIES})
-
 if (${BUILD_SHARED_LIBS} AND WIN32)
     add_custom_command(
         TARGET duffing_poincare_example

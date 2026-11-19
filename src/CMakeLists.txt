@@ -38,7 +38,6 @@ set(DYNAMICS_SOURCES
     ${dir}/flexible_bodies/dynamics_flexible_discrete.f90
     ${dir}/flexible_bodies/dynamics_flexible_beams.f90
     ${dir}/multibody/dynamics_multibody.f90
-    ${dir}/solvers/dynamics_multibody_solver.f90
 )
 
 # C API
