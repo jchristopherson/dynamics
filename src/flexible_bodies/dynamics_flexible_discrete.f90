@@ -20,6 +20,7 @@ module dynamics_flexible_discrete
     !! components of node 1 followed by those of node 2. Energy and dissipation
     !! derivatives require a nonzero current distance between the nodes.
     use iso_fortran_env
+    use ieee_arithmetic, only : ieee_is_finite
     use autodiff
     use dynamics_flexible_types
     implicit none
@@ -54,9 +55,12 @@ module dynamics_flexible_discrete
             !! Linear force coefficient \(k\), in force per unit length.
         real(real64) :: cubic_stiffness = 0.0d0
             !! Cubic force coefficient \(k_3\), in force per unit length cubed.
+        real(real64) :: nodal_mass(2) = 0.0d0
+            !! Optional lumped mass at each spring endpoint.
     contains
         procedure :: get_dof_count => spring_3d_dof_count
         procedure :: strain_energy => spring_3d_strain_energy
+        procedure :: mass_matrix => spring_3d_mass_matrix
     end type
 
     type, extends(dissipative_element) :: flexible_damper_2d
@@ -84,6 +88,21 @@ module dynamics_flexible_discrete
     end type
 
 contains
+function spring_3d_mass_matrix(this) result(m)
+    !! Returns isotropic lumped inertia at the two spring endpoints.
+    class(flexible_spring_3d), intent(in) :: this
+    real(real64), allocatable :: m(:,:)
+    integer :: i
+
+    if (.not. all(ieee_is_finite(this%nodal_mass)) .or. any(this%nodal_mass < 0.0d0)) &
+        error stop "Invalid flexible spring nodal mass"
+    allocate(m(6,6), source=0.0d0)
+    do i = 1, 3
+        m(i,i) = this%nodal_mass(1)
+        m(i+3,i+3) = this%nodal_mass(2)
+    end do
+end function
+
 ! ------------------------------------------------------------------------------
 function spring_2d_dof_count(this) result(n)
     !! Returns the number of degrees of freedom of the 2D spring, which is four.

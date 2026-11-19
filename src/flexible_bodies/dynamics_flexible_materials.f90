@@ -29,6 +29,8 @@ module dynamics_flexible_materials
         !! law also uses the elastic moduli to convert section geometry into
         !! bending, torsion, and shear stiffnesses. Section geometry is not
         !! part of the material model.
+        real(real64) :: density = 1.0d0
+            !! Reference mass per unit volume. Mass integration requires a finite, nonnegative value.
     contains
         procedure(energy_density_function), deferred :: strain_energy_density
             !! Evaluates stored energy per unit reference volume for the supplied axial strain measure.
@@ -63,6 +65,14 @@ module dynamics_flexible_materials
         procedure :: strain_energy_density => polynomial_energy_density
     end type
 
+    interface linear_elastic
+        module procedure :: make_linear_elastic
+    end interface
+
+    interface polynomial_elastic
+        module procedure :: make_polynomial_elastic
+    end interface
+
     abstract interface
         function energy_density_function(this, e) result(w)
             !! Evaluates stored energy for a scalar axial strain measure.
@@ -93,6 +103,28 @@ module dynamics_flexible_materials
     end interface
 
 contains
+function make_linear_elastic(youngs_modulus, poissons_ratio, density) result(material)
+    !! Keeps the original positional order of the elastic constants. Density
+    !! is optional and follows them, although inherited storage comes first.
+    real(real64), intent(in), optional :: youngs_modulus, poissons_ratio, density
+    type(linear_elastic) :: material
+
+    if (present(youngs_modulus)) material%youngs_modulus = youngs_modulus
+    if (present(poissons_ratio)) material%poissons_ratio = poissons_ratio
+    if (present(density)) material%density = density
+end function
+
+function make_polynomial_elastic(youngs_modulus, poissons_ratio, quadratic, quartic, density) result(material)
+    !! Preserves the flattened constructor's original positional order. A
+    !! linear_elastic parent can still be passed to the structure constructor.
+    real(real64), intent(in), optional :: youngs_modulus, poissons_ratio, quadratic, quartic, density
+    type(polynomial_elastic) :: material
+
+    material%linear_elastic = make_linear_elastic(youngs_modulus, poissons_ratio, density)
+    if (present(quadratic)) material%quadratic = quadratic
+    if (present(quartic)) material%quartic = quartic
+end function
+
 ! ------------------------------------------------------------------------------
 subroutine isotropic_elastic_moduli(this, e, g)
     !! Returns \(E\) and computes \(G = E/[2(1+\nu)]\) from isotropic elasticity.

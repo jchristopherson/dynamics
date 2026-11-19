@@ -34,6 +34,9 @@ module dynamics_flexible_types
     contains
         procedure(dof_count_function), deferred :: get_dof_count
             !! Returns the number of element degrees of freedom.
+        procedure :: mass_matrix => massless_element_matrix
+            !! Returns the reference mass matrix in element DOF order. The
+            !! default is zero for massless connectors and legacy elements.
     end type
 
     type, extends(flexible_element), abstract :: finite_element
@@ -105,6 +108,16 @@ module dynamics_flexible_types
     end interface
 
 contains
+function massless_element_matrix(this) result(m)
+    !! Returns a zero mass matrix; override for elements that carry inertia.
+    class(flexible_element), intent(in) :: this
+    real(real64), allocatable :: m(:,:)
+    integer :: n
+
+    n = this%get_dof_count()
+    allocate(m(n,n), source=0.0d0)
+end function
+
 ! ------------------------------------------------------------------------------
 subroutine finite_element_internal_force(this, u, f, k)
     !! Computes the internal force vector and tangent stiffness matrix of the

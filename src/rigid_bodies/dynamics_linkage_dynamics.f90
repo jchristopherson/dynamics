@@ -43,6 +43,8 @@ module dynamics_linkage_dynamics
     public :: torsional_damper
     public :: axial_element_result
     public :: torsional_element_result
+    public :: joint_constraint_count
+    public :: append_spatial_joint_constraints
 
     abstract interface
         function linkage_prescribed_motion(t, args) result(rst)
@@ -1265,7 +1267,7 @@ subroutine append_joint_constraints(model, state, descriptor, value, index)
 end subroutine
 
 ! ------------------------------------------------------------------------------
-subroutine append_spatial_joint_constraints(joint_type, relative, value, index)
+subroutine append_spatial_joint_constraints(joint_type, relative, value, index, use_half_angle)
     !! Appends spatial joint residuals from a relative joint transform.
     integer(int32), intent(in) :: joint_type
         !! The joint kind determining the residual components and count.
@@ -1275,10 +1277,21 @@ subroutine append_spatial_joint_constraints(joint_type, relative, value, index)
         !! The constraint vector receiving the spatial residuals.
     integer(int32), intent(inout) :: index
         !! The one-based insertion position, advanced past the appended values.
+    logical, intent(in), optional :: use_half_angle
+        !! Use the shortest-arc quaternion residual for fixed/prismatic
+        !! orientation, avoiding a spurious zero at a half turn. Defaults to
+        !! false to preserve the rigid solver's multiplier convention.
     real(real64), dimension(3) :: rotation_error
+    type(quaternion) :: orientation
 
     rotation_error = 0.5d0 * [relative(3,2) - relative(2,3), &
         relative(1,3) - relative(3,1), relative(2,1) - relative(1,2)]
+    if (present(use_half_angle)) then
+        if (use_half_angle .and. (joint_type == FIXED_JOINT .or. joint_type == PRISMATIC_JOINT)) then
+            orientation = quaternion(relative(1:3,1:3))
+            rotation_error = sign(2.0d0,orientation%w) * [orientation%x, orientation%y, orientation%z]
+        end if
+    end if
     select case (joint_type)
     case (FIXED_JOINT)
         value(index:index+2) = relative(1:3,4)

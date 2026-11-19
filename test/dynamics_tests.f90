@@ -68,6 +68,13 @@ program main
                 if (.not.test_flexible_beam_section_energy()) stop 197
                 stop
             end if
+            if (selection == "multibody") then
+                if (.not.test_spatial_element_mass()) stop 198
+                if (.not.test_multibody_free_vibration()) stop 199
+                if (.not.test_multibody_elastic_pendulum()) stop 200
+                if (.not.test_multibody_prescribed_motion()) stop 201
+                stop
+            end if
         end block
     end if
 
@@ -200,6 +207,18 @@ program main
 
     check = test_flexible_beam_section_energy()
     if (.not.check) flag = 197
+
+    check = test_spatial_element_mass()
+    if (.not.check) flag = 198
+
+    check = test_multibody_free_vibration()
+    if (.not.check) flag = 199
+
+    check = test_multibody_elastic_pendulum()
+    if (.not.check) flag = 200
+
+    check = test_multibody_prescribed_motion()
+    if (.not.check) flag = 201
 
     check = test_forward_kinematics()
     if (.not.check) flag = 12

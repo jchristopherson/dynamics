@@ -17,6 +17,7 @@ module dynamics_flexible_truss
     !! The element integrates the material's axial energy density over the
     !! reference volume; it has no bending or shear degrees of freedom.
     use iso_fortran_env
+    use ieee_arithmetic, only : ieee_is_finite
     use autodiff
     use dynamics_flexible_types
     use dynamics_flexible_materials
@@ -37,6 +38,7 @@ module dynamics_flexible_truss
     contains
         procedure :: get_dof_count => truss_2d_dof_count
         procedure :: strain_energy => truss_2d_strain_energy
+        procedure :: mass_matrix => truss_2d_mass_matrix
     end type
 
     type, extends(finite_element) :: flexible_truss_3d
@@ -51,9 +53,50 @@ module dynamics_flexible_truss
     contains
         procedure :: get_dof_count => truss_3d_dof_count
         procedure :: strain_energy => truss_3d_strain_energy
+        procedure :: mass_matrix => truss_3d_mass_matrix
     end type
 
 contains
+function truss_2d_mass_matrix(this) result(m)
+    !! Consistent translational mass for a two-node planar truss.
+    class(flexible_truss_2d), intent(in) :: this
+    real(real64), allocatable :: m(:,:)
+
+    m = bar_mass_matrix(this%reference_coordinates, this%area, this%material)
+end function
+
+function truss_3d_mass_matrix(this) result(m)
+    !! Consistent translational mass for a two-node spatial truss.
+    class(flexible_truss_3d), intent(in) :: this
+    real(real64), allocatable :: m(:,:)
+
+    m = bar_mass_matrix(this%reference_coordinates, this%area, this%material)
+end function
+
+function bar_mass_matrix(x, area, material) result(m)
+    !! Integrates the product of linear nodal shape functions over the reference bar.
+    real(real64), intent(in) :: x(:,:), area
+    class(flexible_material), allocatable, intent(in) :: material
+    real(real64) :: m(2*size(x,1),2*size(x,1)), length, mass_sixth
+    integer :: i, n
+
+    if (.not. allocated(material)) error stop "Flexible truss requires a material"
+    length = norm2(x(:,2) - x(:,1))
+    if (.not. ieee_is_finite(length) .or. length <= 0.0d0 .or. &
+        .not. ieee_is_finite(area) .or. area <= 0.0d0) error stop "Invalid flexible truss geometry"
+    if (.not. ieee_is_finite(material%density) .or. material%density < 0.0d0) &
+        error stop "Invalid flexible truss density"
+    mass_sixth = material%density * area * length / 6.0d0
+    n = size(x,1)
+    m = 0.0d0
+    do i = 1, n
+        m(i,i) = 2.0d0 * mass_sixth
+        m(n+i,n+i) = m(i,i)
+        m(i,n+i) = mass_sixth
+        m(n+i,i) = mass_sixth
+    end do
+end function
+
 ! ------------------------------------------------------------------------------
 function truss_2d_dof_count(this) result(n)
     !! Returns the number of degrees of freedom of the 2D truss, which is four.

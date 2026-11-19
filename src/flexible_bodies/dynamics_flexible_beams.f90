@@ -138,6 +138,7 @@ module dynamics_flexible_beams
         !! The projected section frame must remain nonsingular at all four Gauss points.
     contains
         procedure :: strain_energy => euler_bernoulli_3d_energy
+        procedure :: mass_matrix => euler_bernoulli_3d_mass
     end type
 
     type, extends(planar_beam) :: flexible_timoshenko_2d
@@ -156,9 +157,75 @@ module dynamics_flexible_beams
             !! Reference shear areas along local [y, z], including shear correction.
     contains
         procedure :: strain_energy => timoshenko_3d_energy
+        procedure :: mass_matrix => timoshenko_3d_mass
     end type
 
 contains
+
+function euler_bernoulli_3d_mass(this) result(m)
+    !! Reference consistent mass including section rotary inertia.
+    class(flexible_euler_bernoulli_3d), intent(in) :: this
+    real(real64), allocatable :: m(:,:)
+
+    m = spatial_beam_mass(this, .true.)
+end function
+
+function timoshenko_3d_mass(this) result(m)
+    !! Reference consistent mass with independent linear rotation interpolation.
+    class(flexible_timoshenko_3d), intent(in) :: this
+    real(real64), allocatable :: m(:,:)
+
+    m = spatial_beam_mass(this, .false.)
+end function
+
+function spatial_beam_mass(this, shear_free) result(m)
+    !! Integrates the reference velocity and angular velocity shape functions.
+    !! In the shear-free case, bending rotations are slopes of the Hermite
+    !! centerline. The rotary inertia about the chord uses Iy+Iz, not J.
+    class(spatial_beam), intent(in) :: this
+    logical, intent(in) :: shear_free
+    real(real64) :: m(12,12), frame(3,3), length, x, n(2), h(4), dh(4)
+    real(real64) :: b(6,12), weighted(6,12), inertia(6)
+    type(hyperdual) :: u(12), chord(3), q(4,2)
+    real(real64), parameter :: points(4) = [0.0694318442029737d0, 0.330009478207572d0, &
+        0.669990521792428d0, 0.930568155797026d0]
+    real(real64), parameter :: weights(4) = [0.173927422568727d0, 0.326072577431273d0, &
+        0.326072577431273d0, 0.173927422568727d0]
+    integer :: i, j, k
+
+    call validate_section(this, beam_section_geometry(this%area, this%second_moment_of_area, this%torsion_constant))
+    if (.not. ieee_is_finite(this%material%density) .or. this%material%density < 0.0d0) &
+        error stop "Invalid flexible beam density"
+    do i = 1, 12
+        u(i) = 0.0d0
+    end do
+    call beam_kinematics(this%reference_coordinates, this%reference_y, u, length, frame, chord, q)
+    inertia = [this%area, this%area, this%area, sum(this%second_moment_of_area), this%second_moment_of_area]
+    m = 0.0d0
+    do i = 1, 4
+        x = points(i)
+        n = [1.0d0-x, x]
+        b = 0.0d0
+        do j = 1, 6
+            b(j,j) = n(1)
+            b(j,j+6) = n(2)
+        end do
+        if (shear_free) then
+            h = [1.0d0-3*x**2+2*x**3, length*x*(1-x)**2, 3*x**2-2*x**3, length*x**2*(x-1)]
+            dh = [6*x*(x-1)/length, 1-4*x+3*x**2, 6*x*(1-x)/length, 3*x**2-2*x]
+            b(2,[2,6,8,12]) = h
+            b(3,[3,5,9,11]) = h * [1,-1,1,-1]
+            b(5,[3,5,9,11]) = dh * [-1,1,-1,1]
+            b(6,[2,6,8,12]) = dh
+        end if
+        do k = 1, 12, 3
+            b(:,k:k+2) = matmul(b(:,k:k+2), transpose(frame))
+        end do
+        weighted = b * spread(inertia, 2, 12)
+        m = m + weights(i) * matmul(transpose(b), weighted)
+    end do
+    m = m * length * this%material%density
+end function
 
 function planar_beam_dof_count(this) result(n)
     !! Returns three DOFs per node for a two-node planar beam.

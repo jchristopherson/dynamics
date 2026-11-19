@@ -22,7 +22,7 @@ A library of routines used for the analysis of dynamic systems.
 | Robotics Utilities | Jacobians, transformations, quaternion algebra | ✅ | ✅ | ✅ |
 | Serial-Link Mechanisms | Revolute/prismatic linkages and motion analysis | ✅ | ✅ | ✅ |
 | Parallel Mechanisms | Loop-closure constraints, mobility analysis, Jacobian partitioning | ✅ | ✅ | ✅ |
-| Multibody Dynamics | Variational integrators, rigid-body dynamics, constraint handling | ✅ | ✅ | ✅ |
+| Multibody Dynamics | Rigid-body variational integration and coupled 3-D rigid/flexible dynamics | ✅ | ✅ | ⚠️ |
 | Force Elements | Springs, dampers, torsional elements, custom force models | ✅ | ✅ | ✅ |
 | Geometry | Points, lines, planes, Plücker lines, intersections, projections | ✅ | ✅ | ✅ |
 | Structural Mechanics | Beam, truss, and shell finite elements | ✅ | ✅ | ✅ |
@@ -65,8 +65,12 @@ locking; subdivide the beam where adjacent sections approach a relative rotation
 of 180 degrees. The axial material receives stretch minus one for Euler–Bernoulli
 and the chord stretch projected onto the midpoint section's axial director minus
 one for Timoshenko, not the Green–Lagrange strain used in the truss. Bending,
-torsion, and shear use quadratic section energies. The beam API currently
-provides elastic force and tangent, not mass or rigid-body/joint assembly.
+torsion, and shear use quadratic section energies. Spatial beams also provide
+`mass_matrix()` in element DOF order. The reference mass uses material
+`density` (default 1 in consistent units) and includes rotary inertia based
+on `I_y + I_z` about the chord and `I_y`, `I_z` about the section axes.
+Euler–Bernoulli mass uses cubic Hermite bending interpolation; Timoshenko mass
+uses linear interpolation for both translations and section rotations.
 
 To customize the section response, extend `beam_section_energy_law`, implement
 `energy_density(this, geometry, material, strain)`, and allocate the beam's
@@ -77,6 +81,106 @@ unallocated uses `quadratic_beam_section_energy`, which retains the material's
 axial law and uses quadratic bending, torsion, and shear terms. Euler–Bernoulli
 passes zero shear strains; planar beams use only axial extension, local
 z curvature, and (for Timoshenko) local y shear.
+
+### Coupled rigid and flexible multibody dynamics
+
+The Fortran API in [dynamics_multibody](./src/multibody/dynamics_multibody.f90)
+assembles 3-D systems of rigid bodies and elastic elements.
+[dynamics_multibody_solver](./src/solvers/dynamics_multibody_solver.f90)
+integrates them with a fixed-step generalized-alpha method. Both modules
+are available through `use dynamics`. The rigid variational integrator is
+unchanged.
+
+1. Add each moving body with `model%add_body(carrier [, elastic_dofs])`.
+   Body indices are one-based in insertion order, with zero reserved for
+   ground. Each carrier contributes a world-frame origin, a world rotation
+   vector (radians), and then its body-local elastic coordinates.
+   `model%get_body_coordinates(body)` returns the indices into the state.
+   Initialize `carrier` with `rigid_body(...)`; for a flexible-only body,
+   set both carrier mass and inertia to zero so that its elements supply all
+   inertia. The reference frame still has six coordinates.
+2. Add the body's elements with `model%add_element(body, element, map)`.
+   The map is in element DOF order and contains body-local elastic indices:
+   reuse positive indices for shared nodal components, and use zero to
+   restrain a component relative to the carrier. Use enough restraints or
+   constraints to remove redundant rigid motion between the carrier and its
+   mesh. Trusses use consistent translational mass from density, area, and
+   reference length; springs are massless unless `nodal_mass` is supplied;
+   dampers are massless and supply quadratic viscous forces. Custom massive
+   elements use `reference=` to supply two reference nodes and override
+   `mass_matrix()`. They must follow the two-node spatial layout: three
+   translations per node, or three translations followed by three rotation
+   components per node.
+3. Use `model%add_joint(joint [, parent_map, child_map])` with the existing
+   `dynamic_joint` descriptor. A moving-side frame is body-local; a
+   ground-side frame is in world coordinates. Omit a map for a rigid
+   attachment. For an elastic attachment, pass six body-local indices in
+   `[ux,uy,uz,rx,ry,rz]` order, with zero for unassigned components. Put the
+   frame origin at the undeformed attachment point. Elastic translation
+   moves that point and elastic rotation turns the joint axes about it.
+   Fixed, revolute, prismatic, cylindrical, universal, and spherical
+   joints use the existing spatial joint axis conventions. Use
+   `model%set_constraints(count, callback)` for extra smooth, possibly
+   time-dependent holonomic residuals, `model%set_load(callback)` for
+   generalized forces, and `model%gravity` for uniform world acceleration.
+   Callbacks are retained by pointer and must remain valid while in use.
+4. Call `integrator%initialize(model, state, time, q, v)` with a position
+   satisfying the constraints. The integrator projects the input velocity
+   (which can change free coordinate rates when mass is coupled) and computes
+   consistent startup acceleration. Then call `integrator%step(model, state, dt)`
+   or collect `history = integrator%solve(model, state, dt, nstep)` (including
+   the initial sample). `state%acceleration` is the Newmark integration
+   variable after startup; `state%multipliers` are evaluated at the force
+   stage, not the endpoint. Multipliers follow joint insertion order and
+   then custom rows, with sign `M*a + transpose(G)*lambda = f`.
+
+For example, this fixes a truss's floating frame to ground and releases
+only the axial displacement of its second node:
+
+```fortran
+use dynamics
+implicit none
+type(multibody_model) :: model
+type(multibody_integrator) :: integrator
+type(multibody_state) :: state
+type(flexible_truss_3d) :: truss
+type(rigid_body) :: carrier
+type(dynamic_joint) :: clamp
+double precision :: q(7), v(7)
+integer :: i
+
+carrier = rigid_body(m=0.0d0)
+carrier%inertia = 0.0d0
+call model%add_body(carrier, elastic_dofs=1)
+truss%reference_coordinates(1,2) = 2.0d0
+truss%material = linear_elastic(youngs_modulus=12.0d0, density=3.0d0)
+call model%add_element(1, truss, [0,0,0, 1,0,0])
+clamp%joint_type = FIXED_JOINT
+clamp%parent_body = 0
+clamp%child_body = 1
+clamp%parent_frame = 0.0d0
+do i = 1, 4
+    clamp%parent_frame(i,i) = 1.0d0
+end do
+clamp%child_frame = clamp%parent_frame
+call model%add_joint(clamp)
+q = 0.0d0
+v = 0.0d0
+q(7) = 1.0d-4
+call integrator%initialize(model, state, 0.0d0, q, v)
+call integrator%step(model, state, 0.01d0)
+```
+
+The solver enforces position constraints in Newton iterations and projects
+the endpoint velocity; redundant constraints and unrestrained massless modes
+are not supported. The kinetic energy pulls back constant reference element
+mass matrices through the current nodal velocities. This retains carrier and
+elastic inertial coupling and is exact for linearly interpolated translational
+nodes, but is a reference-mass approximation for deformed beams. Do not use
+this coordinate formulation for continuous rotations through the rotation-vector
+singularity at a full turn. Use a time step that resolves the motion and keeps
+joint iterations on the intended assembly branch. Dense factorization and
+numerical derivatives make this interface most suitable for small models.
 
 ## Building
 
