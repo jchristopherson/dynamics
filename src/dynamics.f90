@@ -43,5 +43,6 @@ module dynamics
     use dynamics_flexible_materials
     use dynamics_flexible_beam_elements
     use dynamics_flexible_body_types
+    use dynamics_flexible_assembly
     use dynamics_multibody
 end module

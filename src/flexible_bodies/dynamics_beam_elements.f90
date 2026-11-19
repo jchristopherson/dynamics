@@ -96,6 +96,10 @@ module dynamics_flexible_beam_elements
             !! Node table borrowed only for the duration of the Hessian call.
     end type
 
+    interface euler_bernoulli_beam_element
+        module procedure :: eb_init
+    end interface
+
 ! ------------------------------------------------------------------------------
     real(real64), parameter :: frame_tol = 1.0d-12
     real(real64), parameter, dimension(4) :: points = [ &
@@ -112,6 +116,43 @@ module dynamics_flexible_beam_elements
     ]
 
 contains
+! ------------------------------------------------------------------------------
+    function eb_init(mat, A, J, Iyy, Izz, n1, n2, ydir) result(rst)
+        !! Constructs a new [[euler_bernoulli_beam_element]] instance.
+        class(flexible_material), intent(in), pointer :: mat
+            !! A pointer to the material to associate with the element.  The
+            !! caller must keep the target alive for at least as long as the
+            !! lifetime of this object.
+        real(real64), intent(in) :: A
+            !! The beam cross-sectional area (length squared).
+        real(real64), intent(in) :: J
+            !! Positive Saint-Venant torsion constant (length to the fourth).
+        real(real64), intent(in) :: Iyy
+            !! Positive second moment of area about local y (length to the fourth).
+        real(real64), intent(in) :: Izz
+            !! Positive second moment of area about local z (length to the fourth).
+        integer, intent(in) :: n1
+            !! Node 1 index in the node table. This value does not necessarily
+            !! equal the 'fe_node%id' value.
+        integer, intent(in) :: n2
+            !! Node 2 index in the node table. This value does not necessarily
+            !! equal the 'fe_node%id' value.
+        real(real64), intent(in), dimension(3) :: ydir
+            !! Global direction defining local section y after projection
+            !! normal to the reference chord; it must not be parallel to it.
+        type(euler_bernoulli_beam_element) :: rst
+            !! The new [[euler_bernoulli_beam_element]] object.
+
+        rst%material => mat
+        rst%area = A
+        rst%j = J
+        rst%iyy = Iyy
+        rst%izz = Izz
+        rst%node_indices(1) = n1
+        rst%node_indices(2) = n2
+        rst%reference_y = ydir
+    end function
+
 ! ------------------------------------------------------------------------------
     subroutine beam_internal_force(this, q, f, nodes)
         !! Evaluate the positive strain-energy gradient by hyper-dual AD.
