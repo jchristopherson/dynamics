@@ -1,7 +1,7 @@
 module dynamics_flexible_materials
     !! Material energy interfaces for flexible elements.
     !! Use a consistent unit system: energy density is energy per reference
-    !! volume, torsional section energy is energy per reference length,
+    !! volume, bending and torsional energies are energy per reference length,
     !! moduli are stress, and density is mass per reference volume.
     use iso_fortran_env
     use, intrinsic :: ieee_arithmetic, only : ieee_is_finite
@@ -15,8 +15,7 @@ module dynamics_flexible_materials
     type, abstract :: flexible_material
         !! Constitutive energy contract for flexible elements. Implementations
         !! provide consistent real, dual and hyper-dual 3D energy evaluations
-        !! and separate uniaxial plane-stress and rectangular-section torsion
-        !! laws for beams.
+        !! and separate axial plane-stress, bending, and torsion laws for beams.
         real(real64) :: density
             !! Material density per reference volume.
     contains
@@ -28,8 +27,10 @@ module dynamics_flexible_materials
             !! The same energy with hyper-dual derivatives.
         procedure(get_plane_stress_energy), deferred, public, pass :: plane_stress_energy
             !! Uniaxial fiber energy with free transverse stresses.
+        procedure(get_bending_energy), deferred, public, pass :: bending_energy
+            !! Section bending energy per reference length.
         procedure(get_torsional_energy), deferred, public, pass :: torsional_energy
-            !! Rectangular-section torsional energy per reference length.
+            !! Section torsional energy per reference length.
         generic, public :: energy_density => real_energy_density, &
             dual_energy_density, hyperdual_energy_density
             !! Dispatch the 3D energy evaluation by scalar type.
@@ -49,19 +50,31 @@ module dynamics_flexible_materials
                 !! Energy per reference volume and seeded derivatives.
         end function
 
-        pure function get_torsional_energy(this, twist, width, height) result(rst)
-            !! Evaluate the rectangular section's torsional energy per
-            !! reference length. The material implementation owns the torsion
-            !! law and must propagate all hyper-dual derivatives of twist.
+        pure function get_bending_energy(this, ky, kz, iyy, izz) result(rst)
+            !! Evaluate section bending energy and its hyper-dual derivatives.
+            import flexible_material, hyperdual, real64
+            class(flexible_material), intent(in) :: this
+            type(hyperdual), intent(in) :: ky
+                !! Rotation rate about local y per reference length.
+            type(hyperdual), intent(in) :: kz
+                !! Rotation rate about local z per reference length.
+            real(real64), intent(in) :: iyy
+                !! Reference second moment of area about local y.
+            real(real64), intent(in) :: izz
+                !! Reference second moment of area about local z.
+            type(hyperdual) :: rst
+                !! Bending energy per reference length and derivatives.
+        end function
+
+        pure function get_torsional_energy(this, twist, j) result(rst)
+            !! Evaluate section torsional energy and its hyper-dual derivatives.
             import flexible_material, hyperdual, real64
             class(flexible_material), intent(in) :: this
                 !! Material supplying the section torsion law.
             type(hyperdual), intent(in) :: twist
                 !! Twist rate per reference length and derivative seeds.
-            real(real64), intent(in) :: width
-                !! Undeformed section dimension along local y.
-            real(real64), intent(in) :: height
-                !! Undeformed section dimension along local z.
+            real(real64), intent(in) :: j
+                !! Reference Saint-Venant torsion constant.
             type(hyperdual) :: rst
                 !! Torsional energy per reference length and derivatives.
         end function
@@ -105,8 +118,7 @@ module dynamics_flexible_materials
 
     type, extends(flexible_material) :: linear_elastic_isotropic_material
         !! Isotropic quadratic strain energy with Young's modulus and
-        !! Poisson's ratio. The beam plane-stress law is E*strain**2/2;
-        !! torsion uses the rectangular Saint-Venant torsion constant.
+        !! Poisson's ratio. Beam laws use the supplied section properties.
         real(real64) :: modulus
             !! The material modulus of elasticity.
         real(real64) :: poissons_ratio = 0.3d0
@@ -117,6 +129,7 @@ module dynamics_flexible_materials
         procedure, public :: dual_energy_density => lei_dual_energy_density
         procedure, public :: hyperdual_energy_density => lei_hyperdual_energy_density
         procedure, public :: plane_stress_energy => lei_plane_stress_energy
+        procedure, public :: bending_energy => lei_bending_energy
         procedure, public :: torsional_energy => lei_torsional_energy
     end type
 
@@ -159,9 +172,15 @@ contains
         integer :: i
         integer :: j
 
-        if (.not.ieee_is_finite(this%modulus) .or. .not.ieee_is_finite(this%poissons_ratio) .or. &
-            this%modulus <= 0.0d0 .or. this%poissons_ratio <= -1.0d0 .or. &
-            this%poissons_ratio >= 0.5d0) error stop "Invalid isotropic material properties"
+        if (.not.ieee_is_finite(this%modulus) .or. &
+            .not.ieee_is_finite(this%poissons_ratio) .or. &
+            this%modulus <= 0.0d0 .or. &
+            this%poissons_ratio <= -1.0d0 .or. &
+            this%poissons_ratio >= 0.5d0) &
+        then
+            error stop "Invalid isotropic material properties"
+        end if
+
         mu = this%modulus / (2.0d0 * (1.0d0 + this%poissons_ratio))
         lambda = this%modulus * this%poissons_ratio / &
             ((1.0d0 + this%poissons_ratio) * (1.0d0 - 2.0d0 * this%poissons_ratio))
@@ -177,8 +196,9 @@ contains
 
 ! ------------------------------------------------------------------------------
     pure function lei_plane_stress_energy(this, strain) result(rst)
-        !! Evaluate E*strain**2/2 for a uniaxial fiber with free transverse
-        !! stresses. A nonpositive Young's modulus terminates with an error.
+        !! Evaluate \(\frac{1}{2} E \epsilon^2 \) for a uniaxial fiber with
+        !! free transverse stresses. A nonpositive Young's modulus terminates
+        !! with an error.
         class(linear_elastic_isotropic_material), intent(in) :: this
             !! Material supplying Young's modulus.
         type(hyperdual), intent(in) :: strain
@@ -190,46 +210,40 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
-    pure function lei_torsional_energy(this, twist, width, height) result(rst)
-        !! Evaluate G*J*twist**2/2 per reference length, where G is the
-        !! isotropic shear modulus and J is the rectangular Saint-Venant
-        !! torsion constant. J is approximated by 200 terms of its odd-index
-        !! series. Invalid section dimensions or elastic properties terminate
-        !! with an error.
+    pure function lei_bending_energy(this, ky, kz, iyy, izz) result(rst)
+        !! Evaluate \( E (I_{yy}\kappa_y^2 + I_{zz}\kappa_z^2)/2 \)
+        !! per reference length.
+        class(linear_elastic_isotropic_material), intent(in) :: this
+        type(hyperdual), intent(in) :: ky
+        type(hyperdual), intent(in) :: kz
+        real(real64), intent(in) :: iyy
+        real(real64), intent(in) :: izz
+        type(hyperdual) :: rst
+
+        if (.not.ieee_is_finite(this%modulus) .or. this%modulus <= 0.0d0) error stop "Invalid Young's modulus"
+        if (.not.all(ieee_is_finite([iyy, izz])) .or. iyy <= 0.0d0 .or. izz <= 0.0d0) &
+            error stop "Invalid bending second moments of area"
+        rst = 0.5d0*this%modulus*(iyy*ky*ky + izz*kz*kz)
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function lei_torsional_energy(this, twist, j) result(rst)
+        !! Evaluate \( G J \theta^2/2 \) per reference length with the
+        !! supplied Saint-Venant torsion constant and isotropic shear modulus.
         class(linear_elastic_isotropic_material), intent(in) :: this
             !! Material supplying Young's modulus and Poisson's ratio.
         type(hyperdual), intent(in) :: twist
             !! Twist rate per reference length and derivative seeds.
-        real(real64), intent(in) :: width
-            !! Positive section dimension along local y.
-        real(real64), intent(in) :: height
-            !! Positive section dimension along local z.
+        real(real64), intent(in) :: j
+            !! Positive Saint-Venant torsion constant.
         type(hyperdual) :: rst
             !! Torsional energy per reference length and its derivatives.
-        real(real64) :: a
-        real(real64) :: b
-        real(real64) :: pi
-        real(real64) :: series
-        real(real64) :: torsion_constant
-        real(real64) :: n
-        integer :: i
-
         if (.not.ieee_is_finite(this%modulus) .or. .not.ieee_is_finite(this%poissons_ratio) .or. &
             this%modulus <= 0.0d0 .or. this%poissons_ratio <= -1.0d0 .or. &
             this%poissons_ratio >= 0.5d0) error stop "Invalid isotropic material properties"
-        if (.not.ieee_is_finite(width) .or. .not.ieee_is_finite(height) .or. &
-            width <= 0.0d0 .or. height <= 0.0d0) error stop "Invalid rectangular section"
-        a = max(width, height)
-        b = min(width, height)
-        pi = acos(-1.0d0)
-        series = 0.0d0
-        do i = 1, 200
-            n = real(2 * i - 1, real64)
-            series = series + tanh(n * pi * a / (2.0d0 * b)) / n**5
-        end do
-        torsion_constant = a * b**3 * (1.0d0 / 3.0d0 - 64.0d0 * b * series / (pi**5 * a))
+        if (.not.ieee_is_finite(j) .or. j <= 0.0d0) error stop "Invalid Saint-Venant torsion constant"
         rst = 0.5d0 * (this%modulus / (2.0d0 * (1.0d0 + this%poissons_ratio))) * &
-            torsion_constant * twist * twist
+            j * twist * twist
     end function
 
 ! ------------------------------------------------------------------------------

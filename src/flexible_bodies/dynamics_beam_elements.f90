@@ -50,16 +50,15 @@ module dynamics_flexible_beam_elements
     end interface
 
     type, extends(flexible_beam_element) :: euler_bernoulli_beam_element
-        !! Two-node, shear-free spatial beam with a rectangular section.
+        !! Two-node, shear-free spatial beam referenced to centroidal
+        !! principal section axes.
         !! The twelve DOFs are ordered [ux, uy, uz, rx, ry, rz] per node.
         !! Translations and rotation vectors are in global axes; rotations
         !! are expressed in radians. Coordinates and section dimensions
         !! describe the undeformed configuration.
         !!
-        !! Section energy combines fiberwise plane-stress energy with the
-        !! material's separate rectangular-section torsion law. Four Gauss
-        !! points along the beam and two in each section direction are used;
-        !! nonlinear section response is therefore a quadrature approximation.
+        !! The material supplies separate axial, bending, and torsional laws.
+        !! Section energy is integrated at four Gauss points along the beam.
         !! The reference mass is constant, not a configuration-dependent
         !! finite-rotation inertia.
         real(real64), dimension(3,2) :: reference_coordinates = 0.0d0
@@ -67,11 +66,12 @@ module dynamics_flexible_beam_elements
         real(real64), dimension(3) :: reference_y = [0.0d0, 1.0d0, 0.0d0]
             !! Global direction defining local section y after projection
             !! normal to the reference chord; it must not be parallel to it.
-        real(real64) :: width = 0.0d0
-            !! Positive section dimension along local y.
-        real(real64) :: height = 0.0d0
-            !! Positive section dimension along local z. The inherited area
-            !! must equal width times height within relative tolerance 1e-12.
+        real(real64) :: j = 0.0d0
+            !! Positive Saint-Venant torsion constant (length to the fourth).
+        real(real64) :: iyy = 0.0d0
+            !! Positive second moment of area about local y (length to the fourth).
+        real(real64) :: izz = 0.0d0
+            !! Positive second moment of area about local z (length to the fourth).
         integer, dimension(12) :: equation_indices = 0
             !! Caller-supplied global equation indices in element DOF order.
     contains
@@ -210,8 +210,8 @@ contains
     subroutine reference_frame(this, length, frame)
         !! Validate the material association, section and reference geometry,
         !! then construct an orthonormal, right-handed reference frame.
-        !! Invalid, zero-length or parallel geometry and inconsistent section
-        !! area terminate with an error.
+        !! Invalid geometry or nonpositive section properties terminate with
+        !! an error.
         class(euler_bernoulli_beam_element), intent(in) :: this
             !! Beam supplying its reference geometry and section.
         real(real64), intent(out) :: length
@@ -221,11 +221,9 @@ contains
         real(real64), dimension(3) :: y
         real(real64) :: yn
         if (.not.associated(this%material)) error stop "Beam material is not associated"
-        if (.not.all(ieee_is_finite([this%width, this%height, this%area])) .or. &
-            this%width <= 0.0d0 .or. this%height <= 0.0d0 .or. this%area <= 0.0d0) &
-            error stop "Beam section dimensions must be finite and positive"
-        if (abs(this%area - this%width*this%height) > &
-            1.0d-12 * max(this%area, this%width*this%height)) error stop "Beam area must equal width times height"
+        if (.not.all(ieee_is_finite([this%area, this%j, this%iyy, this%izz])) .or. &
+            min(this%area, this%j, this%iyy, this%izz) <= 0.0d0) &
+            error stop "Beam area, J, Iyy, and Izz must be finite and positive"
         if (.not.all(ieee_is_finite(this%reference_coordinates)) .or. &
             .not.all(ieee_is_finite(this%reference_y))) error stop "Invalid beam reference geometry"
         frame(:,1) = this%reference_coordinates(:,2) - this%reference_coordinates(:,1)
@@ -261,8 +259,6 @@ contains
         real(real64), dimension(4) :: dh
         real(real64) :: length
         real(real64) :: s
-        real(real64) :: iy
-        real(real64) :: iz
         integer :: i
         integer :: j
         integer :: k
@@ -270,9 +266,7 @@ contains
         call reference_frame(this, length, frame)
         if (.not.ieee_is_finite(this%material%density) .or. this%material%density < 0.0d0) &
             error stop "Invalid beam density"
-        iy = this%width * this%height**3 / 12.0d0
-        iz = this%height * this%width**3 / 12.0d0
-        inertia = [this%area, this%area, this%area, iy+iz, iy, iz]
+        inertia = [this%area, this%area, this%area, this%iyy+this%izz, this%iyy, this%izz]
         m = 0.0d0
         do i = 1, 4
             s = points(i)
@@ -300,12 +294,11 @@ contains
         !! Integrate the shear-free beam strain energy in the reference
         !! configuration. A cubic Hermite centerline is constructed from the
         !! chord and rotated end tangents; a projected interpolated director
-        !! defines the section frame. Fiber axial Green-Lagrange strain is
-        !! evaluated at two Gauss points in each section direction. Twist
-        !! energy is supplied separately by the material's torsion law.
+        !! defines the section frame. Axial Green-Lagrange strain is evaluated
+        !! on the centroidal axis; the material supplies bending and torsion
+        !! energies from the section rotation rates and properties.
         !!
-        !! This section approximation does not include axial-torsional
-        !! constitutive coupling unless supplied by a different beam model.
+        !! The axial, bending, and torsional material responses are uncoupled.
         !! Zero current chord, singular tangent or section frame, and invalid
         !! reference geometry or DOF count terminate with an error.
         class(euler_bernoulli_beam_element), intent(in) :: this
@@ -317,8 +310,6 @@ contains
         real(real64) :: length
         real(real64), dimension(3,3) :: frame
         real(real64) :: s
-        real(real64) :: y
-        real(real64) :: z
         type(hyperdual), dimension(3) :: chord
         type(hyperdual), dimension(4,2) :: q
         type(hyperdual), dimension(3,2) :: a
@@ -334,16 +325,14 @@ contains
         type(hyperdual) :: scale
         type(hyperdual) :: speed
         type(hyperdual) :: projection
-        type(hyperdual) :: width
+        type(hyperdual) :: guide_norm
         type(hyperdual) :: kx
         type(hyperdual) :: ky
         type(hyperdual) :: kz
-        type(hyperdual) :: fiber
+        type(hyperdual) :: axial_strain
         type(hyperdual) :: section
         integer :: i
         integer :: j
-        integer :: iy
-        integer :: iz
         if (size(u) /= 12) error stop "Beam requires twelve degrees of freedom"
         call reference_frame(this, length, frame)
         do i = 1, 3
@@ -383,26 +372,19 @@ contains
             do i = 1, 3
                 d2(i) = guide(i) - projection*tangent(i)
             end do
-            width = dot_product(d2, d2)
-            if (.not.(width%x > frame_tol**2)) error stop "Beam section frame is singular"
-            width = sqrt(width)
+            guide_norm = dot_product(d2, d2)
+            if (.not.(guide_norm%x > frame_tol**2)) error stop "Beam section frame is singular"
+            guide_norm = sqrt(guide_norm)
             do i = 1, 3
-                d2(i) = d2(i) / width
+                d2(i) = d2(i) / guide_norm
             end do
             d3 = hd_cross(tangent, d2)
-            kx = (dot_product(d3, dguide) - projection*dot_product(d3, dt)) / width
+            kx = (dot_product(d3, dguide) - projection*dot_product(d3, dt)) / guide_norm
             ky = -dot_product(d3, dt)
             kz = dot_product(d2, dt)
-            section = this%material%torsional_energy(kx, this%width, this%height)
-            do iy = -1, 1, 2
-                y = real(iy,real64)*this%width / (2.0d0*sqrt(3.0d0))
-                do iz = -1, 1, 2
-                    z = real(iz,real64)*this%height / (2.0d0*sqrt(3.0d0))
-                    fiber = speed - y*kz + z*ky
-                    fiber = 0.5d0*(fiber*fiber - 1.0d0)
-                    section = section + 0.25d0*this%area*this%material%plane_stress_energy(fiber)
-                end do
-            end do
+            axial_strain = 0.5d0*(speed*speed - 1.0d0)
+            section = this%area*this%material%plane_stress_energy(axial_strain) + &
+                this%material%bending_energy(ky, kz, this%iyy, this%izz) + this%material%torsional_energy(kx, this%j)
             w = w + weights(j)*length*section
         end do
     end function

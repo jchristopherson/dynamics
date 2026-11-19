@@ -16,6 +16,7 @@ module dynamics_flexible_bodies_tests
     type, extends(linear_elastic_isotropic_material) :: nonlinear_material
     contains
         procedure :: plane_stress_energy => nonlinear_plane_energy
+        procedure :: bending_energy => nonlinear_bending_energy
         procedure :: torsional_energy => nonlinear_torsion_energy
     end type
 
@@ -27,13 +28,23 @@ contains
         w = 0.5d0*this%modulus*strain**2 + this%modulus*strain**4
     end function
 
-    pure function nonlinear_torsion_energy(this, twist, width, height) result(w)
+    pure function nonlinear_bending_energy(this, ky, kz, iyy, izz) result(w)
+        class(nonlinear_material), intent(in) :: this
+        type(hyperdual), intent(in) :: ky
+        type(hyperdual), intent(in) :: kz
+        real(real64), intent(in) :: iyy
+        real(real64), intent(in) :: izz
+        type(hyperdual) :: w
+        w = this%linear_elastic_isotropic_material%bending_energy(ky, kz, iyy, izz) + &
+            this%modulus*(iyy*ky**4 + izz*kz**4)
+    end function
+
+    pure function nonlinear_torsion_energy(this, twist, j) result(w)
         class(nonlinear_material), intent(in) :: this
         type(hyperdual), intent(in) :: twist
-        real(real64), intent(in) :: width
-        real(real64), intent(in) :: height
+        real(real64), intent(in) :: j
         type(hyperdual) :: w
-        w = this%modulus*width*height**3*twist**4
+        w = this%modulus*j*twist**4
     end function
 
     function test_flexible_material() result(ok)
@@ -70,8 +81,8 @@ contains
         he = material%plane_stress_energy(hyperdual(0.1d0, 1.0d0, 1.0d0, 0.0d0))
         ok = ok .and. abs(he%x-1.05d0) < 1.0d-12 .and. abs(he%dx-21.0d0) < 1.0d-12
         ok = ok .and. abs(he%dxy-210.0d0) < 1.0d-12
-        he = material%torsional_energy(hyperdual(0.2d0, 1.0d0, 1.0d0, 0.0d0), 1.0d0, 1.0d0)
-        ok = ok .and. abs(he%dxy-84.0d0*0.14057701496d0) < 1.0d-7
+        he = material%torsional_energy(hyperdual(0.2d0, 1.0d0, 1.0d0, 0.0d0), 0.07d0)
+        ok = ok .and. abs(he%dxy-mu*0.07d0) < 1.0d-12
         if (.not.ok) print "(A)", "TEST FAILED: flexible material"
     end function
 
@@ -172,11 +183,12 @@ contains
         case ("flex-invalid-material")
             material%modulus = ieee_value(0.0d0, ieee_quiet_nan)
             call material%constitutive_matrix(d)
-        case ("flex-invalid-area")
+        case ("flex-invalid-section")
             beam%material => material
-            beam%width = 1.0d0
-            beam%height = 1.0d0
             beam%area = 2.0d0
+            beam%j = 0.2d0
+            beam%iyy = 0.3d0
+            beam%izz = -0.5d0
             beam%reference_coordinates(1,2) = 1.0d0
             call beam%mass_matrix(m)
         case default
@@ -187,6 +199,7 @@ contains
     function test_flexible_beam() result(ok)
         logical :: ok
         type(nonlinear_material), target :: material
+        type(linear_elastic_isotropic_material), target :: linear_material
         type(euler_bernoulli_beam_element) :: beam
         real(real64), dimension(12) :: u
         real(real64), dimension(12) :: f
@@ -215,9 +228,10 @@ contains
         beam%material => material
         beam%reference_coordinates(:,1) = [0.0d0, 0.0d0, 0.0d0]
         beam%reference_coordinates(:,2) = [2.0d0, 0.0d0, 0.0d0]
-        beam%width = 0.4d0
-        beam%height = 0.2d0
         beam%area = 0.08d0
+        beam%j = 0.0007d0
+        beam%iyy = 0.0004d0
+        beam%izz = 0.0013d0
         beam%equation_indices = [(i, i=1,12)]
         ok = beam%dof_count() == 12 .and. beam%node_count() == 2
         ok = ok .and. beam%dof_per_node() == 6 .and. beam%dimensionality() == 3
@@ -227,13 +241,24 @@ contains
         call beam%stiffness_matrix(u, k)
         ok = ok .and. maxval(abs(f)) < 1.0d-11
         ok = ok .and. abs(k(1,1) - material%modulus*beam%area/2.0d0) < 1.0d-10
-        ok = ok .and. abs(k(2,2) - 12.0d0*material%modulus*beam%height*beam%width**3/(12.0d0*2.0d0**3)) < 1.0d-10
-        ok = ok .and. abs(k(3,3) - 12.0d0*material%modulus*beam%width*beam%height**3/(12.0d0*2.0d0**3)) < 1.0d-10
+        ok = ok .and. abs(k(2,2) - 12.0d0*material%modulus*beam%izz/2.0d0**3) < 1.0d-10
+        ok = ok .and. abs(k(3,3) - 12.0d0*material%modulus*beam%iyy/2.0d0**3) < 1.0d-10
+        linear_material = material%linear_elastic_isotropic_material
+        beam%material => linear_material
+        call beam%stiffness_matrix(u, k)
+        expected = 0.5d0*material%modulus/(1.0d0+material%poissons_ratio)*beam%j/2.0d0
+        ok = ok .and. abs(k(4,4)-expected) < 1.0d-12
+        beam%material => material
         call beam%mass_matrix(m)
         direction = 0.0d0
         direction(1) = 1.0d0
         direction(7) = 1.0d0
         ok = ok .and. abs(dot_product(direction,matmul(m,direction))-material%density*beam%area*2.0d0) < 1.0d-12
+        direction = 0.0d0
+        direction(4) = 1.0d0
+        direction(10) = 1.0d0
+        expected = material%density*2.0d0*(beam%iyy+beam%izz)
+        ok = ok .and. abs(dot_product(direction,matmul(m,direction))-expected) < 1.0d-12
         ok = ok .and. maxval(abs(m-transpose(m))) < 1.0d-12
         u(7) = 0.4d0
         call beam%internal_force_vector(u, f)
@@ -257,7 +282,7 @@ contains
         do i = 1, 4
             s = gp(i)
             twist = sin(0.3d0) / (2.0d0*((1.0d0-s+s*cos(0.3d0))**2+(s*sin(0.3d0))**2))
-            expected = expected + gw(i)*2.0d0*material%modulus*beam%width*beam%height**3*twist**4
+            expected = expected + gw(i)*2.0d0*material%modulus*beam%j*twist**4
         end do
         ok = ok .and. abs(energy%x-expected) < 1.0d-12
         u = [0.01d0, 0.03d0, -0.02d0, 0.04d0, -0.03d0, 0.05d0, &
