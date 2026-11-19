@@ -22,65 +22,13 @@ A library of routines used for the analysis of dynamic systems.
 | Robotics Utilities | Jacobians, transformations, quaternion algebra | ✅ | ✅ | ✅ |
 | Serial-Link Mechanisms | Revolute/prismatic linkages and motion analysis | ✅ | ✅ | ✅ |
 | Parallel Mechanisms | Loop-closure constraints, mobility analysis, Jacobian partitioning | ✅ | ✅ | ✅ |
-| Multibody Dynamics | Rigid-body variational integration and coupled 3-D rigid/flexible dynamics | ✅ | ✅ | ⚠️ |
+| Multibody Dynamics | Rigid-body variational integration | ✅ | ✅ | ⚠️ |
 | Force Elements | Springs, dampers, torsional elements, custom force models | ✅ | ✅ | ✅ |
 | Geometry | Points, lines, planes, Plücker lines, intersections, projections | ✅ | ✅ | ✅ |
 | Structural Mechanics | Beam, truss, and shell finite elements | ✅ | ✅ | ✅ |
-| Flexible Bodies | 2D/3D trusses, springs, dampers, and finite-rotation beams | ✅ | ✅ | ⚠️ |
 | Structural Dynamics | Generalized-α integration, dense and sparse assemblies | ✅ | ✅ | ✅ |
 | Stability Analysis | Fixed-point stability classification | ✅ | ✅ | ⚠️ |
 | C Interface | Native C API | ✅ | ✅ | ⚠️ |
-
-### Flexible-body beams
-
-The `dynamics` module exports `flexible_euler_bernoulli_2d`,
-`flexible_euler_bernoulli_3d`, `flexible_timoshenko_2d`, and
-`flexible_timoshenko_3d`. Set the two reference nodes (one per column of
-`reference_coordinates`), the section geometry, and a `material` such as
-`linear_elastic(youngs_modulus=..., poissons_ratio=...)`. The geometry is
-`area` and `second_moment_of_area` (scalar \(I_z\) in 2D, `[I_y, I_z]` in 3D).
-Spatial beams also use a Saint-Venant `torsion_constant` \(J\). Timoshenko
-beams use `effective_shear_area` (along local y in 2D, `[A_sy, A_sz]` in 3D),
-which includes the shear correction. For a spatial beam, `reference_y` sets
-the section orientation and must not be parallel to the reference chord.
-
-The beam forms \(EI\), \(GJ\), and \(GA_s\) from these geometric properties and
-the material moduli, so changing the material does not require updating the
-section. The built-in materials derive \(G = E/[2(1+\nu)]\).
-`polynomial_elastic` adds a nonlinear axial energy law but retains constant
-moduli for bending, torsion, and shear.
-
-The planar DOFs are `[ux, uy, theta_z]` per node; the spatial DOFs are
-`[ux, uy, uz, rx, ry, rz]` per node. The spatial rotation vector is expressed
-in the global basis and maps to a finite rotation of the reference frame.
-`internal_force(u, f, k)` differentiates the strain energy with respect to these
-coordinates, so the rotational entries in `f` are conjugate to the rotation-vector
-coordinates, not directly to spatial angular increments.
-
-Euler–Bernoulli follows the tangent of a cubic centerline and has no shear
-strain. Its centerline tangent and projected section frame must remain
-nondegenerate. Timoshenko interpolates the section along the shortest rotational
-arc and evaluates axial and shear strains at the midpoint to avoid linear shear
-locking; subdivide the beam where adjacent sections approach a relative rotation
-of 180 degrees. The axial material receives stretch minus one for Euler–Bernoulli
-and the chord stretch projected onto the midpoint section's axial director minus
-one for Timoshenko, not the Green–Lagrange strain used in the truss. Bending,
-torsion, and shear use quadratic section energies. Spatial beams also provide
-`mass_matrix()` in element DOF order. The reference mass uses material
-`density` (default 1 in consistent units) and includes rotary inertia based
-on `I_y + I_z` about the chord and `I_y`, `I_z` about the section axes.
-Euler–Bernoulli mass uses cubic Hermite bending interpolation; Timoshenko mass
-uses linear interpolation for both translations and section rotations.
-
-To customize the section response, extend `beam_section_energy_law`, implement
-`energy_density(this, geometry, material, strain)`, and allocate the beam's
-`section_law` with an instance. The law receives local generalized strains
-and returns a hyper-dual energy per unit reference length. The beam still
-handles kinematics, integration, and differentiation. Leaving `section_law`
-unallocated uses `quadratic_beam_section_energy`, which retains the material's
-axial law and uses quadratic bending, torsion, and shear terms. Euler–Bernoulli
-passes zero shear strains; planar beams use only axial extension, local
-z curvature, and (for Timoshenko) local y shear.
 
 ## Building
 

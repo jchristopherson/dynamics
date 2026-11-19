@@ -29,7 +29,6 @@ program main
     use dynamics_linkage_dynamics_tests
     use dynamics_discrete_elements_tests
     use dynamics_shell_elements_tests
-    use dynamics_flexible_bodies_tests
     implicit none
 
     ! Variables
@@ -60,16 +59,6 @@ program main
             end if
             if (selection == "generalized-alpha") then
                 if (.not.test_generalized_alpha_integrator()) stop 152
-                stop
-            end if
-            if (selection == "flexible-beams") then
-                if (.not.test_flexible_beam_linear_limits()) stop 195
-                if (.not.test_flexible_beam_objectivity()) stop 196
-                if (.not.test_flexible_beam_section_energy()) stop 197
-                stop
-            end if
-            if (selection == "spatial-element-mass") then
-                if (.not.test_spatial_element_mass()) stop 198
                 stop
             end if
         end block
@@ -180,33 +169,6 @@ program main
 
     check = test_shell_cantilever_modal()
     if (.not.check) flag = 167
-
-    check = test_flexible_truss_2d()
-    if (.not.check) flag = 190
-
-    check = test_flexible_rigid_translation()
-    if (.not.check) flag = 191
-
-    check = test_flexible_truss_3d_fd()
-    if (.not.check) flag = 192
-
-    check = test_flexible_spring()
-    if (.not.check) flag = 193
-
-    check = test_flexible_damper()
-    if (.not.check) flag = 194
-
-    check = test_flexible_beam_linear_limits()
-    if (.not.check) flag = 195
-
-    check = test_flexible_beam_objectivity()
-    if (.not.check) flag = 196
-
-    check = test_flexible_beam_section_energy()
-    if (.not.check) flag = 197
-
-    check = test_spatial_element_mass()
-    if (.not.check) flag = 198
 
     check = test_forward_kinematics()
     if (.not.check) flag = 12
