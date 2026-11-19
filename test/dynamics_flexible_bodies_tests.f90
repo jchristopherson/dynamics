@@ -4,12 +4,15 @@ module dynamics_flexible_bodies_tests
     use autodiff
     use dynamics_flexible_beam_elements
     use dynamics_flexible_body_types, only : fe_node
+    use dynamics_flexible_assembly, only : finite_element_mesh
+    use linalg, only : csr_matrix, csr_to_dense
     use dynamics_flexible_materials
     use dynamics_helper, only : dot_product, matmul
     implicit none
     private
     public :: test_flexible_material
     public :: test_flexible_beam
+    public :: test_flexible_mesh
     public :: test_ad_products
     public :: invalid_ad_product
     public :: invalid_flexible_input
@@ -171,6 +174,8 @@ contains
         character(*), intent(in) :: selection
         type(linear_elastic_isotropic_material), target :: material
         type(euler_bernoulli_beam_element) :: beam
+        type(finite_element_mesh) :: mesh
+        integer, allocatable, dimension(:) :: offsets
         type(fe_node), dimension(2) :: nodes
         real(real64), dimension(12,12) :: m
         real(real64), dimension(6,6) :: d
@@ -202,6 +207,12 @@ contains
         case ("flex-invalid-repeated-node")
             beam%node_indices = [2, 2]
             call beam%mass_matrix(m, nodes)
+        case ("flex-invalid-mesh-node")
+            mesh%nodes = nodes
+            beam%node_indices = [1, 3]
+            allocate(mesh%elements(1))
+            allocate(mesh%elements(1)%element, source=beam)
+            call mesh%number_dofs(offsets)
         case default
             error stop "Unknown flexible input test"
         end select
@@ -336,4 +347,79 @@ contains
         ok = ok .and. abs(k(1,1) - material%modulus*beam%area) < 1.0d-10
         if (.not.ok) print "(A)", "TEST FAILED: flexible beam"
     end function
+   function test_flexible_mesh() result(ok)
+       logical :: ok
+       type(linear_elastic_isotropic_material), target :: material
+       type(euler_bernoulli_beam_element) :: beam
+       type(finite_element_mesh) :: mesh
+       type(csr_matrix) :: sparse
+       integer, allocatable, dimension(:) :: offsets
+       integer, dimension(12,2) :: eq
+       integer, dimension(12) :: ids
+       real(real64), dimension(18) :: q
+       real(real64), dimension(18) :: expected_f
+       real(real64), dimension(18,18) :: expected_m
+       real(real64), dimension(18,18) :: expected_k
+       real(real64), dimension(12,12) :: local
+       real(real64), dimension(12) :: local_f
+       real(real64), allocatable, dimension(:) :: f
+       real(real64), allocatable, dimension(:,:) :: dense
+       integer :: i
+       integer :: p
+       integer :: c
+
+       call mesh%assemble_mass(sparse)
+       ok = size(sparse%row_indices) == 1 .and. size(sparse%values) == 0
+       mesh%nodes = [fe_node(41, [0.0d0, 0.0d0, 0.0d0]), &
+           fe_node(80, [0.0d0, 5.0d0, 0.0d0]), fe_node(25, [2.0d0, 0.0d0, 0.0d0]), &
+           fe_node(64, [3.0d0, 0.0d0, 0.0d0])]
+       material = linear_elastic_isotropic_material(100.0d0, 0.25d0, 2.0d0)
+       beam%material => material
+       beam%area = 1.0d0
+       beam%j = 0.1d0
+       beam%iyy = 0.2d0
+       beam%izz = 0.3d0
+       allocate(mesh%elements(2))
+       beam%node_indices = [1, 3]
+       allocate(mesh%elements(1)%element, source=beam)
+       beam%node_indices = [4, 3]
+       allocate(mesh%elements(2)%element, source=beam)
+       call mesh%number_dofs(offsets)
+       ok = ok .and. all(offsets == [0, 6, 6, 12, 18])
+
+       eq(:,1) = [(i, i=1,12)]
+       eq(:,2) = [(i, i=13,18), (i, i=7,12)]
+       q = [(0.001d0*i, i=1,18)]
+       expected_m = 0.0d0
+       expected_k = 0.0d0
+       expected_f = 0.0d0
+       do i = 1, 2
+           ids = eq(:,i)
+           associate (element => mesh%elements(i)%element)
+               call element%mass_matrix(local, mesh%nodes)
+               expected_m(ids,ids) = expected_m(ids,ids) + local
+               call element%stiffness_matrix(q(ids), local, mesh%nodes)
+               expected_k(ids,ids) = expected_k(ids,ids) + local
+               call element%internal_force_vector(q(ids), local_f, mesh%nodes)
+               expected_f(ids) = expected_f(ids) + local_f
+           end associate
+       end do
+       call mesh%assemble_mass(dense)
+       ok = ok .and. maxval(abs(dense-expected_m)) < 1.0d-12
+       call mesh%assemble_mass(sparse)
+       ok = ok .and. maxval(abs(csr_to_dense(sparse)-expected_m)) < 1.0d-12
+       call mesh%assemble_stiffness(q, dense)
+       ok = ok .and. maxval(abs(dense-expected_k)) < 1.0d-12
+       call mesh%assemble_stiffness(q, sparse)
+       ok = ok .and. maxval(abs(csr_to_dense(sparse)-expected_k)) < 1.0d-12
+       do i = 1, 18
+           do p = sparse%row_indices(i)+1, sparse%row_indices(i+1)-1
+               c = sparse%column_indices(p)
+               ok = ok .and. c > sparse%column_indices(p-1)
+           end do
+       end do
+       call mesh%assemble_internal_force(q, f)
+       ok = ok .and. maxval(abs(f-expected_f)) < 1.0d-12
+       if (.not.ok) print "(A)", "TEST FAILED: flexible mesh assembly"
+   end function
 end module

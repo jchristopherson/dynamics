@@ -77,11 +77,13 @@ module dynamics_flexible_beam_elements
         real(real64) :: izz = 0.0d0
             !! Positive second moment of area about local z (length to the fourth).
         integer, dimension(12) :: equation_indices = 0
-            !! Caller-supplied global equation indices in element DOF order.
+            !! Caller-supplied indices for manual assembly. The mesh numbers
+            !! equations from node connectivity instead.
     contains
         procedure :: dof_count => eb_dof_count
         procedure :: dof_indices => eb_dof_indices
         procedure :: node_count => eb_node_count
+        procedure :: node_connectivity => eb_node_connectivity
         procedure :: dof_per_node => eb_dof_per_node
         procedure :: dimensionality => eb_dimensionality
         procedure :: mass_matrix => eb_mass
@@ -251,6 +253,14 @@ contains
         integer, allocatable, dimension(:) :: indices
             !! Allocated array of twelve equation indices.
         indices = this%equation_indices
+    end function
+
+! ------------------------------------------------------------------------------
+    pure function eb_node_connectivity(this) result(indices)
+        !! Return the two node positions in local DOF block order.
+        class(euler_bernoulli_beam_element), intent(in) :: this
+        integer, allocatable, dimension(:) :: indices
+        indices = this%node_indices
     end function
 
 ! ------------------------------------------------------------------------------

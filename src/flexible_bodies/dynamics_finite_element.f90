@@ -12,6 +12,8 @@ module dynamics_finite_element
     contains
         procedure(get_node_count), deferred, public, pass :: node_count
             !! Number of nodes in the element.
+        procedure(get_node_connectivity), deferred :: node_connectivity
+            !! One-based mesh node positions in local DOF block order.
         procedure(get_dof_per_node), deferred, public, pass :: dof_per_node
             !! Number of DOFs at each node.
         procedure(get_element_dimensionality), deferred, public, pass :: dimensionality
@@ -19,6 +21,16 @@ module dynamics_finite_element
     end type
 
     abstract interface
+        pure function get_node_connectivity(this) result(indices)
+            !! Return the node positions used by automatic mesh numbering.
+            import finite_element
+            class(finite_element), intent(in) :: this
+                !! Element whose local vectors and matrices are grouped by node.
+            integer, allocatable, dimension(:) :: indices
+                !! `node_count()` distinct one-based positions in the mesh
+                !! node table (not node IDs), in local DOF block order.
+        end function
+
         pure function get_node_count(this) result(rst)
             !! Gets the number of nodes for this element.
             import finite_element

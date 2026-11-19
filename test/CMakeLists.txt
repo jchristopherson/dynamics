@@ -68,7 +68,8 @@ foreach(case IN ITEMS dual-dot hyperdual-dot dual-matmul hyperdual-matmul)
     )
     set_tests_properties(dynamics_ad_error_${case} PROPERTIES WILL_FAIL TRUE)
 endforeach()
-foreach(case IN ITEMS invalid-strain invalid-material invalid-section invalid-node-index invalid-repeated-node)
+foreach(case IN ITEMS invalid-strain invalid-material invalid-section invalid-node-index invalid-repeated-node
+        invalid-mesh-node)
     add_test(
         NAME dynamics_flexible_error_${case}
         WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
