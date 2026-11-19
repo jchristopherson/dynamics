@@ -3,6 +3,7 @@ module dynamics_flexible_bodies_tests
     use, intrinsic :: ieee_arithmetic, only : ieee_value, ieee_quiet_nan
     use autodiff
     use dynamics_flexible_beam_elements
+    use dynamics_flexible_body_types, only : fe_node
     use dynamics_flexible_materials
     use dynamics_helper, only : dot_product, matmul
     implicit none
@@ -170,12 +171,21 @@ contains
         character(*), intent(in) :: selection
         type(linear_elastic_isotropic_material), target :: material
         type(euler_bernoulli_beam_element) :: beam
+        type(fe_node), dimension(2) :: nodes
         real(real64), dimension(12,12) :: m
         real(real64), dimension(6,6) :: d
         real(real64) :: energy
         material%modulus = 100.0d0
         material%poissons_ratio = 0.25d0
         material%density = 1.0d0
+        nodes(1) = fe_node(10, [0.0d0, 0.0d0, 0.0d0])
+        nodes(2) = fe_node(20, [1.0d0, 0.0d0, 0.0d0])
+        beam%material => material
+        beam%area = 2.0d0
+        beam%j = 0.2d0
+        beam%iyy = 0.3d0
+        beam%izz = 0.5d0
+        beam%node_indices = [1, 2]
         select case (selection)
         case ("flex-invalid-strain")
             energy = material%energy_density([0.0d0])
@@ -184,13 +194,14 @@ contains
             material%modulus = ieee_value(0.0d0, ieee_quiet_nan)
             call material%constitutive_matrix(d)
         case ("flex-invalid-section")
-            beam%material => material
-            beam%area = 2.0d0
-            beam%j = 0.2d0
-            beam%iyy = 0.3d0
             beam%izz = -0.5d0
-            beam%reference_coordinates(1,2) = 1.0d0
-            call beam%mass_matrix(m)
+            call beam%mass_matrix(m, nodes)
+        case ("flex-invalid-node-index")
+            beam%node_indices = [1, 3]
+            call beam%mass_matrix(m, nodes)
+        case ("flex-invalid-repeated-node")
+            beam%node_indices = [2, 2]
+            call beam%mass_matrix(m, nodes)
         case default
             error stop "Unknown flexible input test"
         end select
@@ -201,6 +212,8 @@ contains
         type(nonlinear_material), target :: material
         type(linear_elastic_isotropic_material), target :: linear_material
         type(euler_bernoulli_beam_element) :: beam
+        type(euler_bernoulli_beam_element) :: neighbor
+        type(fe_node), dimension(3) :: nodes
         real(real64), dimension(12) :: u
         real(real64), dimension(12) :: f
         real(real64), dimension(12) :: fp
@@ -226,8 +239,10 @@ contains
         material%poissons_ratio = 0.25d0
         material%density = 3.0d0
         beam%material => material
-        beam%reference_coordinates(:,1) = [0.0d0, 0.0d0, 0.0d0]
-        beam%reference_coordinates(:,2) = [2.0d0, 0.0d0, 0.0d0]
+        nodes(1) = fe_node(101, [0.0d0, 0.0d0, 0.0d0])
+        nodes(2) = fe_node(307, [2.0d0, 0.0d0, 0.0d0])
+        nodes(3) = fe_node(502, [4.0d0, 0.0d0, 0.0d0])
+        beam%node_indices = [1, 2]
         beam%area = 0.08d0
         beam%j = 0.0007d0
         beam%iyy = 0.0004d0
@@ -237,19 +252,19 @@ contains
         ok = ok .and. beam%dof_per_node() == 6 .and. beam%dimensionality() == 3
         ok = ok .and. all(beam%dof_indices() == [(i, i=1,12)])
         u = 0.0d0
-        call beam%internal_force_vector(u, f)
-        call beam%stiffness_matrix(u, k)
+        call beam%internal_force_vector(u, f, nodes)
+        call beam%stiffness_matrix(u, k, nodes)
         ok = ok .and. maxval(abs(f)) < 1.0d-11
         ok = ok .and. abs(k(1,1) - material%modulus*beam%area/2.0d0) < 1.0d-10
         ok = ok .and. abs(k(2,2) - 12.0d0*material%modulus*beam%izz/2.0d0**3) < 1.0d-10
         ok = ok .and. abs(k(3,3) - 12.0d0*material%modulus*beam%iyy/2.0d0**3) < 1.0d-10
         linear_material = material%linear_elastic_isotropic_material
         beam%material => linear_material
-        call beam%stiffness_matrix(u, k)
+        call beam%stiffness_matrix(u, k, nodes)
         expected = 0.5d0*material%modulus/(1.0d0+material%poissons_ratio)*beam%j/2.0d0
         ok = ok .and. abs(k(4,4)-expected) < 1.0d-12
         beam%material => material
-        call beam%mass_matrix(m)
+        call beam%mass_matrix(m, nodes)
         direction = 0.0d0
         direction(1) = 1.0d0
         direction(7) = 1.0d0
@@ -261,7 +276,7 @@ contains
         ok = ok .and. abs(dot_product(direction,matmul(m,direction))-expected) < 1.0d-12
         ok = ok .and. maxval(abs(m-transpose(m))) < 1.0d-12
         u(7) = 0.4d0
-        call beam%internal_force_vector(u, f)
+        call beam%internal_force_vector(u, f, nodes)
         strain = 0.5d0*(1.2d0**2-1.0d0)
         expected = beam%area*material%modulus*(strain+4.0d0*strain**3)*1.2d0
         ok = ok .and. abs(f(7)-expected) < 1.0d-10 .and. abs(f(1)+expected) < 1.0d-10
@@ -270,14 +285,14 @@ contains
         u(8) = 2.0d0*sin(0.8d0)
         u(6) = 0.8d0
         u(12) = 0.8d0
-        call beam%internal_force_vector(u, f)
+        call beam%internal_force_vector(u, f, nodes)
         ok = ok .and. maxval(abs(f)) < 1.0d-10
         u = 0.0d0
         u(10) = 0.3d0
         do i = 1, 12
             seeded(i) = hyperdual(u(i), 0.0d0, 0.0d0, 0.0d0)
         end do
-        energy = beam%strain_energy(seeded)
+        energy = beam%strain_energy(seeded, nodes)
         expected = 0.0d0
         do i = 1, 4
             s = gp(i)
@@ -290,23 +305,35 @@ contains
         direction = [0.3d0, -0.2d0, 0.1d0, 0.4d0, -0.3d0, 0.2d0, &
                      -0.1d0, 0.2d0, 0.3d0, -0.4d0, 0.1d0, 0.2d0]
         h = 1.0d-5
-        call beam%internal_force_vector(u, f)
-        call beam%stiffness_matrix(u, k)
-        call beam%internal_force_vector(u+h*direction, fp)
-        call beam%internal_force_vector(u-h*direction, fm)
+        call beam%internal_force_vector(u, f, nodes)
+        call beam%stiffness_matrix(u, k, nodes)
+        call beam%internal_force_vector(u+h*direction, fp, nodes)
+        call beam%internal_force_vector(u-h*direction, fm, nodes)
         do i = 1, 12
             seeded(i) = hyperdual(u(i)+h*direction(i), 0.0d0, 0.0d0, 0.0d0)
         end do
-        energy = beam%strain_energy(seeded)
+        energy = beam%strain_energy(seeded, nodes)
         energy_plus = energy%x
         do i = 1, 12
             seeded(i) = hyperdual(u(i)-h*direction(i), 0.0d0, 0.0d0, 0.0d0)
         end do
-        energy = beam%strain_energy(seeded)
+        energy = beam%strain_energy(seeded, nodes)
         energy_minus = energy%x
         ok = ok .and. abs((energy_plus-energy_minus)/(2*h)-dot_product(f,direction)) < 1.0d-8
         ok = ok .and. maxval(abs(k-transpose(k))) < 1.0d-10
         ok = ok .and. maxval(abs((fp-fm)/(2*h)-matmul(k,direction))) < 1.0d-7
+
+        ! Both elements read node 2 from the same table, regardless of its ID.
+        neighbor = beam
+        neighbor%node_indices = [2, 3]
+        u = 0.0d0
+        call neighbor%stiffness_matrix(u, k, nodes)
+        ok = ok .and. abs(k(1,1) - material%modulus*beam%area/2.0d0) < 1.0d-10
+        nodes(2)%coordinates(1) = 3.0d0
+        call beam%stiffness_matrix(u, k, nodes)
+        ok = ok .and. abs(k(1,1) - material%modulus*beam%area/3.0d0) < 1.0d-10
+        call neighbor%stiffness_matrix(u, k, nodes)
+        ok = ok .and. abs(k(1,1) - material%modulus*beam%area) < 1.0d-10
         if (.not.ok) print "(A)", "TEST FAILED: flexible beam"
     end function
 end module

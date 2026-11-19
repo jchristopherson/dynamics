@@ -10,6 +10,7 @@ module dynamics_flexible_beam_elements
     use dynamics_helper, only : dot_product, cross_product
     use dynamics_finite_element
     use dynamics_flexible_materials
+    use dynamics_flexible_body_types, only : fe_node
     implicit none
     private
     public :: flexible_beam_element
@@ -36,14 +37,16 @@ module dynamics_flexible_beam_elements
     end type
 
     abstract interface
-        function beam_strain_energy(this, u) result(energy)
+        function beam_strain_energy(this, u, nodes) result(energy)
             !! Contract for an element's stored strain energy. Implementations
             !! must propagate all hyper-dual components of the input DOFs.
-            import flexible_beam_element, hyperdual
+            import flexible_beam_element, hyperdual, fe_node
             class(flexible_beam_element), intent(in) :: this
                 !! Beam supplying its geometry and constitutive response.
             type(hyperdual), intent(in), dimension(:) :: u
                 !! Element DOFs in the ordering defined by the concrete beam.
+            type(fe_node), intent(in), dimension(:) :: nodes
+                !! Caller-owned reference node table.
             type(hyperdual) :: energy
                 !! Stored energy and its seeded first and mixed derivatives.
         end function
@@ -61,8 +64,9 @@ module dynamics_flexible_beam_elements
         !! Section energy is integrated at four Gauss points along the beam.
         !! The reference mass is constant, not a configuration-dependent
         !! finite-rotation inertia.
-        real(real64), dimension(3,2) :: reference_coordinates = 0.0d0
-            !! Global reference node coordinates, one node per column.
+        integer, dimension(2) :: node_indices = 0
+            !! One-based positions in the supplied node table, in element
+            !! DOF order. These are not `fe_node%id` values.
         real(real64), dimension(3) :: reference_y = [0.0d0, 1.0d0, 0.0d0]
             !! Global direction defining local section y after projection
             !! normal to the reference chord; it must not be parallel to it.
@@ -88,16 +92,28 @@ module dynamics_flexible_beam_elements
         !! Read-only beam reference passed through the AD callback.
         class(flexible_beam_element), pointer :: beam
             !! Beam whose energy is being differentiated.
+        type(fe_node), pointer, dimension(:) :: nodes
+            !! Node table borrowed only for the duration of the Hessian call.
     end type
 
+! ------------------------------------------------------------------------------
     real(real64), parameter :: frame_tol = 1.0d-12
-    real(real64), parameter, dimension(4) :: points = [0.06943184420297371d0, 0.33000947820757187d0, &
-        0.66999052179242813d0, 0.93056815579702629d0]
-    real(real64), parameter, dimension(4) :: weights = [0.17392742256872693d0, 0.32607257743127307d0, &
-        0.32607257743127307d0, 0.17392742256872693d0]
+    real(real64), parameter, dimension(4) :: points = [ &
+        0.06943184420297371d0, &
+        0.33000947820757187d0, &
+        0.66999052179242813d0, &
+        0.93056815579702629d0 &
+    ]
+    real(real64), parameter, dimension(4) :: weights = [ &
+        0.17392742256872693d0, &
+        0.32607257743127307d0, &
+        0.32607257743127307d0, &
+        0.17392742256872693d0 &
+    ]
 
 contains
-    subroutine beam_internal_force(this, q, f)
+! ------------------------------------------------------------------------------
+    subroutine beam_internal_force(this, q, f, nodes)
         !! Evaluate the positive strain-energy gradient by hyper-dual AD.
         !! One energy evaluation is required per DOF. Both arrays must have
         !! `dof_count()` entries; mismatches terminate with an error.
@@ -107,25 +123,30 @@ contains
             !! Element DOFs in the concrete element's ordering.
         real(real64), intent(out), dimension(:) :: f
             !! Positive energy-gradient vector, conjugate to `q`.
+        type(fe_node), intent(in), dimension(:) :: nodes
+            !! Caller-owned reference node table.
+
         type(hyperdual) :: energy
-        integer :: i
-        integer :: n
+        integer :: i, n
+
         n = this%dof_count()
         if (size(q) /= n .or. size(f) /= n) error stop "Invalid beam force dimensions"
         if (n == 0) return
         if (.not.this%workspace%validate_size(n, 1)) call this%workspace%resize(n, 1)
+
         do i = 1, n
             this%workspace%xd_pool(i,1) = hyperdual(q(i), 0.0d0, 0.0d0, 0.0d0)
         end do
         do i = 1, n
             this%workspace%xd_pool(i,1)%dx = 1.0d0
-            energy = this%strain_energy(this%workspace%xd_pool(1:n,1))
+            energy = this%strain_energy(this%workspace%xd_pool(1:n,1), nodes)
             f(i) = energy%dx
             this%workspace%xd_pool(i,1)%dx = 0.0d0
         end do
     end subroutine
 
-    subroutine beam_stiffness(this, q, k)
+! ------------------------------------------------------------------------------
+    subroutine beam_stiffness(this, q, k, nodes)
         !! Evaluate the symmetric strain-energy Hessian by hyper-dual AD.
         !! Invalid DOF or matrix dimensions terminate with an error.
         class(flexible_beam_element), intent(inout), target :: this
@@ -134,15 +155,22 @@ contains
             !! Element DOFs in the concrete element's ordering.
         real(real64), intent(out), dimension(:,:) :: k
             !! `dof_count()`-by-`dof_count()` tangent stiffness matrix.
+        type(fe_node), intent(in), target, dimension(:) :: nodes
+            !! Caller-owned reference node table.
+
         type(beam_context) :: ctx
         integer :: n
+
         n = this%dof_count()
         if (size(q) /= n .or. size(k,1) /= n .or. size(k,2) /= n) &
             error stop "Invalid beam stiffness dimensions"
+
         ctx%beam => this
+        ctx%nodes => nodes
         call hessian(beam_energy_wrapper, q, k, work=this%workspace, args=ctx)
     end subroutine
 
+! ------------------------------------------------------------------------------
     function beam_energy_wrapper(q, args) result(energy)
         !! Adapt the type-bound energy method to the AD scalar callback.
         !! Missing or incompatible context terminates with an error.
@@ -152,16 +180,19 @@ contains
             !! A [[beam_context]] containing an associated beam.
         type(hyperdual) :: energy
             !! Beam energy and seeded derivatives.
+
         if (.not.present(args)) error stop "Missing beam context"
+
         select type (args)
         type is (beam_context)
             if (.not.associated(args%beam)) error stop "Missing beam"
-            energy = args%beam%strain_energy(q)
+            energy = args%beam%strain_energy(q, args%nodes)
         class default
             error stop "Invalid beam context"
         end select
     end function
 
+! ------------------------------------------------------------------------------
     pure function eb_dof_count(this) result(n)
         !! Return the total number of element DOFs.
         class(euler_bernoulli_beam_element), intent(in) :: this
@@ -171,6 +202,7 @@ contains
         n = 12
     end function
 
+! ------------------------------------------------------------------------------
     pure function eb_dof_indices(this) result(indices)
         !! Copy the caller-supplied equation indices in element DOF order.
         class(euler_bernoulli_beam_element), intent(in) :: this
@@ -180,6 +212,7 @@ contains
         indices = this%equation_indices
     end function
 
+! ------------------------------------------------------------------------------
     pure function eb_node_count(this) result(n)
         !! Return the number of element nodes.
         class(euler_bernoulli_beam_element), intent(in) :: this
@@ -189,6 +222,7 @@ contains
         n = 2
     end function
 
+! ------------------------------------------------------------------------------
     pure function eb_dof_per_node(this) result(n)
         !! Return the number of DOFs at each node.
         class(euler_bernoulli_beam_element), intent(in) :: this
@@ -198,6 +232,7 @@ contains
         n = 6
     end function
 
+! ------------------------------------------------------------------------------
     pure function eb_dimensionality(this) result(n)
         !! Return the spatial dimension of the element.
         class(euler_bernoulli_beam_element), intent(in) :: this
@@ -207,40 +242,61 @@ contains
         n = 3
     end function
 
-    subroutine reference_frame(this, length, frame)
+! ------------------------------------------------------------------------------
+    subroutine reference_frame(this, nodes, length, frame, chord)
         !! Validate the material association, section and reference geometry,
         !! then construct an orthonormal, right-handed reference frame.
         !! Invalid geometry or nonpositive section properties terminate with
         !! an error.
         class(euler_bernoulli_beam_element), intent(in) :: this
-            !! Beam supplying its reference geometry and section.
+            !! Beam supplying node indices, orientation, and section properties.
+        type(fe_node), intent(in), dimension(:) :: nodes
+            !! Caller-owned reference node table.
         real(real64), intent(out) :: length
             !! Positive reference chord length.
         real(real64), intent(out), dimension(3,3) :: frame
             !! Global reference x, y and z unit directors, one per column.
+        real(real64), intent(out), optional, dimension(3) :: chord
+            !! Unnormalized reference chord from node one to node two.
+
         real(real64), dimension(3) :: y
         real(real64) :: yn
+        integer :: first
+        integer :: second
+
         if (.not.associated(this%material)) error stop "Beam material is not associated"
         if (.not.all(ieee_is_finite([this%area, this%j, this%iyy, this%izz])) .or. &
             min(this%area, this%j, this%iyy, this%izz) <= 0.0d0) &
             error stop "Beam area, J, Iyy, and Izz must be finite and positive"
-        if (.not.all(ieee_is_finite(this%reference_coordinates)) .or. &
+        first = this%node_indices(1)
+        second = this%node_indices(2)
+        if (any(this%node_indices < 1) .or. any(this%node_indices > size(nodes))) &
+            error stop "Beam node indices are outside the node table"
+        if (first == second) error stop "Beam requires two distinct node indices"
+        if (.not.all(ieee_is_finite(nodes(first)%coordinates)) .or. &
+            .not.all(ieee_is_finite(nodes(second)%coordinates)) .or. &
             .not.all(ieee_is_finite(this%reference_y))) error stop "Invalid beam reference geometry"
-        frame(:,1) = this%reference_coordinates(:,2) - this%reference_coordinates(:,1)
+
+        frame(:,1) = nodes(second)%coordinates - nodes(first)%coordinates
+        if (present(chord)) chord = frame(:,1)
         length = norm2(frame(:,1))
         if (.not.(length > 0.0d0)) error stop "Beam reference length must be positive"
+
         frame(:,1) = frame(:,1) / length
         yn = norm2(this%reference_y)
         if (.not.(yn > 0.0d0)) error stop "Beam reference y direction must be nonzero"
+
         y = this%reference_y / yn
         y = y - dot_product(y, frame(:,1))*frame(:,1)
         yn = norm2(y)
         if (.not.(yn > frame_tol)) error stop "Beam reference y direction is parallel to its axis"
+
         frame(:,2) = y / yn
         frame(:,3) = cross_product(frame(:,1), frame(:,2))
     end subroutine
 
-    subroutine eb_mass(this, m)
+! ------------------------------------------------------------------------------
+    subroutine eb_mass(this, m, nodes)
         !! Compute the constant 12-by-12 consistent reference mass matrix.
         !! Four-point Gauss integration combines axial and torsional linear
         !! interpolation with Hermite bending interpolation and section
@@ -251,21 +307,21 @@ contains
             !! Beam providing its reference geometry and material density.
         real(real64), intent(out), dimension(:,:) :: m
             !! Reference mass matrix in global element DOF order.
+        type(fe_node), intent(in), dimension(:) :: nodes
+            !! Caller-owned reference node table.
+
         real(real64), dimension(3,3) :: frame
-        real(real64), dimension(6,12) :: b
-        real(real64), dimension(6,12) :: weighted
+        real(real64), dimension(6,12) :: b, weighted
         real(real64), dimension(6) :: inertia
-        real(real64), dimension(4) :: h
-        real(real64), dimension(4) :: dh
-        real(real64) :: length
-        real(real64) :: s
-        integer :: i
-        integer :: j
-        integer :: k
+        real(real64), dimension(4) :: h, dh
+        real(real64) :: length, s
+        integer :: i, j, k
+
         if (size(m,1) /= 12 .or. size(m,2) /= 12) error stop "Invalid beam mass dimensions"
-        call reference_frame(this, length, frame)
+        call reference_frame(this, nodes, length, frame)
         if (.not.ieee_is_finite(this%material%density) .or. this%material%density < 0.0d0) &
             error stop "Invalid beam density"
+
         inertia = [this%area, this%area, this%area, this%iyy+this%izz, this%iyy, this%izz]
         m = 0.0d0
         do i = 1, 4
@@ -290,7 +346,8 @@ contains
         m = m * length * this%material%density
     end subroutine
 
-    function eb_energy(this, u) result(w)
+! ------------------------------------------------------------------------------
+    function eb_energy(this, u, nodes) result(w)
         !! Integrate the shear-free beam strain energy in the reference
         !! configuration. A cubic Hermite centerline is constructed from the
         !! chord and rotated end tangents; a projected interpolated director
@@ -305,41 +362,31 @@ contains
             !! Beam with an associated material and valid reference section.
         type(hyperdual), intent(in), dimension(:) :: u
             !! Twelve seeded global translations and rotation-vector DOFs.
+        type(fe_node), intent(in), dimension(:) :: nodes
+            !! Caller-owned reference node table.
         type(hyperdual) :: w
             !! Total stored energy and its seeded derivatives.
-        real(real64) :: length
+
+        real(real64) :: length, s
         real(real64), dimension(3,3) :: frame
-        real(real64) :: s
-        type(hyperdual), dimension(3) :: chord
+        real(real64), dimension(3) :: reference_chord
         type(hyperdual), dimension(4,2) :: q
-        type(hyperdual), dimension(3,2) :: a
-        type(hyperdual), dimension(3,2) :: b
-        type(hyperdual), dimension(3) :: dr
-        type(hyperdual), dimension(3) :: ddr
-        type(hyperdual), dimension(3) :: tangent
-        type(hyperdual), dimension(3) :: dt
-        type(hyperdual), dimension(3) :: guide
-        type(hyperdual), dimension(3) :: dguide
-        type(hyperdual), dimension(3) :: d2
-        type(hyperdual), dimension(3) :: d3
-        type(hyperdual) :: scale
-        type(hyperdual) :: speed
-        type(hyperdual) :: projection
-        type(hyperdual) :: guide_norm
-        type(hyperdual) :: kx
-        type(hyperdual) :: ky
-        type(hyperdual) :: kz
-        type(hyperdual) :: axial_strain
-        type(hyperdual) :: section
-        integer :: i
-        integer :: j
+        type(hyperdual), dimension(3,2) :: a, b
+        type(hyperdual), dimension(3) :: dr, ddr, tangent, dt, guide, dguide, &
+            d2, d3, chord
+        type(hyperdual) :: scale, speed, projection, guide_norm, kx, ky, kz, &
+            axial_strain, section
+        integer :: i, j
+
         if (size(u) /= 12) error stop "Beam requires twelve degrees of freedom"
-        call reference_frame(this, length, frame)
+        call reference_frame(this, nodes, length, frame, reference_chord)
         do i = 1, 3
-            chord(i) = this%reference_coordinates(i,2) - this%reference_coordinates(i,1) + u(i+6) - u(i)
+            chord(i) = reference_chord(i) + (u(i+6) - u(i))
         end do
+
         scale = dot_product(chord, chord)
         if (.not.(scale%x > 0.0d0)) error stop "Beam current chord is zero"
+
         scale = sqrt(scale)
         q(:,1) = rotation_quaternion(u(4:6))
         q(:,2) = rotation_quaternion(u(10:12))
@@ -350,6 +397,7 @@ contains
         do i = 1, 3
             dguide(i) = (b(i,2) - b(i,1)) / length
         end do
+
         w = 0.0d0
         do j = 1, 4
             s = points(j)
@@ -378,17 +426,19 @@ contains
             do i = 1, 3
                 d2(i) = d2(i) / guide_norm
             end do
-            d3 = hd_cross(tangent, d2)
+            d3 = cross_product(tangent, d2)
             kx = (dot_product(d3, dguide) - projection*dot_product(d3, dt)) / guide_norm
             ky = -dot_product(d3, dt)
             kz = dot_product(d2, dt)
             axial_strain = 0.5d0*(speed*speed - 1.0d0)
             section = this%area*this%material%plane_stress_energy(axial_strain) + &
-                this%material%bending_energy(ky, kz, this%iyy, this%izz) + this%material%torsional_energy(kx, this%j)
+                this%material%bending_energy(ky, kz, this%iyy, this%izz) + &
+                this%material%torsional_energy(kx, this%j)
             w = w + weights(j)*length*section
         end do
     end function
 
+! ------------------------------------------------------------------------------
     function rotation_quaternion(r) result(q)
         !! Convert a global rotation vector to a scalar-first unit quaternion.
         !! The small-angle series avoids a singular derivative at zero.
@@ -396,9 +446,8 @@ contains
             !! Rotation vector in radians, including derivative seeds.
         type(hyperdual), dimension(4) :: q
             !! Quaternion [scalar, x, y, z] with propagated derivatives.
-        type(hyperdual) :: a2
-        type(hyperdual) :: half
-        type(hyperdual) :: scale
+
+        type(hyperdual) :: a2, half, scale
         integer :: i
         a2 = dot_product(r, r)
         if (a2%x < 1.0d-8) then
@@ -414,6 +463,7 @@ contains
         end do
     end function
 
+! ------------------------------------------------------------------------------
     function rotate_axis(q, a) result(b)
         !! Rotate a real reference director by a hyper-dual unit quaternion.
         type(hyperdual), intent(in), dimension(4) :: q
@@ -422,30 +472,19 @@ contains
             !! Reference director in global coordinates.
         type(hyperdual), dimension(3) :: b
             !! Rotated director with propagated derivatives.
-        type(hyperdual), dimension(3) :: ah
-        type(hyperdual), dimension(3) :: cross
-        type(hyperdual), dimension(3) :: double_cross
+
+        type(hyperdual), dimension(3) :: ah, cross, double_cross
         integer :: i
+
         do i = 1, 3
             ah(i) = a(i)
         end do
-        cross = hd_cross(q(2:4), ah)
-        double_cross = hd_cross(q(2:4), cross)
+        cross = cross_product(q(2:4), ah)
+        double_cross = cross_product(q(2:4), cross)
         do i = 1, 3
             b(i) = a(i) + 2.0d0*(q(1)*cross(i) + double_cross(i))
         end do
     end function
 
-    function hd_cross(a, b) result(c)
-        !! Compute the right-handed cross product of hyper-dual vectors.
-        type(hyperdual), intent(in), dimension(3) :: a
-            !! Left operand.
-        type(hyperdual), intent(in), dimension(3) :: b
-            !! Right operand.
-        type(hyperdual), dimension(3) :: c
-            !! Cross product with propagated derivatives.
-        c(1) = a(2)*b(3) - a(3)*b(2)
-        c(2) = a(3)*b(1) - a(1)*b(3)
-        c(3) = a(1)*b(2) - a(2)*b(1)
-    end function
+! ------------------------------------------------------------------------------
 end module

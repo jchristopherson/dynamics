@@ -1,6 +1,7 @@
 module dynamics_flexible_element
     !! Common contracts for flexible elements and their assembled DOFs.
     use iso_fortran_env
+    use dynamics_flexible_body_types, only : fe_node
     implicit none
     private
     public :: flexible_element
@@ -42,40 +43,46 @@ module dynamics_flexible_element
                 !! Array with `dof_count()` entries.
         end function
 
-        subroutine get_mass_matrix(this, m)
+        subroutine get_mass_matrix(this, m, nodes)
             !! Compute the element mass matrix. The caller supplies an output
             !! array with one row and column for each element DOF.
             use iso_fortran_env, only : real64
-            import flexible_element
+            import flexible_element, fe_node
             class(flexible_element), intent(inout) :: this
                 !! The [[flexible_element]] type.
             real(real64), intent(out), dimension(:,:) :: m
                 !! `dof_count()`-by-`dof_count()` mass matrix.
+            type(fe_node), intent(in), dimension(:) :: nodes
+                !! Caller-owned reference node table.
         end subroutine
 
-        subroutine get_internal_force(this, q, f)
+        subroutine get_internal_force(this, q, f, nodes)
             !! Compute the internal force vector at the supplied DOFs.
             !! Concrete elements specify the sign convention.
             use iso_fortran_env, only : real64
-            import flexible_element
+            import flexible_element, fe_node
             class(flexible_element), intent(inout), target :: this
                 !! The [[flexible_element]] type.
             real(real64), intent(in), dimension(:) :: q
                 !! `dof_count()` element displacement coordinates.
             real(real64), intent(out), dimension(:) :: f
                 !! `dof_count()` forces conjugate to the element DOFs.
+            type(fe_node), intent(in), dimension(:) :: nodes
+                !! Caller-owned reference node table.
         end subroutine
 
-        subroutine get_stiffness_matrix(this, q, k)
+        subroutine get_stiffness_matrix(this, q, k, nodes)
             !! Compute the tangent stiffness matrix at the supplied DOFs.
             use iso_fortran_env, only : real64
-            import flexible_element
+            import flexible_element, fe_node
             class(flexible_element), intent(inout), target :: this
                 !! The [[flexible_element]] type.
             real(real64), intent(in), dimension(:) :: q
                 !! `dof_count()` element displacement coordinates.
             real(real64), intent(out), dimension(:,:) :: k
                 !! `dof_count()`-by-`dof_count()` tangent stiffness matrix.
+            type(fe_node), intent(in), target, dimension(:) :: nodes
+                !! Caller-owned reference node table, borrowed during evaluation.
         end subroutine
     end interface
 

@@ -1,9 +1,9 @@
-module dynamics_multibody_types
+module dynamics_flexible_body_types
     use iso_fortran_env
     implicit none
     private
     public :: degree_of_freedom
-    public :: multibody_node
+    public :: fe_node
 
     type :: degree_of_freedom
         !! Defines a single degree of freedom.
@@ -21,8 +21,8 @@ module dynamics_multibody_types
             !! 6 = RZ
     end type
 
-    type :: multibody_node
-        !! Defines a multibody node.
+    type :: fe_node
+        !! Defines a node for a finite element body.
         integer :: id
             !! The node global ID number.
         real(real64), dimension(3) :: coordinates

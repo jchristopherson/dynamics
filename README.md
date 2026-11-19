@@ -33,8 +33,13 @@ A library of routines used for the analysis of dynamic systems.
 ### Flexible beams
 
 `euler_bernoulli_beam_element` is a two-node spatial, shear-free beam with no
-prescribed section shape. Set its material pointer, reference node coordinates
-along the centroidal axis, and reference local-y direction along a principal
+prescribed section shape. Store reference node coordinates along the centroidal
+axis in a caller-owned `fe_node` array. Set each beam's `node_indices` to the two
+one-based positions in that array, not the nodes' `id` values. Pass the same
+array to `mass_matrix`, `strain_energy`, `internal_force_vector`, and
+`stiffness_matrix`. Beams can share an index and will read any coordinate
+updates on the next evaluation. Remap connectivity if the array is reordered.
+Set the beam's material pointer and reference local-y direction along a principal
 axis. Supply finite, positive `area`, `j` (Saint-Venant torsion constant),
 `iyy`, and `izz` (second moments of area about the local principal axes).
 Assign `equation_indices` for assembly. Each node has

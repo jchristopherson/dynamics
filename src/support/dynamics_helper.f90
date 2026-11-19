@@ -25,6 +25,11 @@ module dynamics_helper
     public :: dot_product
     public :: matmul
 
+    interface cross_product
+        module procedure :: real_cross
+        module procedure :: hd_cross
+    end interface
+
     interface dot_product
         module procedure :: dual_dot_product
         module procedure :: hyperdual_dot_product
@@ -66,7 +71,7 @@ pure function is_symmetric(a) result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
-pure function cross_product(x, y) result(rst)
+pure function real_cross(x, y) result(rst)
     !! Computes the cross-product of two three-dimensional vectors.
     !! The result is orthogonal to both inputs and is defined by
     !! $$ \boldsymbol{x}\times\boldsymbol{y} =
@@ -81,6 +86,21 @@ pure function cross_product(x, y) result(rst)
     rst(1) = x(2) * y(3) - x(3) * y(2)
     rst(2) = x(3) * y(1) - x(1) * y(3)
     rst(3) = x(1) * y(2) - x(2) * y(1)
+end function
+
+! ------------------------------------------------------------------------------
+pure function hd_cross(a, b) result(c)
+    !! Compute the right-handed cross product of hyper-dual vectors.
+    type(hyperdual), intent(in), dimension(3) :: a
+        !! Left operand.
+    type(hyperdual), intent(in), dimension(3) :: b
+        !! Right operand.
+    type(hyperdual), dimension(3) :: c
+        !! Cross product with propagated derivatives.
+
+    c(1) = a(2)*b(3) - a(3)*b(2)
+    c(2) = a(3)*b(1) - a(1)*b(3)
+    c(3) = a(1)*b(2) - a(2)*b(1)
 end function
 
 ! ------------------------------------------------------------------------------

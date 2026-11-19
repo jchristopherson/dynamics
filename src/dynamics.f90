@@ -42,6 +42,6 @@ module dynamics
     use dynamics_finite_element
     use dynamics_flexible_materials
     use dynamics_flexible_beam_elements
+    use dynamics_flexible_body_types
     use dynamics_multibody
-    use dynamics_multibody_types
 end module
