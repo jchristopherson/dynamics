@@ -210,17 +210,7 @@ contains
         integer, allocatable, dimension(:) :: rows, cols, offsets
         real(real64), allocatable, dimension(:) :: values
         integer(int64) :: capacity
-        integer :: n
-        integer :: nd
-        integer :: max_nd
-        integer :: pos
-        integer :: i
-        integer :: j
-        integer :: k
-        integer :: threads
-        integer :: batch
-        integer :: first
-        integer :: last
+        integer :: n, nd, max_nd, pos, i, j, k, threads, batch, first, last
 
         if (present(dense) .eqv. present(sparse)) error stop "Select exactly one mesh matrix format"
         call build_layout(this, offsets, maps)
@@ -358,14 +348,7 @@ contains
         type(element_map), allocatable, dimension(:) :: maps
         integer, allocatable, dimension(:) :: offsets
         real(real64), allocatable, dimension(:,:) :: work
-        integer :: i
-        integer :: n
-        integer :: nd
-        integer :: max_nd
-        integer :: threads
-        integer :: batch
-        integer :: first
-        integer :: last
+        integer :: i, n, nd, max_nd, threads, batch, first, last
 
         call build_layout(this, offsets, maps)
         n = offsets(size(offsets))
