@@ -5,6 +5,10 @@ module dynamics_flexible_assembly
     !! displacements and sums local contributions using a numbering derived
     !! from connectivity, independently of any stored element equation IDs.
     !! All outputs are unconstrained: apply boundary conditions separately.
+    !! With OpenMP enabled, stiffness and internal force may evaluate distinct
+    !! elements concurrently. Contributions are still accumulated serially in
+    !! element order. Do not assemble the same mesh concurrently from multiple
+    !! callers; element evaluations can update their workspaces.
     use iso_fortran_env, only : real64, int64
     use dynamics_flexible_body_types, only : fe_node
     use dynamics_finite_element, only : finite_element
@@ -54,6 +58,7 @@ module dynamics_flexible_assembly
             !! Optional `nthreads` enables parallel element evaluation.
         procedure :: assemble_internal_force
             !! Assemble element internal forces in global equation order.
+            !! Optional `nthreads` enables parallel element evaluation.
     end type
 
     type :: element_map
@@ -83,10 +88,13 @@ contains
         !! Reject missing elements, invalid or repeated node positions,
         !! inconsistent DOF counts, and unrepresentable global counts.
         class(finite_element_mesh), intent(in) :: this
+            !! Mesh whose node table and element connectivity define the layout.
         integer, allocatable, intent(out), dimension(:) :: offsets
-            !! Prefix sums in node-table order; the final entry is the total.
+            !! Prefix sums of length `node_count + 1`, starting at zero and
+            !! ending at the global DOF count. Unused nodes add no equations.
         type(element_map), allocatable, intent(out), optional, dimension(:) :: maps
-            !! One local-to-global equation map per element, when requested.
+            !! If supplied, allocated in mesh element order, with one global
+            !! equation index per local DOF in each element's node-block order.
 
         integer, allocatable, dimension(:) :: connectivity, counts
         type(element_map), allocatable, dimension(:) :: topology
@@ -142,7 +150,7 @@ contains
 
 ! ------------------------------------------------------------------------------
     subroutine mass_dense(this, matrix)
-        !! Assemble mass into a newly allocated global dense matrix.
+        !! Assemble mass serially into a newly allocated global dense matrix.
         class(finite_element_mesh), intent(inout) :: this
             !! Mesh; element routines may update their workspaces.
         real(real64), allocatable, intent(out), dimension(:,:) :: matrix
@@ -152,11 +160,12 @@ contains
 
 ! ------------------------------------------------------------------------------
     subroutine mass_csr(this, matrix)
-        !! Assemble mass into CSR without allocating a dense global matrix.
+        !! Assemble mass serially into CSR without allocating a dense global matrix.
         class(finite_element_mesh), intent(inout) :: this
             !! Mesh; element routines may update their workspaces.
         type(csr_matrix), intent(out) :: matrix
-            !! Square CSR matrix with sorted, unique column indices per row.
+            !! Square CSR matrix with one row and column per global DOF.
+            !! Column indices are sorted and unique within each row.
         call assemble_matrix(this, sparse=matrix)
     end subroutine
 
@@ -166,11 +175,16 @@ contains
         class(finite_element_mesh), intent(inout) :: this
             !! Mesh; element routines may update their workspaces.
         real(real64), intent(in), dimension(:) :: q
-            !! Displacements in global equation order. Wrong length is an error.
+            !! Displacements in global equation order, with one entry per DOF.
+            !! A length mismatch causes `error stop`.
         real(real64), allocatable, intent(out), dimension(:,:) :: matrix
             !! Square matrix with one row and column per global DOF.
         integer, intent(in), optional :: nthreads
-            !! Positive thread limit (default 1). Values above 1 require thread-safe element evaluation.
+            !! Requested upper limit on OpenMP threads for element evaluation.
+            !! Defaults to 1; without OpenMP, evaluation is always serial.
+            !! Values less than 1 cause `error stop`. For values above 1,
+            !! element routines and any shared data (such as material models)
+            !! must be safe to access concurrently from distinct elements.
         call assemble_matrix(this, q=q, dense=matrix, nthreads=nthreads)
     end subroutine
 
@@ -180,12 +194,18 @@ contains
         class(finite_element_mesh), intent(inout) :: this
             !! Mesh; element routines may update their workspaces.
         real(real64), intent(in), dimension(:) :: q
-            !! Displacements in global equation order. Wrong length is an error.
+            !! Displacements in global equation order, with one entry per DOF.
+            !! A length mismatch causes `error stop`.
         type(csr_matrix), intent(out) :: matrix
-            !! Square CSR matrix with sorted, unique column indices per row.
-            !! The sparsity pattern may change with `q`.
+            !! Square CSR matrix with one row and column per global DOF.
+            !! Column indices are sorted and unique within each row. Exact
+            !! zeros are omitted, so the sparsity pattern may change with `q`.
         integer, intent(in), optional :: nthreads
-            !! Positive thread limit (default 1). Values above 1 require thread-safe element evaluation.
+            !! Requested upper limit on OpenMP threads for element evaluation.
+            !! Defaults to 1; without OpenMP, evaluation is always serial.
+            !! Values less than 1 cause `error stop`. For values above 1,
+            !! element routines and any shared data (such as material models)
+            !! must be safe to access concurrently from distinct elements.
         call assemble_matrix(this, q=q, sparse=matrix, nthreads=nthreads)
     end subroutine
 
@@ -196,14 +216,23 @@ contains
         !! place; sparse assembly collects nonzero triplets and reduces them
         !! to unique CSR entries after sorting.
         class(finite_element_mesh), intent(inout) :: this
+            !! Mesh supplying connectivity and element operators. Evaluating
+            !! the operators may update the elements' workspaces.
         real(real64), intent(in), optional, dimension(:) :: q
-            !! Global displacements for tangent assembly.
+            !! If supplied, evaluate tangent stiffness at these displacements,
+            !! with one entry per global DOF in equation order. Otherwise,
+            !! evaluate mass. A length mismatch causes `error stop`.
         real(real64), allocatable, intent(out), optional, dimension(:,:) :: dense
-            !! Dense output in global equation order.
+            !! If supplied instead of `sparse`, allocate a square dense matrix
+            !! with one row and column per global DOF in equation order.
         type(csr_matrix), intent(out), optional :: sparse
-            !! CSR output in the same equation order. Exact zeros are omitted,
-            !! including entries that cancel when contributions are summed.
+            !! If supplied instead of `dense`, return a square CSR matrix in
+            !! global equation order. Omit exact zeros, including cancellations.
         integer, intent(in), optional :: nthreads
+            !! Requested OpenMP thread limit for tangent element evaluation.
+            !! Forwarded to `assembly_threads`; omit for serial assembly and
+            !! always omit when assembling mass. See `stiffness_dense` for
+            !! the thread-safety requirements.
 
         type(element_map), allocatable, dimension(:) :: maps
         real(real64), allocatable, dimension(:,:,:) :: work
@@ -301,7 +330,10 @@ contains
         !! Coalesce consecutive duplicate columns in each sorted CSR row,
         !! drop exact cancellations, and update the row pointers in place.
         type(csr_matrix), intent(inout) :: matrix
-            !! CSR matrix from the triplet converter, sorted but not coalesced.
+            !! On entry, CSR matrix with column indices sorted within each
+            !! row; duplicates are allowed. On return, entries are unique
+            !! within each row, exact zeros are removed, and the CSR arrays
+            !! reflect the compacted storage.
 
         integer :: i, read_pos, write_pos, last, col
         real(real64) :: value
@@ -339,11 +371,17 @@ contains
         class(finite_element_mesh), intent(inout) :: this
             !! Mesh; element routines may update their workspaces.
         real(real64), intent(in), dimension(:) :: q
-            !! Displacements in global equation order. Wrong length is an error.
+            !! Displacements in global equation order, with one entry per DOF.
+            !! A length mismatch causes `error stop`.
         real(real64), allocatable, intent(out), dimension(:) :: f
-            !! Allocated force vector with one entry per global DOF.
+            !! Newly allocated internal-force vector with one entry per global
+            !! DOF in equation order. A mesh with no DOFs returns a size-zero vector.
         integer, intent(in), optional :: nthreads
-            !! Positive thread limit (default 1). Values above 1 require thread-safe element evaluation.
+            !! Requested upper limit on OpenMP threads for element evaluation.
+            !! Defaults to 1; without OpenMP, evaluation is always serial.
+            !! Values less than 1 cause `error stop`. For values above 1,
+            !! element routines and any shared data (such as material models)
+            !! must be safe to access concurrently from distinct elements.
 
         type(element_map), allocatable, dimension(:) :: maps
         integer, allocatable, dimension(:) :: offsets
@@ -391,10 +429,18 @@ contains
     end subroutine
 
 ! ------------------------------------------------------------------------------
-    integer function assembly_threads(nthreads, nelem) result(threads)
-        !! Without OpenMP the conditional assignment is omitted.
+    function assembly_threads(nthreads, nelem) result(threads)
+        !! Return one without OpenMP or when `nthreads` is omitted. Otherwise,
+        !! return the smallest of `nthreads`, `nelem`, and the batch limit,
+        !! but at least one. Each batch may use fewer threads, depending on
+        !! its size and the OpenMP runtime.
         integer, intent(in), optional :: nthreads
+            !! Requested positive thread limit. Omit to use one thread.
+            !! A value less than 1 causes `error stop`, even without OpenMP.
         integer, intent(in) :: nelem
+            !! Number of elements in the validated mesh, possibly zero.
+        integer :: threads
+            !! The thread quantity.
 
         threads = 1
         if (present(nthreads)) then
