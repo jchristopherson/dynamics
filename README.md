@@ -72,6 +72,15 @@ for the global internal-force vector. Both displacement `q` and force `f` use
 the mesh equation ordering. These outputs are assembled before applying
 boundary conditions.
 
+With OpenMP, pass `nthreads=4` (for example) to `assemble_stiffness` or
+`assemble_internal_force` to evaluate elements concurrently. The default is
+one thread, and builds without OpenMP run serially. Mass assembly is always
+serial. Contributions are added in element order, even when evaluation is
+parallel. Only opt in if your element and material routines are safe to call
+concurrently on distinct elements. The built-in Euler–Bernoulli beam has a
+workspace per element and can share a read-only built-in material. Do not
+assemble the same mesh concurrently from multiple callers.
+
 For example, given a configured `beam` and its `node_table`, assemble the
 reference mass and the tangent at zero displacement:
 

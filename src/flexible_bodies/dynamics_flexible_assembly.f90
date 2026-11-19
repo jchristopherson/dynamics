@@ -15,6 +15,9 @@ module dynamics_flexible_assembly
     public :: finite_element_mesh
     public :: mesh_element
 
+    integer, parameter :: max_batch = 256
+        !! Bound temporary element storage independently of mesh size.
+
     type :: mesh_element
         !! Owns one polymorphic element, allowing different types in one mesh.
         class(finite_element), allocatable :: element
@@ -48,6 +51,7 @@ module dynamics_flexible_assembly
         generic :: assemble_stiffness => stiffness_dense, stiffness_csr
             !! Assemble the global tangent at the supplied displacements in
             !! the format of the output argument: dense or CSR, not both.
+            !! Optional `nthreads` enables parallel element evaluation.
         procedure :: assemble_internal_force
             !! Assemble element internal forces in global equation order.
     end type
@@ -157,7 +161,7 @@ contains
     end subroutine
 
 ! ------------------------------------------------------------------------------
-    subroutine stiffness_dense(this, q, matrix)
+    subroutine stiffness_dense(this, q, matrix, nthreads)
         !! Assemble tangent stiffness into a newly allocated dense matrix.
         class(finite_element_mesh), intent(inout) :: this
             !! Mesh; element routines may update their workspaces.
@@ -165,11 +169,13 @@ contains
             !! Displacements in global equation order. Wrong length is an error.
         real(real64), allocatable, intent(out), dimension(:,:) :: matrix
             !! Square matrix with one row and column per global DOF.
-        call assemble_matrix(this, q=q, dense=matrix)
+        integer, intent(in), optional :: nthreads
+            !! Positive thread limit (default 1). Values above 1 require thread-safe element evaluation.
+        call assemble_matrix(this, q=q, dense=matrix, nthreads=nthreads)
     end subroutine
 
 ! ------------------------------------------------------------------------------
-    subroutine stiffness_csr(this, q, matrix)
+    subroutine stiffness_csr(this, q, matrix, nthreads)
         !! Assemble tangent stiffness into CSR without a dense global matrix.
         class(finite_element_mesh), intent(inout) :: this
             !! Mesh; element routines may update their workspaces.
@@ -178,11 +184,13 @@ contains
         type(csr_matrix), intent(out) :: matrix
             !! Square CSR matrix with sorted, unique column indices per row.
             !! The sparsity pattern may change with `q`.
-        call assemble_matrix(this, q=q, sparse=matrix)
+        integer, intent(in), optional :: nthreads
+            !! Positive thread limit (default 1). Values above 1 require thread-safe element evaluation.
+        call assemble_matrix(this, q=q, sparse=matrix, nthreads=nthreads)
     end subroutine
 
 ! ------------------------------------------------------------------------------
-    subroutine assemble_matrix(this, q, dense, sparse)
+    subroutine assemble_matrix(this, q, dense, sparse, nthreads)
         !! Assemble mass when `q` is absent, or tangent stiffness otherwise.
         !! Exactly one output is required. Dense assembly adds entries in
         !! place; sparse assembly collects nonzero triplets and reduces them
@@ -195,13 +203,24 @@ contains
         type(csr_matrix), intent(out), optional :: sparse
             !! CSR output in the same equation order. Exact zeros are omitted,
             !! including entries that cancel when contributions are summed.
+        integer, intent(in), optional :: nthreads
 
         type(element_map), allocatable, dimension(:) :: maps
-        real(real64), allocatable, dimension(:,:) :: local
+        real(real64), allocatable, dimension(:,:,:) :: work
         integer, allocatable, dimension(:) :: rows, cols, offsets
         real(real64), allocatable, dimension(:) :: values
         integer(int64) :: capacity
-        integer :: n, nd, max_nd, pos, i, j, k
+        integer :: n
+        integer :: nd
+        integer :: max_nd
+        integer :: pos
+        integer :: i
+        integer :: j
+        integer :: k
+        integer :: threads
+        integer :: batch
+        integer :: first
+        integer :: last
 
         if (present(dense) .eqv. present(sparse)) error stop "Select exactly one mesh matrix format"
         call build_layout(this, offsets, maps)
@@ -221,35 +240,60 @@ contains
             end if
         end do
         if (present(sparse)) allocate(rows(capacity), cols(capacity), values(capacity))
-        allocate(local(max_nd,max_nd))
+        threads = assembly_threads(nthreads, size(maps))
+        batch = 1
+        if (threads > 1) batch = min(max_batch, size(maps))
+        allocate(work(max_nd,max_nd,batch))
 
         pos = 0
-        do i = 1, size(maps)
-            associate (indices => maps(i)%indices, element => this%elements(i)%element)
-                nd = size(indices)
-                if (present(q)) then
-                    call element%stiffness_matrix(q(indices), local(:nd,:nd), this%nodes)
-                else
-                    call element%mass_matrix(local(:nd,:nd), this%nodes)
-                end if
-                if (present(dense)) then
-                    do j = 1, nd
-                        do k = 1, nd
-                            dense(indices(k),indices(j)) = dense(indices(k),indices(j)) + local(k,j)
+        first = 1
+        do while (first <= size(maps))
+            last = first + min(batch - 1, size(maps) - first)
+            if (threads > 1 .and. last > first) then
+                !$omp parallel do default(shared) private(nd) schedule(static) num_threads(min(threads,last-first+1))
+                do i = first, last
+                    associate (indices => maps(i)%indices)
+                        nd = size(indices)
+                        call this%elements(i)%element%stiffness_matrix( &
+                            q(indices), work(:nd,:nd,i-first+1), this%nodes)
+                    end associate
+                end do
+                !$omp end parallel do
+            else
+                associate (indices => maps(first)%indices, element => this%elements(first)%element)
+                    nd = size(indices)
+                    if (present(q)) then
+                        call element%stiffness_matrix(q(indices), work(:nd,:nd,1), this%nodes)
+                    else
+                        call element%mass_matrix(work(:nd,:nd,1), this%nodes)
+                    end if
+                end associate
+            end if
+
+            ! Shared equations are accumulated in element order.
+            do i = first, last
+                associate (indices => maps(i)%indices, local => work(:,:,i-first+1))
+                    nd = size(indices)
+                    if (present(dense)) then
+                        do j = 1, nd
+                            do k = 1, nd
+                                dense(indices(k),indices(j)) = dense(indices(k),indices(j)) + local(k,j)
+                            end do
                         end do
-                    end do
-                else
-                    do j = 1, nd
-                        do k = 1, nd
-                            if (local(k,j) == 0.0d0) cycle
-                            pos = pos + 1
-                            rows(pos) = indices(k)
-                            cols(pos) = indices(j)
-                            values(pos) = local(k,j)
+                    else
+                        do j = 1, nd
+                            do k = 1, nd
+                                if (local(k,j) == 0.0d0) cycle
+                                pos = pos + 1
+                                rows(pos) = indices(k)
+                                cols(pos) = indices(j)
+                                values(pos) = local(k,j)
+                            end do
                         end do
-                    end do
-                end if
-            end associate
+                    end if
+                end associate
+            end do
+            first = last + 1
         end do
         if (present(sparse)) then
             if (pos == 0) then
@@ -298,7 +342,7 @@ contains
     end subroutine
 
 ! ------------------------------------------------------------------------------
-    subroutine assemble_internal_force(this, q, f)
+    subroutine assemble_internal_force(this, q, f, nthreads)
         !! Gather local displacements and sum element forces at shared DOFs.
         !! This preserves the element force sign conventions and applies no
         !! external loads or boundary conditions.
@@ -308,11 +352,20 @@ contains
             !! Displacements in global equation order. Wrong length is an error.
         real(real64), allocatable, intent(out), dimension(:) :: f
             !! Allocated force vector with one entry per global DOF.
-        
+        integer, intent(in), optional :: nthreads
+            !! Positive thread limit (default 1). Values above 1 require thread-safe element evaluation.
+
         type(element_map), allocatable, dimension(:) :: maps
         integer, allocatable, dimension(:) :: offsets
-        real(real64), allocatable, dimension(:) :: local
-        integer :: i, n, nd, max_nd
+        real(real64), allocatable, dimension(:,:) :: work
+        integer :: i
+        integer :: n
+        integer :: nd
+        integer :: max_nd
+        integer :: threads
+        integer :: batch
+        integer :: first
+        integer :: last
 
         call build_layout(this, offsets, maps)
         n = offsets(size(offsets))
@@ -322,15 +375,50 @@ contains
         do i = 1, size(maps)
             max_nd = max(max_nd, size(maps(i)%indices))
         end do
-        allocate(local(max_nd))
-        do i = 1, size(maps)
-            associate (indices => maps(i)%indices)
-                nd = size(indices)
-                call this%elements(i)%element%internal_force_vector(q(indices), local(:nd), this%nodes)
-                f(indices) = f(indices) + local(:nd)
-            end associate
+        threads = assembly_threads(nthreads, size(maps))
+        batch = 1
+        if (threads > 1) batch = min(max_batch, size(maps))
+        allocate(work(max_nd,batch))
+        first = 1
+        do while (first <= size(maps))
+            last = first + min(batch - 1, size(maps) - first)
+            if (threads > 1 .and. last > first) then
+                !$omp parallel do default(shared) private(nd) schedule(static) num_threads(min(threads,last-first+1))
+                do i = first, last
+                    associate (indices => maps(i)%indices)
+                        nd = size(indices)
+                        call this%elements(i)%element%internal_force_vector( &
+                            q(indices), work(:nd,i-first+1), this%nodes)
+                    end associate
+                end do
+                !$omp end parallel do
+            else
+                associate (indices => maps(first)%indices)
+                    nd = size(indices)
+                    call this%elements(first)%element%internal_force_vector(q(indices), work(:nd,1), this%nodes)
+                end associate
+            end if
+            do i = first, last
+                associate (indices => maps(i)%indices)
+                    f(indices) = f(indices) + work(:size(indices),i-first+1)
+                end associate
+            end do
+            first = last + 1
         end do
     end subroutine
+
+! ------------------------------------------------------------------------------
+    integer function assembly_threads(nthreads, nelem) result(threads)
+        !! Without OpenMP the conditional assignment is omitted.
+        integer, intent(in), optional :: nthreads
+        integer, intent(in) :: nelem
+
+        threads = 1
+        if (present(nthreads)) then
+            if (nthreads < 1) error stop "Mesh assembly thread count must be positive"
+            !$ threads = max(1, min(nthreads, nelem, max_batch))
+        end if
+    end function
 
 ! ------------------------------------------------------------------------------
 end module

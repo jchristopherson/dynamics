@@ -353,6 +353,7 @@ contains
        type(euler_bernoulli_beam_element) :: beam
        type(finite_element_mesh) :: mesh
        type(csr_matrix) :: sparse
+       type(csr_matrix) :: threaded_sparse
        integer, allocatable, dimension(:) :: offsets
        integer, dimension(12,2) :: eq
        integer, dimension(12) :: ids
@@ -363,13 +364,19 @@ contains
        real(real64), dimension(12,12) :: local
        real(real64), dimension(12) :: local_f
        real(real64), allocatable, dimension(:) :: f
+       real(real64), allocatable, dimension(:) :: threaded_f
        real(real64), allocatable, dimension(:,:) :: dense
+       real(real64), allocatable, dimension(:,:) :: threaded_dense
        integer :: i
        integer :: p
        integer :: c
 
        call mesh%assemble_mass(sparse)
        ok = size(sparse%row_indices) == 1 .and. size(sparse%values) == 0
+       call mesh%assemble_stiffness(q(:0), threaded_sparse, nthreads=2)
+       ok = ok .and. all(threaded_sparse%row_indices == [1]) .and. size(threaded_sparse%values) == 0
+       call mesh%assemble_internal_force(q(:0), threaded_f, nthreads=2)
+       ok = ok .and. size(threaded_f) == 0
        mesh%nodes = [fe_node(41, [0.0d0, 0.0d0, 0.0d0]), &
            fe_node(80, [0.0d0, 5.0d0, 0.0d0]), fe_node(25, [2.0d0, 0.0d0, 0.0d0]), &
            fe_node(64, [3.0d0, 0.0d0, 0.0d0])]
@@ -420,6 +427,19 @@ contains
        end do
        call mesh%assemble_internal_force(q, f)
        ok = ok .and. maxval(abs(f-expected_f)) < 1.0d-12
+
+       call mesh%assemble_stiffness(q, threaded_dense, nthreads=2)
+       ok = ok .and. all(threaded_dense == dense)
+       call mesh%assemble_stiffness(q, threaded_sparse, nthreads=2)
+       ok = ok .and. all(threaded_sparse%row_indices == sparse%row_indices)
+       if (size(threaded_sparse%values) == size(sparse%values)) then
+           ok = ok .and. all(threaded_sparse%column_indices == sparse%column_indices)
+           ok = ok .and. all(threaded_sparse%values == sparse%values)
+       else
+           ok = .false.
+       end if
+       call mesh%assemble_internal_force(q, threaded_f, nthreads=2)
+       ok = ok .and. all(threaded_f == f)
        if (.not.ok) print "(A)", "TEST FAILED: flexible mesh assembly"
    end function
 end module
