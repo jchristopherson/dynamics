@@ -66,10 +66,12 @@ module dynamics_flexible_materials
     end type
 
     interface linear_elastic
+        !! Constructs an isotropic linear material from optional elastic constants and density.
         module procedure :: make_linear_elastic
     end interface
 
     interface polynomial_elastic
+        !! Constructs a polynomial material from optional elastic constants, coefficients, and density.
         module procedure :: make_polynomial_elastic
     end interface
 
@@ -106,8 +108,14 @@ contains
 function make_linear_elastic(youngs_modulus, poissons_ratio, density) result(material)
     !! Keeps the original positional order of the elastic constants. Density
     !! is optional and follows them, although inherited storage comes first.
-    real(real64), intent(in), optional :: youngs_modulus, poissons_ratio, density
+    real(real64), intent(in), optional :: youngs_modulus
+        !! Young's modulus in stress units; defaults to 1.
+    real(real64), intent(in), optional :: poissons_ratio
+        !! Dimensionless Poisson's ratio; defaults to 0.3.
+    real(real64), intent(in), optional :: density
+        !! Reference mass per unit volume; defaults to 1.
     type(linear_elastic) :: material
+        !! Material initialized with the supplied values and defaults.
 
     if (present(youngs_modulus)) material%youngs_modulus = youngs_modulus
     if (present(poissons_ratio)) material%poissons_ratio = poissons_ratio
@@ -117,8 +125,18 @@ end function
 function make_polynomial_elastic(youngs_modulus, poissons_ratio, quadratic, quartic, density) result(material)
     !! Preserves the flattened constructor's original positional order. A
     !! linear_elastic parent can still be passed to the structure constructor.
-    real(real64), intent(in), optional :: youngs_modulus, poissons_ratio, quadratic, quartic, density
+    real(real64), intent(in), optional :: youngs_modulus
+        !! Axial tangent at zero strain, in stress units; defaults to 1.
+    real(real64), intent(in), optional :: poissons_ratio
+        !! Dimensionless Poisson's ratio; defaults to 0.3.
+    real(real64), intent(in), optional :: quadratic
+        !! Coefficient of the quadratic term in the axial stress; defaults to zero.
+    real(real64), intent(in), optional :: quartic
+        !! Coefficient of the cubic term in the axial stress; defaults to zero.
+    real(real64), intent(in), optional :: density
+        !! Reference mass per unit volume; defaults to 1.
     type(polynomial_elastic) :: material
+        !! Material initialized with the supplied values and defaults.
 
     material%linear_elastic = make_linear_elastic(youngs_modulus, poissons_ratio, density)
     if (present(quadratic)) material%quadratic = quadratic

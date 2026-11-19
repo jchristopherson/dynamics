@@ -34,7 +34,7 @@ module dynamics_flexible_discrete
         !! A two-dimensional spring with energy
         !! \(W(\delta) = \frac{1}{2} k \delta^2 + \frac{1}{4} k_3 \delta^4\),
         !! where \(\delta = L - L_0\) is the change in length.
-        real(real64) :: reference_coordinates(2,2) = 0.0d0
+        real(real64), dimension(2,2) :: reference_coordinates = 0.0d0
             !! The reference nodal coordinates, one column per node.
         real(real64) :: stiffness = 1.0d0
             !! Linear force coefficient \(k\), in force per unit length.
@@ -49,13 +49,13 @@ module dynamics_flexible_discrete
         !! A three-dimensional spring with energy
         !! \(W(\delta) = \frac{1}{2} k \delta^2 + \frac{1}{4} k_3 \delta^4\),
         !! where \(\delta = L - L_0\) is the change in length.
-        real(real64) :: reference_coordinates(3,2) = 0.0d0
+        real(real64), dimension(3,2) :: reference_coordinates = 0.0d0
             !! The reference nodal coordinates, one column per node.
         real(real64) :: stiffness = 1.0d0
             !! Linear force coefficient \(k\), in force per unit length.
         real(real64) :: cubic_stiffness = 0.0d0
             !! Cubic force coefficient \(k_3\), in force per unit length cubed.
-        real(real64) :: nodal_mass(2) = 0.0d0
+        real(real64), dimension(2) :: nodal_mass = 0.0d0
             !! Optional lumped mass at each spring endpoint.
     contains
         procedure :: get_dof_count => spring_3d_dof_count
@@ -66,7 +66,7 @@ module dynamics_flexible_discrete
     type, extends(dissipative_element) :: flexible_damper_2d
         !! A two-dimensional viscous damper with dissipation
         !! \(D = \frac{1}{2} c \dot{L}^2\).
-        real(real64) :: reference_coordinates(2,2) = 0.0d0
+        real(real64), dimension(2,2) :: reference_coordinates = 0.0d0
             !! The reference nodal coordinates, one column per node.
         real(real64) :: damping = 1.0d0
             !! Axial damping coefficient \(c\), in force per unit speed.
@@ -78,7 +78,7 @@ module dynamics_flexible_discrete
     type, extends(dissipative_element) :: flexible_damper_3d
         !! A three-dimensional viscous damper with dissipation
         !! \(D = \frac{1}{2} c \dot{L}^2\).
-        real(real64) :: reference_coordinates(3,2) = 0.0d0
+        real(real64), dimension(3,2) :: reference_coordinates = 0.0d0
             !! The reference nodal coordinates, one column per node.
         real(real64) :: damping = 1.0d0
             !! Axial damping coefficient \(c\), in force per unit speed.
@@ -91,7 +91,9 @@ contains
 function spring_3d_mass_matrix(this) result(m)
     !! Returns isotropic lumped inertia at the two spring endpoints.
     class(flexible_spring_3d), intent(in) :: this
-    real(real64), allocatable :: m(:,:)
+        !! Spring providing the two finite, nonnegative nodal masses.
+    real(real64), allocatable, dimension(:,:) :: m
+        !! 6-by-6 diagonal mass matrix in spring DOF order.
     integer :: i
 
     if (.not. all(ieee_is_finite(this%nodal_mass)) .or. any(this%nodal_mass < 0.0d0)) &
@@ -223,8 +225,12 @@ function spring_energy(x0, k, k3, u) result(w)
     type(hyperdual) :: w
         !! The strain energy.
 
-    integer(int32) :: i, d
-    type(hyperdual) :: l2, len, delta, dx
+    integer(int32) :: i
+    integer(int32) :: d
+    type(hyperdual) :: l2
+    type(hyperdual) :: len
+    type(hyperdual) :: delta
+    type(hyperdual) :: dx
 
     d = size(x0, 1)
     l2 = 0.0d0
@@ -255,8 +261,10 @@ function damper_dissipation(x0, c, u, v) result(d)
     type(hyperdual) :: d
         !! Rayleigh dissipation potential, in units of power.
 
-    integer(int32) :: i, n
-    real(real64) :: dir(size(x0, 1)), length
+    integer(int32) :: i
+    integer(int32) :: n
+    real(real64), dimension(size(x0, 1)) :: dir
+    real(real64) :: length
     type(hyperdual) :: rate
 
     n = size(x0, 1)

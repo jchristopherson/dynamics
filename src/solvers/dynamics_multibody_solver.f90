@@ -3,6 +3,11 @@ module dynamics_multibody_solver
     !! Fixed-step, dense generalized-alpha integration of spatial multibody
     !! models. Holonomic constraints are enforced at the new position and
     !! velocities are projected onto the endpoint tangent space.
+    !! With \(G=\partial\Phi/\partial q\), each Newton solve balances
+    !! \(M(q_f)a_m + G(t_f,q_f)^T\lambda = f(t_f,q_f,v_f)\) while enforcing
+    !! \(\Phi(t_{n+1},q_{n+1})=0\). The subscripts \(f\) and \(m\) denote
+    !! the generalized-alpha force and acceleration stages. Velocity
+    !! projection then enforces \(Gv+\partial\Phi/\partial t=0\) at the endpoint.
     use iso_fortran_env, only : real64, int32
     use ieee_arithmetic, only : ieee_is_finite
     use linalg, only : lu_factor, solve_lu
@@ -12,17 +17,23 @@ module dynamics_multibody_solver
     public :: multibody_integrator, multibody_state
 
     type :: multibody_state
+        !! One integration sample and the data needed to continue stepping.
         real(real64) :: time = 0.0d0
             !! Time at the position and velocity sample.
-        real(real64), allocatable :: position(:), velocity(:)
-            !! Assembled coordinates and their time derivatives.
-        real(real64), allocatable :: acceleration(:)
+        real(real64), allocatable, dimension(:) :: position
+            !! Assembled coordinates in model order.
+        real(real64), allocatable, dimension(:) :: velocity
+            !! Time derivatives of the assembled coordinates.
+        real(real64), allocatable, dimension(:) :: acceleration
             !! Newmark acceleration; after startup this is an integration variable.
-        real(real64), allocatable :: multipliers(:)
+        real(real64), allocatable, dimension(:) :: multipliers
             !! Startup or force-stage multipliers, with sign M*a + G^T*lambda = f.
     end type
 
     type :: multibody_integrator
+        !! Solver controls for fixed-step constrained generalized-alpha integration.
+        !! Multiple states may use the same controls; the integration history
+        !! needed for a step is stored in each state, not in this object.
         real(real64) :: rho_infinity = 0.8d0
             !! High-frequency spectral radius of the underlying generalized-alpha method, in [0,1].
         real(real64) :: force_tolerance = 1.0d-9
@@ -43,11 +54,24 @@ subroutine initialize(this, model, state, time, position, velocity)
     !! Initializes from a position on the constraint manifold. The supplied
     !! velocity is mass-projected before solving for consistent acceleration.
     class(multibody_integrator), intent(in) :: this
+        !! Solver controls used for startup validation.
     type(multibody_model), intent(in) :: model
+        !! Assembled model providing inertia, loads, and holonomic constraints.
     type(multibody_state), intent(out) :: state
-    real(real64), intent(in) :: time, position(:), velocity(:)
-    integer :: n, nc
-    real(real64), allocatable :: c(:), g(:,:), m(:,:), force(:), answer(:)
+        !! Initialized state with consistent velocity, acceleration, and multipliers.
+    real(real64), intent(in) :: time
+        !! Initial time, supplied to the model callbacks.
+    real(real64), intent(in), dimension(:) :: position
+        !! Initial coordinates in model order; must already satisfy the constraints.
+    real(real64), intent(in), dimension(:) :: velocity
+        !! Initial coordinate-rate guess, projected onto the velocity constraints.
+    integer :: n
+    integer :: nc
+    real(real64), allocatable, dimension(:) :: c
+    real(real64), allocatable, dimension(:,:) :: g
+    real(real64), allocatable, dimension(:,:) :: m
+    real(real64), allocatable, dimension(:) :: force
+    real(real64), allocatable, dimension(:) :: answer
 
     call check_settings(this)
     n = model%get_dof_count()
@@ -78,14 +102,44 @@ subroutine step(this, model, state, dt)
     !! solve enforces endpoint position, followed by a velocity projection.
     !! Invalid, rank-deficient or nonconvergent steps stop with a diagnostic.
     class(multibody_integrator), intent(in) :: this
+        !! Newton tolerances and generalized-alpha settings.
     type(multibody_model), intent(in) :: model
+        !! The assembled model used to initialize the state.
     type(multibody_state), intent(inout) :: state
+        !! Initialized state on entry, advanced state on return.
     real(real64), intent(in) :: dt
-    real(real64) :: am, af, beta, gamma, bdt2, gdt, endpoint, stage_time, h, fraction, score, trial_score
-    real(real64) :: force_limit, position_limit
-    real(real64), allocatable :: x(:), trial(:), residual(:), trial_residual(:), correction(:), jac(:,:)
-    real(real64), allocatable :: qpred(:), vpred(:), qnew(:), g(:,:), stage_g(:,:), m(:,:)
-    integer :: n, nc, iteration, j, search
+        !! Positive time increment, in the model's time units.
+    real(real64) :: am
+    real(real64) :: af
+    real(real64) :: beta
+    real(real64) :: gamma
+    real(real64) :: bdt2
+    real(real64) :: gdt
+    real(real64) :: endpoint
+    real(real64) :: stage_time
+    real(real64) :: h
+    real(real64) :: fraction
+    real(real64) :: score
+    real(real64) :: trial_score
+    real(real64) :: force_limit
+    real(real64) :: position_limit
+    real(real64), allocatable, dimension(:) :: x
+    real(real64), allocatable, dimension(:) :: trial
+    real(real64), allocatable, dimension(:) :: residual
+    real(real64), allocatable, dimension(:) :: trial_residual
+    real(real64), allocatable, dimension(:) :: correction
+    real(real64), allocatable, dimension(:,:) :: jac
+    real(real64), allocatable, dimension(:) :: qpred
+    real(real64), allocatable, dimension(:) :: vpred
+    real(real64), allocatable, dimension(:) :: qnew
+    real(real64), allocatable, dimension(:,:) :: g
+    real(real64), allocatable, dimension(:,:) :: stage_g
+    real(real64), allocatable, dimension(:,:) :: m
+    integer :: n
+    integer :: nc
+    integer :: iteration
+    integer :: j
+    integer :: search
 
     call check_settings(this)
     n = model%get_dof_count()
@@ -161,9 +215,19 @@ contains
     function evaluate(y, gradient) result(r)
         !! Unknowns are the endpoint acceleration and the force-stage
         !! multipliers. Divide position rows by beta*dt**2 to balance Newton.
-        real(real64), intent(in) :: y(:)
-        real(real64), intent(out), optional :: gradient(:,:)
-        real(real64) :: r(n+nc), q(n), v(n), a(n), mass(n,n), forces(n), gs(nc,n), qe(n)
+        real(real64), intent(in), dimension(:) :: y
+            !! Trial endpoint accelerations followed by force-stage multipliers.
+        real(real64), intent(out), optional, dimension(:,:) :: gradient
+            !! Constraint Jacobian at the force stage, when requested.
+        real(real64), dimension(n+nc) :: r
+            !! Dynamic residuals followed by scaled endpoint constraint residuals.
+        real(real64), dimension(n) :: q
+        real(real64), dimension(n) :: v
+        real(real64), dimension(n) :: a
+        real(real64), dimension(n,n) :: mass
+        real(real64), dimension(n) :: forces
+        real(real64), dimension(nc,n) :: gs
+        real(real64), dimension(n) :: qe
 
         qe = qpred + bdt2*y(:n)
         q = (1-af)*qe + af*state%position
@@ -176,9 +240,12 @@ contains
         r(n+1:) = model%constraints(endpoint, qe)/bdt2
     end function
 
-    real(real64) function merit(r) result(value)
+    function merit(r) result(value)
         !! Line-search norm tests force and position convergence independently.
-        real(real64), intent(in) :: r(:)
+        real(real64), intent(in), dimension(:) :: r
+            !! Dynamic and scaled constraint residuals from `evaluate`.
+        real(real64) :: value
+            !! Largest normalized residual; a value at most one passes both tolerances.
         value = huge(1.0d0)
         if (.not. all(ieee_is_finite(r))) return
         value = max(infinity_norm(r(:n))/force_limit, infinity_norm(r(n+1:))*bdt2/position_limit)
@@ -189,11 +256,17 @@ function solve(this, model, state, dt, nstep) result(history)
     !! Returns nstep+1 samples including the initialized state; updates state
     !! in place to the last sample. Use step directly to avoid storing history.
     class(multibody_integrator), intent(in) :: this
+        !! Solver controls shared by every step.
     type(multibody_model), intent(in) :: model
+        !! The assembled model used to initialize the state.
     type(multibody_state), intent(inout) :: state
+        !! Initial state on entry, last sample on return.
     real(real64), intent(in) :: dt
+        !! Positive fixed time increment when `nstep` is nonzero.
     integer, intent(in) :: nstep
-    type(multibody_state), allocatable :: history(:)
+        !! Nonnegative number of steps to take.
+    type(multibody_state), allocatable, dimension(:) :: history
+        !! Chronological samples; the first is a copy of the input state.
     integer :: i
 
     if (nstep < 0) error stop "Invalid multibody step count"
@@ -208,8 +281,16 @@ end function
 function constraint_jacobian(model, time, q) result(g)
     !! Centered coordinate derivative of the assembled holonomic residuals.
     type(multibody_model), intent(in) :: model
-    real(real64), intent(in) :: time, q(:)
-    real(real64) :: g(model%get_constraint_count(),size(q)), qp(size(q)), qm(size(q)), h
+        !! Model whose joint and custom residuals are differentiated.
+    real(real64), intent(in) :: time
+        !! Evaluation time, held fixed during coordinate perturbations.
+    real(real64), intent(in), dimension(:) :: q
+        !! Assembled coordinates at which to differentiate.
+    real(real64), dimension(model%get_constraint_count(),size(q)) :: g
+        !! One row per constraint and one column per assembled coordinate.
+    real(real64), dimension(size(q)) :: qp
+    real(real64), dimension(size(q)) :: qm
+    real(real64) :: h
     integer :: j
 
     if (size(g,1) == 0) return
@@ -227,8 +308,17 @@ function constraint_curvature(model, time, q, v) result(c)
     !! Second derivative of Phi(t+s,q+s*v) at s=0; the missing G*a
     !! term is obtained from the startup saddle-point solve.
     type(multibody_model), intent(in) :: model
-    real(real64), intent(in) :: time, q(:), v(:)
-    real(real64) :: c(model%get_constraint_count()), scale, h
+        !! Model providing the residuals along the trial path.
+    real(real64), intent(in) :: time
+        !! Time at the center of the differentiation stencil.
+    real(real64), intent(in), dimension(:) :: q
+        !! Coordinates at the center of the stencil.
+    real(real64), intent(in), dimension(:) :: v
+        !! Coordinate rates defining the direction of the trial path.
+    real(real64), dimension(model%get_constraint_count()) :: c
+        !! Constraint acceleration contribution independent of coordinate acceleration.
+    real(real64) :: scale
+    real(real64) :: h
 
     if (size(c) == 0) return
     scale = max(1.0d0,infinity_norm(v))
@@ -240,9 +330,21 @@ end function
 subroutine project_velocity(model, time, q, m, g, v)
     !! Minimum kinetic-energy correction enforcing G*v + Phi_t = 0.
     type(multibody_model), intent(in) :: model
-    real(real64), intent(in) :: time, q(:), m(:,:), g(:,:)
-    real(real64), intent(inout) :: v(:)
-    real(real64) :: h, defect(size(g,1)), zero(size(v)), answer(size(v)+size(g,1))
+        !! Model providing the time-dependent constraint residuals.
+    real(real64), intent(in) :: time
+        !! Time at the projected sample.
+    real(real64), intent(in), dimension(:) :: q
+        !! Fixed coordinates at the projected sample.
+    real(real64), intent(in), dimension(:,:) :: m
+        !! Mass matrix at `q`, defining the metric for the correction.
+    real(real64), intent(in), dimension(:,:) :: g
+        !! Constraint Jacobian at `time` and `q`.
+    real(real64), intent(inout), dimension(:) :: v
+        !! Unprojected rates on entry; constraint-compatible rates on return.
+    real(real64) :: h
+    real(real64), dimension(size(g,1)) :: defect
+    real(real64), dimension(size(v)) :: zero
+    real(real64), dimension(size(v)+size(g,1)) :: answer
 
     if (size(defect) == 0) return
     h = epsilon(1.0d0)**(1.0d0/3)*max(1.0d0,abs(time))
@@ -254,8 +356,17 @@ end subroutine
 
 function saddle_solve(m, g, force, constraint) result(answer)
     !! Solves the mechanical saddle system with a zero multiplier block.
-    real(real64), intent(in) :: m(:,:), g(:,:), force(:), constraint(:)
-    real(real64) :: answer(size(force)+size(constraint)), block(size(answer),size(answer))
+    real(real64), intent(in), dimension(:,:) :: m
+        !! Square mass matrix for the coordinate block.
+    real(real64), intent(in), dimension(:,:) :: g
+        !! Constraint Jacobian for the off-diagonal blocks.
+    real(real64), intent(in), dimension(:) :: force
+        !! Right-hand side of the coordinate equations.
+    real(real64), intent(in), dimension(:) :: constraint
+        !! Right-hand side of the constraint equations.
+    real(real64), dimension(size(force)+size(constraint)) :: answer
+        !! Coordinate solution followed by the constraint multipliers.
+    real(real64), dimension(size(answer),size(answer)) :: block
     integer :: n
 
     n = size(force)
@@ -269,10 +380,17 @@ end function
 function linear_solve(a, rhs) result(x)
     !! Equilibrates the dense system before pivoted LU and diagnoses singular
     !! models (e.g., redundant constraints or unrestrained massless modes).
-    real(real64), intent(in) :: a(:,:), rhs(:)
-    real(real64) :: x(size(rhs)), work(size(rhs),size(rhs)), row(size(rhs)), col(size(rhs))
-    real(real64), allocatable :: lu(:,:)
-    integer(int32), allocatable :: pivot(:)
+    real(real64), intent(in), dimension(:,:) :: a
+        !! Square coefficient matrix; neither input is overwritten.
+    real(real64), intent(in), dimension(:) :: rhs
+        !! Right-hand side with one entry per row of `a`.
+    real(real64), dimension(size(rhs)) :: x
+        !! Solution in the original, unscaled coordinates.
+    real(real64), dimension(size(rhs),size(rhs)) :: work
+    real(real64), dimension(size(rhs)) :: row
+    real(real64), dimension(size(rhs)) :: col
+    real(real64), allocatable, dimension(:,:) :: lu
+    integer(int32), allocatable, dimension(:) :: pivot
     integer :: i
 
     if (.not. all(ieee_is_finite(a)) .or. .not. all(ieee_is_finite(rhs))) error stop "Nonfinite multibody equations"
@@ -290,15 +408,19 @@ function linear_solve(a, rhs) result(x)
     if (.not. all(ieee_is_finite(x))) error stop "Nonfinite multibody system solution"
 end function
 
-pure real(real64) function infinity_norm(x) result(value)
+pure function infinity_norm(x) result(value)
     !! The infinity norm is zero for an empty (unconstrained) residual vector.
-    real(real64), intent(in) :: x(:)
+    real(real64), intent(in), dimension(:) :: x
+        !! Vector of residuals or coordinates.
+    real(real64) :: value
+        !! Maximum absolute entry, or zero when `x` is empty.
     value = max(0.0d0,maxval(abs(x)))
 end function
 
 subroutine check_settings(this)
     !! Rejects invalid controls before entering the numerical routines.
     class(multibody_integrator), intent(in) :: this
+        !! Solver controls to validate before initialization or stepping.
     if (.not. ieee_is_finite(this%rho_infinity) .or. this%rho_infinity < 0 .or. this%rho_infinity > 1) &
         error stop "Invalid multibody rho_infinity"
     if (.not. ieee_is_finite(this%force_tolerance) .or. this%force_tolerance <= 0 .or. &

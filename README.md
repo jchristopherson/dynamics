@@ -88,8 +88,7 @@ The Fortran API in [dynamics_multibody](./src/multibody/dynamics_multibody.f90)
 assembles 3-D systems of rigid bodies and elastic elements.
 [dynamics_multibody_solver](./src/solvers/dynamics_multibody_solver.f90)
 integrates them with a fixed-step generalized-alpha method. Both modules
-are available through `use dynamics`. The rigid variational integrator is
-unchanged.
+are available through `use dynamics`.
 
 1. Add each moving body with `model%add_body(carrier [, elastic_dofs])`.
    Body indices are one-based in insertion order, with zero reserved for
@@ -146,7 +145,7 @@ type(multibody_state) :: state
 type(flexible_truss_3d) :: truss
 type(rigid_body) :: carrier
 type(dynamic_joint) :: clamp
-double precision :: q(7), v(7)
+real(real64), dimension(7) :: q, v
 integer :: i
 
 carrier = rigid_body(m=0.0d0)

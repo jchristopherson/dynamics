@@ -29,7 +29,7 @@ module dynamics_flexible_truss
     type, extends(finite_element) :: flexible_truss_2d
         !! A two-dimensional truss element with two nodes and four degrees of
         !! freedom ordered as \([u_{1x}, u_{1y}, u_{2x}, u_{2y}]\).
-        real(real64) :: reference_coordinates(2,2) = 0.0d0
+        real(real64), dimension(2,2) :: reference_coordinates = 0.0d0
             !! Reference nodal coordinates, one column per node; the nodes must be distinct.
         real(real64) :: area = 1.0d0
             !! Reference cross-sectional area, in units of length squared.
@@ -44,7 +44,7 @@ module dynamics_flexible_truss
     type, extends(finite_element) :: flexible_truss_3d
         !! A three-dimensional truss element with two nodes and six degrees of
         !! freedom ordered as \([u_{1x}, u_{1y}, u_{1z}, u_{2x}, u_{2y}, u_{2z}]\).
-        real(real64) :: reference_coordinates(3,2) = 0.0d0
+        real(real64), dimension(3,2) :: reference_coordinates = 0.0d0
             !! Reference nodal coordinates, one column per node; the nodes must be distinct.
         real(real64) :: area = 1.0d0
             !! Reference cross-sectional area, in units of length squared.
@@ -60,7 +60,9 @@ contains
 function truss_2d_mass_matrix(this) result(m)
     !! Consistent translational mass for a two-node planar truss.
     class(flexible_truss_2d), intent(in) :: this
-    real(real64), allocatable :: m(:,:)
+        !! Planar bar with reference nodes, area, and a material.
+    real(real64), allocatable, dimension(:,:) :: m
+        !! 4-by-4 reference mass matrix in planar nodal order.
 
     m = bar_mass_matrix(this%reference_coordinates, this%area, this%material)
 end function
@@ -68,17 +70,27 @@ end function
 function truss_3d_mass_matrix(this) result(m)
     !! Consistent translational mass for a two-node spatial truss.
     class(flexible_truss_3d), intent(in) :: this
-    real(real64), allocatable :: m(:,:)
+        !! Spatial bar with reference nodes, area, and a material.
+    real(real64), allocatable, dimension(:,:) :: m
+        !! 6-by-6 reference mass matrix in spatial nodal order.
 
     m = bar_mass_matrix(this%reference_coordinates, this%area, this%material)
 end function
 
 function bar_mass_matrix(x, area, material) result(m)
     !! Integrates the product of linear nodal shape functions over the reference bar.
-    real(real64), intent(in) :: x(:,:), area
+    real(real64), intent(in), dimension(:,:) :: x
+        !! Reference node coordinates, one column per node.
+    real(real64), intent(in) :: area
+        !! Finite positive reference cross-sectional area.
     class(flexible_material), allocatable, intent(in) :: material
-    real(real64) :: m(2*size(x,1),2*size(x,1)), length, mass_sixth
-    integer :: i, n
+        !! Allocated material with a finite, nonnegative reference density.
+    real(real64), dimension(2*size(x,1),2*size(x,1)) :: m
+        !! Consistent mass matrix in node-major translational DOF order.
+    real(real64) :: length
+    real(real64) :: mass_sixth
+    integer :: i
+    integer :: n
 
     if (.not. allocated(material)) error stop "Flexible truss requires a material"
     length = norm2(x(:,2) - x(:,1))
@@ -163,9 +175,12 @@ function bar_strain_energy(x0, area, mat, u) result(w)
     type(hyperdual) :: w
         !! The strain energy.
 
-    integer(int32) :: i, d
+    integer(int32) :: i
+    integer(int32) :: d
     real(real64) :: l0sq
-    type(hyperdual) :: l2, e, dx
+    type(hyperdual) :: l2
+    type(hyperdual) :: e
+    type(hyperdual) :: dx
 
     d = size(x0, 1)
     l0sq = sum((x0(:,2) - x0(:,1))**2)

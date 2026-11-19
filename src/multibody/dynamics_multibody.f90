@@ -3,6 +3,10 @@ module dynamics_multibody
     !! Spatial floating-frame assembly for rigid bodies and flexible elements.
     !! Each body's coordinates are `[origin, rotation_vector, elastic_dofs]`.
     !! Origins are in world coordinates; elastic coordinates are body-local.
+    !! The carrier rotation vector is expressed in world axes. Its time
+    !! derivative is a coordinate rate, not angular velocity.
+    !! Element inertia uses constant reference mass pulled back through the
+    !! current nodal velocity maps; for deformed beams this is an approximation.
     use iso_fortran_env, only : real64, int32
     use ieee_arithmetic, only : ieee_is_finite
     use dynamics_rigid_bodies, only : rigid_body
@@ -21,45 +25,83 @@ module dynamics_multibody
         subroutine multibody_constraint(time, q, value)
             !! Smooth additional holonomic residuals, equal to zero on the constraint manifold.
             import real64
-            real(real64), intent(in) :: time, q(:)
-            real(real64), intent(out) :: value(:)
+            real(real64), intent(in) :: time
+                !! Evaluation time, including for prescribed motion.
+            real(real64), intent(in), dimension(:) :: q
+                !! Current coordinates in model order.
+            real(real64), intent(out), dimension(:) :: value
+                !! All custom residual rows, in the order used for their multipliers.
         end subroutine
 
         subroutine multibody_load(time, q, v, force)
             !! Applied generalized forces conjugate to the assembled coordinate rates.
             import real64
-            real(real64), intent(in) :: time, q(:), v(:)
-            real(real64), intent(out) :: force(:)
+            real(real64), intent(in) :: time
+                !! Load evaluation time.
+            real(real64), intent(in), dimension(:) :: q
+                !! Current coordinates in model order.
+            real(real64), intent(in), dimension(:) :: v
+                !! Current coordinate rates in model order.
+            real(real64), intent(out), dimension(:) :: force
+                !! One generalized force per coordinate, excluding model gravity.
         end subroutine
     end interface
 
     type :: element_entry
+        !! An owned element and its cached reference data for assembly.
         class(flexible_element), allocatable :: element
-        integer, allocatable :: map(:)
-        real(real64), allocatable :: mass(:,:)
-        real(real64) :: reference(3,2) = 0.0d0
+            !! Element copy preserving its concrete type and constitutive data.
+        integer, allocatable, dimension(:) :: map
+            !! Element DOF to body-local elastic DOF map; zero denotes restraint.
+        real(real64), allocatable, dimension(:,:) :: mass
+            !! Reference mass matrix in element DOF order.
+        real(real64), dimension(3,2) :: reference = 0.0d0
+            !! Body-local reference node positions, one per column.
     end type
 
     type :: body_entry
+        !! One carrier and its optional elastic coordinate block.
         type(rigid_body) :: carrier
-        integer :: first, elastic_count
-        type(element_entry), allocatable :: elements(:)
+            !! Mass properties of the carrier alone, excluding element mass.
+        integer :: first
+            !! Global index of the first carrier translation.
+        integer :: elastic_count
+            !! Number of active elastic coordinates following the six carrier coordinates.
+        type(element_entry), allocatable, dimension(:) :: elements
+            !! Elements expressed in this carrier's frame.
     end type
 
     type :: joint_entry
+        !! A spatial joint with optional deformation at either attachment.
         type(dynamic_joint) :: joint
-        integer :: parent_map(6), child_map(6)
+            !! Joint kind, endpoint bodies and undeformed attachment frames.
+        integer, dimension(6) :: parent_map
+            !! Parent elastic indices in translation/rotation order.
+        integer, dimension(6) :: child_map
+            !! Child elastic indices in translation/rotation order.
     end type
 
     type :: multibody_model
+        !! Assembles a spatial floating-frame system without imposing a time integrator.
         !! Bodies and joint rows are stored in insertion order. Ground has index zero.
+        !! The coordinate count includes constrained coordinates; joint and custom
+        !! residuals enforce restrictions without eliminating these coordinates.
         private
-        type(body_entry), allocatable :: bodies(:)
-        type(joint_entry), allocatable :: joints(:)
-        integer :: ndof = 0, njoint_rows = 0, ncustom = 0
+        type(body_entry), allocatable, dimension(:) :: bodies
+            !! Moving bodies in coordinate-block order.
+        type(joint_entry), allocatable, dimension(:) :: joints
+            !! Joint descriptors in residual-row order.
+        integer :: ndof = 0
+            !! Number of assembled coordinates.
+        integer :: njoint_rows = 0
+            !! Number of scalar rows supplied by spatial joints.
+        integer :: ncustom = 0
+            !! Number of custom rows following the joint rows.
         procedure(multibody_constraint), pointer, nopass :: custom => null()
+            !! Optional callback filling the custom constraint rows.
         procedure(multibody_load), pointer, nopass :: load => null()
-        real(real64), public :: gravity(3) = 0.0d0
+            !! Optional callback filling the applied generalized load vector.
+        real(real64), public, dimension(3) :: gravity = 0.0d0
             !! Uniform world-frame acceleration, applied to carrier and element masses.
     contains
         procedure :: add_body
@@ -81,8 +123,11 @@ subroutine add_body(this, carrier, elastic_dofs)
     !! Appends a carrier with optional elastic DOFs. For a flexible-only body,
     !! pass zero carrier mass and inertia to avoid double counting element mass.
     class(multibody_model), intent(inout) :: this
+        !! Model receiving the new body at the end of its coordinate layout.
     type(rigid_body), intent(in) :: carrier
+        !! Carrier mass, center of mass in local coordinates, and inertia about that center.
     integer, intent(in), optional :: elastic_dofs
+        !! Number of active body-local elastic coordinates; defaults to zero.
     type(body_entry) :: entry
 
     entry%carrier = carrier
@@ -105,9 +150,15 @@ subroutine add_element(this, body, element, map, reference)
     !! `reference` supplies the two reference positions (columns) of custom
     !! massive elements. The built-in spatial elements provide this geometry.
     class(multibody_model), intent(inout) :: this
-    integer, intent(in) :: body, map(:)
+        !! Model that owns the specified body.
+    integer, intent(in) :: body
+        !! One-based index of the moving body receiving the element.
+    integer, intent(in), dimension(:) :: map
+        !! One entry per element DOF. Reuse an index to share an active coordinate.
     class(flexible_element), intent(in) :: element
-    real(real64), intent(in), optional :: reference(3,2)
+        !! Spatial two-node element to copy, including its material and geometry.
+    real(real64), intent(in), optional, dimension(3,2) :: reference
+        !! Reference positions for a custom massive element, in the carrier frame.
     type(element_entry) :: entry
     integer :: n
 
@@ -153,8 +204,13 @@ subroutine add_joint(this, joint, parent_map, child_map)
     !! A zero index fixes that component relative to the carrier.
     !! Each joint-frame origin is the attachment point before deformation.
     class(multibody_model), intent(inout) :: this
+        !! Model receiving the joint after its existing joints.
     type(dynamic_joint), intent(in) :: joint
-    integer, intent(in), optional :: parent_map(6), child_map(6)
+        !! Joint descriptor with proper homogeneous transforms and valid body indices.
+    integer, intent(in), optional, dimension(6) :: parent_map
+        !! Parent deformation map; omit for a rigid attachment or ground.
+    integer, intent(in), optional, dimension(6) :: child_map
+        !! Child deformation map; omit for a rigid attachment or ground.
     type(joint_entry) :: entry
 
     if (joint%parent_body == joint%child_body) error stop "Joint must connect distinct bodies"
@@ -173,7 +229,10 @@ subroutine add_joint(this, joint, parent_map, child_map)
 contains
     subroutine check_endpoint(body, map)
         !! Ground has no elastic motion; moving endpoints use their own coordinate map.
-        integer, intent(in) :: body, map(6)
+        integer, intent(in) :: body
+            !! Endpoint body index, or zero for ground.
+        integer, intent(in), dimension(6) :: map
+            !! Elastic coordinate map for that endpoint.
         if (body == 0) then
             call check_map(map, 0)
         else
@@ -186,8 +245,10 @@ end subroutine
 subroutine check_frame(frame)
     !! A spatial joint frame must be a proper rigid transform.
     use dynamics_helper, only : cross_product
-    real(real64), intent(in) :: frame(4,4)
-    real(real64) :: r(3,3), eye(3,3)
+    real(real64), intent(in), dimension(4,4) :: frame
+        !! Transform to validate: proper rotation, finite translation and homogeneous last row.
+    real(real64), dimension(3,3) :: r
+    real(real64), dimension(3,3) :: eye
     real(real64), parameter :: tol = 1.0d-10
 
     r = frame(:3,:3)
@@ -202,8 +263,11 @@ subroutine set_constraints(this, count, evaluate)
     !! Registers additional, possibly time-dependent, constraint rows after
     !! all joint rows. With count zero and no callback, removes these rows.
     class(multibody_model), intent(inout) :: this
+        !! Model whose custom constraints are replaced or cleared.
     integer, intent(in) :: count
+        !! Number of residual rows to allocate for the callback.
     procedure(multibody_constraint), optional :: evaluate
+        !! Callback required for positive `count`; its target must outlive model use.
 
     if (count < 0 .or. ((count > 0) .neqv. present(evaluate))) error stop "Invalid custom constraints"
     this%ncustom = count
@@ -214,30 +278,42 @@ end subroutine
 subroutine set_load(this, evaluate)
     !! Registers a generalized load callback, or clears it if omitted.
     class(multibody_model), intent(inout) :: this
+        !! Model whose applied-load callback is replaced or cleared.
     procedure(multibody_load), optional :: evaluate
+        !! Generalized load callback; its target must outlive model use.
 
     nullify(this%load)
     if (present(evaluate)) this%load => evaluate
 end subroutine
 
-pure integer function get_dof_count(this) result(n)
+pure function get_dof_count(this) result(n)
     !! Number of assembled coordinates, before applying joint constraints.
     class(multibody_model), intent(in) :: this
+        !! Model whose coordinate layout is queried.
+    integer :: n
+        !! Number of carrier and active elastic coordinates.
     n = this%ndof
 end function
 
-pure integer function get_constraint_count(this) result(n)
+pure function get_constraint_count(this) result(n)
     !! Total number of scalar joint and user constraint rows.
     class(multibody_model), intent(in) :: this
+        !! Model whose residual layout is queried.
+    integer :: n
+        !! Number of scalar constraint rows, including custom rows.
     n = this%njoint_rows + this%ncustom
 end function
 
 function get_body_coordinates(this, body) result(indices)
     !! Returns a body's global coordinate indices, including its carrier.
     class(multibody_model), intent(in) :: this
+        !! Model providing the global coordinate layout.
     integer, intent(in) :: body
-    integer, allocatable :: indices(:)
-    integer :: i, first
+        !! One-based moving body index.
+    integer, allocatable, dimension(:) :: indices
+        !! Contiguous global indices: translation, rotation, then elastic coordinates.
+    integer :: i
+    integer :: first
 
     call check_body(this, body)
     first = this%bodies(body)%first
@@ -247,8 +323,15 @@ end function
 function constraints(this, time, q) result(value)
     !! Evaluates joint and user constraint residuals at the specified pose.
     class(multibody_model), intent(in) :: this
-    real(real64), intent(in) :: time, q(:)
-    real(real64) :: value(this%get_constraint_count()), parent(4,4), child(4,4)
+        !! Model providing the joints and optional callback.
+    real(real64), intent(in) :: time
+        !! Time passed to the custom constraint callback.
+    real(real64), intent(in), dimension(:) :: q
+        !! Assembled coordinates of length `get_dof_count()`.
+    real(real64), dimension(this%get_constraint_count()) :: value
+        !! Residuals in joint insertion order, followed by custom rows.
+    real(real64), dimension(4,4) :: parent
+    real(real64), dimension(4,4) :: child
     integer(int32) :: row
     integer :: i
 
@@ -270,10 +353,23 @@ end function
 function attachment(this, q, body, frame, map) result(world)
     !! Applies an elastic displacement/rotation before the carrier transform.
     class(multibody_model), intent(in) :: this
-    real(real64), intent(in) :: q(:), frame(4,4)
-    integer, intent(in) :: body, map(6)
-    real(real64) :: world(4,4), r(3,3), jac(3,3), rd(3,3), u(6)
-    integer :: lo, hi
+        !! Model providing the endpoint coordinate block.
+    real(real64), intent(in), dimension(:) :: q
+        !! Assembled coordinates.
+    real(real64), intent(in), dimension(4,4) :: frame
+        !! Undeformed carrier-local attachment, or world transform for ground.
+    integer, intent(in) :: body
+        !! Endpoint body index, or zero for ground.
+    integer, intent(in), dimension(6) :: map
+        !! Body-local elastic indices of the three translations and three rotations.
+    real(real64), dimension(4,4) :: world
+        !! Current world transform of the attachment.
+    real(real64), dimension(3,3) :: r
+    real(real64), dimension(3,3) :: jac
+    real(real64), dimension(3,3) :: rd
+    real(real64), dimension(6) :: u
+    integer :: lo
+    integer :: hi
 
     world = frame
     if (body == 0) return
@@ -289,9 +385,14 @@ end function
 function mass_matrix(this, q) result(m)
     !! Returns the dense assembled metric for kinetic energy `0.5*v^T*M*v`.
     class(multibody_model), intent(in) :: this
-    real(real64), intent(in) :: q(:)
-    real(real64) :: m(this%ndof,this%ndof)
-    integer :: i, lo, hi
+        !! Model whose inertia is assembled.
+    real(real64), intent(in), dimension(:) :: q
+        !! Assembled coordinates at which to evaluate the velocity-to-motion maps.
+    real(real64), dimension(this%ndof,this%ndof) :: m
+        !! Dense mass matrix in assembled coordinate order, before applying joint constraints.
+    integer :: i
+    integer :: lo
+    integer :: hi
 
     if (size(q) /= this%ndof) error stop "Wrong multibody coordinate count"
     m = 0.0d0
@@ -306,10 +407,26 @@ end function
 function body_mass(body, q) result(m)
     !! Pulls reference nodal inertia back through instantaneous nodal velocity maps.
     type(body_entry), intent(in) :: body
-    real(real64), intent(in) :: q(:)
-    real(real64) :: m(size(q),size(q)), b(12,size(q)), r(3,3), jbody(3,3), jnode(3,3), rn(3,3)
-    real(real64) :: u(12), p(3), linear(3,size(q))
-    integer :: i, node, n, stride, k, a, g
+        !! Carrier and its attached reference element data.
+    real(real64), intent(in), dimension(:) :: q
+        !! Coordinates of this body only, including its carrier.
+    real(real64), dimension(size(q),size(q)) :: m
+        !! Mass block including carrier-elastic coupling.
+    real(real64), dimension(12,size(q)) :: b
+    real(real64), dimension(3,3) :: r
+    real(real64), dimension(3,3) :: jbody
+    real(real64), dimension(3,3) :: jnode
+    real(real64), dimension(3,3) :: rn
+    real(real64), dimension(12) :: u
+    real(real64), dimension(3) :: p
+    real(real64), dimension(3,size(q)) :: linear
+    integer :: i
+    integer :: node
+    integer :: n
+    integer :: stride
+    integer :: k
+    integer :: a
+    integer :: g
 
     call rotation_kinematics(q(4:6), r, jbody)
     jbody = matmul(transpose(r), jbody)
@@ -354,9 +471,20 @@ subroutine equations(this, time, q, v, m, force)
     !! The right-hand side includes gravity, loads, elastic/damping forces,
     !! and convective inertia `Mdot*v - grad_q(0.5*v^T*M*v)`.
     class(multibody_model), intent(in) :: this
-    real(real64), intent(in) :: time, q(:), v(:)
-    real(real64), intent(out) :: m(:,:), force(:)
-    integer :: i, lo, hi
+        !! Model providing mass properties, gravity, elements and applied loads.
+    real(real64), intent(in) :: time
+        !! Time passed to the applied-load callback.
+    real(real64), intent(in), dimension(:) :: q
+        !! Coordinates in assembled order, of length `get_dof_count()`.
+    real(real64), intent(in), dimension(:) :: v
+        !! Coordinate rates in the same order as `q`.
+    real(real64), intent(out), dimension(:,:) :: m
+        !! Square mass matrix with one row and column per assembled coordinate.
+    real(real64), intent(out), dimension(:) :: force
+        !! Net generalized right-hand side, excluding joint reactions.
+    integer :: i
+    integer :: lo
+    integer :: hi
 
     if (size(q) /= this%ndof .or. size(v) /= this%ndof .or. size(force) /= this%ndof .or. &
         any(shape(m) /= this%ndof)) error stop "Wrong multibody equation dimensions"
@@ -377,10 +505,25 @@ function body_resistance(body, q, v) result(force)
     !! Evaluates the kinetic-energy derivatives by centered differences, then
     !! scatters the autodifferentiated elastic and viscous forces.
     type(body_entry), intent(in) :: body
-    real(real64), intent(in) :: q(:), v(:)
-    real(real64) :: force(size(q)), qp(size(q)), qm(size(q)), direction(size(v)), h, speed
-    real(real64) :: u(12), f(12), tangent(12,12)
-    integer :: i, k, n, g
+        !! Carrier and its attached elastic and dissipative elements.
+    real(real64), intent(in), dimension(:) :: q
+        !! Carrier and elastic coordinates for this body only.
+    real(real64), intent(in), dimension(:) :: v
+        !! Coordinate rates for this body in the same order as `q`.
+    real(real64), dimension(size(q)) :: force
+        !! Convective inertia plus elastic and damping resistance, subtracted from applied loads.
+    real(real64), dimension(size(q)) :: qp
+    real(real64), dimension(size(q)) :: qm
+    real(real64), dimension(size(v)) :: direction
+    real(real64) :: h
+    real(real64) :: speed
+    real(real64), dimension(12) :: u
+    real(real64), dimension(12) :: f
+    real(real64), dimension(12,12) :: tangent
+    integer :: i
+    integer :: k
+    integer :: n
+    integer :: g
 
     force = 0.0d0
     direction = v
@@ -425,9 +568,12 @@ end function
 
 pure function gather(x, map) result(values)
     !! Gathers active elastic coordinates and inserts zeros at restrained DOFs.
-    real(real64), intent(in) :: x(:)
-    integer, intent(in) :: map(:)
-    real(real64) :: values(size(map))
+    real(real64), intent(in), dimension(:) :: x
+        !! Active body-local elastic coordinates or rates.
+    integer, intent(in), dimension(:) :: map
+        !! One-based indices into `x`, or zero for restrained components.
+    real(real64), dimension(size(map)) :: values
+        !! Values in map order, with zeros for restrained components.
     integer :: i
 
     values = 0.0d0
@@ -439,9 +585,20 @@ end function
 pure subroutine rotation_kinematics(p, r, left_jacobian)
     !! SO(3) exponential and left Jacobian: omega = J(p)*p_dot. The
     !! series avoids cancellation for small rotations.
-    real(real64), intent(in) :: p(3)
-    real(real64), intent(out) :: r(3,3), left_jacobian(3,3)
-    real(real64) :: a, a2, s, c, d, k(3,3), k2(3,3), eye(3,3)
+    real(real64), intent(in), dimension(3) :: p
+        !! Rotation vector in radians.
+    real(real64), intent(out), dimension(3,3) :: r
+        !! Rotation matrix obtained from the exponential map.
+    real(real64), intent(out), dimension(3,3) :: left_jacobian
+        !! Maps vector rates to angular velocity in the rotation's destination frame.
+    real(real64) :: a
+    real(real64) :: a2
+    real(real64) :: s
+    real(real64) :: c
+    real(real64) :: d
+    real(real64), dimension(3,3) :: k
+    real(real64), dimension(3,3) :: k2
+    real(real64), dimension(3,3) :: eye
 
     a2 = dot_product(p,p)
     if (a2 < 1.0d-6) then
@@ -463,21 +620,28 @@ end subroutine
 
 pure function skew(x) result(k)
     !! Cross-product matrix, such that `matmul(k,y)` is `x` cross `y`.
-    real(real64), intent(in) :: x(3)
-    real(real64) :: k(3,3)
+    real(real64), intent(in), dimension(3) :: x
+        !! Left-hand vector of the cross product.
+    real(real64), dimension(3,3) :: k
+        !! Skew-symmetric matrix representing left multiplication by `x`.
     k = reshape([0.0d0,x(3),-x(2),-x(3),0.0d0,x(1),x(2),-x(1),0.0d0],[3,3])
 end function
 
 subroutine check_map(map, n)
     !! Validates a map before it is retained by the model.
-    integer, intent(in) :: map(:), n
+    integer, intent(in), dimension(:) :: map
+        !! Elastic indices to validate, with zero permitted.
+    integer, intent(in) :: n
+        !! Number of active coordinates available to the map.
     if (any(map < 0) .or. any(map > n)) error stop "Invalid multibody elastic coordinate map"
 end subroutine
 
 subroutine check_body(this, body)
     !! Validates a moving body index (ground is handled by the caller).
     class(multibody_model), intent(in) :: this
+        !! Model whose moving body list is checked.
     integer, intent(in) :: body
+        !! Expected one-based moving body index.
     if (.not. allocated(this%bodies)) error stop "No multibody carriers have been added"
     if (body < 1 .or. body > size(this%bodies)) error stop "Invalid moving body index"
 end subroutine

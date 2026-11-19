@@ -34,11 +34,11 @@ module dynamics_flexible_beams
         !! Reference section geometry in the beam's local axes.
         real(real64) :: area
             !! Positive cross-sectional area \(A\), in units of length squared.
-        real(real64) :: second_moment_of_area(2)
+        real(real64), dimension(2) :: second_moment_of_area
             !! Second moments \([I_y, I_z]\), in units of length to the fourth power.
         real(real64) :: torsion_constant = 0.0d0
             !! Saint-Venant torsion constant \(J\), in the same units as the second moments.
-        real(real64) :: effective_shear_area(2) = 0.0d0
+        real(real64), dimension(2) :: effective_shear_area = 0.0d0
             !! Effective areas along local [y, z], including shear correction.
     end type
 
@@ -47,9 +47,9 @@ module dynamics_flexible_beams
         !! beams only extension, z curvature and (for Timoshenko) y shear are active.
         type(hyperdual) :: extension
             !! Dimensionless axial stretch minus one (projected onto the director for Timoshenko).
-        type(hyperdual) :: shear(2)
+        type(hyperdual), dimension(2) :: shear
             !! Transverse shear along local [y, z]; zero for Euler-Bernoulli.
-        type(hyperdual) :: curvature(3)
+        type(hyperdual), dimension(3) :: curvature
             !! Twist and bending rates about local [x, y, z] per reference length.
     end type
 
@@ -100,7 +100,7 @@ module dynamics_flexible_beams
 
     type, abstract, extends(beam_section) :: planar_beam
         !! Base for two-node beams confined to the global xy plane.
-        real(real64) :: reference_coordinates(2,2) = 0.0d0
+        real(real64), dimension(2,2) :: reference_coordinates = 0.0d0
             !! One column per node. DOFs are `[ux, uy, theta_z]` per node,
             !! with positive angles measured counterclockwise in radians.
         real(real64) :: second_moment_of_area = 1.0d0
@@ -111,14 +111,14 @@ module dynamics_flexible_beams
 
     type, abstract, extends(beam_section) :: spatial_beam
         !! Base for two-node beams with independent translations and finite rotations in 3D.
-        real(real64) :: reference_coordinates(3,2) = 0.0d0
+        real(real64), dimension(3,2) :: reference_coordinates = 0.0d0
             !! One column per node. DOFs are `[ux, uy, uz, rx, ry, rz]` per node.
             !! The last three are a global rotation vector in radians, applied
             !! through the exponential map to the reference section frame.
-        real(real64) :: reference_y(3) = [0.0d0, 1.0d0, 0.0d0]
+        real(real64), dimension(3) :: reference_y = [0.0d0, 1.0d0, 0.0d0]
             !! Direction projected onto the reference cross section to set its
             !! local y axis; it must not be parallel to the reference chord.
-        real(real64) :: second_moment_of_area(2) = 1.0d0
+        real(real64), dimension(2) :: second_moment_of_area = 1.0d0
             !! Reference second moments of area [I_y, I_z].
         real(real64) :: torsion_constant = 1.0d0
             !! Reference Saint-Venant torsion constant J.
@@ -153,7 +153,7 @@ module dynamics_flexible_beams
     type, extends(spatial_beam) :: flexible_timoshenko_3d
         !! Extensible spatial beam with independent section rotations, shear and twist.
         !! Shortest-arc rotation interpolation is undefined at a relative rotation of pi.
-        real(real64) :: effective_shear_area(2) = 1.0d0
+        real(real64), dimension(2) :: effective_shear_area = 1.0d0
             !! Reference shear areas along local [y, z], including shear correction.
     contains
         procedure :: strain_energy => timoshenko_3d_energy
@@ -165,7 +165,9 @@ contains
 function euler_bernoulli_3d_mass(this) result(m)
     !! Reference consistent mass including section rotary inertia.
     class(flexible_euler_bernoulli_3d), intent(in) :: this
-    real(real64), allocatable :: m(:,:)
+        !! Beam providing the reference nodes, section geometry, and material density.
+    real(real64), allocatable, dimension(:,:) :: m
+        !! 12-by-12 reference mass matrix in beam DOF order.
 
     m = spatial_beam_mass(this, .true.)
 end function
@@ -173,7 +175,9 @@ end function
 function timoshenko_3d_mass(this) result(m)
     !! Reference consistent mass with independent linear rotation interpolation.
     class(flexible_timoshenko_3d), intent(in) :: this
-    real(real64), allocatable :: m(:,:)
+        !! Beam providing the reference nodes, section geometry, and material density.
+    real(real64), allocatable, dimension(:,:) :: m
+        !! 12-by-12 reference mass matrix in beam DOF order.
 
     m = spatial_beam_mass(this, .false.)
 end function
@@ -183,15 +187,30 @@ function spatial_beam_mass(this, shear_free) result(m)
     !! In the shear-free case, bending rotations are slopes of the Hermite
     !! centerline. The rotary inertia about the chord uses Iy+Iz, not J.
     class(spatial_beam), intent(in) :: this
+        !! Beam defining the undeformed chord, section axes, and mass properties.
     logical, intent(in) :: shear_free
-    real(real64) :: m(12,12), frame(3,3), length, x, n(2), h(4), dh(4)
-    real(real64) :: b(6,12), weighted(6,12), inertia(6)
-    type(hyperdual) :: u(12), chord(3), q(4,2)
-    real(real64), parameter :: points(4) = [0.0694318442029737d0, 0.330009478207572d0, &
+        !! True for Hermite bending interpolation; false for independent linear fields.
+    real(real64), dimension(12,12) :: m
+        !! Integrated translational and rotary inertia in the reference nodal basis.
+    real(real64), dimension(3,3) :: frame
+    real(real64) :: length
+    real(real64) :: x
+    real(real64), dimension(2) :: n
+    real(real64), dimension(4) :: h
+    real(real64), dimension(4) :: dh
+    real(real64), dimension(6,12) :: b
+    real(real64), dimension(6,12) :: weighted
+    real(real64), dimension(6) :: inertia
+    type(hyperdual), dimension(12) :: u
+    type(hyperdual), dimension(3) :: chord
+    type(hyperdual), dimension(4,2) :: q
+    real(real64), parameter, dimension(4) :: points = [0.0694318442029737d0, 0.330009478207572d0, &
         0.669990521792428d0, 0.930568155797026d0]
-    real(real64), parameter :: weights(4) = [0.173927422568727d0, 0.326072577431273d0, &
+    real(real64), parameter, dimension(4) :: weights = [0.173927422568727d0, 0.326072577431273d0, &
         0.326072577431273d0, 0.173927422568727d0]
-    integer :: i, j, k
+    integer :: i
+    integer :: j
+    integer :: k
 
     call validate_section(this, beam_section_geometry(this%area, this%second_moment_of_area, this%torsion_constant))
     if (.not. ieee_is_finite(this%material%density) .or. this%material%density < 0.0d0) &
@@ -249,12 +268,13 @@ function euler_bernoulli_2d_energy(this, u) result(w)
     !! Evaluates the planar shear-free energy by embedding the motion in 3D.
     class(flexible_euler_bernoulli_2d), intent(in) :: this
         !! Planar beam providing reference coordinates, section geometry, and its energy law.
-    type(hyperdual), intent(in) :: u(:)
+    type(hyperdual), intent(in), dimension(:) :: u
         !! Six nodal translations and angles in node order.
     type(hyperdual) :: w
         !! Total strain energy.
-    type(hyperdual) :: u3(12)
-    real(real64) :: x(3,2), y(3)
+    type(hyperdual), dimension(12) :: u3
+    real(real64), dimension(3,2) :: x
+    real(real64), dimension(3) :: y
 
     call embed_planar(this%reference_coordinates, u, x, y, u3)
     w = euler_bernoulli_energy(this, x, y, &
@@ -265,7 +285,7 @@ function euler_bernoulli_3d_energy(this, u) result(w)
     !! Evaluates the spatial axial, bending and torsional energy.
     class(flexible_euler_bernoulli_3d), intent(in) :: this
         !! Spatial beam providing reference geometry and its section energy law.
-    type(hyperdual), intent(in) :: u(:)
+    type(hyperdual), intent(in), dimension(:) :: u
         !! Twelve nodal translations and rotation-vector components in node order.
     type(hyperdual) :: w
         !! Total strain energy.
@@ -278,12 +298,13 @@ function timoshenko_2d_energy(this, u) result(w)
     !! Evaluates the planar axial, bending and shear energy.
     class(flexible_timoshenko_2d), intent(in) :: this
         !! Planar beam providing reference coordinates, section geometry, and its energy law.
-    type(hyperdual), intent(in) :: u(:)
+    type(hyperdual), intent(in), dimension(:) :: u
         !! Six nodal translations and angles in node order.
     type(hyperdual) :: w
         !! Total strain energy.
-    type(hyperdual) :: u3(12)
-    real(real64) :: x(3,2), y(3)
+    type(hyperdual), dimension(12) :: u3
+    real(real64), dimension(3,2) :: x
+    real(real64), dimension(3) :: y
 
     call embed_planar(this%reference_coordinates, u, x, y, u3)
     w = timoshenko_energy(this, x, y, beam_section_geometry(this%area, [0.0d0, this%second_moment_of_area], &
@@ -294,7 +315,7 @@ function timoshenko_3d_energy(this, u) result(w)
     !! Evaluates the spatial axial, bending, shear and torsional energy.
     class(flexible_timoshenko_3d), intent(in) :: this
         !! Spatial beam providing reference geometry and its section energy law.
-    type(hyperdual), intent(in) :: u(:)
+    type(hyperdual), intent(in), dimension(:) :: u
         !! Twelve nodal translations and rotation-vector components in node order.
     type(hyperdual) :: w
         !! Total strain energy.
@@ -308,17 +329,18 @@ subroutine embed_planar(x, u, x3, y, u3)
     !! plane of the spatial formulation. The reference local y axis is left
     !! of the chord so local z always coincides with global z.
     !! Stops with an error unless exactly six planar DOFs are supplied.
-    real(real64), intent(in) :: x(2,2)
+    real(real64), intent(in), dimension(2,2) :: x
         !! Planar reference nodes, one per column.
-    type(hyperdual), intent(in) :: u(:)
+    type(hyperdual), intent(in), dimension(:) :: u
         !! Six planar DOFs.
-    real(real64), intent(out) :: x3(3,2)
+    real(real64), intent(out), dimension(3,2) :: x3
         !! Reference nodes embedded in the global xy plane.
-    real(real64), intent(out) :: y(3)
+    real(real64), intent(out), dimension(3) :: y
         !! Reference section orientation hint.
-    type(hyperdual), intent(out) :: u3(12)
+    type(hyperdual), intent(out), dimension(12) :: u3
         !! Spatial DOFs; the six inactive components are zero.
-    integer :: map(6), i
+    integer, dimension(6) :: map
+    integer :: i
 
     if (size(u) /= 6) error stop "Planar flexible beam requires six DOFs"
     x3(1:2,:) = x
@@ -338,15 +360,22 @@ subroutine beam_kinematics(x, y, u, l0, frame, chord, q)
     !! length/frame, current chord, and the two global rotation quaternions.
     !! Requires twelve DOFs, a nonzero reference chord, and a nonzero local-y
     !! hint that is not parallel to the chord; violations stop with an error.
-    real(real64), intent(in) :: x(3,2), y(3)
-        !! Reference coordinates and local-y hint.
-    type(hyperdual), intent(in) :: u(:)
+    real(real64), intent(in), dimension(3,2) :: x
+        !! Reference nodes, one per column.
+    real(real64), intent(in), dimension(3) :: y
+        !! Direction projected onto the reference section to define its local y axis.
+    type(hyperdual), intent(in), dimension(:) :: u
         !! Spatial nodal DOFs, including hyper-dual rotation components.
-    real(real64), intent(out) :: l0, frame(3,3)
-        !! Reference length and orthonormal directors (columns).
-    type(hyperdual), intent(out) :: chord(3), q(4,2)
-        !! Current end-to-end vector and scalar-first nodal quaternions.
-    real(real64) :: dy(3), yn
+    real(real64), intent(out) :: l0
+        !! Undeformed chord length.
+    real(real64), intent(out), dimension(3,3) :: frame
+        !! Orthonormal reference directors, one per column.
+    type(hyperdual), intent(out), dimension(3) :: chord
+        !! Current end-to-end vector.
+    type(hyperdual), intent(out), dimension(4,2) :: q
+        !! Scalar-first nodal rotation quaternions, one per column.
+    real(real64), dimension(3) :: dy
+    real(real64) :: yn
     integer :: i
 
     if (size(u) /= 12) error stop "Spatial flexible beam requires twelve DOFs"
@@ -375,7 +404,8 @@ subroutine validate_section(section, geometry)
         !! Beam owning the constitutive material.
     type(beam_section_geometry), intent(in) :: geometry
         !! Reference geometry supplied to the section law.
-    real(real64) :: moments(3), shear_area(2)
+    real(real64), dimension(3) :: moments
+    real(real64), dimension(2) :: shear_area
 
     if (.not. allocated(section%material)) error stop "Flexible beam requires a material"
     if (.not. ieee_is_finite(geometry%area) .or. .not. (geometry%area > 0.0d0)) &
@@ -421,7 +451,10 @@ function quadratic_energy_density(this, geometry, material, strain) result(w)
         !! Hyper-dual axial, shear, and curvature measures.
     type(hyperdual) :: w
         !! Stored energy per unit reference length.
-    real(real64) :: e, g, stiffness(3), shear(2)
+    real(real64) :: e
+    real(real64) :: g
+    real(real64), dimension(3) :: stiffness
+    real(real64), dimension(2) :: shear
     integer :: i
 
     call material%get_elastic_moduli(e, g)
@@ -450,23 +483,42 @@ function euler_bernoulli_energy(section, x, y, geometry, u) result(w)
     !! or projected section frame is singular at a quadrature point.
     class(beam_section), intent(in) :: section
         !! Beam providing the material and section law.
-    real(real64), intent(in) :: x(3,2), y(3)
-        !! Reference nodal coordinates (columns) and local-y orientation hint.
+    real(real64), intent(in), dimension(3,2) :: x
+        !! Undeformed beam nodes, one per column.
+    real(real64), intent(in), dimension(3) :: y
+        !! Orientation hint used to construct the reference local y axis.
     type(beam_section_geometry), intent(in) :: geometry
         !! Reference section geometry; effective shear areas are zero.
-    type(hyperdual), intent(in) :: u(:)
+    type(hyperdual), intent(in), dimension(:) :: u
         !! Spatial nodal DOFs.
     type(hyperdual) :: w
         !! Total axial, bending and torsional strain energy.
-    real(real64), parameter :: point(4) = [0.06943184420297371d0, 0.33000947820757187d0, &
+    real(real64), parameter, dimension(4) :: point = [0.06943184420297371d0, 0.33000947820757187d0, &
         0.66999052179242813d0, 0.93056815579702629d0]
-    real(real64), parameter :: weight(4) = [0.17392742256872693d0, 0.32607257743127307d0, &
+    real(real64), parameter, dimension(4) :: weight = [0.17392742256872693d0, 0.32607257743127307d0, &
         0.32607257743127307d0, 0.17392742256872693d0]
-    real(real64) :: l0, frame(3,3), s
-    type(hyperdual) :: chord(3), q(4,2), a(3,2), b(3,2), scale, speed, projection, width
-    type(hyperdual) :: dr(3), ddr(3), t(3), dt(3), guide(3), dguide(3), d2(3), d3(3)
+    real(real64) :: l0
+    real(real64), dimension(3,3) :: frame
+    real(real64) :: s
+    type(hyperdual), dimension(3) :: chord
+    type(hyperdual), dimension(4,2) :: q
+    type(hyperdual), dimension(3,2) :: a
+    type(hyperdual), dimension(3,2) :: b
+    type(hyperdual) :: scale
+    type(hyperdual) :: speed
+    type(hyperdual) :: projection
+    type(hyperdual) :: width
+    type(hyperdual), dimension(3) :: dr
+    type(hyperdual), dimension(3) :: ddr
+    type(hyperdual), dimension(3) :: t
+    type(hyperdual), dimension(3) :: dt
+    type(hyperdual), dimension(3) :: guide
+    type(hyperdual), dimension(3) :: dguide
+    type(hyperdual), dimension(3) :: d2
+    type(hyperdual), dimension(3) :: d3
     type(beam_section_strain) :: strain
-    integer :: i, j
+    integer :: i
+    integer :: j
 
     call validate_section(section, geometry)
     call beam_kinematics(x, y, u, l0, frame, chord, q)
@@ -528,19 +580,31 @@ function timoshenko_energy(section, x, y, geometry, u) result(w)
     !! Stops with an error at the relative rotation branch cut near pi.
     class(beam_section), intent(in) :: section
         !! Beam providing the material and section law.
-    real(real64), intent(in) :: x(3,2), y(3)
-        !! Reference nodal coordinates (columns) and local-y orientation hint.
+    real(real64), intent(in), dimension(3,2) :: x
+        !! Undeformed beam nodes, one per column.
+    real(real64), intent(in), dimension(3) :: y
+        !! Orientation hint used to construct the reference local y axis.
     type(beam_section_geometry), intent(in) :: geometry
         !! Reference section geometry, including effective shear areas.
-    type(hyperdual), intent(in) :: u(:)
+    type(hyperdual), intent(in), dimension(:) :: u
         !! Spatial nodal DOFs.
     type(hyperdual) :: w
         !! Total axial, shear, bending and torsional strain energy.
-    real(real64) :: l0, frame(3,3)
-    type(hyperdual) :: chord(3), q(4,2), mid(4), relative(3), cross(3)
-    type(hyperdual) :: cos_half, norm, ratio2, k, factor
+    real(real64) :: l0
+    real(real64), dimension(3,3) :: frame
+    type(hyperdual), dimension(3) :: chord
+    type(hyperdual), dimension(4,2) :: q
+    type(hyperdual), dimension(4) :: mid
+    type(hyperdual), dimension(3) :: relative
+    type(hyperdual), dimension(3) :: cross
+    type(hyperdual) :: cos_half
+    type(hyperdual) :: norm
+    type(hyperdual) :: ratio2
+    type(hyperdual) :: k
+    type(hyperdual) :: factor
     type(beam_section_strain) :: strain
-    integer :: i, j
+    integer :: i
+    integer :: j
 
     call validate_section(section, geometry)
     call beam_kinematics(x, y, u, l0, frame, chord, q)
@@ -588,11 +652,13 @@ end function
 function rotation_quaternion(r) result(q)
     !! Maps a global rotation vector to a scalar-first unit quaternion. In the
     !! small-angle branch the series in angle squared preserves the Hessian at zero.
-    type(hyperdual), intent(in) :: r(3)
+    type(hyperdual), intent(in), dimension(3) :: r
         !! Rotation vector in radians.
-    type(hyperdual) :: q(4)
+    type(hyperdual), dimension(4) :: q
         !! Unit quaternion, with its scalar component first.
-    type(hyperdual) :: a2, half, scale
+    type(hyperdual) :: a2
+    type(hyperdual) :: half
+    type(hyperdual) :: scale
     integer :: i
 
     a2 = hd_dot(r, r)
@@ -611,13 +677,15 @@ end function
 
 function rotate_axis(q, a) result(b)
     !! Rotates the real reference director `a` by the unit quaternion `q`.
-    type(hyperdual), intent(in) :: q(4)
+    type(hyperdual), intent(in), dimension(4) :: q
         !! Scalar-first unit quaternion.
-    real(real64), intent(in) :: a(3)
+    real(real64), intent(in), dimension(3) :: a
         !! Director in the reference configuration.
-    type(hyperdual) :: b(3)
+    type(hyperdual), dimension(3) :: b
         !! Rotated director.
-    type(hyperdual) :: ah(3), cross(3), double_cross(3)
+    type(hyperdual), dimension(3) :: ah
+    type(hyperdual), dimension(3) :: cross
+    type(hyperdual), dimension(3) :: double_cross
     integer :: i
 
     do i = 1, 3
@@ -632,8 +700,10 @@ end function
 
 function hd_dot(a, b) result(c)
     !! Returns the dot product, retaining derivatives of both operands.
-    type(hyperdual), intent(in) :: a(:), b(size(a))
-        !! Equal-length vector operands.
+    type(hyperdual), intent(in), dimension(:) :: a
+        !! First factor, which also determines the length of `b`.
+    type(hyperdual), intent(in), dimension(size(a)) :: b
+        !! Second factor, with the same length as `a`.
     type(hyperdual) :: c
         !! Scalar dot product.
     integer :: i
@@ -646,9 +716,11 @@ end function
 
 function hd_cross(a, b) result(c)
     !! Returns the right-handed 3D cross product, retaining both operands' derivatives.
-    type(hyperdual), intent(in) :: a(3), b(3)
-        !! Vector operands in a common right-handed basis.
-    type(hyperdual) :: c(3)
+    type(hyperdual), intent(in), dimension(3) :: a
+        !! Left-hand vector of the cross product.
+    type(hyperdual), intent(in), dimension(3) :: b
+        !! Right-hand vector in the same basis as `a`.
+    type(hyperdual), dimension(3) :: c
         !! Cross product \(a \times b\) in the same basis.
 
     c(1) = a(2)*b(3) - a(3)*b(2)

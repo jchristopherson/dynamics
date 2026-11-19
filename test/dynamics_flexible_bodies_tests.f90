@@ -19,7 +19,9 @@ module dynamics_flexible_bodies_tests
     implicit none
 
     type, extends(quadratic_beam_section_energy), private :: coupled_section_energy
+        !! Test law adding extension-twist coupling to the default section response.
         real(real64) :: coupling
+            !! Coefficient of the additional extension-twist energy term per unit area.
     contains
         procedure :: energy_density => coupled_energy_density
     end type
@@ -28,14 +30,21 @@ contains
 function test_spatial_element_mass() result(ok)
     !! Compares reference mass against closed-form axial, bending and torsional coefficients.
     logical :: ok
+        !! True if all element mass checks pass.
     type(flexible_truss_3d) :: truss
     type(flexible_euler_bernoulli_3d) :: eb
     type(flexible_timoshenko_3d) :: tm
     type(flexible_damper_3d) :: damper
     type(flexible_spring_3d) :: spring
-    real(real64) :: m6(6,6), m12(12,12)
-    real(real64), parameter :: length = 2.0d0, area = 3.0d0, rho = 4.0d0, iy = 0.2d0, iz = 0.4d0
-    real(real64), parameter :: mass = rho*area*length, tol = 1.0d-12
+    real(real64), dimension(6,6) :: m6
+    real(real64), dimension(12,12) :: m12
+    real(real64), parameter :: length = 2.0d0
+    real(real64), parameter :: area = 3.0d0
+    real(real64), parameter :: rho = 4.0d0
+    real(real64), parameter :: iy = 0.2d0
+    real(real64), parameter :: iz = 0.4d0
+    real(real64), parameter :: mass = rho*area*length
+    real(real64), parameter :: tol = 1.0d-12
 
     truss%reference_coordinates(1,2) = length
     truss%area = area
@@ -73,14 +82,19 @@ function test_multibody_free_vibration() result(ok)
     !! Checks a fixed floating frame with a single axial truss DOF against
     !! omega=sqrt(3 E/(rho L^2)); the mass uses the element's consistent matrix.
     logical :: ok
+        !! True if the vibration, startup projection, and final time match expectations.
     type(multibody_model) :: model
     type(multibody_integrator) :: integrator
     type(multibody_state) :: state
-    type(multibody_state), allocatable :: history(:)
+    type(multibody_state), allocatable, dimension(:) :: history
     type(flexible_truss_3d) :: truss
     type(rigid_body) :: carrier
     type(dynamic_joint) :: joint
-    real(real64) :: q(7), v(7), omega, dt, max_error
+    real(real64), dimension(7) :: q
+    real(real64), dimension(7) :: v
+    real(real64) :: omega
+    real(real64) :: dt
+    real(real64) :: max_error
     integer :: i
 
     carrier = rigid_body(m=0.0d0)
@@ -113,15 +127,26 @@ function test_multibody_elastic_pendulum() result(ok)
     !! At the stretched equilibrium, the linear angular mode has frequency
     !! sqrt(m*g*r/(I_carrier+I_bob+m*r^2)).
     logical :: ok
+        !! True if the angular response, extension, and joint residuals pass.
     type(multibody_model) :: model
     type(multibody_integrator) :: integrator
     type(multibody_state) :: state
     type(flexible_spring_3d) :: spring
     type(flexible_damper_3d) :: damper
-    type(rigid_body) :: carrier, bob
+    type(rigid_body) :: carrier
+    type(rigid_body) :: bob
     type(dynamic_joint) :: joint
-    real(real64), parameter :: length = 1.0d0, gravity = 9.81d0, stiffness = 80.0d0, angle = 0.002d0
-    real(real64) :: q(13), v(13), radius, omega, dt, max_c, max_angle
+    real(real64), parameter :: length = 1.0d0
+    real(real64), parameter :: gravity = 9.81d0
+    real(real64), parameter :: stiffness = 80.0d0
+    real(real64), parameter :: angle = 0.002d0
+    real(real64), dimension(13) :: q
+    real(real64), dimension(13) :: v
+    real(real64) :: radius
+    real(real64) :: omega
+    real(real64) :: dt
+    real(real64) :: max_c
+    real(real64) :: max_angle
     integer :: i
 
     carrier = rigid_body()
@@ -164,11 +189,12 @@ end function
 function test_multibody_prescribed_motion() result(ok)
     !! Exercises time-dependent constraints and projection with an exact accelerating motion.
     logical :: ok
+        !! True if the prescribed kinematics and reaction match the exact solution.
     type(multibody_model) :: model
     type(multibody_integrator) :: integrator
     type(multibody_state) :: state
     type(rigid_body) :: carrier
-    real(real64) :: q(6)
+    real(real64), dimension(6) :: q
     integer :: i
 
     carrier = rigid_body()
@@ -187,15 +213,25 @@ end function
 
 subroutine prescribed_translation(time,q,value)
     !! Prescribes x(t)=t^2/2 on the first body.
-    real(real64), intent(in) :: time, q(:)
-    real(real64), intent(out) :: value(:)
+    real(real64), intent(in) :: time
+        !! Time at which to evaluate the prescribed translation.
+    real(real64), intent(in), dimension(:) :: q
+        !! Model coordinates; the first is the prescribed translation.
+    real(real64), intent(out), dimension(:) :: value
+        !! Single residual, equal to translation minus its prescribed value.
     value(1) = q(1) - 0.5d0*time*time
 end subroutine
 
 function test_joint(kind, parent, child) result(joint)
     !! Creates a joint with initially coincident identity attachment frames.
-    integer, intent(in) :: kind, parent, child
+    integer, intent(in) :: kind
+        !! Spatial joint type constant.
+    integer, intent(in) :: parent
+        !! Parent body index, or zero for ground.
+    integer, intent(in) :: child
+        !! Child body index, or zero for ground.
     type(dynamic_joint) :: joint
+        !! Joint descriptor with identity frames at both ends.
     integer :: i
 
     joint%joint_type = kind
@@ -212,10 +248,15 @@ end function
 function test_flexible_truss_2d() result(rst)
     !! Checks the 2D truss against closed-form axial force and stiffness.
     logical :: rst
+        !! True if all planar truss checks pass.
     real(real64), parameter :: tol = 1.0d-9
-    real(real64) :: l, e, fexp
-    real(real64), dimension(4) :: u, f
-    real(real64), dimension(4,4) :: k, kexp
+    real(real64) :: l
+    real(real64) :: e
+    real(real64) :: fexp
+    real(real64), dimension(4) :: u
+    real(real64), dimension(4) :: f
+    real(real64), dimension(4,4) :: k
+    real(real64), dimension(4,4) :: kexp
     type(flexible_truss_2d) :: truss
 
     rst = .true.
@@ -260,8 +301,10 @@ end function
 function test_flexible_rigid_translation() result(rst)
     !! A rigid translation of a 3D truss must produce no internal force.
     logical :: rst
+        !! True if translating both truss nodes leaves the elastic force unchanged.
     real(real64), parameter :: tol = 1.0d-10
-    real(real64), dimension(6) :: u, f
+    real(real64), dimension(6) :: u
+    real(real64), dimension(6) :: f
     real(real64), dimension(6,6) :: k
     type(flexible_truss_3d) :: truss
 
@@ -284,9 +327,12 @@ function test_flexible_truss_3d_fd() result(rst)
     !! Compares the AD tangent of a nonlinear 3D truss with central differences
     !! of its internal force.
     logical :: rst
+        !! True if the spatial truss tangent agrees with finite differences.
     real(real64), parameter :: tol = 1.0d-5
-    real(real64), dimension(6) :: u, f
-    real(real64), dimension(6,6) :: k, kfd
+    real(real64), dimension(6) :: u
+    real(real64), dimension(6) :: f
+    real(real64), dimension(6,6) :: k
+    real(real64), dimension(6,6) :: kfd
     type(flexible_truss_3d) :: truss
 
     rst = .true.
@@ -310,12 +356,18 @@ function test_flexible_spring() result(rst)
     !! Checks a nonlinear 2D spring against closed-form force and stiffness,
     !! then checks a 3D spring against finite differences.
     logical :: rst
+        !! True if the planar and spatial spring checks pass.
     real(real64), parameter :: tol = 1.0d-9
-    real(real64) :: delta, fexp, kexp
-    real(real64), dimension(4) :: u, f
+    real(real64) :: delta
+    real(real64) :: fexp
+    real(real64) :: kexp
+    real(real64), dimension(4) :: u
+    real(real64), dimension(4) :: f
     real(real64), dimension(4,4) :: k
-    real(real64), dimension(6) :: u3, f3
-    real(real64), dimension(6,6) :: k3, kfd
+    real(real64), dimension(6) :: u3
+    real(real64), dimension(6) :: f3
+    real(real64), dimension(6,6) :: k3
+    real(real64), dimension(6,6) :: kfd
     type(flexible_spring_2d) :: spring
     type(flexible_spring_3d) :: spring3
 
@@ -355,14 +407,18 @@ function test_flexible_damper() result(rst)
     !! Checks the damping matrix of 2D and 3D viscous dampers at the reference
     !! configuration, where C = c b b^T with b = [-n, n] and n the unit axis.
     logical :: rst
+        !! True if the planar and spatial damping matrices match their references.
     real(real64), parameter :: tol = 1.0d-10
     real(real64), dimension(4) :: u2
     real(real64), dimension(6) :: u3
     real(real64), dimension(4) :: b2
     real(real64), dimension(6) :: b3
-    real(real64), dimension(4,4) :: c2, c2exp
-    real(real64), dimension(6,6) :: c3, c3exp
-    integer(int32) :: row, col
+    real(real64), dimension(4,4) :: c2
+    real(real64), dimension(4,4) :: c2exp
+    real(real64), dimension(6,6) :: c3
+    real(real64), dimension(6,6) :: c3exp
+    integer(int32) :: row
+    integer(int32) :: col
     type(flexible_damper_2d) :: damper2
     type(flexible_damper_3d) :: damper3
 
@@ -406,16 +462,26 @@ function test_flexible_beam_linear_limits() result(rst)
     !! Compares unloaded tangents against the classical planar bending and
     !! axial stiffnesses and checks spatial torsional stiffness independently.
     logical :: rst
+        !! True if the zero-displacement stiffness checks pass.
     type(flexible_euler_bernoulli_2d) :: eb
     type(flexible_timoshenko_2d) :: tm
     type(flexible_euler_bernoulli_3d) :: eb3
     type(flexible_timoshenko_3d) :: tm3
-    real(real64) :: f(6), k(6,6), f3(12), k3(12,12), expected(2,2)
-    integer, parameter :: tip(2) = [5, 6]
-    real(real64), parameter :: l = 2.0d0, ei = 3.0d0, ga = 7.0d0, gj = 11.0d0
-    real(real64), parameter :: e = 5.0d0, g = 2.5d0
-    real(real64), parameter :: tol = 1.0d-10, twist = 0.6d0
-    real(real64) :: u3(12)
+    real(real64), dimension(6) :: f
+    real(real64), dimension(6,6) :: k
+    real(real64), dimension(12) :: f3
+    real(real64), dimension(12,12) :: k3
+    real(real64), dimension(2,2) :: expected
+    integer, parameter, dimension(2) :: tip = [5, 6]
+    real(real64), parameter :: l = 2.0d0
+    real(real64), parameter :: ei = 3.0d0
+    real(real64), parameter :: ga = 7.0d0
+    real(real64), parameter :: gj = 11.0d0
+    real(real64), parameter :: e = 5.0d0
+    real(real64), parameter :: g = 2.5d0
+    real(real64), parameter :: tol = 1.0d-10
+    real(real64), parameter :: twist = 0.6d0
+    real(real64), dimension(12) :: u3
 
     eb%reference_coordinates(:,2) = [l, 0.0d0]
     eb%second_moment_of_area = ei/e
@@ -463,13 +529,21 @@ function test_flexible_beam_linear_limits() result(rst)
 end function
 
 function test_flexible_beam_material_swap() result(rst)
+    !! Checks that swapping materials updates stiffness without changing section geometry.
     logical :: rst
+        !! True if both material choices give the expected tip stiffnesses.
     type(flexible_timoshenko_3d) :: beam
-    real(real64), parameter :: l = 2.0d0, tol = 1.0d-10
-    real(real64), parameter :: e(2) = [12.0d0, 18.0d0], g(2) = [5.0d0, 8.0d0]
-    real(real64), parameter :: nu(2) = [0.2d0, 0.125d0]
-    real(real64) :: u(12), f(12), k(12,12), expected(6)
-    integer :: i, j
+    real(real64), parameter :: l = 2.0d0
+    real(real64), parameter :: tol = 1.0d-10
+    real(real64), parameter, dimension(2) :: e = [12.0d0, 18.0d0]
+    real(real64), parameter, dimension(2) :: g = [5.0d0, 8.0d0]
+    real(real64), parameter, dimension(2) :: nu = [0.2d0, 0.125d0]
+    real(real64), dimension(12) :: u
+    real(real64), dimension(12) :: f
+    real(real64), dimension(12,12) :: k
+    real(real64), dimension(6) :: expected
+    integer :: i
+    integer :: j
 
     beam%reference_coordinates(:,2) = [l, 0.0d0, 0.0d0]
     beam%area = 2.0d0
@@ -492,23 +566,37 @@ function test_flexible_beam_material_swap() result(rst)
 end function
 
 function coupled_energy_density(this, geometry, material, strain) result(w)
+    !! Evaluates the default section energy plus a bilinear extension-twist term.
     class(coupled_section_energy), intent(in) :: this
+        !! Test constitutive law supplying the coupling coefficient.
     type(beam_section_geometry), intent(in) :: geometry
+        !! Section properties used by the base law and the added coupling.
     class(flexible_material), intent(in) :: material
+        !! Material passed through to the default section law.
     type(beam_section_strain), intent(in) :: strain
+        !! Generalized strains in the section basis.
     type(hyperdual) :: w
+        !! Total stored energy per unit reference length.
 
     w = this%quadratic_beam_section_energy%energy_density(geometry, material, strain) + &
         this%coupling * geometry%area * strain%extension * strain%curvature(1)
 end function
 
 function test_flexible_beam_section_energy() result(rst)
+    !! Checks that a custom section law couples axial displacement and tip twist.
     logical :: rst
+        !! True if both spatial beam types produce the expected torque and tangent.
     type(flexible_euler_bernoulli_3d) :: eb
     type(flexible_timoshenko_3d) :: tm
-    real(real64), parameter :: l = 2.0d0, area = 1.5d0, coupling = 3.0d0, delta = 0.1d0
-    real(real64), parameter :: cross_tangent = area * coupling / l, tol = 1.0d-10
-    real(real64) :: u(12), f(12), k(12,12)
+    real(real64), parameter :: l = 2.0d0
+    real(real64), parameter :: area = 1.5d0
+    real(real64), parameter :: coupling = 3.0d0
+    real(real64), parameter :: delta = 0.1d0
+    real(real64), parameter :: cross_tangent = area * coupling / l
+    real(real64), parameter :: tol = 1.0d-10
+    real(real64), dimension(12) :: u
+    real(real64), dimension(12) :: f
+    real(real64), dimension(12,12) :: k
 
     eb%reference_coordinates(1,2) = l
     eb%area = area
@@ -536,13 +624,22 @@ function test_flexible_beam_objectivity() result(rst)
     !! Verifies that a finite rigid motion gives no elastic force and that
     !! superposing that motion on a strained state preserves its energy.
     logical :: rst
+        !! True if both spatial beam types pass the finite rigid-motion checks.
     type(flexible_euler_bernoulli_3d) :: eb
     type(flexible_timoshenko_3d) :: tm
-    real(real64), parameter :: axis(3) = [2.0d0, -1.0d0, 2.0d0]/3.0d0
-    real(real64), parameter :: shift(3) = [0.2d0, -0.5d0, 0.4d0], theta = 1.1d0
-    real(real64) :: u(12), rigid(12), moved(12), p(3), r(3), unit_axis(3), angle
+    real(real64), parameter, dimension(3) :: axis = [2.0d0, -1.0d0, 2.0d0]/3.0d0
+    real(real64), parameter, dimension(3) :: shift = [0.2d0, -0.5d0, 0.4d0]
+    real(real64), parameter :: theta = 1.1d0
+    real(real64), dimension(12) :: u
+    real(real64), dimension(12) :: rigid
+    real(real64), dimension(12) :: moved
+    real(real64), dimension(3) :: p
+    real(real64), dimension(3) :: r
+    real(real64), dimension(3) :: unit_axis
+    real(real64) :: angle
     type(quaternion) :: superposed
-    integer :: i, j
+    integer :: i
+    integer :: j
 
     eb%reference_coordinates(:,1) = [0.2d0, 0.1d0, -0.4d0]
     eb%reference_coordinates(:,2) = [1.5d0, 1.0d0, 0.6d0]
@@ -573,8 +670,14 @@ end function
 
 function rotate_test_point(p, axis, angle) result(q)
     !! Uses Rodrigues' formula to construct the independent rigid-motion test.
-    real(real64), intent(in) :: p(3), axis(3), angle
-    real(real64) :: q(3)
+    real(real64), intent(in), dimension(3) :: p
+        !! Original point relative to the origin.
+    real(real64), intent(in), dimension(3) :: axis
+        !! Unit axis of rotation.
+    real(real64), intent(in) :: angle
+        !! Rotation angle in radians.
+    real(real64), dimension(3) :: q
+        !! Rotated point.
 
     q = cos(angle)*p + sin(angle)*cross_product(axis, p) + (1-cos(angle))*dot_product(axis,p)*axis
 end function
@@ -583,10 +686,22 @@ function check_beam_objectivity(el, u, rigid, moved) result(rst)
     !! Checks energy invariance and compares the tangent at a strained state
     !! with central differences of the internal force.
     class(finite_element), intent(in) :: el
-    real(real64), intent(in) :: u(12), rigid(12), moved(12)
+        !! Spatial beam under test.
+    real(real64), intent(in), dimension(12) :: u
+        !! Strained nodal state before applying the rigid motion.
+    real(real64), intent(in), dimension(12) :: rigid
+        !! Nodal state describing the rigid motion alone.
+    real(real64), intent(in), dimension(12) :: moved
+        !! Strained nodal state after superposing the rigid motion.
     logical :: rst
-    real(real64) :: f(12), k(12,12), kfd(12,12)
-    type(hyperdual) :: seed(12), w, moved_w, rigid_w
+        !! True if the energy, force, and tangent comparisons pass.
+    real(real64), dimension(12) :: f
+    real(real64), dimension(12,12) :: k
+    real(real64), dimension(12,12) :: kfd
+    type(hyperdual), dimension(12) :: seed
+    type(hyperdual) :: w
+    type(hyperdual) :: moved_w
+    type(hyperdual) :: rigid_w
     integer :: i
 
     do i = 1, 12
@@ -611,12 +726,18 @@ subroutine fd_stiffness(el, u, kfd)
     !! Estimates the tangent stiffness by central differences of the internal
     !! force of a finite element.
     class(finite_element), intent(in) :: el
+        !! Element supplying the internal force.
     real(real64), intent(in), dimension(:) :: u
+        !! Nodal displacement vector in element DOF order.
     real(real64), intent(out), dimension(:,:) :: kfd
+        !! Square reference tangent with one column per perturbed coordinate.
 
     real(real64), parameter :: h = 1.0d-6
-    integer(int32) :: j, n
-    real(real64), allocatable, dimension(:) :: up, fp, fm
+    integer(int32) :: j
+    integer(int32) :: n
+    real(real64), allocatable, dimension(:) :: up
+    real(real64), allocatable, dimension(:) :: fp
+    real(real64), allocatable, dimension(:) :: fm
     real(real64), allocatable, dimension(:,:) :: kdummy
 
     n = size(u)

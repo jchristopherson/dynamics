@@ -37,6 +37,8 @@ module dynamics_flexible_types
         procedure :: mass_matrix => massless_element_matrix
             !! Returns the reference mass matrix in element DOF order. The
             !! default is zero for massless connectors and legacy elements.
+            !! An override must return an allocated, symmetric square matrix
+            !! with one row and column per element DOF.
     end type
 
     type, extends(flexible_element), abstract :: finite_element
@@ -111,7 +113,9 @@ contains
 function massless_element_matrix(this) result(m)
     !! Returns a zero mass matrix; override for elements that carry inertia.
     class(flexible_element), intent(in) :: this
-    real(real64), allocatable :: m(:,:)
+        !! Element supplying the size and ordering of the matrix.
+    real(real64), allocatable, dimension(:,:) :: m
+        !! Zero matrix with one row and column per element DOF.
     integer :: n
 
     n = this%get_dof_count()
