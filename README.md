@@ -30,6 +30,25 @@ A library of routines used for the analysis of dynamic systems.
 | Stability Analysis | Fixed-point stability classification | ✅ | ✅ | ⚠️ |
 | C Interface | Native C API | ✅ | ✅ | ⚠️ |
 
+### Flexible beams
+
+`euler_bernoulli_beam_element` is a two-node spatial, shear-free beam with a
+rectangular reference section. Set its material pointer, reference node
+coordinates, reference local-y direction, `width`, `height`, and `area`
+(`width * height`). Assign `equation_indices` for assembly. Each node has
+global `[ux, uy, uz, rx, ry, rz]` DOFs; rotations are rotation vectors in
+radians. The material target must remain alive while the beam uses it.
+
+The beam integrates Green-Lagrange axial fiber strain with four Gauss points
+along the length and two per section direction. The material supplies separate
+uniaxial plane-stress energy per reference volume and rectangular-section
+torsional energy per reference length. Nonlinear section integration is a
+quadrature approximation; the two responses are not coupled. The provided
+linear isotropic material uses the rectangular Saint-Venant torsion constant.
+The mass matrix is a constant reference-configuration consistent mass matrix.
+Internal force is the positive energy gradient and stiffness its Hessian;
+the beam's AD workspace is reused and must not be accessed concurrently.
+
 ## Building
 
 ### Prerequisites

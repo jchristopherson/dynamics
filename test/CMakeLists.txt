@@ -17,6 +17,7 @@ set(dynamics_test_sources
     dynamics_linkage_dynamics_tests.f90
     dynamics_discrete_elements_tests.f90
     dynamics_shell_elements_tests.f90
+    dynamics_flexible_bodies_tests.f90
 )
 
 # Dependencies
@@ -54,6 +55,27 @@ add_test(
     WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
     COMMAND $<TARGET_FILE:dynamics_tests> generalized-alpha
 )
+add_test(
+    NAME dynamics_flexible_bodies_tests
+    WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+    COMMAND $<TARGET_FILE:dynamics_tests> flexible-bodies
+)
+foreach(case IN ITEMS dual-dot hyperdual-dot dual-matmul hyperdual-matmul)
+    add_test(
+        NAME dynamics_ad_error_${case}
+        WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+        COMMAND $<TARGET_FILE:dynamics_tests> ad-${case}
+    )
+    set_tests_properties(dynamics_ad_error_${case} PROPERTIES WILL_FAIL TRUE)
+endforeach()
+foreach(case IN ITEMS invalid-strain invalid-material invalid-area)
+    add_test(
+        NAME dynamics_flexible_error_${case}
+        WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+        COMMAND $<TARGET_FILE:dynamics_tests> flex-${case}
+    )
+    set_tests_properties(dynamics_flexible_error_${case} PROPERTIES WILL_FAIL TRUE)
+endforeach()
 add_test(
     NAME dynamics_variational_startup_tests
     WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}

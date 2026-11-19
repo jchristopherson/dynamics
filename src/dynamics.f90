@@ -38,4 +38,10 @@ module dynamics
     use dynamics_linkage_dynamics
     use dynamics_linear_structural_solvers
     use dynamics_maps
+    use dynamics_flexible_element
+    use dynamics_finite_element
+    use dynamics_flexible_materials
+    use dynamics_flexible_beam_elements
+    use dynamics_multibody
+    use dynamics_multibody_types
 end module

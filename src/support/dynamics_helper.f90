@@ -13,6 +13,7 @@
 ! fitness for a particular purpose and noninfringement.
 module dynamics_helper
     use iso_fortran_env
+    use autodiff
     implicit none
     private
     public :: is_symmetric
@@ -21,6 +22,18 @@ module dynamics_helper
     public :: vector_angle
     public :: scalar_projection
     public :: vector_projection
+    public :: dot_product
+    public :: matmul
+
+    interface dot_product
+        module procedure :: dual_dot_product
+        module procedure :: hyperdual_dot_product
+    end interface
+
+    interface matmul
+        module procedure :: dual_matmul_mtx_vec
+        module procedure :: hyperdual_matmul_mtx_vec
+    end interface
 
 contains
 ! ------------------------------------------------------------------------------
@@ -144,6 +157,102 @@ pure function vector_projection(x, y) result(rst)
 
     ! Process
     rst = y * dot_product(x, y) / dot_product(y, y)
+end function
+
+! ------------------------------------------------------------------------------
+pure function dual_dot_product(x, y) result(rst)
+    !! Computes the dot-product of two dual-type arrays.
+    type(dual), intent(in), dimension(:) :: x
+        !! The left-hand-side argument.
+    type(dual), intent(in), dimension(:) :: y
+        !! The right-hand-side argument.
+    type(dual) :: rst
+        !! The dot product.
+
+    integer :: i
+    integer :: n
+    n = size(x)
+    if (size(y) /= n) error stop "Dot product dimensions must agree."
+    rst = 0.0d0
+    do i = 1, n
+        rst = rst + x(i) * y(i)
+    end do
+end function
+
+! ------------------------------------------------------------------------------
+pure function hyperdual_dot_product(x, y) result(rst)
+    !! Computes the dot-product of two hyperdual-type arrays.
+    type(hyperdual), intent(in), dimension(:) :: x
+        !! The left-hand-side argument.
+    type(hyperdual), intent(in), dimension(:) :: y
+        !! The right-hand-side argument.
+    type(hyperdual) :: rst
+        !! The dot product.
+
+    integer :: i
+    integer :: n
+    n = size(x)
+    if (size(y) /= n) error stop "Dot product dimensions must agree."
+    rst = 0.0d0
+    do i = 1, n
+        rst = rst + x(i) * y(i)
+    end do
+end function
+
+! ------------------------------------------------------------------------------
+pure function dual_matmul_mtx_vec(x, y) result(rst)
+    !! Computes the matrix-vector product of a real-valued matrix with a
+    !! dual-type array.
+    real(real64), intent(in), dimension(:,:) :: x
+        !! The matrix.
+    type(dual), intent(in), dimension(:) :: y
+        !! The vector.
+    type(dual), allocatable, dimension(:) :: rst
+        !! The resulting vector.
+
+    integer :: i, k, m, n, p
+    type(dual) :: temp
+
+    m = size(x, 1)
+    n = size(x, 2)
+    p = size(y)
+    if (n /= p) error stop "Inner matrix dimensions must agree."
+    allocate(rst(m))
+    do i = 1, m
+        temp = 0.0d0
+        do k = 1, n
+            temp = temp + x(i,k) * y(k)
+        end do
+        rst(i) = temp
+    end do
+end function
+
+! ------------------------------------------------------------------------------
+pure function hyperdual_matmul_mtx_vec(x, y) result(rst)
+    !! Computes the matrix-vector product of a real-valued matrix with a
+    !! hyperdual-type array.
+    real(real64), intent(in), dimension(:,:) :: x
+        !! The matrix.
+    type(hyperdual), intent(in), dimension(:) :: y
+        !! The vector.
+    type(hyperdual), allocatable, dimension(:) :: rst
+        !! The resulting vector.
+
+    integer :: i, k, m, n, p
+    type(hyperdual) :: temp
+
+    m = size(x, 1)
+    n = size(x, 2)
+    p = size(y)
+    if (n /= p) error stop "Inner matrix dimensions must agree."
+    allocate(rst(m))
+    do i = 1, m
+        temp = 0.0d0
+        do k = 1, n
+            temp = temp + x(i,k) * y(k)
+        end do
+        rst(i) = temp
+    end do
 end function
 
 ! ------------------------------------------------------------------------------

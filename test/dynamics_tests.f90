@@ -29,6 +29,7 @@ program main
     use dynamics_linkage_dynamics_tests
     use dynamics_discrete_elements_tests
     use dynamics_shell_elements_tests
+    use dynamics_flexible_bodies_tests
     implicit none
 
     ! Variables
@@ -42,6 +43,20 @@ program main
         block
             character(32) :: selection
             call get_command_argument(1, selection)
+            if (index(selection, "ad-") == 1) then
+                call invalid_ad_product(trim(selection))
+                stop
+            end if
+            if (index(selection, "flex-invalid-") == 1) then
+                call invalid_flexible_input(trim(selection))
+                stop
+            end if
+            if (selection == "flexible-bodies") then
+                if (.not.test_ad_products()) stop 190
+                if (.not.test_flexible_material()) stop 191
+                if (.not.test_flexible_beam()) stop 192
+                stop
+            end if
             if (index(selection, "motion-") == 1) then
                 call invalid_prescribed_joint_motion(trim(selection))
                 stop
@@ -65,6 +80,15 @@ program main
     end if
 
     ! Tests
+    check = test_ad_products()
+    if (.not.check) flag = 190
+
+    check = test_flexible_material()
+    if (.not.check) flag = 191
+
+    check = test_flexible_beam()
+    if (.not.check) flag = 192
+
     check = test_frf_sweep()
     if (.not.check) flag = 1
 
