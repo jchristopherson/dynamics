@@ -49,6 +49,19 @@ The computed frequency response functions. The frequency values passed to `frequ
 
 ![](../../images/frf_example_1.png?raw=true)
 
+## MIMO FRF Example
+
+[`mimo_frf_example_1`](../../examples/mimo_frf_example_1.f90) applies independent broadband forces to two coupled masses and records both displacements. Each column of the input and output arrays is a channel. The call below estimates all four force-to-displacement paths with the default H1 estimator and a Hann window:
+
+```fortran
+win%size = window_size
+rsp = frequency_response(forces%samples, solution(:,2:3), sample_rate, win = win)
+```
+
+`rsp%responses(output, input, :)` is the frequency response for one path. The example plots magnitude and phase for all four paths against the analytical receptance matrix $(K-\omega^2 M+i\omega C)^{-1}$ and reports their relative RMS errors over 10–300 Hz. Independent inputs matter here: driving both masses with the same signal would not let the estimator distinguish their contributions.
+
+![Estimated and analytical magnitude and phase for all four MIMO force-to-displacement paths](../../images/mimo_frf_example_1.png?raw=true)
+
 ## Nonlinear FRF Example
 Computing the frequency response function for a nonlinear system is not as straight-forward. A technique for capturing nonlinear behaviors, such as jump phenomenon, is to sweep through frequency, in both an ascending and a descending manner. The [`frf_sweep_example_1`](../../examples/frf_sweep_example_1.f90) example illustrates such a frequency sweep using the Duffing equation as the model.
 

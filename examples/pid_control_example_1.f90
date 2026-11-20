@@ -46,11 +46,12 @@ program example
     use model
     implicit none
 
-    ! Control Parameters - Arbitrarily Chosen
-    real(real64), parameter :: Kp = 8.0d-2
-    real(real64), parameter :: Ki = 1.0d3
-    real(real64), parameter :: Kd = 5.0d-4
-    real(real64), parameter :: tau = 1.0d-3
+    ! Match the filtered PID characteristic polynomial to real poles at
+    ! -1400, -1600, -2200, and -3200 rad/s for plant output y = k*X*q.
+    real(real64), parameter :: Kp = 0.551048902d0
+    real(real64), parameter :: Ki = 1295.323281d0
+    real(real64), parameter :: Kd = 1.086432759d-3
+    real(real64), parameter :: tau = 1.369008811d-4
 
     ! Solution Parameters
     real(real64), parameter :: tmax = 0.5d0
