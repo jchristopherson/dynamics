@@ -99,6 +99,9 @@ fpm install --prefix <install-prefix>
 
 FPM resolves the package dependencies declared in `fpm.toml` automatically.
 
+## Contributing
+Contributors should follow the [style guide](STYLE_GUIDE.md) for Fortran source, tests, and documentation comments.
+
 ## Quick Start
 
 ### Use From FPM
