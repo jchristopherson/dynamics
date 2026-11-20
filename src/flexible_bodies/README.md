@@ -41,9 +41,9 @@ The [flexible truss example](../../examples/flexible_truss_example.f90) uses
 geometry of the [structural example](../../examples/structural_example.f90).
 Build the `flexible_truss_example` target with `BUILD_DYNAMICS_EXAMPLES=ON` and
 run it with Gnuplot on `PATH`. It assembles the reference mass and tangent
-stiffness in CSR format, then fixes all six DOFs at node 1 and restrains only
-`UY` at node 3. The example writes `flexible_truss_mesh.png`
-to the working directory without applying loads or running a solve.
+stiffness in CSR format, fixes all six DOFs at node 1, and restrains only
+`DOF_UY` at node 3. It plots the undeformed mesh without applying loads or
+running a solve.
 
 Populate a `finite_element_mesh` with its `nodes` array and allocate each
 `elements(i)%element` from a concrete finite element. Elements reference nodes
@@ -107,8 +107,8 @@ holds a one-based node position in `mesh%nodes`, a physical component label
 `resolve_boundary_conditions(mesh, conditions, dofs[, ndof])` returns the
 global equation indices without applying the conditions. For homogeneous
 supports, use those indices with `apply_boundary_conditions` to reduce multiple
-matrices, as in the flexible truss example. Force conditions accumulate into the global
-force vector, which is allocated as zeros if unallocated:
+matrices, as in the flexible truss example. Force conditions accumulate into
+the global force vector, which is allocated as zeros if unallocated:
 `apply_force_boundary_conditions(mesh, conditions, f)`.
 
 Displacement conditions are eliminated symmetrically from the assembled system
