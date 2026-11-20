@@ -107,28 +107,28 @@ end function
 ! ------------------------------------------------------------------------------
 pure function t2d_dimensionality(this) result(rst)
     class(truss_element_2d), intent(in) :: this
-    integer(int32) :: rst
+    integer :: rst
     rst = 2
 end function
 
 ! ------------------------------------------------------------------------------
 pure function t2d_node_count(this) result(rst)
     class(truss_element_2d), intent(in) :: this
-    integer(int32) :: rst
+    integer :: rst
     rst = 2
 end function
 
 ! ------------------------------------------------------------------------------
 pure function t2d_dof_per_node(this) result(rst)
     class(truss_element_2d), intent(in) :: this
-    integer(int32) :: rst
+    integer :: rst
     rst = 2
 end function
 
 ! ------------------------------------------------------------------------------
 pure function t2d_get_node(this, i) result(rst)
     class(truss_element_2d), intent(in) :: this
-    integer(int32), intent(in) :: i
+    integer, intent(in) :: i
     type(node) :: rst
     if (i == 1) then
         rst = this%node_1
@@ -140,7 +140,7 @@ end function
 ! ------------------------------------------------------------------------------
 pure subroutine t2d_terminal_nodes(this, i1, i2)
     class(truss_element_2d), intent(in) :: this
-    integer(int32), intent(out) :: i1, i2
+    integer, intent(out) :: i1, i2
     i1 = 1
     i2 = 2
 end subroutine
@@ -149,7 +149,7 @@ end subroutine
 pure function t2d_shape_function(this, i, s) result(rst)
     !! Linear interpolation in the natural coordinate -1 <= s <= 1.
     class(truss_element_2d), intent(in) :: this
-    integer(int32), intent(in) :: i
+    integer, intent(in) :: i
     real(real64), intent(in), dimension(:) :: s
     real(real64) :: rst
     select case (i)
@@ -225,12 +225,12 @@ pure function t2d_stiffness_matrix(this, rule) result(rst)
     !! Global axial stiffness K = (E A/L) b b^T, where b = [-n, n].
     class(truss_element_2d), intent(in) :: this
     !! The planar truss element.
-    integer(int32), intent(in), optional :: rule
+    integer, intent(in), optional :: rule
     !! The integration rule is accepted for compatibility; stiffness is exact.
     real(real64), allocatable, dimension(:,:) :: rst
     !! The 4-by-4 global translational stiffness matrix.
     real(real64) :: length, direction(2), axial(4)
-    integer(int32) :: row, col
+    integer :: row, col
     length = this%length()
     direction = [this%node_2%x - this%node_1%x, &
         this%node_2%y - this%node_1%y] / length
@@ -265,28 +265,28 @@ end function
 ! ------------------------------------------------------------------------------
 pure function t3d_dimensionality(this) result(rst)
     class(truss_element_3d), intent(in) :: this
-    integer(int32) :: rst
+    integer :: rst
     rst = 3
 end function
 
 ! ------------------------------------------------------------------------------
 pure function t3d_node_count(this) result(rst)
     class(truss_element_3d), intent(in) :: this
-    integer(int32) :: rst
+    integer :: rst
     rst = 2
 end function
 
 ! ------------------------------------------------------------------------------
 pure function t3d_dof_per_node(this) result(rst)
     class(truss_element_3d), intent(in) :: this
-    integer(int32) :: rst
+    integer :: rst
     rst = 3
 end function
 
 ! ------------------------------------------------------------------------------
 pure function t3d_get_node(this, i) result(rst)
     class(truss_element_3d), intent(in) :: this
-    integer(int32), intent(in) :: i
+    integer, intent(in) :: i
     type(node) :: rst
     if (i == 1) then
         rst = this%node_1
@@ -298,7 +298,7 @@ end function
 ! ------------------------------------------------------------------------------
 pure subroutine t3d_terminal_nodes(this, i1, i2)
     class(truss_element_3d), intent(in) :: this
-    integer(int32), intent(out) :: i1, i2
+    integer, intent(out) :: i1, i2
     i1 = 1
     i2 = 2
 end subroutine
@@ -306,7 +306,7 @@ end subroutine
 ! ------------------------------------------------------------------------------
 pure function t3d_shape_function(this, i, s) result(rst)
     class(truss_element_3d), intent(in) :: this
-    integer(int32), intent(in) :: i
+    integer, intent(in) :: i
     real(real64), intent(in), dimension(:) :: s
     real(real64) :: rst
     select case (i)
@@ -326,7 +326,7 @@ pure function t3d_shape_matrix(this, s) result(rst)
     real(real64), intent(in), dimension(:) :: s
     real(real64), allocatable, dimension(:,:) :: rst
     real(real64) :: n1, n2
-    integer(int32) :: axis
+    integer :: axis
     n1 = this%evaluate_shape_function(1, s)
     n2 = this%evaluate_shape_function(2, s)
     allocate(rst(3,6), source = 0.0d0)
@@ -371,7 +371,7 @@ pure function t3d_rotation_matrix(this) result(rst)
     class(truss_element_3d), intent(in) :: this
     real(real64), allocatable, dimension(:,:) :: rst
     real(real64) :: longitudinal(3), transverse(3), normal(3), reference(3)
-    integer(int32) :: end_index
+    integer :: end_index
     longitudinal = [this%node_2%x - this%node_1%x, &
         this%node_2%y - this%node_1%y, this%node_2%z - this%node_1%z] / this%length()
     if (abs(longitudinal(3)) < 0.9d0) then
@@ -395,12 +395,12 @@ pure function t3d_stiffness_matrix(this, rule) result(rst)
     !! Global axial stiffness K = (E A/L) b b^T, where b = [-n, n].
     class(truss_element_3d), intent(in) :: this
     !! The spatial truss element.
-    integer(int32), intent(in), optional :: rule
+    integer, intent(in), optional :: rule
     !! The integration rule is accepted for compatibility; stiffness is exact.
     real(real64), allocatable, dimension(:,:) :: rst
     !! The 6-by-6 global translational stiffness matrix.
     real(real64) :: length, direction(3), axial(6)
-    integer(int32) :: row, col
+    integer :: row, col
     length = this%length()
     direction = [this%node_2%x - this%node_1%x, &
         this%node_2%y - this%node_1%y, this%node_2%z - this%node_1%z] / length

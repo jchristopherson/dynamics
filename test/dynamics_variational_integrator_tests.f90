@@ -33,7 +33,7 @@ function test_variational_startup() result(rst)
     real(real64), allocatable :: multipliers(:,:)
     real(real64), parameter :: dt = 0.01d0
     real(real64) :: inertia(3,3), physical_momentum(3), discrete_momentum(3), omega(3)
-    integer(int32) :: solver, mode
+    integer :: solver, mode
 
     rst = .true.
     inertia = 0.0d0
@@ -118,7 +118,7 @@ function test_variational_force_evaluation() result(rst)
     !! Verifies the three applied-load evaluation points with a scalar linear
     !! viscous damper.
     logical :: rst
-    integer(int32), parameter :: mode(3) = [VI_FORCE_LEFT_ENDPOINT, &
+    integer, parameter :: mode(3) = [VI_FORCE_LEFT_ENDPOINT, &
         VI_FORCE_IMPLICIT_ENDPOINT, VI_FORCE_MIDPOINT]
     real(real64), parameter :: expected(3) = [0.8d0, 1.0d0 / 1.2d0, &
         0.9d0 / 1.1d0]
@@ -126,7 +126,7 @@ function test_variational_force_evaluation() result(rst)
     type(variational_state) :: state
     type(variational_integrator) :: integrator
     procedure(variational_force), pointer :: force_ptr
-    integer(int32) :: i
+    integer :: i
 
     rst = .true.
     bodies(1) = rigid_body(2.0d0)

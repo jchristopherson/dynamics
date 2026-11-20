@@ -78,13 +78,13 @@ module dynamics_system_id
 
     type regression_information
         !! A container of information being shared with the regression function.
-        integer(int32), allocatable, dimension(:,:) :: start_stop
+        integer, allocatable, dimension(:,:) :: start_stop
             !! An N-by-2 matrix containing the starting indices of each data
             !! set in the first column, and the ending indices of each data
             !! set in the second column.
         class(ode_integrator), pointer :: integrator
             !! A pointer to the ODE integrator.
-        integer(int32) :: solution_index
+        integer :: solution_index
             !! The column index of the solution component to extract from the
             !! ODE solver output.  Do not account for the time vector (e.g.
             !! enter a value of 1 to extract the first solution component.)
@@ -139,7 +139,7 @@ subroutine siso_model_fit_least_squares_1(fcn, x, ic, p, integrator, ind, &
         !! The integrator to use when solving the system equations.  If not
         !! supplied, the default integrator will be used.  The default 
         !! integrator is a Runge-Kutta integrator (Dormand-Prince).
-    integer(int32), intent(in), optional :: ind
+    integer, intent(in), optional :: ind
         !! The index of the ODE in fcn providing the output to fit.  If
         !! no value is supplied, a value of 1 will be utilized.
     real(real64), intent(in), optional, dimension(:) :: maxp
@@ -193,7 +193,7 @@ subroutine siso_model_fit_least_squares_1(fcn, x, ic, p, integrator, ind, &
         !! [[model_information]] type.
 
     ! Local Variables
-    integer(int32) :: i, i1, i2, n, ni, npts, nc
+    integer :: i, i1, i2, n, ni, npts, nc
     real(real64), allocatable, dimension(:) :: t, f, ymod, resid
     type(runge_kutta_45), target :: default_ode_solver
     type(regression_information) :: addinfo
@@ -309,7 +309,7 @@ subroutine siso_model_fit_least_squares_2(fcn, x, ic, p, integrator, ind, &
         !! The integrator to use when solving the system equations.  If not
         !! supplied, the default integrator will be used.  The default 
         !! integrator is a Runge-Kutta integrator (Dormand-Prince).
-    integer(int32), intent(in), optional :: ind
+    integer, intent(in), optional :: ind
         !! The index of the ODE in fcn providing the output to fit.  If
         !! no value is supplied, a value of 1 will be utilized.
     real(real64), intent(in), optional, dimension(:) :: maxp
@@ -363,7 +363,7 @@ subroutine siso_model_fit_least_squares_2(fcn, x, ic, p, integrator, ind, &
         !! [[model_information]] type.
 
     ! Local Variables
-    integer(int32) :: i, i1, i2, n, ni, npts, nc
+    integer :: i, i1, i2, n, ni, npts, nc
     real(real64), allocatable, dimension(:) :: t, f, ymod, resid
     type(runge_kutta_45), target :: default_ode_solver
     type(regression_information) :: addinfo
@@ -470,8 +470,8 @@ subroutine nlsq_fun(t, p, f, args)
 
     ! Local Variables
     type(model_information) :: ode_info
-    integer(int32) :: i, n, ind, i1, i2
-    integer(int32), allocatable, dimension(:,:) :: limits
+    integer :: i, n, ind, i1, i2
+    integer, allocatable, dimension(:,:) :: limits
     real(real64), allocatable, dimension(:) :: excitation, ici
     real(real64), allocatable, dimension(:,:) :: sol, ic
     class(ode_integrator), pointer :: integrator

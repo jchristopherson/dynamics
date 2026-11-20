@@ -85,7 +85,7 @@ module dynamics_linear_structural_solvers
         real(real64), private, allocatable, dimension(:,:) :: damping
         real(real64), private, allocatable, dimension(:,:) :: stiffness
         real(real64), private, allocatable, dimension(:,:) :: lu
-        integer(int32), private, allocatable, dimension(:) :: pivot
+        integer, private, allocatable, dimension(:) :: pivot
         real(real64), private :: cached_dt = -1.0d0
     contains
         procedure, public :: initialize => initialize_dense_integrator
@@ -104,8 +104,8 @@ module dynamics_linear_structural_solvers
         type(msr_matrix), private :: preconditioner
         real(real64), private, allocatable, dimension(:,:) :: small_lu
         real(real64), private, allocatable, dimension(:) :: diagonal
-        integer(int32), private, allocatable, dimension(:) :: pivot
-        integer(int32), private, allocatable, dimension(:) :: upper_start
+        integer, private, allocatable, dimension(:) :: pivot
+        integer, private, allocatable, dimension(:) :: upper_start
         real(real64), private :: cached_dt = -1.0d0
     contains
         procedure, public :: initialize => initialize_sparse_integrator
@@ -133,7 +133,7 @@ subroutine integrator_solve(this, forces, dt, displacement, velocity, accelerati
         !! Initial state on input, final state on output.
     real(real64), intent(inout), dimension(:) :: acceleration
         !! Initial state on input, final state on output.
-    integer(int32) :: step_index
+    integer :: step_index
 
     if (.not.allocated(this%rhs)) error stop DYN_INVALID_INPUT_ERROR
     if (size(forces, 2) < 2) error stop DYN_ARRAY_SIZE_ERROR
@@ -149,7 +149,7 @@ subroutine initialize_workspace(this, n, spectral_radius)
     !! Initializes the workspace for the integrator.
     class(structural_integrator), intent(inout) :: this
         !! The [[structural_integrator]] object.
-    integer(int32), intent(in) :: n
+    integer, intent(in) :: n
         !! The number of degrees-of-freedom.
     real(real64), intent(in), optional :: spectral_radius
         !! High-frequency spectral radius in [0, 1], default 1.
@@ -202,7 +202,7 @@ subroutine initialize_dense_integrator(this, mass, damping, stiffness, rho_infin
         !! High-frequency spectral radius in [0, 1], default 1.
 
     ! Local Variables
-    integer(int32) :: n
+    integer :: n
 
     ! Process
     n = size(mass, 1)
@@ -280,7 +280,7 @@ subroutine dense_integrator_step(this, force_current, force_next, dt, &
         !! updated to the state at t + dt.
 
     ! Local Variables
-    integer(int32) :: n, info
+    integer :: n, info
 
     ! Input Checking
     if (.not.allocated(this%mass)) error stop DYN_INVALID_INPUT_ERROR
@@ -339,7 +339,7 @@ subroutine initialize_sparse_integrator(this, mass, damping, stiffness, rho_infi
         !! High-frequency spectral radius in [0, 1], default 1.
 
     ! Local Variables
-    integer(int32) :: n
+    integer :: n
 
     ! Process
     n = size(mass, 1)
@@ -404,7 +404,7 @@ subroutine sparse_integrator_step(this, force_current, force_next, dt, &
         !! updated to the state at t + dt.
 
     ! Local Variables
-    integer(int32) :: n, info
+    integer :: n, info
 
     if (.not.allocated(this%rhs)) error stop DYN_INVALID_INPUT_ERROR
     n = size(this%rhs)

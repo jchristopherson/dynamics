@@ -22,7 +22,7 @@ program example
     implicit none
 
     ! Simulation Parameters
-    integer(int32), parameter :: ntime = 1001
+    integer, parameter :: ntime = 1001
     real(real64), parameter :: dt = 5.0d-4
     real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
     real(real64), parameter :: motion_frequency = 5.0d0
@@ -57,7 +57,7 @@ program example
     type(variational_state), allocatable, dimension(:) :: solution
     real(real64), allocatable, dimension(:,:) :: constraint_multipliers
     type(joint_reaction) :: joint_reactions(4)
-    integer(int32) :: i, nmult
+    integer :: i, nmult
     real(real64), allocatable, dimension(:) :: time, torque, crank_angle, &
         rocker_angle, Fx1, Fy1, Fx2, Fy2, Fx3, Fy3, Fx4, Fy4
 

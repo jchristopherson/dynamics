@@ -62,7 +62,7 @@ program example
     complex(real64), parameter :: j = (0.0d0, 1.0d0)
 
     ! Variables
-    integer(int32) :: i, n
+    integer :: i, n
     real(real64), allocatable, dimension(:) :: t, x, amp, phase, aamp, aphase
     real(real64), allocatable, dimension(:,:) :: y
     complex(real64), allocatable, dimension(:) :: s, arsp

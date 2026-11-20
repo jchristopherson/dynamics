@@ -50,7 +50,7 @@ pure function is_symmetric(a) result(rst)
         !! True if the matrix is symmetric; else, false.
 
     real(real64), parameter :: tol = 10.0d0 * epsilon(0.0d0)
-    integer(int32) :: i, j, n
+    integer :: i, j, n
     real(real64) :: scale
 
     n = size(a, 1)

@@ -110,15 +110,15 @@ program example
     ! Parameters
     real(real64), parameter :: f1 = 0.5d0
     real(real64), parameter :: f2 = 2.0d0
-    integer(int32), parameter :: nfreq = 100
-    integer(int32), parameter :: npts = 1000
+    integer, parameter :: nfreq = 100
+    integer, parameter :: npts = 1000
     real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
     real(real64), parameter :: zmax = 1.0d1
     real(real64), parameter :: zmin = 0.5d0
     
     ! Local Variables
     procedure(harmonic_ode), pointer :: fcn
-    integer(int32) :: i
+    integer :: i
     real(real64) :: dz, phase1(nfreq), phase2(nfreq), z(npts), w1(npts), w2(npts)
     type(frf) :: solup, soldown
 

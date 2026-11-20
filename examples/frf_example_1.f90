@@ -36,7 +36,7 @@ program example
     implicit none
 
     ! Parameters
-    integer(int32), parameter :: nfreq = 1000
+    integer, parameter :: nfreq = 1000
     real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
     real(real64), parameter :: fmin = 2.0d0 * pi * 10.0d0
     real(real64), parameter :: fmax = 2.0d0 * pi * 1.0d3
@@ -55,7 +55,7 @@ program example
     real(real64), parameter :: b4 = 1.5d1
 
     ! Local Variables
-    integer(int32) :: i
+    integer :: i
     real(real64) :: m(3,3), k(3,3), b(3,3)
     type(frf) :: rsp
     real(real64), allocatable, dimension(:) :: freq

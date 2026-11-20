@@ -60,7 +60,7 @@ program example
 
     ! Local Variables
     procedure(ss_excitation), pointer :: fcn
-    integer(int32) :: i, n
+    integer :: i, n
     real(real64) :: ic(4), t(2), ri(1)
     real(real64), allocatable, dimension(:) :: r, freq, omega, mag, phase
     real(real64), allocatable, dimension(:,:) :: sol

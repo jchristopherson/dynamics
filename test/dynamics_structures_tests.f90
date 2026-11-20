@@ -904,13 +904,13 @@ contains
         logical :: rst
 
         ! Variables
-        integer(int32), parameter :: n = 50
-        integer(int32), parameter :: bc_index = 25
+        integer, parameter :: n = 50
+        integer, parameter :: bc_index = 25
         real(real64), parameter :: bc_value = 0.1d0
         real(real64) :: k(n,n), f(n), check(n), kcheck(n-1,n-1), fcheck(n-1)
         real(real64), allocatable, dimension(:) :: fnew, frestore
         real(real64), allocatable, dimension(:,:) :: knew
-        integer(int32) :: gdofs(1)
+        integer :: gdofs(1)
 
         ! Initialization
         rst = .true.
@@ -974,13 +974,13 @@ contains
         logical :: rst
 
         ! Variables
-        integer(int32), parameter :: n = 50
-        integer(int32), parameter :: bc_index = n
+        integer, parameter :: n = 50
+        integer, parameter :: bc_index = n
         real(real64), parameter :: bc_value = 0.1d0
         real(real64) :: k(n,n), f(n), check(n), kcheck(n-1,n-1), fcheck(n-1)
         real(real64), allocatable, dimension(:) :: fnew, frestore
         real(real64), allocatable, dimension(:,:) :: knew
-        integer(int32) :: gdofs(1)
+        integer :: gdofs(1)
 
         ! Initialization
         rst = .true.
@@ -1044,15 +1044,15 @@ contains
         logical :: rst
 
         ! Variables
-        integer(int32), parameter :: n = 20
-        integer(int32), parameter :: nbc = 3
+        integer, parameter :: n = 20
+        integer, parameter :: nbc = 3
         real(real64) :: k(n,n), f(n), fcsr(n)
         real(real64), allocatable, dimension(:,:) :: knew_dense, knew_csr, &
             restored_dense, restored_csr
         type(csr_matrix) :: kcsr, knewcsr, restoredcsr
-        integer(int32) :: gdofs_dense(nbc), gdofs_csr(nbc)
-        integer(int32) :: free_dofs(n - nbc)
-        integer(int32) :: i, j
+        integer :: gdofs_dense(nbc), gdofs_csr(nbc)
+        integer :: free_dofs(n - nbc)
+        integer :: i, j
 
         ! Initialization
         rst = .true.
@@ -1112,7 +1112,7 @@ contains
         logical :: rst
 
         ! Variables
-        integer(int32), parameter :: gdof = 9 ! 3 dof per node, 3 nodes
+        integer, parameter :: gdof = 9 ! 3 dof per node, 3 nodes
         real(real64) :: x1, y1, x2, y2, x3, y3, a1, a2, i1, i2, &
             L1ans(6,9), L2ans(6,9), L1(6,9), L2(6,9)
         type(csr_matrix) :: L1csr, L2csr
@@ -1213,7 +1213,7 @@ function test_global_assembly() result(rst)
     logical :: rst
 
     ! Local Variables
-    integer(int32) :: i, j, eidx, offset
+    integer :: i, j, eidx, offset
     real(real64) :: local_k(6,6), local_m(6,6)
     real(real64) :: expected_k(9,9), expected_m(9,9)
     real(real64), allocatable :: actual_k(:,:), actual_m(:,:)
@@ -1878,7 +1878,7 @@ end function
 ! ------------------------------------------------------------------------------
 function test_truss_elements() result(rst)
     logical :: rst
-    integer(int32) :: row, col
+    integer :: row, col
     real(real64), parameter :: tol = 1.0d-12
     real(real64), dimension(4) :: axial_2d
     real(real64), dimension(6) :: axial_3d
@@ -1968,7 +1968,7 @@ end function
 function test_generalized_alpha_integrator() result(rst)
     use linalg, only : dense_to_csr
     logical :: rst
-    integer(int32) :: index, step, row
+    integer :: index, step, row
     real(real64) :: dt, rho, alpha_m, alpha_f, gamma, beta
     real(real64), dimension(2) :: displacement, velocity, acceleration
     real(real64), dimension(2) :: sparse_displacement, sparse_velocity, sparse_acceleration
@@ -2209,7 +2209,7 @@ function test_integration_rules() result(rst)
     real(real64), parameter :: len = 2.0d0
     real(real64), parameter :: area = 0.5d0
     real(real64), parameter :: rho = 3.0d0
-    integer(int32) :: rule
+    integer :: rule
     real(real64) :: mtot
     real(real64), allocatable, dimension(:,:) :: m
     type(truss_element_2d) :: truss

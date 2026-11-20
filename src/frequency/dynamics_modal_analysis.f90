@@ -48,7 +48,7 @@ contains
             !! The modal damping parameter.
 
         ! Local Variables
-        integer(int32) :: n
+        integer :: n
 
         ! Process
         rst = (alpha + beta * lambda) / (2.0d0 * sqrt(lambda))
@@ -77,7 +77,7 @@ contains
             !! columns.
 
         ! Local Variables
-        integer(int32) :: n
+        integer :: n
         complex(real64), allocatable, dimension(:) :: vals
         complex(real64), allocatable, dimension(:,:) :: vecs
         
@@ -122,7 +122,7 @@ contains
             !! The N-by-N symmetric positive-definite mass matrix.
         type(csr_matrix), intent(in) :: stiff
             !! The N-by-N symmetric stiffness matrix.
-        integer(int32), intent(in) :: nmodes
+        integer, intent(in) :: nmodes
             !! The number of lowest-frequency modes to compute.  This value
             !! must be greater than zero and less than N.
         real(real64), intent(out), allocatable, dimension(:) :: freqs
@@ -133,7 +133,7 @@ contains
             !! An optional, allocatable N-by-NMODES matrix containing one mode
             !! shape per column.
 
-        integer(int32) :: i, j, loc, n
+        integer :: i, j, loc, n
         real(real64) :: mass_scale, stiff_scale, temp, tol
         real(real64), allocatable, dimension(:) :: temp_vec, vals
         real(real64), allocatable, dimension(:,:) :: vecs
@@ -203,7 +203,7 @@ contains
             !! The matrix of mode shape vectors with one vector per column.
 
         ! Local Variables
-        integer(int32) :: i, loc
+        integer :: i, loc
         real(real64) :: factor
 
         ! Process

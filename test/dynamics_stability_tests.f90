@@ -31,7 +31,7 @@ function test_local_stability() result(rst)
     real(real64), parameter :: b = -5.0d0
 
     ! Local Variables
-    integer(int32) :: flag
+    integer :: flag
     real(real64) :: pt1, pt2, pt3, A1(2, 2), A2(2, 2), A3(2, 2)
     complex(real64) :: ev1(2), ev2(2), ev3(2)
 

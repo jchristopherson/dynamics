@@ -144,7 +144,7 @@ pure function b2d_dimensionality(this) result(rst)
     !! Gets the dimensionality of the element.
     class(beam_element_2d), intent(in) :: this
         !! The beam_element_2d object.
-    integer(int32) :: rst
+    integer :: rst
         !! The dimensionality.
     rst = 2
 end function
@@ -154,7 +154,7 @@ pure function b2d_get_node_count(this) result(rst)
     !! Gets the number of nodes for the element.
     class(beam_element_2d), intent(in) :: this
         !! The beam_element_2d object.
-    integer(int32) :: rst
+    integer :: rst
         !! The number of nodes.
     rst = 2
 end function
@@ -164,7 +164,7 @@ pure function b2d_dof_per_node(this) result(rst)
     !! Gets the number of degrees of freedom per node.
     class(beam_element_2d), intent(in) :: this
         !! The beam_element_2d object.
-    integer(int32) :: rst
+    integer :: rst
         !! The number of DOF per node.
     rst = 3
 end function
@@ -174,7 +174,7 @@ pure function b2d_get_node(this, i) result(rst)
     !! Gets the requested node from the element.
     class(beam_element_2d), intent(in) :: this
         !! The beam_element_2d object.
-    integer(int32), intent(in) :: i
+    integer, intent(in) :: i
         !! The local index of the node to retrieve.
     type(node) :: rst
         !! The requested node.
@@ -191,9 +191,9 @@ pure subroutine b2d_terminal_nodes(this, i1, i2)
     !! Gets the terminal node numbers for the element.
     class(beam_element_2d), intent(in) :: this
         !! The beam_element_2d object.
-    integer(int32), intent(out) :: i1
+    integer, intent(out) :: i1
         !! The index of the node at the head of the element.
-    integer(int32), intent(out) :: i2
+    integer, intent(out) :: i2
         !! The index of the node at the tail of the element.
     i1 = 1
     i2 = 2
@@ -204,7 +204,7 @@ pure function b2d_shape_function(this, i, s) result(rst)
     !! Evaluates the i-th shape function at natural coordinate s.
     class(beam_element_2d), intent(in) :: this
         !! The beam_element_2d object.
-    integer(int32), intent(in) :: i
+    integer, intent(in) :: i
         !! The index of the shape function to evaluate.
     real(real64), intent(in), dimension(:) :: s
         !! The value of the natural coordinate at which to evaluate
@@ -414,7 +414,7 @@ pure function b2d_stiffness_matrix(this, rule) result(rst)
     !! Computes the stiffness matrix for the element.
     class(beam_element_2d), intent(in) :: this
         !! The beam_element_2d object.
-    integer(int32), intent(in), optional :: rule
+    integer, intent(in), optional :: rule
         !! The integration rule.  The rule must be one of the following:
         !!
         !! - MECH_ONE_POINT_INTEGRATION_RULE
@@ -473,7 +473,7 @@ pure function b2d_mass_matrix(this, rule) result(rst)
     !! Computes the mass matrix for the element.
     class(beam_element_2d), intent(in) :: this
         !! The beam_element_2d object.
-    integer(int32), intent(in), optional :: rule
+    integer, intent(in), optional :: rule
         !! The integration rule.  The rule must be one of the following:
         !!
         !! - MECH_ONE_POINT_INTEGRATION_RULE
@@ -576,7 +576,7 @@ pure function b3d_dimensionality(this) result(rst)
     !! Gets the dimensionality of the element.
     class(beam_element_3d), intent(in) :: this
         !! The beam_element_3d object.
-    integer(int32) :: rst
+    integer :: rst
         !! The dimensionality.
     rst = 3
 end function
@@ -586,7 +586,7 @@ pure function b3d_get_node_count(this) result(rst)
     !! Gets the number of nodes for the element.
     class(beam_element_3d), intent(in) :: this
         !! The beam_element_3d object.
-    integer(int32) :: rst
+    integer :: rst
         !! The number of nodes.
     rst = 2
 end function
@@ -596,7 +596,7 @@ pure function b3d_dof_per_node(this) result(rst)
     !! Gets the number of degrees of freedom per node.
     class(beam_element_3d), intent(in) :: this
         !! The beam_element_3d object.
-    integer(int32) :: rst
+    integer :: rst
         !! The number of DOF per node.
     rst = 6
 end function
@@ -606,7 +606,7 @@ pure function b3d_get_node(this, i) result(rst)
     !! Gets the requested node from the element.
     class(beam_element_3d), intent(in) :: this
         !! The beam_element_3d object.
-    integer(int32), intent(in) :: i
+    integer, intent(in) :: i
         !! The local index of the node to retrieve.
     type(node) :: rst
         !! The requested node.
@@ -623,9 +623,9 @@ pure subroutine b3d_terminal_nodes(this, i1, i2)
     !! Gets the terminal node numbers for the element.
     class(beam_element_3d), intent(in) :: this
         !! The beam_element_3d object.
-    integer(int32), intent(out) :: i1
+    integer, intent(out) :: i1
         !! The index of the node at the head of the element.
-    integer(int32), intent(out) :: i2
+    integer, intent(out) :: i2
         !! The index of the node at the tail of the element.
     i1 = 1
     i2 = 2
@@ -636,7 +636,7 @@ pure function b3d_shape_function(this, i, s) result(rst)
     !! Evaluates the i-th shape function at natural coordinate s.
     class(beam_element_3d), intent(in) :: this
         !! The beam_element_3d object.
-    integer(int32), intent(in) :: i
+    integer, intent(in) :: i
         !! The index of the shape function to evaluate.
     real(real64), intent(in), dimension(:) :: s
         !! The value of the natural coordinate at which to evaluate
@@ -910,7 +910,7 @@ pure function b3d_stiffness_matrix(this, rule) result(rst)
     !! Computes the stiffness matrix for the element.
     class(beam_element_3d), intent(in) :: this
         !! The beam_element_3d object.
-    integer(int32), intent(in), optional :: rule
+    integer, intent(in), optional :: rule
         !! The integration rule.  The rule must be one of the following:
         !!
         !! - MECH_ONE_POINT_INTEGRATION_RULE
@@ -1031,7 +1031,7 @@ pure function b3d_mass_matrix(this, rule) result(rst)
     !! torsional terms scale with \(\rho I_{xx} L\).
     class(beam_element_3d), intent(in) :: this
         !! The beam_element_3d object.
-    integer(int32), intent(in), optional :: rule
+    integer, intent(in), optional :: rule
         !! The integration rule.  This argument is unused and is present for
         !! interface compatibility; the mass matrix is computed in closed
         !! form.
@@ -1039,7 +1039,7 @@ pure function b3d_mass_matrix(this, rule) result(rst)
         !! The resulting matrix.
 
     ! Local Variables
-    integer(int32) :: i
+    integer :: i
     real(real64) :: m, jm, L
     real(real64), allocatable, dimension(:,:) :: T, Tt
 

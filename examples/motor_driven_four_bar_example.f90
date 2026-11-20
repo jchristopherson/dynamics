@@ -24,7 +24,7 @@ program example
     implicit none
 
     ! Simulation Parameters
-    integer(int32), parameter :: ntime = 1001
+    integer, parameter :: ntime = 1001
     real(real64), parameter :: dt = 5.0d-4
     real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
     real(real64), parameter :: motion_frequency = 5.0d0
@@ -44,7 +44,7 @@ program example
         motion_center - motion_amplitude
 
     ! Local Variables
-    integer(int32) :: i
+    integer :: i
     real(real64), dimension(4) :: q
     real(real64), dimension(2) :: closure_point
     real(real64), dimension(3,3) :: rotation
@@ -206,7 +206,7 @@ pure function translation(distance) result(rst)
         !! The translation distance.
     real(real64), dimension(4,4) :: rst
         !! The homogeneous transformation matrix.
-    integer(int32) :: i
+    integer :: i
 
     rst = 0.0d0
     do i = 1, 4

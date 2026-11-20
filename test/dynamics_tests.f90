@@ -34,7 +34,7 @@ program main
 
     ! Variables
     logical :: check
-    integer(int32) :: flag
+    integer :: flag
 
     ! Initialization
     flag = 0

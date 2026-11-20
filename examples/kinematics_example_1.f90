@@ -66,7 +66,7 @@ program example
     implicit none
 
     ! Local Variables
-    integer(int32) :: i
+    integer :: i
     real(real64) :: theta(3), T(4, 4), qo(3), q(3), constraints(6)
     procedure(vecfcn), pointer :: mdl
 

@@ -48,12 +48,12 @@ function test_lti_solve() result(rst)
     logical :: rst
 
     ! Parameters
-    integer(int32), parameter :: ntime = 1000
+    integer, parameter :: ntime = 1000
     real(real64), parameter :: tmax = 1.0d-1
     real(real64), parameter :: tol = 1.0d-6
 
     ! Local Variables
-    integer(int32) :: i
+    integer :: i
     real(real64) :: dt, t(ntime), ic(2)
     real(real64), allocatable, dimension(:,:) :: sol, ltiSol
     procedure(ss_excitation), pointer :: excite
@@ -207,7 +207,7 @@ end function
 function test_state_space_pid_order() result(rst)
     logical :: rst
 
-    integer(int32), parameter :: n = 3
+    integer, parameter :: n = 3
     real(real64), parameter :: kp = 2.0d0, ki = 3.0d0
     real(real64), parameter :: kd = 4.0d0, tau = 2.0d0
     real(real64) :: a(n,n), b(n,1), c(1,n), d(1,1)

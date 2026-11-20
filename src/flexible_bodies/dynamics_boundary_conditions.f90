@@ -34,9 +34,9 @@ module dynamics_boundary_conditions
 
     type :: nodal_condition
         !! Prescribes one local DOF of one node in a finite_element_mesh.
-        integer(int32) :: node = 0
+        integer :: node = 0
             !! The one-based position of the node in the mesh node table.
-        integer(int32) :: component = 0
+        integer :: component = 0
             !! The one-based local DOF within that node's block of equations.
         real(real64) :: value = 0.0d0
             !! The force (for force conditions) or displacement (for
@@ -62,8 +62,8 @@ contains
             !! with one entry per global DOF. Otherwise, its size must match.
 
         ! Local Variables
-        integer(int32) :: ndof, i
-        integer(int32), allocatable, dimension(:) :: dofs
+        integer :: ndof, i
+        integer, allocatable, dimension(:) :: dofs
 
         ! Process
         call condition_layout(mesh, conditions, ndof, dofs)
@@ -94,8 +94,8 @@ contains
             !! unconstrained DOFs.
 
         ! Local Variables
-        integer(int32) :: ndof
-        integer(int32), allocatable, dimension(:) :: dofs, gdof
+        integer :: ndof
+        integer, allocatable, dimension(:) :: dofs, gdof
         real(real64), allocatable, dimension(:) :: u
 
         ! Input Checking
@@ -134,8 +134,8 @@ contains
             !! unconstrained DOFs.
 
         ! Local Variables
-        integer(int32) :: ndof
-        integer(int32), allocatable, dimension(:) :: dofs, gdof
+        integer :: ndof
+        integer, allocatable, dimension(:) :: dofs, gdof
         real(real64), allocatable, dimension(:) :: u
 
         ! Input Checking
@@ -170,8 +170,8 @@ contains
             !! The displacement vector for all global DOFs.
 
         ! Local Variables
-        integer(int32) :: ndof
-        integer(int32), allocatable, dimension(:) :: dofs, gdof
+        integer :: ndof
+        integer, allocatable, dimension(:) :: dofs, gdof
 
         ! Input Checking
         call condition_layout(mesh, conditions, ndof, dofs)
@@ -190,14 +190,14 @@ contains
             !! The mesh that defines the global DOF numbering.
         type(nodal_condition), intent(in), dimension(:) :: conditions
             !! The conditions to map.
-        integer(int32), intent(out) :: ndof
+        integer, intent(out) :: ndof
             !! The total number of global DOFs in the mesh.
-        integer(int32), allocatable, intent(out), dimension(:) :: dofs
+        integer, allocatable, intent(out), dimension(:) :: dofs
             !! The global DOF of each condition, in the order of conditions.
 
         ! Local Variables
         integer, allocatable, dimension(:) :: offsets
-        integer(int32) :: i, n, c, nnode
+        integer :: i, n, c, nnode
 
         ! Initialization
         call mesh%number_dofs(offsets)

@@ -109,9 +109,9 @@ module dynamics_frequency_response
     end interface
 
 ! ------------------------------------------------------------------------------
-    integer(int32), parameter :: FRF_ACCELERANCE_MODEL = 1
+    integer, parameter :: FRF_ACCELERANCE_MODEL = 1
         !! Defines an accelerance frequency response model.
-    integer(int32), parameter :: FRF_RECEPTANCE_MODEL = 2
+    integer, parameter :: FRF_RECEPTANCE_MODEL = 2
         !! Defines a receptance frequency response model.
 
 contains
@@ -162,7 +162,7 @@ contains
         complex(real64), parameter :: one = (1.0d0, 0.0d0)
 
         ! Local Variables
-        integer(int32) :: i, m, n
+        integer :: i, m, n
         complex(real64) :: s
         real(real64), allocatable, dimension(:) :: lambda, zeta
         complex(real64), allocatable, dimension(:) :: vals, q, f, u
@@ -241,7 +241,7 @@ contains
             !! The mass damping factor, \(\alpha\).
         real(real64), intent(in) :: beta
             !! The stiffness damping factor, \(\beta\).
-        integer(int32), intent(in) :: nmodes
+        integer, intent(in) :: nmodes
             !! The number of lowest-frequency modes to retain.  This value
             !! must be greater than zero and less than N.
         real(real64), intent(in), dimension(:) :: freq
@@ -263,7 +263,7 @@ contains
         complex(real64), parameter :: j = (0.0d0, 1.0d0)
         complex(real64), parameter :: zero = (0.0d0, 0.0d0)
 
-        integer(int32) :: i, imode, m, n
+        integer :: i, imode, m, n
         real(real64) :: modal_mass
         complex(real64) :: s
         real(real64), allocatable, dimension(:) :: mass_vec, modal_freqs, zeta
@@ -341,7 +341,7 @@ contains
             !! The mass damping factor, \( \alpha \).
         real(real64), intent(in) :: beta
             !! The stiffness damping factor, \( \beta \).
-        integer(int32), intent(in) :: nfreq
+        integer, intent(in) :: nfreq
             !! The number of frequency values to analyze.  This value must be
             !! at least 2.
         real(real64), intent(in) :: freq1
@@ -367,7 +367,7 @@ contains
             !! The resulting frequency responses.
 
         ! Local Variables
-        integer(int32) :: i, flag
+        integer :: i, flag
         real(real64) :: df
         real(real64), allocatable, dimension(:) :: freq
 
@@ -399,10 +399,10 @@ contains
             !! The mass damping factor, \(\alpha\).
         real(real64), intent(in) :: beta
             !! The stiffness damping factor, \(\beta\).
-        integer(int32), intent(in) :: nmodes
+        integer, intent(in) :: nmodes
             !! The number of lowest-frequency modes to retain.  This value
             !! must be greater than zero and less than N.
-        integer(int32), intent(in) :: nfreq
+        integer, intent(in) :: nfreq
             !! The number of frequency values to analyze.  This value must be
             !! at least 2.
         real(real64), intent(in) :: freq1
@@ -424,7 +424,7 @@ contains
             !! The modal-truncated frequency responses.
 
         ! Local Variables
-        integer(int32) :: i
+        integer :: i
         real(real64) :: df
         real(real64), allocatable, dimension(:) :: freq
 
@@ -455,7 +455,7 @@ function siso_freqres(x, y, fs, win, method) result(rst)
     class(window), intent(in), optional, target :: win
         !! The window to apply to the data.  If nothing is supplied, no window
         !! is applied.
-    integer(int32), intent(in), optional :: method
+    integer, intent(in), optional :: method
         !! Enter 1 to utilize an H1 estimator; else, enter 2 to utilize an
         !! H2 estimator.  The default is an H1 estimator.
         !!
@@ -472,7 +472,7 @@ function siso_freqres(x, y, fs, win, method) result(rst)
         !! The resulting frequency response function.
 
     ! Local Variables
-    integer(int32) :: i, npts, nfreq, meth
+    integer :: i, npts, nfreq, meth
     real(real64) :: df
     class(window), pointer :: wptr
     type(rectangular_window), target :: defwin
@@ -523,7 +523,7 @@ function mimo_freqres(x, y, fs, win, method) result(rst)
     class(window), intent(in), optional, target :: win
         !! The window to apply to the data.  If nothing is supplied, no window
         !! is applied.
-    integer(int32), intent(in), optional :: method
+    integer, intent(in), optional :: method
         !! Enter 1 to utilize an H1 estimator; else, enter 2 to utilize an
         !! H2 estimator.  The default is an H1 estimator.
         !!
@@ -540,7 +540,7 @@ function mimo_freqres(x, y, fs, win, method) result(rst)
         !! The resulting frequency response functions.
 
     ! Local Variables
-    integer(int32) :: i, j, npts, m, p, nfreq, meth
+    integer :: i, j, npts, m, p, nfreq, meth
     real(real64) :: df
     class(window), pointer :: wptr
     type(rectangular_window), target :: defwin
@@ -596,7 +596,7 @@ subroutine frf_accel_fit_fcn(xdata, mdl, rst, args)
         !! Optional arguments from the calling code.
 
     ! Local Variables
-    integer(int32) :: i, n
+    integer :: i, n
     complex(real64) :: h
 
     ! Process:
@@ -625,7 +625,7 @@ subroutine frf_force_fit_fcn(xdata, mdl, rst, args)
         !! Optional arguments from the calling code.
 
     ! Local Variables
-    integer(int32) :: i, n
+    integer :: i, n
     complex(real64) :: h
 
     ! Process:
@@ -662,13 +662,13 @@ function fit_frf(mt, n, freq, rsp, maxp, minp, init, stats, alpha, controls, &
     !! from this result, estimates for both the amplitude and natural frequency
     !! values are obtained.  The damping parameters are assumed to be equal
     !! for all modes and set to a default value of 0.1.
-    integer(int32), intent(in) :: mt
+    integer, intent(in) :: mt
         !! The excitation method.  The options are as follows.
         !!
         !! - FRF_ACCELERANCE_MODEL: Use an accelerance model.
         !!
         !! - FRF_RECEPTANCE_MODEL: Use a receptance model.
-    integer(int32), intent(in) :: n
+    integer, intent(in) :: n
         !! The model order (# of resonant modes).
     real(real64), intent(in), dimension(:) :: freq
         !! An M-element array containing the excitation frequency values in 
@@ -713,8 +713,8 @@ function fit_frf(mt, n, freq, rsp, maxp, minp, init, stats, alpha, controls, &
 
     ! Local Variables
     procedure(regression_function), pointer :: fcn
-    integer(int32) :: i, npts, nparam
-    integer(int32), allocatable, dimension(:) :: maxinds, mininds
+    integer :: i, npts, nparam
+    integer, allocatable, dimension(:) :: maxinds, mininds
     real(real64) :: maxamp, minamp, amprange, delta
     real(real64), allocatable, dimension(:) :: x, y, maxvals, minvals, &
         ymod, resid
@@ -836,7 +836,7 @@ pure function evaluate_accelerance_frf_model_scalar(mdl, w) result(rst)
         !! The resulting frequency response function.
 
     ! Local Variables
-    integer(int32) :: i, j, n
+    integer :: i, j, n
 
     ! Process
     j = 1
@@ -865,7 +865,7 @@ pure function evaluate_accelerance_frf_model_array(mdl, w) result(rst)
         !! The resulting frequency response function.
 
     ! Local Variables
-    integer(int32) :: i, n
+    integer :: i, n
 
     ! Process
     n = size(w)
@@ -913,7 +913,7 @@ pure function evaluate_receptance_frf_model_scalar(mdl, w) result(rst)
         !! The resulting frequency response function.
 
     ! Local Variables
-    integer(int32) :: i, j, n
+    integer :: i, j, n
 
     ! Process
     j = 1
@@ -942,7 +942,7 @@ pure function evaluate_receptance_frf_model_array(mdl, w) result(rst)
         !! The resulting frequency response function.
 
     ! Local Variables
-    integer(int32) :: i, n
+    integer :: i, n
 
     ! Process
     n = size(w)
@@ -994,7 +994,7 @@ end function
         complex(real64), parameter :: j = (0.0d0, 1.0d0)
 
         ! Local Variables
-        integer(int32) :: n
+        integer :: n
 
         ! Input Checking
         n = size(mass, 1)
@@ -1026,7 +1026,7 @@ end function
         procedure(modal_excite), pointer, intent(in) :: frc
             !! A pointer to a routine used to compute the modal forcing 
             !! function.
-        integer(int32), intent(out), optional, dimension(:) :: ranks
+        integer, intent(out), optional, dimension(:) :: ranks
             !! Provides information on the rank of the dynamic stiffness matrix
             !! for each frequency.  If provided, this array must be the same
             !! length as freq.
@@ -1037,10 +1037,10 @@ end function
             !! The resulting frequency responses.
 
         ! Parallel Threshold
-        integer(int32), parameter :: parallel_threshold = 1000
+        integer, parameter :: parallel_threshold = 1000
 
         ! Local Variables
-        integer(int32) :: m, n, check
+        integer :: m, n, check
 
         ! Initialization
         m = size(freq)
@@ -1074,7 +1074,7 @@ end function
         procedure(modal_excite), pointer, intent(in) :: frc
             !! A pointer to a routine used to compute the modal forcing 
             !! function.
-        integer(int32), intent(out), optional, dimension(:) :: ranks
+        integer, intent(out), optional, dimension(:) :: ranks
             !! Provides information on the rank of the dynamic stiffness matrix
             !! for each frequency.  If provided, this array must be the same
             !! length as freq.
@@ -1089,8 +1089,8 @@ end function
         complex(real64), parameter :: j = (0.0d0, 1.0d0)
 
         ! Local Variables
-        integer(int32) :: i, m, n, lwork, lrwork, rnk, info
-        integer(int32), allocatable, dimension(:) :: jpvt
+        integer :: i, m, n, lwork, lrwork, rnk, info
+        integer, allocatable, dimension(:) :: jpvt
         real(real64) :: rcond
         real(real64), allocatable, dimension(:) :: rwork
         complex(real64), allocatable, dimension(:) :: work
@@ -1166,7 +1166,7 @@ end function
         procedure(modal_excite), pointer, intent(in) :: frc
             !! A pointer to a routine used to compute the modal forcing 
             !! function.
-        integer(int32), intent(out), optional, dimension(:) :: ranks
+        integer, intent(out), optional, dimension(:) :: ranks
             !! Provides information on the rank of the dynamic stiffness matrix
             !! for each frequency.  If provided, this array must be the same
             !! length as freq.
@@ -1182,8 +1182,8 @@ end function
 
         ! Local Variables
         logical :: return_rank
-        integer(int32) :: i, m, n, lwork, lrwork, rnk, info, idummy(1)
-        integer(int32), allocatable, dimension(:) :: jpvt
+        integer :: i, m, n, lwork, lrwork, rnk, info, idummy(1)
+        integer, allocatable, dimension(:) :: jpvt
         real(real64) :: rcond, rdummy(1)
         real(real64), allocatable, dimension(:) :: rwork
         complex(real64), allocatable, dimension(:) :: work, f
@@ -1289,7 +1289,7 @@ end function
             !! The N-by-N damping matrix.
         real(real64), intent(in), dimension(:,:) :: stiff
             !! The N-by-N stiffness matrix.
-        integer(int32), intent(in) :: nfreq
+        integer, intent(in) :: nfreq
             !! The number of frequency values to analyze.  This value must be
             !! at least 2.
         real(real64), intent(in) :: freq1
@@ -1299,7 +1299,7 @@ end function
         procedure(modal_excite), pointer, intent(in) :: frc
             !! A pointer to a routine used to compute the modal forcing 
             !! function.
-        integer(int32), intent(out), optional, dimension(:) :: ranks
+        integer, intent(out), optional, dimension(:) :: ranks
             !! Provides information on the rank of the dynamic stiffness matrix
             !! for each frequency.  If provided, this array must be the same
             !! length as freq.
@@ -1310,7 +1310,7 @@ end function
             !! The resulting frequency responses.
 
         ! Local Variables
-        integer(int32) :: i, flag
+        integer :: i, flag
         real(real64) :: df
         real(real64), allocatable, dimension(:) :: freq
 

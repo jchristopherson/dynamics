@@ -44,13 +44,13 @@ module dynamics_structural
 ! ******************************************************************************
 ! CONSTANTS
 ! ------------------------------------------------------------------------------
-    integer(int32), parameter :: DYN_ONE_POINT_INTEGRATION_RULE = 1
+    integer, parameter :: DYN_ONE_POINT_INTEGRATION_RULE = 1
         !! Defines a single-point integration rule.
-    integer(int32), parameter :: DYN_TWO_POINT_INTEGRATION_RULE = 2
+    integer, parameter :: DYN_TWO_POINT_INTEGRATION_RULE = 2
         !! Defines a two-point integration rule.
-    integer(int32), parameter :: DYN_THREE_POINT_INTEGRATION_RULE = 3
+    integer, parameter :: DYN_THREE_POINT_INTEGRATION_RULE = 3
         !! Defines a three-point integration rule.
-    integer(int32), parameter :: DYN_FOUR_POINT_INTEGRATION_RULE = 4
+    integer, parameter :: DYN_FOUR_POINT_INTEGRATION_RULE = 4
         !! Defines a four-point integration rule.
 
 ! ******************************************************************************
@@ -58,9 +58,9 @@ module dynamics_structural
 ! ------------------------------------------------------------------------------
     type, extends(point) :: node
         !! Defines a node.
-        integer(int32) :: index
+        integer :: index
             !! The global index of the node.
-        integer(int32) :: dof
+        integer :: dof
             !! The number of degrees of freeedom associated with this node.
     end type
 
@@ -144,7 +144,7 @@ module dynamics_structural
             import element
             class(element), intent(in) :: this
                 !! The element object.
-            integer(int32) :: rst
+            integer :: rst
                 !! The resulting value.
         end function
 
@@ -156,7 +156,7 @@ module dynamics_structural
             import element
             class(element), intent(in) :: this
                 !! The element object.
-            integer(int32), intent(in) :: i
+            integer, intent(in) :: i
                 !! The local index of the node to retrieve.
             type(node) :: rst
                 !! The node.
@@ -170,7 +170,7 @@ module dynamics_structural
             import element
             class(element), intent(in) :: this
                 !! The element object.
-            integer(int32), intent(in) :: i
+            integer, intent(in) :: i
                 !! The local index of the node.
             real(real64), allocatable, dimension(:) :: rst
                 !! The natural coordinates of the node.
@@ -208,7 +208,7 @@ module dynamics_structural
             import element
             class(element), intent(in) :: this
                 !! The element object.
-            integer(int32), intent(in) :: i
+            integer, intent(in) :: i
                 !! The index of the shape function to evaluate.
             real(real64), intent(in), dimension(:) :: s
                 !! The value of the natural coordinates at which to evaluate
@@ -234,9 +234,9 @@ module dynamics_structural
             import :: line_element, int32
             class(line_element), intent(in) :: this
                 !! The line_element object.
-            integer(int32), intent(out) :: i1
+            integer, intent(out) :: i1
                 !! The index of the first terminal node.
-            integer(int32), intent(out) :: i2
+            integer, intent(out) :: i2
                 !! The index of the second terminal node.
         end subroutine
 
@@ -299,13 +299,13 @@ pure function shape_function_derivative(index, elem, s, i) result(rst)
     !! $$ N_{,ii}(\boldsymbol{s})\approx
     !! \frac{N(\boldsymbol{s}+h\boldsymbol{e}_i)-2N(\boldsymbol{s})+
     !! N(\boldsymbol{s}-h\boldsymbol{e}_i)}{h^2}. $$
-    integer(int32), intent(in) :: index
+    integer, intent(in) :: index
         !! The index of the shape function to evaluate.
     class(element), intent(in) :: elem
         !! The element object.
     real(real64), intent(in), dimension(:) :: s
         !! The natural coordinate at which to evaluate the derivative.
-    integer(int32), intent(in) :: i
+    integer, intent(in) :: i
         !! The index of the natural coordinate to with which the derivative is
         !! to be computed.
     real(real64) :: rst
@@ -328,13 +328,13 @@ end function
 pure function shape_function_second_derivative(index, elem, s, i) result(rst)
     !! Computes the second derivative of the shape function with respect to the
     !! natural coordinate specified.
-    integer(int32), intent(in) :: index
+    integer, intent(in) :: index
         !! The index of the shape function to evaluate.
     class(element), intent(in) :: elem
         !! The element object.
     real(real64), intent(in), dimension(:) :: s
         !! The natural coordinate at which to evaluate the derivative.
-    integer(int32), intent(in) :: i
+    integer, intent(in) :: i
         !! The index of the natural coordinate to with which the derivative is
         !! to be computed.
     real(real64) :: rst
@@ -360,7 +360,7 @@ pure function get_model_parameters(rule) result(rst)
     !! Each returned row contains a Gauss point and weight \((s_i,w_i)\) for
     !! approximating
     !! $$ \int_{-1}^{1}f(s)\,ds\approx\sum_i w_i f(s_i). $$
-    integer(int32), intent(in) :: rule
+    integer, intent(in) :: rule
         !! The integration rule.
     real(real64), allocatable, dimension(:,:) :: rst
         !! The integration parameters.
@@ -403,7 +403,7 @@ pure function integrate_1d(fcn, elem, rule) result(rst)
         !! The integrand.
     class(element), intent(in) :: elem
         !! The element object.
-    integer(int32), intent(in) :: rule
+    integer, intent(in) :: rule
         !! The integration rule.  The rule must be one of the following:
         !!
         !! - DYN_ONE_POINT_INTEGRATION_RULE
@@ -417,7 +417,7 @@ pure function integrate_1d(fcn, elem, rule) result(rst)
         !! The result of the integration.
 
     ! Local Variables
-    integer(int32) :: i
+    integer :: i
     real(real64), allocatable, dimension(:,:) :: s
 
     ! Process
@@ -439,7 +439,7 @@ pure function integrate(fcn, elem, rule) result(rst)
         !! The integrand.
     class(element), intent(in) :: elem
         !! The element object.
-    integer(int32), intent(in) :: rule
+    integer, intent(in) :: rule
         !! The integration rule.  The rule must be one of the following:
         !!
         !! - DYN_ONE_POINT_INTEGRATION_RULE
@@ -468,11 +468,11 @@ pure function find_global_dof(n, nodes) result(rst)
         !! The node for which to search.
     class(node), intent(in), dimension(:) :: nodes
         !! The list of nodes
-    integer(int32) :: rst
+    integer :: rst
         !! The requested index.
 
     ! Local Variables
-    integer(int32) :: i
+    integer :: i
 
     ! Process
     rst = 0
@@ -490,7 +490,7 @@ function create_connectivity_matrix(gdof, e, nodes) result(rst)
     !! Creates a connectivity matrix for the element, stored in CSR format.
     !! The matrix contains exactly one non-zero (unity) entry per row;
     !! therefore, it is well-suited to a sparse representation.
-    integer(int32), intent(in) :: gdof
+    integer, intent(in) :: gdof
         !! The number of global degrees of freedom.
     class(element), intent(in) :: e
         !! The element.
@@ -500,8 +500,8 @@ function create_connectivity_matrix(gdof, e, nodes) result(rst)
         !! The resulting matrix.
 
     ! Local Variables
-    integer(int32) :: i, j, col, nnodes, nnz, row
-    integer(int32), allocatable, dimension(:) :: rows, cols
+    integer :: i, j, col, nnodes, nnz, row
+    integer, allocatable, dimension(:) :: rows, cols
     real(real64), allocatable, dimension(:) :: vals
     
     ! Initialization
@@ -538,8 +538,8 @@ function nodally_averaged_strain(elements, nodes, displacement) result(rst)
         !! The strain results.  Each column corresponds to a node in NODES,
         !! and each row corresponds to one strain component.
 
-    integer(int32) :: dof, eidx, gdof, i, j, ncomp, ndof, nelnodes, node_index
-    integer(int32), allocatable, dimension(:) :: count, node_map
+    integer :: dof, eidx, gdof, i, j, ncomp, ndof, nelnodes, node_index
+    integer, allocatable, dimension(:) :: count, node_map
     real(real64), allocatable, dimension(:) :: element_displacement, s, strain
     type(node) :: element_node
 
@@ -620,8 +620,8 @@ function nodally_averaged_stress(elements, nodes, displacement) result(rst)
         !! The stress results.  Each column corresponds to a node in NODES,
         !! and each row corresponds to one stress component.
 
-    integer(int32) :: dof, eidx, gdof, i, j, ncomp, ndof, nelnodes, node_index
-    integer(int32), allocatable, dimension(:) :: count, node_map
+    integer :: dof, eidx, gdof, i, j, ncomp, ndof, nelnodes, node_index
+    integer, allocatable, dimension(:) :: count, node_map
     real(real64), allocatable, dimension(:) :: element_displacement, s, stress
     type(node) :: element_node
 
@@ -691,7 +691,7 @@ end function
 ! ------------------------------------------------------------------------------
 subroutine assemble_static_system_csr(gdof, elements, nodes, k, rule)
     !! Assembles the global stiffness matrix in CSR format.
-    integer(int32), intent(in) :: gdof
+    integer, intent(in) :: gdof
         !! The total number of global degrees of freedom.
     class(element), intent(in) :: elements(:)
         !! The finite elements to assemble.
@@ -699,11 +699,11 @@ subroutine assemble_static_system_csr(gdof, elements, nodes, k, rule)
         !! The global node list.
     type(csr_matrix), intent(out) :: k
         !! The assembled global stiffness matrix in CSR format.
-    integer(int32), intent(in), optional :: rule
+    integer, intent(in), optional :: rule
         !! The numerical integration rule.
 
     ! Local Variables
-    integer(int32) :: i, j, eidx, row, col, ndof
+    integer :: i, j, eidx, row, col, ndof
     real(real64), allocatable :: kdense(:,:), ke(:,:)
 
     ! Initialization
@@ -735,7 +735,7 @@ end subroutine
 ! ------------------------------------------------------------------------------
 subroutine assemble_dynamic_system_csr(gdof, elements, nodes, m, k, rule)
     !! Assembles global mass and stiffness matrices in CSR format.
-    integer(int32), intent(in) :: gdof
+    integer, intent(in) :: gdof
         !! The total number of global degrees of freedom.
     class(element), intent(in) :: elements(:)
         !! The finite elements to assemble.
@@ -745,11 +745,11 @@ subroutine assemble_dynamic_system_csr(gdof, elements, nodes, m, k, rule)
         !! The assembled global mass matrix in CSR format.
     type(csr_matrix), intent(out) :: k
         !! The assembled global stiffness matrix in CSR format.
-    integer(int32), intent(in), optional :: rule
+    integer, intent(in), optional :: rule
         !! The numerical integration rule.
 
     ! Local Variables
-    integer(int32) :: i, j, eidx, row, col, ndof
+    integer :: i, j, eidx, row, col, ndof
     real(real64), allocatable :: mdense(:,:), kdense(:,:), km(:,:), ke(:,:)
 
     ! Initialization
@@ -795,7 +795,7 @@ end subroutine
 ! ------------------------------------------------------------------------------
 subroutine assemble_static_system_dense(gdof, elements, nodes, k, rule)
     !! Assembles a dense global stiffness matrix.
-    integer(int32), intent(in) :: gdof
+    integer, intent(in) :: gdof
         !! The total number of global degrees of freedom.
     class(element), intent(in) :: elements(:)
         !! The finite elements to assemble.
@@ -803,11 +803,11 @@ subroutine assemble_static_system_dense(gdof, elements, nodes, k, rule)
         !! The global node list.
     real(real64), allocatable, intent(out) :: k(:,:)
         !! The assembled global stiffness matrix.
-    integer(int32), intent(in), optional :: rule
+    integer, intent(in), optional :: rule
         !! The numerical integration rule.
 
     ! Local Variables
-    integer(int32) :: i, j, eidx, row, col, ndof
+    integer :: i, j, eidx, row, col, ndof
     real(real64), allocatable :: ke(:,:)
 
     ! Initialization
@@ -838,7 +838,7 @@ end subroutine
 ! ------------------------------------------------------------------------------
 subroutine assemble_dynamic_system_dense(gdof, elements, nodes, m, k, rule)
     !! Assembles dense global mass and stiffness matrices.
-    integer(int32), intent(in) :: gdof
+    integer, intent(in) :: gdof
         !! The total number of global degrees of freedom.
     class(element), intent(in) :: elements(:)
         !! The finite elements to assemble.
@@ -848,11 +848,11 @@ subroutine assemble_dynamic_system_dense(gdof, elements, nodes, m, k, rule)
         !! The assembled global mass matrix.
     real(real64), allocatable, intent(out) :: k(:,:)
         !! The assembled global stiffness matrix.
-    integer(int32), intent(in), optional :: rule
+    integer, intent(in), optional :: rule
         !! The numerical integration rule.
 
     ! Local Variables
-    integer(int32) :: i, j, eidx, row, col, ndof
+    integer :: i, j, eidx, row, col, ndof
     real(real64), allocatable :: km(:,:), ke(:,:)
 
     ! Initialization
@@ -889,7 +889,7 @@ end subroutine
 function apply_boundary_conditions_mtx(gdof, x) result(rst)
     !! Applies boundary conditions to a matrix by removal of the appropriate
     !! rows and columns.
-    integer(int32), intent(inout), dimension(:) :: gdof
+    integer, intent(inout), dimension(:) :: gdof
         !! An array of the global degrees of freedom to restrain.  The array
         !! is sorted into ascending order on output.
     real(real64), intent(in), dimension(:,:) :: x
@@ -898,8 +898,8 @@ function apply_boundary_conditions_mtx(gdof, x) result(rst)
         !! The altered matrix.
 
     ! Local Variables
-    integer(int32) :: i, j, ii, m, n, nbc, mnew
-    integer(int32), allocatable, dimension(:) :: indices
+    integer :: i, j, ii, m, n, nbc, mnew
+    integer, allocatable, dimension(:) :: indices
     
     ! Initialization
     m = size(x, 1)
@@ -946,7 +946,7 @@ end function
 function apply_boundary_conditions_csr(gdof, x) result(rst)
     !! Applies boundary conditions to a CSR-format sparse matrix by removal of
     !! the appropriate rows and columns.
-    integer(int32), intent(inout), dimension(:) :: gdof
+    integer, intent(inout), dimension(:) :: gdof
         !! An array of the global degrees of freedom to restrain.  The array
         !! is sorted into ascending order on output.
     type(csr_matrix), intent(in) :: x
@@ -955,8 +955,8 @@ function apply_boundary_conditions_csr(gdof, x) result(rst)
         !! The altered matrix.
 
     ! Local Variables
-    integer(int32) :: i, ii, j, k, m, n, nbc, mnew, nnz
-    integer(int32), allocatable, dimension(:) :: map, rows, cols
+    integer :: i, ii, j, k, m, n, nbc, mnew, nnz
+    integer, allocatable, dimension(:) :: map, rows, cols
     real(real64), allocatable, dimension(:) :: vals
     
     ! Initialization
@@ -1028,7 +1028,7 @@ end function
 function apply_boundary_conditions_vec(gdof, x) result(rst)
     !! Applies boundary conditions to a vector by removal of the appropriate
     !! items.
-    integer(int32), intent(inout), dimension(:) :: gdof
+    integer, intent(inout), dimension(:) :: gdof
         !! An array of the global degrees of freedom to restrain.  The array
         !! is sorted into ascending order on output.
     real(real64), intent(in), dimension(:) :: x
@@ -1037,8 +1037,8 @@ function apply_boundary_conditions_vec(gdof, x) result(rst)
         !! The altered vector.
 
     ! Local Variables
-    integer(int32) :: i, j, ii, n, nbc, nnew
-    integer(int32), allocatable, dimension(:) :: indices
+    integer :: i, j, ii, n, nbc, nnew
+    integer, allocatable, dimension(:) :: indices
     
     ! Initialization
     n = size(x)
@@ -1083,7 +1083,7 @@ end function
 function restore_constrained_values_dense(gdof, x) result(rst)
     !! Restores the constrained degrees-of-freedom from the boundary conditions
     !! applied by apply_boundary_conditions.
-    integer(int32), intent(inout), dimension(:) :: gdof
+    integer, intent(inout), dimension(:) :: gdof
         !! An array of the global degrees of freedom to restrain.  The array
         !! is sorted into ascending order on output.
     real(real64), intent(in), dimension(:) :: x
@@ -1092,7 +1092,7 @@ function restore_constrained_values_dense(gdof, x) result(rst)
         !! The altered vector.
 
     ! Local Variables
-    integer(int32) ::i, j, ii, n, nbc, nnew
+    integer ::i, j, ii, n, nbc, nnew
     
     ! Initialization
     n = size(x)
@@ -1132,7 +1132,7 @@ end function
 ! ------------------------------------------------------------------------------
 function restore_constrained_values_csr(gdof, x) result(rst)
     !! Restores constrained rows and columns to a reduced CSR matrix.
-    integer(int32), intent(inout), dimension(:) :: gdof
+    integer, intent(inout), dimension(:) :: gdof
         !! An array of the global degrees of freedom to restrain.  The array
         !! is sorted into ascending order on output.
     type(csr_matrix), intent(in) :: x
@@ -1141,8 +1141,8 @@ function restore_constrained_values_csr(gdof, x) result(rst)
         !! The expanded CSR matrix with zero constrained rows and columns.
 
     ! Local Variables
-    integer(int32) :: i, j, ii, n, nbc, nnew, nnz, pos, nout
-    integer(int32), allocatable :: indices(:), rows(:), cols(:)
+    integer :: i, j, ii, n, nbc, nnew, nnz, pos, nout
+    integer, allocatable :: indices(:), rows(:), cols(:)
     real(real64), allocatable :: vals(:)
 
     ! Initialization
@@ -1200,7 +1200,7 @@ end function
 ! REF: https://www.sciencedirect.com/topics/engineering/prescribed-displacement-boundary-condition
 subroutine apply_displacement_constraint_dense(dof, val, k, f)
     !! Applies a displacement constraint to the specified degree of freedom.
-    integer(int32), intent(in) :: dof
+    integer, intent(in) :: dof
         !! The global degree-of-freedom to which the constraint should be
         !! applied.
     real(real64), intent(in) :: val
@@ -1221,7 +1221,7 @@ end subroutine
 ! ------------------------------------------------------------------------------
 subroutine apply_displacement_constraint_csr(dof, val, k, f)
     !! Applies a displacement constraint to a CSR-format sparse matrix.
-    integer(int32), intent(in) :: dof
+    integer, intent(in) :: dof
         !! The global degree-of-freedom to which the constraint should be
         !! applied.
     real(real64), intent(in) :: val
@@ -1232,8 +1232,8 @@ subroutine apply_displacement_constraint_csr(dof, val, k, f)
         !! The external force vector to which the constraint should be applied.
 
     ! Local Variables
-    integer(int32) :: i, j, m, n, nnz, pos
-    integer(int32), allocatable :: rows(:), cols(:)
+    integer :: i, j, m, n, nnz, pos
+    integer, allocatable :: rows(:), cols(:)
     real(real64), allocatable :: vals(:)
 
     ! Initialization
@@ -1318,7 +1318,7 @@ pure function e_stiffness_matrix(this, rule) result(rst)
     !! Computes the stiffness matrix for the element.
     class(element), intent(in) :: this
         !! The element object.
-    integer(int32), intent(in), optional :: rule
+    integer, intent(in), optional :: rule
         !! The integration rule.  The rule must be one of the following:
         !!
         !! - DYN_ONE_POINT_INTEGRATION_RULE
@@ -1334,7 +1334,7 @@ pure function e_stiffness_matrix(this, rule) result(rst)
         !! The resulting matrix.
 
     ! Local Variables
-    integer(int32) :: r
+    integer :: r
 
     ! Initialization
     if (present(rule)) then
@@ -1376,7 +1376,7 @@ pure function e_mass_matrix(this, rule) result(rst)
     !! Computes the mass matrix for the element.
     class(element), intent(in) :: this
         !! The element object.
-    integer(int32), intent(in), optional :: rule
+    integer, intent(in), optional :: rule
         !! The integration rule.  The rule must be one of the following:
         !!
         !! - DYN_ONE_POINT_INTEGRATION_RULE
@@ -1392,7 +1392,7 @@ pure function e_mass_matrix(this, rule) result(rst)
         !! The resulting matrix.
 
     ! Local Variables
-    integer(int32) :: r
+    integer :: r
 
     ! Initialization
     if (present(rule)) then
@@ -1435,7 +1435,7 @@ pure function e_ext_force_vector(this, q, rule) result(rst)
     real(real64), intent(in), dimension(:) :: q
         !! The surface traction forces vector or body force vector.  
         !! For instance, a 2D problem this vector would look like [qx, qy]**T.
-    integer(int32), intent(in), optional :: rule
+    integer, intent(in), optional :: rule
         !! The integration rule.  The rule must be one of the following:
         !!
         !! - DYN_ONE_POINT_INTEGRATION_RULE
@@ -1451,7 +1451,7 @@ pure function e_ext_force_vector(this, q, rule) result(rst)
         !! The resulting vector.
 
     ! Local Variables
-    integer(int32) :: r
+    integer :: r
 
     ! Initialization
     if (present(rule)) then
@@ -1496,7 +1496,7 @@ pure function le_get_node_natural_coordinates(this, i) result(rst)
     !! Returns the natural coordinate of a terminal node.
     class(line_element), intent(in) :: this
         !! The line_element object.
-    integer(int32), intent(in) :: i
+    integer, intent(in) :: i
         !! The local node index.
     real(real64), allocatable, dimension(:) :: rst
         !! The natural coordinate of the node.
@@ -1556,7 +1556,7 @@ pure function le_length(this) result(rst)
         !! The length of the line element.
 
     real(real64) :: dx, dy, dz
-    integer(int32) :: i1, i2
+    integer :: i1, i2
     type(node) :: n1, n2
 
     call this%get_terminal_nodes(i1, i2)
@@ -1573,7 +1573,7 @@ pure function le_stiffness_matrix(this, rule) result(rst)
     !! Computes the stiffness matrix for the element.
     class(line_element), intent(in) :: this
         !! The line_element object.
-    integer(int32), intent(in), optional :: rule
+    integer, intent(in), optional :: rule
         !! The optional numerical integration rule.
     real(real64), allocatable, dimension(:,:) :: rst
         !! The resulting matrix.
@@ -1591,7 +1591,7 @@ pure function le_mass_matrix(this, rule) result(rst)
     !! Computes the mass matrix for the element.
     class(line_element), intent(in) :: this
         !! The line_element object.
-    integer(int32), intent(in), optional :: rule
+    integer, intent(in), optional :: rule
         !! The optional numerical integration rule.
     real(real64), allocatable, dimension(:,:) :: rst
         !! The resulting matrix.
@@ -1611,7 +1611,7 @@ pure function le_ext_force_vector(this, q, rule) result(rst)
         !! The line_element object.
     real(real64), intent(in), dimension(:) :: q
         !! The surface traction or body-force vector.
-    integer(int32), intent(in), optional :: rule
+    integer, intent(in), optional :: rule
         !! The optional numerical integration rule.
     real(real64), allocatable, dimension(:) :: rst
         !! The resulting vector.
@@ -1628,9 +1628,9 @@ end function
 ! ------------------------------------------------------------------------------
 pure function nd_init_1(index, dof, x, y, z) result(rst)
     !! Constructs a new [[node]].
-    integer(int32), intent(in) :: index
+    integer, intent(in) :: index
         !! The global index of the node.
-    integer(int32), intent(in) :: dof
+    integer, intent(in) :: dof
         !! The number of degrees of freedom of the node.
     real(real64), intent(in) :: x
         !! The x-coordinate.
@@ -1650,9 +1650,9 @@ end function
 ! ------------------------------------------------------------------------------
 pure function nd_init_2(index, dof, pt) result(rst)
     !! Constructs a new [[node]].
-    integer(int32), intent(in) :: index
+    integer, intent(in) :: index
         !! The global index of the node.
-    integer(int32), intent(in) :: dof
+    integer, intent(in) :: dof
         !! The number of degrees of freedom of the node.
     class(point), intent(in) :: pt
         !! The location of the node.
@@ -1743,8 +1743,8 @@ pure function solve_static_system_dense(K, F) result(rst)
         !! The N-element solution vector.
 
     ! Local Variables
-    integer(int32) :: n
-    integer(int32), allocatable, dimension(:) :: pvt
+    integer :: n
+    integer, allocatable, dimension(:) :: pvt
     real(real64), allocatable, dimension(:,:) :: lu
 
     ! Input Check
@@ -1773,8 +1773,8 @@ pure function solve_static_system_csr(K, F) result(rst)
     real(real64), parameter :: residual_tolerance = 1.0d-8
 
     ! Local Variables
-    integer(int32) :: n, krylov
-    integer(int32), allocatable, dimension(:) :: ju
+    integer :: n, krylov
+    integer, allocatable, dimension(:) :: ju
     real(real64) :: rnorm
     type(msr_matrix) :: lu
 

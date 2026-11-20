@@ -59,9 +59,9 @@ module dynamics_kinematics
         module procedure :: dh_build_jacobian
     end interface
 
-    integer(int32), parameter :: REVOLUTE_JOINT = 0
+    integer, parameter :: REVOLUTE_JOINT = 0
         !! Defines a revolute joint.
-    integer(int32), parameter :: PRISMATIC_JOINT = 1
+    integer, parameter :: PRISMATIC_JOINT = 1
         !! Defines a prismatic joint.
 
     type coordinate_system
@@ -554,7 +554,7 @@ contains
             !! The resulting 4-by-4 transformation matrix.
 
         ! Local Variables
-        integer(int32) :: i, n
+        integer :: i, n
         real(real64) :: Ti(4,4)
 
         ! Initialization
@@ -579,7 +579,7 @@ contains
             !! The resulting 4-by-4 transformation matrix.
 
         ! Local Variables
-        integer(int32) :: i, n
+        integer :: i, n
         real(real64) :: Ti(4, 4)
 
         ! Initialization
@@ -649,7 +649,7 @@ contains
             !! An M-element array containing the computed joint variables.
 
         ! Local Variables
-        integer(int32) :: nvar, neqn, flag
+        integer :: nvar, neqn, flag
         real(real64), pointer, dimension(:) :: resid
         real(real64), allocatable, target, dimension(:) :: dresid
         type(vecfcn_helper) :: helper
@@ -763,7 +763,7 @@ pure function jacobian_generating_vector(d, k, R, jtype) result(rst)
     real(real64), intent(in) :: R(3, 3)
         !! The rotation matrix defining the orientation of the link coordinate
         !! frame relative to the base coordinate frame.
-    integer(int32), intent(in) :: jtype
+    integer, intent(in) :: jtype
         !! The joint type.  Must be either REVOLUTE_JOINT or PRISMATIC_JOINT.
         !! If incorrectly specified, the code defaults to a REVOLUTE_JOINT type.
     real(real64) :: rst(6)
@@ -813,7 +813,7 @@ function dh_build_jacobian(alpha, a, theta, d, jtypes) result(rst)
     real(real64), intent(in), dimension(size(alpha)) :: d
         !! The joint offsets distance measured as the distance between the
         !! x(i-1) axis and the link's x-axis along the z(i-1) axis.
-    integer(int32), intent(in), dimension(size(alpha)) :: jtypes
+    integer, intent(in), dimension(size(alpha)) :: jtypes
         !! The types of each joint.  Must be either REVOLUTE_JOINT or
         !! PRISMATIC_JOINT.  The code defaults to REVOLUTE_JOINT.
     real(real64), allocatable, dimension(:,:) :: rst
@@ -824,7 +824,7 @@ function dh_build_jacobian(alpha, a, theta, d, jtypes) result(rst)
     real(real64), parameter :: zi_1(4) = [0.0d0, 0.0d0, 1.0d0, 0.0d0]
 
     ! Local Variables
-    integer(int32) :: i, j, n
+    integer :: i, j, n
     real(real64) :: Ti(4, 4), T(4, 4), Te(4, 4), temp(4, 4), di_1(3), ki_1(4)
 
     ! Initialization
@@ -1009,7 +1009,7 @@ end function
             !! The resulting Denavit-Hartenberg table.
 
         ! Local Variables
-        integer(int32) :: i, n
+        integer :: i, n
 
         ! Initialization
         n = size(c)

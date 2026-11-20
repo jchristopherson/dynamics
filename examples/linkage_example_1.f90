@@ -31,7 +31,7 @@ program example
     ! Local Variables
     type(binary_link) :: links(3)
     type(serial_linkage) :: linkage
-    integer(int32) :: i
+    integer :: i
     real(real64) :: theta(3), T(4, 4), qo(3), q(3)
 
     ! Link 1 Definition

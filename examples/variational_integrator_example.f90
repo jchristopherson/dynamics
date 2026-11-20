@@ -33,9 +33,9 @@ program example
 	end type
 
 	! Model Parameters
-	integer(int32), parameter :: nbody = 2
-	integer(int32), parameter :: nconstraint = 6
-	integer(int32), parameter :: ntime = 801
+	integer, parameter :: nbody = 2
+	integer, parameter :: nconstraint = 6
+	integer, parameter :: ntime = 801
 	real(real64), parameter :: dt = 5.0d-3
 	real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
 	real(real64), parameter :: length1 = 1.0d0
@@ -49,7 +49,7 @@ program example
 	real(real64), parameter :: angle2_initial = -20.0d0 * pi / 180.0d0
 
 	! Local Variables
-	integer(int32) :: i
+	integer :: i
 	real(real64), dimension(3,3) :: inertia1, inertia2, rotation1, rotation2
 	real(real64), dimension(3) :: direction1, direction2
 	real(real64), allocatable, dimension(:) :: time, angle1, angle2

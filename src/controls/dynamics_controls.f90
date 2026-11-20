@@ -150,7 +150,7 @@ pure subroutine validate_state_space(this)
     class(state_space), intent(in) :: this
         !! The state-space model to validate.
 
-    integer(int32) :: n, m, p
+    integer :: n, m, p
 
     if (.not.allocated(this%A) .or. .not.allocated(this%B) .or. &
         .not.allocated(this%C) .or. .not.allocated(this%D)) &
@@ -180,14 +180,14 @@ pure function state_space_init(m, b, k, n_out) result(rst)
         !! The N-by-N damping matrix.
     real(real64), intent(in), dimension(size(m, 1), size(m, 2)) :: k
         !! The N-by-N stiffness matrix.
-    integer(int32), intent(in), optional :: n_out
+    integer, intent(in), optional :: n_out
         !! The number of outputs.  The default is 1.
     type(state_space) :: rst
         !! The [[state_space]] model.
 
     ! Local Variables
-    integer(int32) :: ii, jj, n, p, q, lwork, info
-    integer(int32), allocatable, dimension(:) :: pvt
+    integer :: ii, jj, n, p, q, lwork, info
+    integer, allocatable, dimension(:) :: pvt
     real(real64) :: temp(1)
     real(real64), allocatable, dimension(:) :: work
 
@@ -353,7 +353,7 @@ pure function state_space_init_pid(kp, ki, kd, tau, a, b, c, d) result(rst)
         !! The resulting [[state_space]] object.
 
     ! Local Variables
-    integer(int32) :: n, n1, n2
+    integer :: n, n1, n2
     real(real64) :: alpha, beta, ab
     real(real64), allocatable, dimension(:,:) :: dc
 
@@ -505,7 +505,7 @@ pure function ss_poles(this) result(rst)
         !! The poles of the model.
 
     ! Local Variables
-    integer(int32) :: n
+    integer :: n
     real(real64), allocatable, dimension(:,:) :: ac
 
     call validate_state_space(this)
@@ -529,7 +529,7 @@ pure function ss_zeros(this) result(rst)
         !! The zeros of the model.
 
     ! Local Variables
-    integer(int32) :: i, j, n, m, p, nz
+    integer :: i, j, n, m, p, nz
     real(real64), allocatable, dimension(:,:) :: Az, Bz
     complex(real64), allocatable, dimension(:) :: buffer, trimmed
 
@@ -582,7 +582,7 @@ pure function ss_transfer_fcn(this, s) result(rst)
         !! The resulting transfer functions.
 
     ! Local Variables
-    integer(int32) :: j, ninput, noutput, n, info, lwork
+    integer :: j, ninput, noutput, n, info, lwork
     complex(real64) :: temp(1)
     complex(real64), allocatable, dimension(:) :: work, Bj
     complex(real64), allocatable, dimension(:,:) :: A, Ac
@@ -653,7 +653,7 @@ pure function ss_transfer_fcn_array(this, s) result(rst)
         !! containing the transfer functions for a specific frequency.
 
     ! Local Variables
-    integer(int32) :: i, ninput, noutput, n
+    integer :: i, ninput, noutput, n
 
     ! Initialization
     ninput = size(this%B, 2)
@@ -680,7 +680,7 @@ pure function ss_transfer_fcn_omega_array(this, omega) result(rst)
         !! containing the transfer functions for a specific frequency.
 
     ! Local Variables
-    integer(int32) :: i, ninput, noutput, n
+    integer :: i, ninput, noutput, n
 
     ! Initialization
     ninput = size(this%B, 2)
@@ -813,7 +813,7 @@ pure function tf_to_ccf_statespace(this) result(rst)
         !! The resulting state-space object.
 
     ! Local Variables
-    integer(int32) :: i, order, norder
+    integer :: i, order, norder
     real(real64) :: a
 
     ! Process
@@ -852,7 +852,7 @@ pure function tf_to_ocf_statespace(this) result(rst)
         !! The resulting state-space object.
 
     ! Local Variables
-    integer(int32) :: i, order, norder
+    integer :: i, order, norder
     real(real64) :: a
 
     ! Process
@@ -990,7 +990,7 @@ function lti_solve(mdl, u, t, ic, solver, args) result(rst)
         !! remaining column(s).
 
     ! Local Variables
-    integer(int32) :: i, n, npts, nInputs, nOutputs
+    integer :: i, n, npts, nInputs, nOutputs
     real(real64), allocatable, dimension(:) :: uv
     real(real64), allocatable, dimension(:,:) :: sol
     type(argument_container) :: container
@@ -1042,7 +1042,7 @@ subroutine ode_solver_routine(t, x, dxdt, args)
     class(*), intent(in), optional :: args
 
     ! Local Variables
-    integer(int32) :: n, p
+    integer :: n, p
     real(real64) :: nan
     real(real64), allocatable, dimension(:) :: u
 

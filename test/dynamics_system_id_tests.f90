@@ -66,14 +66,14 @@ contains
         ! Parameters
         real(real64), parameter :: tol = 1.0d-1
         real(real64), parameter :: fs = 1.0d3
-        integer(int32), parameter :: npts = 1000
+        integer, parameter :: npts = 1000
         real(real64), parameter :: zeta = 5.0d-2
         real(real64), parameter :: wn = 3.0d2
         real(real64), parameter :: sigma_pct = 1.0d-1
         real(real64), parameter :: amplitude = 1.0d4
 
         ! Local Variables
-        integer(int32) :: i
+        integer :: i
         real(real64) :: dt, tmax, p(2), ic(2)
         type(dynamic_system_measurement) :: measurements(2)
         procedure(ode), pointer :: fcn
@@ -163,14 +163,14 @@ contains
         ! Parameters
         real(real64), parameter :: tol = 1.0d-1
         real(real64), parameter :: fs = 1.0d3
-        integer(int32), parameter :: npts = 1000
+        integer, parameter :: npts = 1000
         real(real64), parameter :: zeta = 5.0d-2
         real(real64), parameter :: wn = 3.0d2
         real(real64), parameter :: sigma_pct = 1.0d-1
         real(real64), parameter :: amplitude = 1.0d4
 
         ! Local Variables
-        integer(int32) :: i
+        integer :: i
         real(real64) :: dt, tmax, p(2), ic(2), tc(2), fc(2), minp(2), maxp(2)
         real(real64) :: weights(2 * npts + 2)
         type(dynamic_system_measurement) :: measurements(2)
@@ -273,14 +273,14 @@ contains
         ! Parameters
         real(real64), parameter :: tol = 1.0d-1
         real(real64), parameter :: fs = 1.0d3
-        integer(int32), parameter :: npts = 1000
+        integer, parameter :: npts = 1000
         real(real64), parameter :: zeta = 5.0d-2
         real(real64), parameter :: wn = 3.0d2
         real(real64), parameter :: sigma_pct = 1.0d-1
         real(real64), parameter :: amplitude = 1.0d4
 
         ! Local Variables
-        integer(int32) :: i
+        integer :: i
         real(real64) :: dt, tmax, p(2), ic(2,2)
         type(dynamic_system_measurement) :: measurements(2)
         procedure(ode), pointer :: fcn

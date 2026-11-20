@@ -891,7 +891,7 @@ function test_quaternion_pwr() result(rst)
     type(quaternion) :: q, qpow, q2
     real(real64) :: x(4), qmag, vmag, ans(4), phi
     real(real64), parameter :: e1 = 2.5d0
-    integer(int32), parameter :: e2 = 2
+    integer, parameter :: e2 = 2
 
     ! Initialization
     rst = .true.

@@ -55,10 +55,10 @@ program duffing_poincare_example
     use fplot_core
     implicit none
 
-    integer(int32), parameter :: transient_cycles = 50
-    integer(int32), parameter :: response_cycles = 50000
-    integer(int32), parameter :: points_per_cycle = 50
-    integer(int32), parameter :: response_points = &
+    integer, parameter :: transient_cycles = 50
+    integer, parameter :: response_cycles = 50000
+    integer, parameter :: points_per_cycle = 50
+    integer, parameter :: response_points = &
         response_cycles * points_per_cycle + 1
     real(real64), parameter :: pi = acos(-1.0d0)
     real(real64), parameter :: period = 2.0d0 * pi / omega

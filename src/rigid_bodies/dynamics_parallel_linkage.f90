@@ -54,12 +54,12 @@ module dynamics_parallel_linkage
         type(graph), private :: m_graph
         type(spanning_tree), private :: m_tree
         type(graph_loop), allocatable, private, dimension(:) :: m_loops
-        integer(int32), allocatable, private, dimension(:) :: m_qIndex
-        integer(int32), allocatable, private, dimension(:) :: m_actuated
-        integer(int32), allocatable, private, dimension(:) :: m_passive
+        integer, allocatable, private, dimension(:) :: m_qIndex
+        integer, allocatable, private, dimension(:) :: m_actuated
+        integer, allocatable, private, dimension(:) :: m_passive
         real(real64), allocatable, private, dimension(:) :: m_q
-        integer(int32), private :: m_base = 1
-        integer(int32), private :: m_effector = 1
+        integer, private :: m_base = 1
+        integer, private :: m_effector = 1
         real(real64), private :: m_tool(4, 4)
     contains
         procedure(mechanism_dimension), deferred, public :: get_space_dimension
@@ -100,7 +100,7 @@ module dynamics_parallel_linkage
             import kinematic_mechanism
             class(kinematic_mechanism), intent(in) :: this
                 !! The mechanism object.
-            integer(int32) :: rst
+            integer :: rst
                 !! The number of independent components describing the
                 !! displacement of one body relative to another.
         end function
@@ -180,10 +180,10 @@ contains
             !! The collection of links forming the mechanism.
         type(joint), intent(in), dimension(:) :: jnts
             !! The collection of joints connecting the links.
-        integer(int32), intent(in), optional :: base
+        integer, intent(in), optional :: base
             !! The index of the link that is fixed to ground.  If not supplied,
             !! the first link is used.
-        integer(int32), intent(in), optional :: effector
+        integer, intent(in), optional :: effector
             !! The index of the link carrying the end-effector.  If not
             !! supplied, the last link is used.
         real(real64), intent(in), optional :: tool(4, 4)
@@ -192,7 +192,7 @@ contains
             !! supplied, an identity matrix is used.
 
         ! Local Variables
-        integer(int32) :: i, j, k, m, n, nl, nj, ndof, nact, npassive
+        integer :: i, j, k, m, n, nl, nj, ndof, nact, npassive
         class(link), pointer :: lnk
 
         ! Initialization
@@ -293,7 +293,7 @@ contains
         ! Converts an array of links into an array of link containers.
         class(link), intent(in), dimension(:) :: lnks
         type(link_container), allocatable, dimension(:) :: rst
-        integer(int32) :: i
+        integer :: i
         allocate(rst(size(lnks)))
         do i = 1, size(lnks)
             allocate(rst(i)%item, source = lnks(i))
@@ -307,10 +307,10 @@ contains
             !! The collection of links forming the mechanism.
         type(joint), intent(in), dimension(:) :: jnts
             !! The collection of joints connecting the links.
-        integer(int32), intent(in), optional :: base
+        integer, intent(in), optional :: base
             !! The index of the link that is fixed to ground.  If not supplied,
             !! the first link is used.
-        integer(int32), intent(in), optional :: effector
+        integer, intent(in), optional :: effector
             !! The index of the link carrying the end-effector.  If not
             !! supplied, the last link is used.
         real(real64), intent(in), optional :: tool(4, 4)
@@ -330,10 +330,10 @@ contains
             !! The collection of links forming the mechanism.
         type(joint), intent(in), dimension(:) :: jnts
             !! The collection of joints connecting the links.
-        integer(int32), intent(in), optional :: base
+        integer, intent(in), optional :: base
             !! The index of the link that is fixed to ground.  If not supplied,
             !! the first link is used.
-        integer(int32), intent(in), optional :: effector
+        integer, intent(in), optional :: effector
             !! The index of the link carrying the end-effector.  If not
             !! supplied, the last link is used.
         real(real64), intent(in), optional :: tool(4, 4)
@@ -355,10 +355,10 @@ contains
         type(joint), intent(in), dimension(:) :: jnts
             !! The collection of joints connecting the links.  Every joint must
             !! be usable within a planar mechanism.
-        integer(int32), intent(in), optional :: base
+        integer, intent(in), optional :: base
             !! The index of the link that is fixed to ground.  If not supplied,
             !! the first link is used.
-        integer(int32), intent(in), optional :: effector
+        integer, intent(in), optional :: effector
             !! The index of the link carrying the end-effector.  If not
             !! supplied, the last link is used.
         real(real64), intent(in), optional :: tool(4, 4)
@@ -368,7 +368,7 @@ contains
         type(planar_linkage) :: rst
             !! The resulting planar_linkage object.
 
-        integer(int32) :: i
+        integer :: i
         do i = 1, size(jnts)
             if (.not.jnts(i)%is_planar_compatible()) then
                 error stop DYN_INVALID_INPUT_ERROR
@@ -385,10 +385,10 @@ contains
         type(joint), intent(in), dimension(:) :: jnts
             !! The collection of joints connecting the links.  Every joint must
             !! be usable within a planar mechanism.
-        integer(int32), intent(in), optional :: base
+        integer, intent(in), optional :: base
             !! The index of the link that is fixed to ground.  If not supplied,
             !! the first link is used.
-        integer(int32), intent(in), optional :: effector
+        integer, intent(in), optional :: effector
             !! The index of the link carrying the end-effector.  If not
             !! supplied, the last link is used.
         real(real64), intent(in), optional :: tool(4, 4)
@@ -409,7 +409,7 @@ contains
         !! Gets the dimension of the space in which the mechanism operates.
         class(parallel_linkage), intent(in) :: this
             !! The parallel_linkage object.
-        integer(int32) :: rst
+        integer :: rst
             !! The value six, corresponding to three translations and three
             !! rotations.
 
@@ -443,7 +443,7 @@ contains
         !! Gets the dimension of the space in which the mechanism operates.
         class(planar_linkage), intent(in) :: this
             !! The planar_linkage object.
-        integer(int32) :: rst
+        integer :: rst
             !! The value three, corresponding to two translations and one
             !! rotation.
 
@@ -494,7 +494,7 @@ contains
         !! Gets the number of links in the mechanism.
         class(kinematic_mechanism), intent(in) :: this
             !! The mechanism object.
-        integer(int32) :: rst
+        integer :: rst
             !! The link count.
 
         if (allocated(this%m_links)) then
@@ -509,7 +509,7 @@ contains
         !! Gets a pointer to the requested link object.
         class(kinematic_mechanism), intent(in), target :: this
             !! The mechanism object.
-        integer(int32), intent(in) :: i
+        integer, intent(in) :: i
             !! The index of the link to retrieve (1 = first link).
         class(link), pointer :: rst
             !! A pointer to the requested link.
@@ -525,7 +525,7 @@ contains
         !! Gets the number of joints in the mechanism.
         class(kinematic_mechanism), intent(in) :: this
             !! The mechanism object.
-        integer(int32) :: rst
+        integer :: rst
             !! The joint count.
 
         if (allocated(this%m_joints)) then
@@ -540,7 +540,7 @@ contains
         !! Gets the requested joint object.
         class(kinematic_mechanism), intent(in) :: this
             !! The mechanism object.
-        integer(int32), intent(in) :: i
+        integer, intent(in) :: i
             !! The index of the joint to retrieve (1 = first joint).
         type(joint) :: rst
             !! The requested joint.
@@ -557,7 +557,7 @@ contains
         !! of the mechanism.
         class(kinematic_mechanism), intent(in) :: this
             !! The mechanism object.
-        integer(int32) :: rst
+        integer :: rst
             !! The number of joint variables.
 
         if (allocated(this%m_q)) then
@@ -573,9 +573,9 @@ contains
         !! the first variable belonging to the requested joint.
         class(kinematic_mechanism), intent(in) :: this
             !! The mechanism object.
-        integer(int32), intent(in) :: i
+        integer, intent(in) :: i
             !! The index of the joint of interest (1 = first joint).
-        integer(int32) :: rst
+        integer :: rst
             !! The index of the joint's first variable.
 
         if (i < 1 .or. i > this%get_joint_count()) then
@@ -589,7 +589,7 @@ contains
         !! Gets the number of independent kinematic loops in the mechanism.
         class(kinematic_mechanism), intent(in) :: this
             !! The mechanism object.
-        integer(int32) :: rst
+        integer :: rst
             !! The number of independent loops.
 
         if (allocated(this%m_loops)) then
@@ -605,7 +605,7 @@ contains
         !! mechanism.
         class(kinematic_mechanism), intent(in) :: this
             !! The mechanism object.
-        integer(int32) :: rst
+        integer :: rst
             !! The number of constraint equations.
 
         rst = this%get_loop_count() * this%get_space_dimension()
@@ -618,7 +618,7 @@ contains
         !! loop-closure constraint equations.
         class(kinematic_mechanism), intent(in) :: this
             !! The mechanism object.
-        integer(int32) :: rst
+        integer :: rst
             !! The number of degrees of freedom.
 
         rst = this%get_variable_count() - this%get_constraint_count()
@@ -629,7 +629,7 @@ contains
         !! Gets the number of actuated joint variables.
         class(kinematic_mechanism), intent(in) :: this
             !! The mechanism object.
-        integer(int32) :: rst
+        integer :: rst
             !! The number of actuated joint variables.
 
         if (allocated(this%m_actuated)) then
@@ -645,7 +645,7 @@ contains
         !! the actuated joint variables.
         class(kinematic_mechanism), intent(in) :: this
             !! The mechanism object.
-        integer(int32), allocatable, dimension(:) :: rst
+        integer, allocatable, dimension(:) :: rst
             !! An array containing the indices of the actuated variables.
 
         rst = this%m_actuated
@@ -671,7 +671,7 @@ contains
         !! Gets the index of the link that is fixed to ground.
         class(kinematic_mechanism), intent(in) :: this
             !! The mechanism object.
-        integer(int32) :: rst
+        integer :: rst
             !! The index of the base link.
 
         rst = this%m_base
@@ -682,7 +682,7 @@ contains
         !! Gets the index of the link carrying the end-effector.
         class(kinematic_mechanism), intent(in) :: this
             !! The mechanism object.
-        integer(int32) :: rst
+        integer :: rst
             !! The index of the end-effector link.
 
         rst = this%m_effector
@@ -745,7 +745,7 @@ contains
         !! parent link.
         class(kinematic_mechanism), intent(in) :: this
             !! The mechanism object.
-        integer(int32), intent(in) :: i
+        integer, intent(in) :: i
             !! The index of the joint of interest (1 = first joint).
         real(real64), intent(in), dimension(:) :: q
             !! An array containing all of the mechanism's joint variables.
@@ -753,7 +753,7 @@ contains
             !! The resulting 4-by-4 transformation matrix.
 
         ! Local Variables
-        integer(int32) :: i1, i2
+        integer :: i1, i2
         real(real64) :: M(4, 4)
 
         ! Input Checking
@@ -778,7 +778,7 @@ contains
         !! spanning tree.
         class(kinematic_mechanism), intent(in) :: this
             !! The mechanism object.
-        integer(int32), intent(in) :: i
+        integer, intent(in) :: i
             !! The index of the link of interest (1 = first link).
         real(real64), intent(in), dimension(:) :: q
             !! An array containing all of the mechanism's joint variables.
@@ -786,7 +786,7 @@ contains
             !! The resulting 4-by-4 transformation matrix.
 
         ! Local Variables
-        integer(int32) :: k
+        integer :: k
         real(real64) :: T(4, 4)
         type(graph_path) :: path
 
@@ -834,7 +834,7 @@ contains
             !! An array containing the residual of each constraint equation.
 
         ! Local Variables
-        integer(int32) :: i, i1, i2, nd
+        integer :: i, i1, i2, nd
         real(real64) :: Tu(4, 4), Tv(4, 4), Te(4, 4), D(4, 4)
 
         ! Input Checking
@@ -868,7 +868,7 @@ contains
             !! equations and N is the number of joint variables.
 
         ! Local Variables
-        integer(int32) :: i, n, nc
+        integer :: i, n, nc
         real(real64) :: h
         real(real64), allocatable, dimension(:) :: work, f1, f2
 
@@ -911,7 +911,7 @@ contains
             !! An array containing all of the mechanism's joint variables.
 
         ! Local Variables
-        integer(int32) :: nc, na, nvar
+        integer :: nc, na, nvar
         real(real64), allocatable, dimension(:) :: x
         type(mechanism_solver_data) :: obj
 
@@ -946,7 +946,7 @@ contains
         ! finite difference estimate is unreliable when a joint variable is
         ! near zero.
         real(real64), intent(inout), dimension(:) :: x
-        integer(int32), intent(in) :: neqn
+        integer, intent(in) :: neqn
         type(mechanism_solver_data), intent(inout), target :: obj
         type(iteration_behavior), intent(out), optional :: ib
 
@@ -973,7 +973,7 @@ contains
         real(real64), intent(out), dimension(:) :: f
         class(*), intent(in), optional :: args
 
-        integer(int32) :: nc
+        integer :: nc
         real(real64) :: T(4, 4)
 
         select type (args)
@@ -999,7 +999,7 @@ contains
         real(real64), intent(out), dimension(:,:) :: jac
         class(*), intent(in), optional :: args
 
-        integer(int32) :: i, n, m
+        integer :: i, n, m
         real(real64) :: h
         real(real64), allocatable, dimension(:) :: work, f1, f2
 
@@ -1076,7 +1076,7 @@ contains
             !! joint variables.
 
         ! Local Variables
-        integer(int32) :: nc, np
+        integer :: nc, np
         real(real64), allocatable, dimension(:) :: x
         real(real64), allocatable, dimension(:,:) :: Cq, Cp, Ca, Je
 
@@ -1105,7 +1105,7 @@ contains
         real(real64), intent(in), dimension(:) :: q
         real(real64), allocatable, dimension(:,:) :: rst
 
-        integer(int32) :: i, n, nd
+        integer :: i, n, nd
         real(real64) :: h, T0i(4, 4), T1(4, 4), T2(4, 4)
         real(real64), allocatable, dimension(:) :: work
 
@@ -1150,7 +1150,7 @@ contains
             !! constraints.
 
         ! Local Variables
-        integer(int32) :: nc, nd, nvar
+        integer :: nc, nd, nvar
         real(real64), allocatable, dimension(:) :: x
         type(mechanism_solver_data) :: obj
 

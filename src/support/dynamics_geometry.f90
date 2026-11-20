@@ -209,7 +209,7 @@ contains
 
         ! Local Variables
         character :: jobu, jobvt
-        integer(int32) :: i, m, n, mn, lwork, info
+        integer :: i, m, n, mn, lwork, info
         real(real64), allocatable, dimension(:,:) :: shifted, vt
         real(real64), allocatable, dimension(:) :: s, work
         real(real64) :: temp(1), dummy(1), avg(3), nrm(3), nan
@@ -326,7 +326,7 @@ contains
             !! $$ \boldsymbol{v}=\boldsymbol{n}_1\times\boldsymbol{n}_2. $$
 
         ! Local Variables
-        integer(int32) :: ind
+        integer :: ind
         real(real64) :: n1(3), n2(3), a11, a12, a21, a22, b1, b2, &
             denom, x1, x2
 
@@ -404,7 +404,7 @@ contains
 
         ! Local Variables
         character :: jobu, jobvt
-        integer(int32) :: i, m, n, mn, lwork, info
+        integer :: i, m, n, mn, lwork, info
         real(real64), allocatable, dimension(:,:) :: shifted, vt
         real(real64), allocatable, dimension(:) :: s, work
         real(real64) :: temp(1), dummy(1)
@@ -894,7 +894,7 @@ contains
 
         ! Local Variables
         logical :: coincident
-        integer(int32) :: lwork, info, ipvt(2), rnk
+        integer :: lwork, info, ipvt(2), rnk
         real(real64) :: s, t, xi(3), p1(3), p2(3), A(3,2), x(3), temp(1), rc
         real(real64), allocatable, dimension(:) :: work
 
@@ -973,7 +973,7 @@ contains
             !! is 10x machine epsilon.
 
         ! Local Variables
-        integer(int32) :: lwork, info, rnk, ipvt(2)
+        integer :: lwork, info, rnk, ipvt(2)
         real(real64) :: tolerance, A(3, 2), x(3), s, t, temp(1), p1(3), p2(3), &
             dp(3), nan, rc
         real(real64), allocatable, dimension(:) :: work

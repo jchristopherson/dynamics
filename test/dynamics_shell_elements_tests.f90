@@ -36,7 +36,7 @@ pure function rigid_body_vectors(p) result(rst)
     real(real64), intent(in), dimension(:,:) :: p
     real(real64), allocatable, dimension(:,:) :: rst
 
-    integer(int32) :: i, j, c
+    integer :: i, j, c
     real(real64) :: w(3)
 
     allocate(rst(6 * size(p, 2), 6), source = 0.0d0)
@@ -78,12 +78,12 @@ end function
 subroutine build_strip(nx, ny, lx, ly, plane_xz, nodes)
     ! Builds a regular (nx+1)-by-(ny+1) grid of 6-DOF nodes lying in either
     ! the global x-y plane or the global x-z plane.
-    integer(int32), intent(in) :: nx, ny
+    integer, intent(in) :: nx, ny
     real(real64), intent(in) :: lx, ly
     logical, intent(in) :: plane_xz
     type(node), allocatable, intent(out), dimension(:) :: nodes
 
-    integer(int32) :: i, j, k
+    integer :: i, j, k
     real(real64) :: x, y
 
     allocate(nodes((nx + 1) * (ny + 1)))
@@ -105,11 +105,11 @@ end subroutine
 subroutine clamp_and_load(nx, ny, dir, bc, f)
     ! Clamps all DOF along x = 0 and applies a unit total tip load in the
     ! global direction dir, distributed consistently along the tip edge.
-    integer(int32), intent(in) :: nx, ny, dir
-    integer(int32), allocatable, intent(out), dimension(:) :: bc
+    integer, intent(in) :: nx, ny, dir
+    integer, allocatable, intent(out), dimension(:) :: bc
     real(real64), intent(inout), dimension(:) :: f
 
-    integer(int32) :: j, m, kroot, ktip
+    integer :: j, m, kroot, ktip
     real(real64) :: wt
 
     allocate(bc(6 * (ny + 1)))
@@ -132,11 +132,11 @@ function cantilever_tip_deflection(elements, nodes, nx, ny, dir) result(rst)
     ! tip deflection in the global direction dir.
     class(element), intent(in), dimension(:) :: elements
     type(node), intent(in), dimension(:) :: nodes
-    integer(int32), intent(in) :: nx, ny, dir
+    integer, intent(in) :: nx, ny, dir
     real(real64) :: rst
 
-    integer(int32) :: j, gdof, ktip
-    integer(int32), allocatable, dimension(:) :: bc
+    integer :: j, gdof, ktip
+    integer, allocatable, dimension(:) :: bc
     real(real64), allocatable, dimension(:) :: f, fr, ur, u
     real(real64), allocatable, dimension(:,:) :: k, kr
 
@@ -162,11 +162,11 @@ function cantilever_first_frequency(elements, nodes, nx, ny) result(rst)
     ! Computes the first natural frequency (rad/s) of the clamped strip.
     class(element), intent(in), dimension(:) :: elements
     type(node), intent(in), dimension(:) :: nodes
-    integer(int32), intent(in) :: nx, ny
+    integer, intent(in) :: nx, ny
     real(real64) :: rst
 
-    integer(int32) :: gdof
-    integer(int32), allocatable, dimension(:) :: bc
+    integer :: gdof
+    integer, allocatable, dimension(:) :: bc
     real(real64), allocatable, dimension(:) :: f, freqs
     real(real64), allocatable, dimension(:,:) :: m, k, mr, kr
 
@@ -185,7 +185,7 @@ end function
 ! ------------------------------------------------------------------------------
 function test_shell_rigid_body_modes() result(rst)
     logical :: rst
-    integer(int32) :: j
+    integer :: j
     real(real64), parameter :: tol = 1.0d-9
     real(real64) :: kscale, energy
     real(real64), allocatable, dimension(:) :: u
@@ -265,7 +265,7 @@ end function
 ! ------------------------------------------------------------------------------
 function test_shell_patch_tests() result(rst)
     logical :: rst
-    integer(int32) :: i, j
+    integer :: i, j
     real(real64), parameter :: tol = 1.0d-10
     real(real64), parameter :: e = 7.0d10
     real(real64), parameter :: nu = 0.3d0
@@ -367,7 +367,7 @@ end function
 ! ------------------------------------------------------------------------------
 function test_shell_mass_and_load() result(rst)
     logical :: rst
-    integer(int32) :: i
+    integer :: i
     real(real64), parameter :: tol = 1.0d-10
     real(real64), parameter :: rho = 7.85d3
     real(real64), parameter :: t = 0.02d0
@@ -481,14 +481,14 @@ function test_shell_cantilever_static() result(rst)
     ! A thin plate strip (nu = 0) clamped at x = 0 with a unit tip load
     ! should match Euler-Bernoulli beam theory: delta = P L^3 / (3 E I).
     logical :: rst
-    integer(int32), parameter :: nx = 10
-    integer(int32), parameter :: ny = 2
+    integer, parameter :: nx = 10
+    integer, parameter :: ny = 2
     real(real64), parameter :: len = 1.0d0
     real(real64), parameter :: b = 0.1d0
     real(real64), parameter :: t = 0.01d0
     real(real64), parameter :: e = 2.0d11
     real(real64), parameter :: rtol = 1.0d-2
-    integer(int32) :: i, j, c, k1, k2, k3, k4
+    integer :: i, j, c, k1, k2, k3, k4
     real(real64) :: expected, delta
     type(material) :: mat
     type(node), allocatable, dimension(:) :: nodes
@@ -551,15 +551,15 @@ function test_shell_cantilever_modal() result(rst)
     ! should match Euler-Bernoulli beam theory:
     ! omega = (1.8751)^2 sqrt(E I / (rho A L^4)).
     logical :: rst
-    integer(int32), parameter :: nx = 10
-    integer(int32), parameter :: ny = 2
+    integer, parameter :: nx = 10
+    integer, parameter :: ny = 2
     real(real64), parameter :: len = 1.0d0
     real(real64), parameter :: b = 0.1d0
     real(real64), parameter :: t = 0.01d0
     real(real64), parameter :: e = 2.0d11
     real(real64), parameter :: rho = 7.85d3
     real(real64), parameter :: rtol = 1.0d-2
-    integer(int32) :: i, j, c, k1, k2, k3, k4
+    integer :: i, j, c, k1, k2, k3, k4
     real(real64) :: expected, omega
     type(material) :: mat
     type(node), allocatable, dimension(:) :: nodes

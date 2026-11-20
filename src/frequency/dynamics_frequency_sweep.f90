@@ -125,14 +125,14 @@ contains
             !! An optional differential equation solver.  The default solver
             !! is the Dormand-Prince Runge-Kutta integrator from the DIFFEQ
             !! library.
-        integer(int32), intent(in), optional :: ncycles
+        integer, intent(in), optional :: ncycles
             !! An optional parameter controlling the number of cycles to 
             !! analyze when determining the amplitude and phase of the response.
             !! The default is 5.
-        integer(int32), intent(in), optional :: ntransient
+        integer, intent(in), optional :: ntransient
             !! An optional parameter controlling how many of the initial 
             !! "transient" cycles to ignore.  The default is 30.
-        integer(int32), intent(in), optional :: points
+        integer, intent(in), optional :: points
             !! An optional parameter controlling how many evenly spaced 
             !! solution points should be considered per cycle.  The default is 
             !! 1000.
@@ -152,7 +152,7 @@ contains
 
         ! Local Variables
         logical :: hz
-        integer(int32) :: i, j, nfreq, neqn, nc, nt, ntotal, npts, ppc, &
+        integer :: i, j, nfreq, neqn, nc, nt, ntotal, npts, ppc, &
             i1, ncpts
         real(real64) :: dt, omega, f
         real(real64), allocatable, dimension(:) :: ic, t
@@ -286,7 +286,7 @@ contains
         complex(real64) :: rst
 
         ! Local Variables
-        integer(int32) :: i, n
+        integer :: i, n
         real(real64) :: a, b, r, phi
 
         ! Initialization
@@ -324,7 +324,7 @@ contains
         !! b = \frac{2}{N} \sum_{k=0}^{N-1} y_k \sin(\omega t_k). $$
         procedure(harmonic_ode), pointer, intent(in) :: fcn
             !! A pointer to the routine containing the ODE's to integrate.
-        integer(int32), intent(in) :: nfreq
+        integer, intent(in) :: nfreq
             !! The number of frequency values to analyze.  This value must be
             !! at least 2.
         real(real64), intent(in) :: freq1
@@ -338,14 +338,14 @@ contains
             !! An optional differential equation solver.  The default solver
             !! is the Dormand-Prince Runge-Kutta integrator from the DIFFEQ
             !! library.
-        integer(int32), intent(in), optional :: ncycles
+        integer, intent(in), optional :: ncycles
             !! An optional parameter controlling the number of cycles to 
             !! analyze when determining the amplitude and phase of the response.
             !! The default is 5.
-        integer(int32), intent(in), optional :: ntransient
+        integer, intent(in), optional :: ntransient
             !! An optional parameter controlling how many of the initial 
             !! "transient" cycles to ignore.  The default is 30.
-        integer(int32), intent(in), optional :: points
+        integer, intent(in), optional :: points
             !! An optional parameter controlling how many evenly spaced 
             !! solution points should be considered per cycle.  The default is 
             !! 1000.
@@ -360,7 +360,7 @@ contains
             !! The resulting frequency responses.
 
         ! Local Variables
-        integer(int32) :: i
+        integer :: i
         real(real64) :: df
         real(real64), allocatable, dimension(:) :: freq
 

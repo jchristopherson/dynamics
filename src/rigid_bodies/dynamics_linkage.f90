@@ -44,7 +44,7 @@ module dynamics_linkage
             import link
             class(link), intent(in) :: this
                 !! The link object.
-            integer(int32) :: rst
+            integer :: rst
                 !! The number of joint coordinate frames.
         end function
 
@@ -56,7 +56,7 @@ module dynamics_linkage
             import link
             class(link), intent(in) :: this
                 !! The link object.
-            integer(int32), intent(in) :: i
+            integer, intent(in) :: i
                 !! The index of the joint coordinate frame (1 = first frame).
             real(real64) :: rst(4, 4)
                 !! The resulting 4-by-4 transformation matrix.
@@ -83,7 +83,7 @@ module dynamics_linkage
             !! The joint angle is the required rotation of the previous link's
             !! x-axis about the proximal joint's axis to become parallel to the
             !! current link's x-axis.
-        integer(int32), public :: joint_type
+        integer, public :: joint_type
             !! The proximal joint type.  This value must be either 
             !! REVOLUTE_JOINT or PRISMATIC_JOINT.
     contains
@@ -141,7 +141,7 @@ contains
     pure function bl_init(jtype, length, twist, offset, angle, &
         mass, inertia, cg) result(rst)
         !! Initializes a new parallel_revolute_revolute_link instance.
-        integer(int32), intent(in), optional :: jtype
+        integer, intent(in), optional :: jtype
             !! The proximal joint type.  This value must be either &
             !! REVOLUTE_JOINT or PRISMATIC_JOINT.  If incorrectly specified, 
             !! this parameter defaults to REVOLUTE_JOINT.
@@ -214,7 +214,7 @@ contains
         !! binary link always carries two frames.
         class(binary_link), intent(in) :: this
             !! The binary_link object.
-        integer(int32) :: rst
+        integer :: rst
             !! The number of joint coordinate frames.
 
         rst = 2
@@ -230,7 +230,7 @@ contains
         !! frames are established with the joint variable set to zero.
         class(binary_link), intent(in) :: this
             !! The binary_link object.
-        integer(int32), intent(in) :: i
+        integer, intent(in) :: i
             !! The index of the joint coordinate frame (1 = proximal joint).
         real(real64) :: rst(4, 4)
             !! The resulting 4-by-4 transformation matrix.
@@ -280,7 +280,7 @@ contains
         !! Gets the number of joint coordinate frames carried by the link.
         class(multi_joint_link), intent(in) :: this
             !! The multi_joint_link object.
-        integer(int32) :: rst
+        integer :: rst
             !! The number of joint coordinate frames.
 
         if (allocated(this%m_frames)) then
@@ -296,7 +296,7 @@ contains
         !! coordinate frame to the link's body coordinate frame.
         class(multi_joint_link), intent(in) :: this
             !! The multi_joint_link object.
-        integer(int32), intent(in) :: i
+        integer, intent(in) :: i
             !! The index of the joint coordinate frame (1 = first frame).
         real(real64) :: rst(4, 4)
             !! The resulting 4-by-4 transformation matrix.
@@ -314,7 +314,7 @@ contains
         !! coordinate frame to the link's body coordinate frame.
         class(multi_joint_link), intent(inout) :: this
             !! The multi_joint_link object.
-        integer(int32), intent(in) :: i
+        integer, intent(in) :: i
             !! The index of the joint coordinate frame (1 = first frame).
         real(real64), intent(in) :: x(4, 4)
             !! The 4-by-4 transformation matrix.
@@ -338,7 +338,7 @@ contains
             !! The serial_linkage instance.
 
         ! Initialization
-        integer(int32) :: i, n
+        integer :: i, n
         n = size(lnks)
         if (n < 1) error stop DYN_INVALID_INPUT_ERROR
         do i = 1, n
@@ -351,7 +351,7 @@ contains
         !! Gets the number of links in the linkage.
         class(serial_linkage), intent(in) :: this
             !! The serial_linkage object.
-        integer(int32) :: rst
+        integer :: rst
             !! The link count.
 
         rst = this%m_links%count()
@@ -362,7 +362,7 @@ contains
         !! Gets a pointer to the requested link object.
         class(serial_linkage), intent(in) :: this
             !! The serial_linkage object.
-        integer(int32), intent(in) :: i
+        integer, intent(in) :: i
             !! The index of the link to retrieve (1 = first link).
         class(binary_link), pointer :: rst
             !! A pointer to the requested link.
@@ -392,7 +392,7 @@ contains
             !! The resulting 4-by-4 transformation matrix.
 
         ! Local Variables
-        integer(int32) :: i, n
+        integer :: i, n
         real(real64) :: qt, qd, T(4, 4)
         class(binary_link), pointer :: lnk
         
@@ -440,9 +440,9 @@ contains
         real(real64), parameter :: zi_1(4) = [0.0d0, 0.0d0, 1.0d0, 0.0d0]
 
         ! Local Variables
-        integer(int32) :: i, n
+        integer :: i, n
         real(real64) :: qd, qt
-        integer(int32), allocatable, dimension(:) :: jtypes
+        integer, allocatable, dimension(:) :: jtypes
         real(real64), allocatable, dimension(:) :: a, alpha, theta, d
         class(binary_link), pointer :: lnk
         
