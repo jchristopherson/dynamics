@@ -1,9 +1,51 @@
 ## Solver Modules
 
-The solver functionality in this directory covers linear structural time integration and constrained rigid-body variational integration:
+The solver functionality in this directory covers structural equilibrium and time integration:
 
 * **`dynamics_linear_structural_solvers`** advances the linear system \(M a + C v + K u = f\) with the generalized-alpha method. It provides dense and CSR sparse integrators, accepts loads at both ends of a time step, and reuses the effective-system factorization when the time step is unchanged. Apply prescribed boundary conditions before integration and provide a consistent initial acceleration.
 * **`dynamics_variational_integrators`** advances constrained rigid-body systems in maximal coordinates using discrete Euler-Lagrange equations and Lagrange multipliers. It supports dense and graph-factorized Newton solvers, user force and holonomic-constraint callbacks, optional constraint Jacobians, and configurable force sampling at the left endpoint, implicit endpoint, or midpoint.
+* **`dynamics_flexible_body_solvers`** solves nonlinear static equilibrium of a flexible mesh using its internal forces and consistent tangent.
+
+## Nonlinear flexible static equilibrium
+
+`solve_flexible_static` solves `internal_force(q) = force` at free DOFs.
+Supply a full force vector and initial displacement in mesh equation order,
+and `nodal_condition` records for prescribed displacements. Prescribed values
+are imposed before evaluating the residual; external loads at constrained DOFs
+do not affect equilibrium. To obtain reactions, assemble the internal force
+after convergence and subtract the applied force at constrained DOFs.
+
+```fortran
+type(flexible_static_settings) :: settings
+type(flexible_static_info) :: info
+
+settings%sparse = .true.
+call solve_flexible_static(mesh, force, supports, q, settings, info)
+if (.not.info%converged) error stop "Static equilibrium failed"
+```
+
+The solver uses the element tangent, full Newton corrections, and residual-norm
+backtracking. Convergence requires the free residual norm to be no greater than
+`absolute_tolerance + relative_tolerance * max(initial_residual_norm, norm2(force_free))`.
+The norm combines all free components without per-DOF scaling; models with
+different force and moment scales may need nondimensionalization. Set tolerances
+in units appropriate to the model. Dense tangents use LU;
+CSR tangents use diagonally preconditioned restarted GMRES with a checked true
+linear residual. The sparse method requires a nonzero diagonal and may fail on
+poorly conditioned or indefinite systems even when a solution exists.
+`nthreads` has the same element thread-safety requirements as mesh assembly.
+With `info`, convergence or linear-solver failure leaves `q` unchanged;
+without it, failure triggers `error stop`. Invalid inputs also stop. With no
+free DOFs, imposing the prescribed displacements succeeds without iteration.
+
+Loads are fixed global forces, not follower loads; the solver does not implement
+load stepping, arc-length continuation, contact, or time integration. Repeated
+calls can apply successive loads or prescribed displacements, using the previous
+solution as the next initial guess. Force and tangent evaluations must be
+consistent and safe to repeat at trial displacements; the existing material
+contract provides energy-based nonlinear laws, not commit/rollback for
+history-dependent plasticity. Geometric and constitutive fidelity remain those
+of the selected element and material.
 
 ## Variational Integrator Example
 The [`variational_integrator_example`](../../examples/variational_integrator_example.f90) simulates a planar double pendulum in maximal coordinates. Both connecting rods have distributed mass, finite cross-section inertia, and gravity loading at their centers of mass. Six holonomic constraints pin the first rod to ground and join the two rod endpoints.

@@ -8,6 +8,7 @@ module dynamics_flexible_bodies_tests
     use dynamics_boundary_conditions, only : nodal_condition, &
         apply_force_boundary_conditions, apply_displacement_boundary_conditions, &
         restore_displacement_boundary_conditions, resolve_boundary_conditions
+    use dynamics_flexible_body_solvers, only : flexible_static_settings, flexible_static_info, solve_flexible_static
     use linalg, only : csr_matrix, csr_to_dense
     use dynamics_flexible_materials
     use dynamics_helper, only : dot_product, matmul
@@ -17,6 +18,7 @@ module dynamics_flexible_bodies_tests
     public :: test_flexible_beam
     public :: test_flexible_mesh
     public :: test_flexible_mesh_boundary_conditions
+    public :: test_flexible_static
     public :: test_ad_products
     public :: invalid_ad_product
     public :: invalid_flexible_input
@@ -35,7 +37,173 @@ module dynamics_flexible_bodies_tests
         procedure :: dof_components => test_beam_components
     end type
 
+    type, extends(euler_bernoulli_beam_element) :: static_test_element
+    contains
+        procedure :: internal_force_vector => static_test_force
+        procedure :: stiffness_matrix => static_test_stiffness
+    end type
+
 contains
+    subroutine static_test_force(this, q, f, nodes)
+        class(static_test_element), intent(inout), target :: this
+        real(real64), intent(in), dimension(:) :: q
+        real(real64), intent(out), dimension(:) :: f
+        type(fe_node), intent(in), dimension(:) :: nodes
+        f = q + q**3
+        f(:size(q)-1) = f(:size(q)-1) + 0.2d0*q(2:)
+        f(2:) = f(2:) + 0.2d0*q(:size(q)-1)
+    end subroutine
+
+    subroutine static_test_stiffness(this, q, k, nodes)
+        class(static_test_element), intent(inout), target :: this
+        real(real64), intent(in), dimension(:) :: q
+        real(real64), intent(out), dimension(:,:) :: k
+        type(fe_node), intent(in), target, dimension(:) :: nodes
+        integer :: i
+        k = 0.0d0
+        do i = 1, size(q)
+            k(i,i) = 1.0d0 + 3.0d0*q(i)**2
+            if (i < size(q)) then
+                k(i,i+1) = 0.2d0
+                k(i+1,i) = 0.2d0
+            end if
+        end do
+    end subroutine
+
+    function test_flexible_static() result(ok)
+        logical :: ok
+        type(nonlinear_material), target :: material
+        type(linear_elastic_isotropic_material), target :: linear_material
+        type(euler_bernoulli_beam_element) :: beam
+        type(static_test_element) :: element
+        type(finite_element_mesh) :: mesh
+        type(finite_element_mesh) :: large_mesh
+        type(flexible_static_settings) :: settings
+        type(flexible_static_info) :: info
+        type(nodal_condition), dimension(11) :: conditions
+        type(nodal_condition), dimension(0) :: no_conditions
+        type(nodal_condition), dimension(12) :: all_conditions
+        type(nodal_condition), dimension(1) :: one_condition
+        real(real64), dimension(12) :: q
+        real(real64), dimension(12) :: load
+        real(real64), dimension(12) :: before
+        real(real64), dimension(48) :: large_q
+        real(real64), dimension(48) :: target_q
+        real(real64), dimension(48) :: large_load
+        real(real64) :: strain
+        integer :: i
+        integer :: method
+
+        material%modulus = 100.0d0
+        material%poissons_ratio = 0.25d0
+        material%density = 1.0d0
+        beam%material => material
+        beam%area = 1.0d0
+        beam%j = 0.1d0
+        beam%iyy = 0.2d0
+        beam%izz = 0.3d0
+        beam%node_indices = [1, 2]
+        mesh%nodes = [fe_node(1, [0.0d0, 0.0d0, 0.0d0]), fe_node(2, [1.0d0, 0.0d0, 0.0d0])]
+        allocate(mesh%elements(1))
+        allocate(mesh%elements(1)%element, source=beam)
+        conditions = [nodal_condition(1, DOF_UX, 0.1d0), nodal_condition(1, DOF_UY), &
+            nodal_condition(1, DOF_UZ), nodal_condition(1, DOF_RX), nodal_condition(1, DOF_RY), &
+            nodal_condition(1, DOF_RZ), nodal_condition(2, DOF_UY), nodal_condition(2, DOF_UZ), &
+            nodal_condition(2, DOF_RX), nodal_condition(2, DOF_RY), nodal_condition(2, DOF_RZ)]
+        strain = (1.3d0**2 - 1.0d0) / 2.0d0
+        load = 0.0d0
+        load(7) = 100.0d0 * (strain + 4.0d0*strain**3) * 1.3d0
+        ok = .true.
+        do method = 1, 2
+            settings%sparse = method == 2
+            q = 0.0d0
+            call solve_flexible_static(mesh, load, conditions, q, settings, info)
+            ok = ok .and. info%converged .and. info%iterations > 1
+            ok = ok .and. abs(q(1)-0.1d0) < 1.0d-12 .and. abs(q(7)-0.4d0) < 1.0d-8
+            ok = ok .and. info%residual_norm <= settings%absolute_tolerance + &
+                settings%relative_tolerance * abs(load(7))
+        end do
+
+        ! The same finite-strain equilibrium with a linear material.
+        linear_material = linear_elastic_isotropic_material(100.0d0, 0.25d0, 1.0d0)
+        select type (mesh_beam => mesh%elements(1)%element)
+        type is (euler_bernoulli_beam_element)
+            mesh_beam%material => linear_material
+        end select
+        load(7) = 100.0d0 * strain * 1.3d0
+        settings%sparse = .false.
+        q = 0.0d0
+        call solve_flexible_static(mesh, load, conditions, q, settings, info)
+        ok = ok .and. info%converged .and. abs(q(7)-0.4d0) < 1.0d-8
+        select type (mesh_beam => mesh%elements(1)%element)
+        type is (euler_bernoulli_beam_element)
+            mesh_beam%material => material
+        end select
+        load(7) = 100.0d0 * (strain + 4.0d0*strain**3) * 1.3d0
+
+        ! A failed solve must not publish the trial state.
+        settings%max_iterations = 1
+        q = 0.0d0
+        before = q
+        call solve_flexible_static(mesh, load, conditions, q, settings, info)
+        ok = ok .and. .not.info%converged .and. all(q == before)
+        settings%max_iterations = 30
+        settings%sparse = .true.
+        q = 0.0d0
+        call solve_flexible_static(mesh, load, no_conditions, q, settings, info)
+        ok = ok .and. .not.info%converged .and. info%linear_solve_failed .and. all(q == 0.0d0)
+        all_conditions(:11) = conditions
+        all_conditions(12) = nodal_condition(2, DOF_UX, 0.4d0)
+        call solve_flexible_static(mesh, load, all_conditions, q, settings, info)
+        ok = ok .and. info%converged .and. abs(q(7)-0.4d0) < 1.0d-12
+
+        ! Exercise the actual sparse iterative path above 32 free DOFs.
+        large_mesh = finite_element_mesh(8, 4)
+        do i = 1, 8
+            large_mesh%nodes(i) = fe_node(i, [real(i,real64), 0.0d0, 0.0d0])
+        end do
+        do i = 1, 4
+            element%node_indices = [2*i-1, 2*i]
+            call large_mesh%assign_element(i, element)
+        end do
+        target_q = [(0.01d0*i, i=1,48)]
+        large_load = target_q + target_q**3
+        do i = 1, 4
+            large_load(12*i-11:12*i-1) = large_load(12*i-11:12*i-1) + 0.2d0*target_q(12*i-10:12*i)
+            large_load(12*i-10:12*i) = large_load(12*i-10:12*i) + 0.2d0*target_q(12*i-11:12*i-1)
+        end do
+        large_q = 0.0d0
+        call solve_flexible_static(large_mesh, large_load, no_conditions, large_q, settings, info)
+        ok = ok .and. info%converged .and. maxval(abs(large_q-target_q)) < 1.0d-8
+
+        ! Full Newton overshoots here; backtracking must recover.
+        target_q = 2.0d0
+        large_load = target_q + target_q**3
+        do i = 1, 4
+            large_load(12*i-11:12*i-1) = large_load(12*i-11:12*i-1) + 0.2d0*target_q(12*i-10:12*i)
+            large_load(12*i-10:12*i) = large_load(12*i-10:12*i) + 0.2d0*target_q(12*i-11:12*i-1)
+        end do
+        settings%max_backtracks = 0
+        large_q = 0.0d0
+        call solve_flexible_static(large_mesh, large_load, no_conditions, large_q, settings, info)
+        ok = ok .and. .not.info%converged .and. all(large_q == 0.0d0)
+        settings%max_backtracks = 20
+        call solve_flexible_static(large_mesh, large_load, no_conditions, large_q, settings, info)
+        ok = ok .and. info%converged .and. maxval(abs(large_q-target_q)) < 1.0d-7
+        settings%sparse = .false.
+        large_q = 0.0d0
+        call solve_flexible_static(large_mesh, large_load, no_conditions, large_q, settings, info)
+        ok = ok .and. info%converged .and. maxval(abs(large_q-target_q)) < 1.0d-7
+        settings%sparse = .true.
+        one_condition(1) = nodal_condition(1, DOF_UX, 2.0d0)
+        large_q = 0.0d0
+        call solve_flexible_static(large_mesh, large_load, one_condition, large_q, settings, info)
+        ok = ok .and. info%converged .and. maxval(abs(large_q-target_q)) < 1.0d-7
+        call solve_flexible_static(large_mesh, large_load, one_condition, large_q, settings, info)
+        ok = ok .and. info%converged .and. info%iterations == 0
+        if (.not.ok) print "(A)", "TEST FAILED: nonlinear flexible static solver"
+    end function
+
     pure function test_beam_components(this) result(components)
         class(labeled_test_beam), intent(in) :: this
         integer, allocatable, dimension(:) :: components
@@ -194,11 +362,14 @@ contains
         type(euler_bernoulli_beam_element) :: beam
         type(labeled_test_beam) :: labeled
         type(finite_element_mesh) :: mesh
+        type(flexible_static_settings) :: settings
         integer, allocatable, dimension(:) :: offsets
         integer, allocatable, dimension(:) :: equations
         type(fe_node), dimension(2) :: nodes
         real(real64), dimension(12,12) :: m
         real(real64), dimension(6,6) :: d
+        real(real64), dimension(12) :: q
+        real(real64), dimension(12) :: load
         real(real64) :: energy
         material%modulus = 100.0d0
         material%poissons_ratio = 0.25d0
@@ -211,7 +382,18 @@ contains
         beam%iyy = 0.3d0
         beam%izz = 0.5d0
         beam%node_indices = [1, 2]
+        q = 0.0d0
+        load = 0.0d0
         select case (selection)
+        case ("flex-invalid-static-duplicate")
+            mesh%nodes = nodes
+            allocate(mesh%elements(1))
+            allocate(mesh%elements(1)%element, source=beam)
+            call solve_flexible_static(mesh, load, &
+                [nodal_condition(1, DOF_UX), nodal_condition(1, DOF_UX)], q)
+        case ("flex-invalid-static-options")
+            settings%relative_tolerance = -1.0d0
+            call solve_flexible_static(mesh, load, [nodal_condition::], q, settings)
         case ("flex-invalid-strain")
             energy = material%energy_density([0.0d0])
             print *, energy

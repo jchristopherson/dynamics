@@ -11,7 +11,7 @@ homepage = "https://github.com/jchristopherson/dynamics"
 source-dir = "src"
 
 [dependencies]
-linalg = { git = "https://github.com/jchristopherson/linalg", tag = "v2.3.0" }
+linalg = { git = "https://github.com/jchristopherson/linalg", tag = "v3.0.0" }
 nonlin = { git = "https://github.com/jchristopherson/nonlin", tag = "v2.3.0" }
 diffeq = { git = "https://github.com/jchristopherson/diffeq", tag = "v2.1.0" }
 spectrum = { git = "https://github.com/jchristopherson/spectrum", tag = "v1.5.0" }

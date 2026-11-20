@@ -45,5 +45,6 @@ module dynamics
     use dynamics_flexible_body_types
     use dynamics_flexible_assembly
     use dynamics_boundary_conditions
+    use dynamics_flexible_body_solvers
     use dynamics_multibody
 end module
