@@ -16,6 +16,8 @@ module dynamics_finite_element
             !! One-based mesh node positions in local DOF block order.
         procedure(get_dof_per_node), deferred, public, pass :: dof_per_node
             !! Number of DOFs at each node.
+        procedure(get_dof_components), deferred :: dof_components
+            !! Ordered physical component labels used at each node.
         procedure(get_element_dimensionality), deferred, public, pass :: dimensionality
             !! Number of spatial coordinate dimensions.
     end type
@@ -47,6 +49,16 @@ module dynamics_finite_element
                 !! The [[finite_element]] object.
             integer :: rst
                 !! The degree-of-freedom count per node.
+        end function
+
+        pure function get_dof_components(this) result(components)
+            !! Describe the DOF order within each node block.
+            import finite_element
+            class(finite_element), intent(in) :: this
+                !! Element whose local vectors and matrices use this order.
+            integer, allocatable, dimension(:) :: components
+                !! `dof_per_node()` distinct positive labels, in local order.
+                !! Use the `DOF_*` labels for standard mechanical components.
         end function
 
         pure function get_element_dimensionality(this) result(rst)

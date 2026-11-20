@@ -3,11 +3,11 @@ module dynamics_flexible_bodies_tests
     use, intrinsic :: ieee_arithmetic, only : ieee_value, ieee_quiet_nan
     use autodiff
     use dynamics_flexible_beam_elements
-    use dynamics_flexible_body_types, only : fe_node
+    use dynamics_flexible_body_types, only : fe_node, degree_of_freedom, DOF_UX, DOF_UY, DOF_UZ, DOF_RX, DOF_RY, DOF_RZ
     use dynamics_flexible_assembly, only : finite_element_mesh
     use dynamics_boundary_conditions, only : nodal_condition, &
         apply_force_boundary_conditions, apply_displacement_boundary_conditions, &
-        restore_displacement_boundary_conditions
+        restore_displacement_boundary_conditions, resolve_boundary_conditions
     use linalg, only : csr_matrix, csr_to_dense
     use dynamics_flexible_materials
     use dynamics_helper, only : dot_product, matmul
@@ -28,7 +28,21 @@ module dynamics_flexible_bodies_tests
         procedure :: torsional_energy => nonlinear_torsion_energy
     end type
 
+    ! Topology-only test double; numerical beam routines are not used.
+    type, extends(euler_bernoulli_beam_element) :: labeled_test_beam
+        integer, dimension(6) :: labels = [DOF_UY, DOF_UX, DOF_UZ, DOF_RX, DOF_RY, DOF_RZ]
+    contains
+        procedure :: dof_components => test_beam_components
+    end type
+
 contains
+    pure function test_beam_components(this) result(components)
+        class(labeled_test_beam), intent(in) :: this
+        integer, allocatable, dimension(:) :: components
+
+        components = this%labels
+    end function
+
     pure function nonlinear_plane_energy(this, strain) result(w)
         class(nonlinear_material), intent(in) :: this
         type(hyperdual), intent(in) :: strain
@@ -178,8 +192,10 @@ contains
         character(*), intent(in) :: selection
         type(linear_elastic_isotropic_material), target :: material
         type(euler_bernoulli_beam_element) :: beam
+        type(labeled_test_beam) :: labeled
         type(finite_element_mesh) :: mesh
         integer, allocatable, dimension(:) :: offsets
+        integer, allocatable, dimension(:) :: equations
         type(fe_node), dimension(2) :: nodes
         real(real64), dimension(12,12) :: m
         real(real64), dimension(6,6) :: d
@@ -217,6 +233,20 @@ contains
             allocate(mesh%elements(1))
             allocate(mesh%elements(1)%element, source=beam)
             call mesh%number_dofs(offsets)
+        case ("flex-invalid-dof-order")
+            mesh%nodes = [nodes, fe_node(30, [2.0d0, 0.0d0, 0.0d0])]
+            allocate(mesh%elements(2))
+            allocate(mesh%elements(1)%element, source=beam)
+            labeled%node_indices = [2, 3]
+            allocate(mesh%elements(2)%element, source=labeled)
+            call mesh%number_dofs(offsets)
+        case ("flex-invalid-dof-label")
+            mesh%nodes = nodes
+            allocate(mesh%elements(1))
+            labeled%node_indices = [1, 2]
+            labeled%labels(2) = 7
+            allocate(mesh%elements(1)%element, source=labeled)
+            call resolve_boundary_conditions(mesh, [nodal_condition(1, DOF_UX)], equations)
         case default
             error stop "Unknown flexible input test"
         end select
@@ -534,6 +564,34 @@ contains
        ok = ok .and. maxval(abs(csr_to_dense(sparse) - expected_k(free,free))) < 1.0d-12
        ok = ok .and. maxval(abs(fs - matmul(expected_k(free,free), utarget(free)))) < 1.0d-12
 
+       ok = test_labeled_dof_lookup() .and. ok
        if (.not.ok) print "(A)", "TEST FAILED: flexible mesh boundary conditions"
    end function
+
+    function test_labeled_dof_lookup() result(ok)
+        logical :: ok
+        type(finite_element_mesh) :: mesh
+        type(labeled_test_beam) :: beam
+        type(degree_of_freedom), allocatable, dimension(:) :: dofs
+        type(nodal_condition), dimension(3) :: conditions
+        integer, allocatable, dimension(:) :: equations
+        real(real64), allocatable, dimension(:) :: f
+        integer :: ndof
+
+        mesh%nodes = [fe_node(41, [0.0d0, 0.0d0, 0.0d0]), fe_node(25, [1.0d0, 0.0d0, 0.0d0])]
+        beam%node_indices = [1, 2]
+        allocate(mesh%elements(1))
+        allocate(mesh%elements(1)%element, source=beam)
+
+        ! UY is the first slot and UX is the second in this element.
+        conditions = [nodal_condition(2, DOF_UX, 2.0d0), nodal_condition(1, DOF_UY, 1.0d0), &
+            nodal_condition(2, DOF_UX, 3.0d0)]
+        call mesh%resolve_dofs(conditions%node, conditions%component, dofs, ndof)
+        ok = ndof == 12 .and. all(dofs%equation_id == [8, 1, 8])
+        ok = ok .and. all(dofs%node_id == [25, 41, 25]) .and. all(dofs%component == conditions%component)
+        call resolve_boundary_conditions(mesh, conditions, equations)
+        ok = ok .and. all(equations == [8, 1, 8])
+        call apply_force_boundary_conditions(mesh, conditions, f)
+        ok = ok .and. abs(f(8) - 5.0d0) < 1.0d-12 .and. abs(f(1) - 1.0d0) < 1.0d-12
+    end function
 end module

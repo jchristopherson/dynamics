@@ -36,12 +36,30 @@ the beam's AD workspace is reused and must not be accessed concurrently.
 
 ### Flexible mesh assembly
 
+The [flexible truss example](../../examples/flexible_truss_example.f90) uses
+50 spatial Euler–Bernoulli beam elements per leg to reproduce the five-leg
+geometry of the [structural example](../../examples/structural_example.f90).
+Build the `flexible_truss_example` target with `BUILD_DYNAMICS_EXAMPLES=ON` and
+run it with Gnuplot on `PATH`. It assembles the reference mass and tangent
+stiffness in CSR format, then fixes all six DOFs at node 1 and restrains only
+`UY` at node 3. The example writes `flexible_truss_mesh.png`
+to the working directory without applying loads or running a solve.
+
 Populate a `finite_element_mesh` with its `nodes` array and allocate each
 `elements(i)%element` from a concrete finite element. Elements reference nodes
 by array position. `number_dofs(offsets)` returns the global equation ranges:
 node `i` uses `offsets(i)+1` through `offsets(i+1)`, and unused nodes take no
-equations. Shared nodes must agree on DOF count and component order. Mesh
-assembly derives its own numbering without modifying element equation indices.
+equations. Concrete flexible finite elements must implement `dof_components()`
+with distinct positive labels in their local node-block order. Use `DOF_UX`
+through `DOF_RZ` for the standard mechanical components. If you implement your
+own elements, add this binding when updating to the new interface. The mesh
+rejects elements that disagree on DOF counts, labels, or label order at a shared
+node. Assembly does not modify element equation indices.
+
+`mesh%resolve_dofs(node_positions, components, dofs[, ndof])` returns
+`degree_of_freedom` records in request order. Inputs use node-table positions;
+each result reports the node's `fe_node%id`, its physical component label, and
+its current global equation number. Resolve again if the mesh layout changes.
 
 Call `assemble_mass(matrix)` or `assemble_stiffness(q, matrix)` with **either**
 an allocatable `real(real64)` rank-two matrix **or** a `csr_matrix` output.
@@ -84,8 +102,12 @@ call mesh%assemble_internal_force(q, force)
 ### Mesh boundary conditions
 
 `dynamics_boundary_conditions` addresses a DOF with a `nodal_condition`, which
-holds a one-based node position in `mesh%nodes`, a one-based local component in
-that node's block, and a `value`. Force conditions accumulate into the global
+holds a one-based node position in `mesh%nodes`, a physical component label
+(e.g., `DOF_UY`, not the component's local slot), and a `value`.
+`resolve_boundary_conditions(mesh, conditions, dofs[, ndof])` returns the
+global equation indices without applying the conditions. For homogeneous
+supports, use those indices with `apply_boundary_conditions` to reduce multiple
+matrices, as in the flexible truss example. Force conditions accumulate into the global
 force vector, which is allocated as zeros if unallocated:
 `apply_force_boundary_conditions(mesh, conditions, f)`.
 

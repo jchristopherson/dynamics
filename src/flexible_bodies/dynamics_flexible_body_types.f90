@@ -4,21 +4,23 @@ module dynamics_flexible_body_types
     private
     public :: degree_of_freedom
     public :: fe_node
+    public :: DOF_UX, DOF_UY, DOF_UZ, DOF_RX, DOF_RY, DOF_RZ
+
+    integer, parameter :: DOF_UX = 1
+    integer, parameter :: DOF_UY = 2
+    integer, parameter :: DOF_UZ = 3
+    integer, parameter :: DOF_RX = 4
+    integer, parameter :: DOF_RY = 5
+    integer, parameter :: DOF_RZ = 6
 
     type :: degree_of_freedom
-        !! Defines a single degree of freedom.
+        !! Describes a numbered DOF in the current mesh layout.
         integer :: equation_id
-            !! The equation ID.
+            !! One-based global equation number.
         integer :: node_id
-            !! The associated multibody_node ID.
+            !! The associated `fe_node%id`, not its node-table position.
         integer :: component
-            !! The component of the displacement vector.  For example:
-            !! 1 = UX
-            !! 2 = UY
-            !! 3 = UZ
-            !! 4 = RX
-            !! 5 = RY
-            !! 6 = RZ
+            !! Physical component label, such as `DOF_UY`, not a local slot.
     end type
 
     type :: fe_node

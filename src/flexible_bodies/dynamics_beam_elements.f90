@@ -10,7 +10,7 @@ module dynamics_flexible_beam_elements
     use dynamics_helper, only : dot_product, cross_product
     use dynamics_finite_element
     use dynamics_flexible_materials
-    use dynamics_flexible_body_types, only : fe_node
+    use dynamics_flexible_body_types, only : fe_node, DOF_UX, DOF_UY, DOF_UZ, DOF_RX, DOF_RY, DOF_RZ
     implicit none
     private
     public :: flexible_beam_element
@@ -85,6 +85,7 @@ module dynamics_flexible_beam_elements
         procedure :: node_count => eb_node_count
         procedure :: node_connectivity => eb_node_connectivity
         procedure :: dof_per_node => eb_dof_per_node
+        procedure :: dof_components => eb_dof_components
         procedure :: dimensionality => eb_dimensionality
         procedure :: mass_matrix => eb_mass
         procedure :: strain_energy => eb_energy
@@ -118,6 +119,15 @@ module dynamics_flexible_beam_elements
     ]
 
 contains
+! ------------------------------------------------------------------------------
+    pure function eb_dof_components(this) result(components)
+        !! Return the global translation and rotation components in local order.
+        class(euler_bernoulli_beam_element), intent(in) :: this
+        integer, allocatable, dimension(:) :: components
+
+        components = [DOF_UX, DOF_UY, DOF_UZ, DOF_RX, DOF_RY, DOF_RZ]
+    end function
+
 ! ------------------------------------------------------------------------------
     function eb_init(mat, A, J, Iyy, Izz, n1, n2, ydir) result(rst)
         !! Constructs a new [[euler_bernoulli_beam_element]] instance.

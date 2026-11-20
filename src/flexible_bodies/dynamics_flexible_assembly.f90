@@ -10,7 +10,8 @@ module dynamics_flexible_assembly
     !! element order. Do not assemble the same mesh concurrently from multiple
     !! callers; element evaluations can update their workspaces.
     use iso_fortran_env, only : real64, int64
-    use dynamics_flexible_body_types, only : fe_node
+    use dynamics_flexible_body_types, only : fe_node, degree_of_freedom
+    use dynamics_error_handling, only : DYN_ARRAY_SIZE_ERROR, DYN_INDEX_OUT_OF_RANGE
     use dynamics_finite_element, only : finite_element
     use linalg, only : csr_matrix, create_csr_matrix, create_empty_csr_matrix
     implicit none
@@ -33,8 +34,8 @@ module dynamics_flexible_assembly
     type :: finite_element_mesh
         !! Owns a node table and a heterogeneous collection of elements.
         !! Shared nodes must use the same local DOF count and component order.
-        !! The count is checked; compatible component order is the caller's
-        !! responsibility. Numbering is recomputed on each call.
+        !! Both are checked when the layout is built. Numbering is recomputed
+        !! on each call.
         type(fe_node), allocatable, dimension(:) :: nodes
             !! Reference nodes in equation-numbering order. Connectivity uses
             !! one-based positions, not node IDs. Remap element connectivity
@@ -45,6 +46,8 @@ module dynamics_flexible_assembly
     contains
         procedure :: number_dofs
             !! Return global DOF offsets by node, without evaluating elements.
+        procedure :: resolve_dofs
+            !! Look up numbered DOFs by node-table position and physical label.
         procedure, private :: mass_dense
         procedure, private :: mass_csr
         generic :: assemble_mass => mass_dense, mass_csr
@@ -61,18 +64,40 @@ module dynamics_flexible_assembly
             !! Optional `nthreads` enables parallel element evaluation.
     end type
 
+    type :: node_layout
+        integer, allocatable, dimension(:) :: components
+    end type
+
     type :: element_map
         !! Index list for one element: node positions during layout, or
         !! global equations in local DOF order during assembly.
         integer, allocatable, dimension(:) :: indices
     end type
 
+    interface finite_element_mesh
+        module procedure :: mesh_init
+    end interface
+
 contains
+! ------------------------------------------------------------------------------
+    pure function mesh_init(nnodes, nelements) result(rst)
+        !! Constructs a new [[finite_element_mesh]] object.
+        integer, intent(in) :: nnodes
+            !! The number of nodes.
+        integer, intent(in) :: nelements
+            !! The number of elements.
+        type(finite_element_mesh) :: rst
+            !! The new [[finite_element_mesh]] object.
+
+        allocate(rst%nodes(nnodes))
+        allocate(rst%elements(nelements))
+    end function
+
 ! ------------------------------------------------------------------------------
     subroutine number_dofs(this, offsets)
         !! Return prefix sums of DOFs in node-table order. Node i owns
         !! equations offsets(i)+1 through offsets(i+1); unused nodes own none.
-        !! Invalid connectivity or inconsistent DOF counts cause `error stop`.
+        !! Invalid connectivity or inconsistent DOFs cause `error stop`.
         class(finite_element_mesh), intent(in) :: this
             !! Mesh whose topology determines the numbering.
         integer, allocatable, intent(out), dimension(:) :: offsets
@@ -82,7 +107,41 @@ contains
     end subroutine
 
 ! ------------------------------------------------------------------------------
-    subroutine build_layout(this, offsets, maps)
+    subroutine resolve_dofs(this, node_positions, components, dofs, ndof)
+        !! Resolve a batch of DOFs in request order, retaining duplicates.
+        !! Invalid positions or components absent at a node cause `error stop`.
+        class(finite_element_mesh), intent(in) :: this
+            !! Mesh that defines the current numbering.
+        integer, intent(in), dimension(:) :: node_positions
+            !! One-based positions in the node table, not node IDs.
+        integer, intent(in), dimension(:) :: components
+            !! One physical component label per requested node position.
+        type(degree_of_freedom), allocatable, intent(out), dimension(:) :: dofs
+            !! One numbered DOF record per request.
+        integer, intent(out), optional :: ndof
+            !! Total number of global equations, including unrequested DOFs.
+        integer, allocatable, dimension(:) :: offsets
+        type(node_layout), allocatable, dimension(:) :: layouts
+        integer :: i
+        integer :: node
+        integer :: slot
+
+        if (size(node_positions) /= size(components)) error stop DYN_ARRAY_SIZE_ERROR
+        call build_layout(this, offsets, node_layouts=layouts)
+        if (present(ndof)) ndof = offsets(size(offsets))
+        allocate(dofs(size(components)))
+        do i = 1, size(components)
+            node = node_positions(i)
+            if (node < 1 .or. node > size(layouts)) error stop DYN_INDEX_OUT_OF_RANGE
+            if (.not.allocated(layouts(node)%components)) error stop DYN_INDEX_OUT_OF_RANGE
+            slot = findloc(layouts(node)%components, components(i), dim=1)
+            if (slot == 0) error stop DYN_INDEX_OUT_OF_RANGE
+            dofs(i) = degree_of_freedom(offsets(node) + slot, this%nodes(node)%id, components(i))
+        end do
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    subroutine build_layout(this, offsets, maps, node_layouts)
         !! Validate topology, assign one contiguous block per referenced node,
         !! and optionally map each element's local DOFs to global equations.
         !! Reject missing elements, invalid or repeated node positions,
@@ -95,17 +154,21 @@ contains
         type(element_map), allocatable, intent(out), optional, dimension(:) :: maps
             !! If supplied, allocated in mesh element order, with one global
             !! equation index per local DOF in each element's node-block order.
+        type(node_layout), allocatable, intent(out), optional, dimension(:) :: node_layouts
+            !! If supplied, returns the ordered component labels at each node.
 
-        integer, allocatable, dimension(:) :: connectivity, counts
+        integer, allocatable, dimension(:) :: connectivity
+        integer, allocatable, dimension(:) :: components
         type(element_map), allocatable, dimension(:) :: topology
+        type(node_layout), allocatable, dimension(:) :: layouts
         integer :: nnode, nelem, i, j, k, node, nd, first
 
         nnode = 0
         nelem = 0
         if (allocated(this%nodes)) nnode = size(this%nodes)
         if (allocated(this%elements)) nelem = size(this%elements)
-        allocate(counts(nnode), source=0)
         allocate(topology(nelem))
+        allocate(layouts(nnode))
 
         do i = 1, nelem
             if (.not.allocated(this%elements(i)%element)) error stop "Mesh element is not allocated"
@@ -116,13 +179,23 @@ contains
                     error stop "Invalid mesh element topology"
                 if (int(size(connectivity), int64)*nd /= element%dof_count()) &
                     error stop "Mesh element DOFs must be grouped by node"
+                components = element%dof_components()
+                if (size(components) /= nd .or. any(components <= 0)) error stop "Invalid mesh element DOF labels"
+                do k = 1, nd
+                    if (any(components(:k-1) == components(k))) error stop "Mesh element repeats a DOF label"
+                end do
                 do j = 1, size(connectivity)
                     node = connectivity(j)
                     if (node < 1 .or. node > nnode) error stop "Mesh element node index out of bounds"
                     if (any(connectivity(:j-1) == node)) error stop "Mesh element repeats a node"
-                    if (counts(node) /= 0 .and. counts(node) /= nd) &
-                        error stop "Mesh elements disagree on the DOF count at a shared node"
-                    counts(node) = nd
+                    if (allocated(layouts(node)%components)) then
+                        if (size(layouts(node)%components) /= nd) &
+                            error stop "Mesh elements disagree on the DOF count at a shared node"
+                        if (any(layouts(node)%components /= components)) &
+                            error stop "Mesh elements disagree on the DOF labels or order at a shared node"
+                    else
+                        layouts(node)%components = components
+                    end if
                 end do
             end associate
             call move_alloc(connectivity, topology(i)%indices)
@@ -131,9 +204,12 @@ contains
         allocate(offsets(nnode+1))
         offsets(1) = 0
         do i = 1, nnode
-            if (counts(i) > huge(0) - 1 - offsets(i)) error stop "Mesh DOF count exceeds integer range"
-            offsets(i+1) = offsets(i) + counts(i)
+            nd = 0
+            if (allocated(layouts(i)%components)) nd = size(layouts(i)%components)
+            if (nd > huge(0) - 1 - offsets(i)) error stop "Mesh DOF count exceeds integer range"
+            offsets(i+1) = offsets(i) + nd
         end do
+        if (present(node_layouts)) call move_alloc(layouts, node_layouts)
         if (.not.present(maps)) return
 
         allocate(maps(nelem))

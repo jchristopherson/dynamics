@@ -18,8 +18,8 @@ module dynamics_boundary_conditions
     !! Displacement conditions are eliminated from the assembled system and can
     !! be restored after the reduced system is solved.
     use iso_fortran_env, only : real64
-    use dynamics_error_handling, only : DYN_INDEX_OUT_OF_RANGE, &
-        DYN_ARRAY_SIZE_ERROR, DYN_MATRIX_SIZE_ERROR
+    use dynamics_error_handling, only : DYN_ARRAY_SIZE_ERROR, DYN_MATRIX_SIZE_ERROR
+    use dynamics_flexible_body_types, only : degree_of_freedom
     use dynamics_flexible_assembly, only : finite_element_mesh
     use dynamics_structural, only : apply_boundary_conditions, &
         restore_constrained_values
@@ -28,6 +28,7 @@ module dynamics_boundary_conditions
     private
 
     public :: nodal_condition
+    public :: resolve_boundary_conditions
     public :: apply_force_boundary_conditions
     public :: apply_displacement_boundary_conditions
     public :: restore_displacement_boundary_conditions
@@ -37,7 +38,7 @@ module dynamics_boundary_conditions
         integer :: node = 0
             !! The one-based position of the node in the mesh node table.
         integer :: component = 0
-            !! The one-based local DOF within that node's block of equations.
+            !! The physical DOF label, such as `DOF_UY`, not the local slot.
         real(real64) :: value = 0.0d0
             !! The force (for force conditions) or displacement (for
             !! displacement conditions) applied to the DOF.
@@ -66,7 +67,7 @@ contains
         integer, allocatable, dimension(:) :: dofs
 
         ! Process
-        call condition_layout(mesh, conditions, ndof, dofs)
+        call resolve_boundary_conditions(mesh, conditions, dofs, ndof)
         if (.not.allocated(f)) then
             allocate(f(ndof), source = 0.0d0)
         else
@@ -99,7 +100,7 @@ contains
         real(real64), allocatable, dimension(:) :: u
 
         ! Input Checking
-        call condition_layout(mesh, conditions, ndof, dofs)
+        call resolve_boundary_conditions(mesh, conditions, dofs, ndof)
         if (.not.allocated(k)) error stop DYN_MATRIX_SIZE_ERROR
         if (size(k, 1) /= ndof .or. size(k, 2) /= ndof) error stop DYN_MATRIX_SIZE_ERROR
         if (.not.allocated(f)) error stop DYN_ARRAY_SIZE_ERROR
@@ -139,7 +140,7 @@ contains
         real(real64), allocatable, dimension(:) :: u
 
         ! Input Checking
-        call condition_layout(mesh, conditions, ndof, dofs)
+        call resolve_boundary_conditions(mesh, conditions, dofs, ndof)
         if (size(k, 1) /= ndof .or. size(k, 2) /= ndof) error stop DYN_MATRIX_SIZE_ERROR
         if (.not.allocated(f)) error stop DYN_ARRAY_SIZE_ERROR
         if (size(f) /= ndof) error stop DYN_ARRAY_SIZE_ERROR
@@ -174,7 +175,7 @@ contains
         integer, allocatable, dimension(:) :: dofs, gdof
 
         ! Input Checking
-        call condition_layout(mesh, conditions, ndof, dofs)
+        call resolve_boundary_conditions(mesh, conditions, dofs, ndof)
         if (size(uf) /= ndof - size(dofs)) error stop DYN_ARRAY_SIZE_ERROR
 
         ! Process
@@ -184,34 +185,21 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
-    subroutine condition_layout(mesh, conditions, ndof, dofs)
-        !! Maps each condition to its global DOF using the mesh numbering.
+    subroutine resolve_boundary_conditions(mesh, conditions, dofs, ndof)
+        !! Maps conditions to global equations without applying them.
+        !! Repeated requests are preserved; displacement reduction rejects duplicates.
         type(finite_element_mesh), intent(in) :: mesh
             !! The mesh that defines the global DOF numbering.
         type(nodal_condition), intent(in), dimension(:) :: conditions
             !! The conditions to map.
-        integer, intent(out) :: ndof
-            !! The total number of global DOFs in the mesh.
         integer, allocatable, intent(out), dimension(:) :: dofs
             !! The global DOF of each condition, in the order of conditions.
+        integer, intent(out), optional :: ndof
+            !! The total number of global DOFs in the mesh.
 
-        ! Local Variables
-        integer, allocatable, dimension(:) :: offsets
-        integer :: i, n, c, nnode
+        type(degree_of_freedom), allocatable, dimension(:) :: resolved
 
-        ! Initialization
-        call mesh%number_dofs(offsets)
-        ndof = int(offsets(size(offsets)))
-        nnode = int(size(offsets) - 1)
-        allocate(dofs(size(conditions)))
-
-        ! Map each condition, rejecting nodes or components outside the mesh
-        do i = 1, size(conditions)
-            n = conditions(i)%node
-            c = conditions(i)%component
-            if (n < 1 .or. n > nnode) error stop DYN_INDEX_OUT_OF_RANGE
-            if (c < 1 .or. c > offsets(n+1) - offsets(n)) error stop DYN_INDEX_OUT_OF_RANGE
-            dofs(i) = offsets(n) + c
-        end do
+        call mesh%resolve_dofs(conditions%node, conditions%component, resolved, ndof)
+        dofs = resolved%equation_id
     end subroutine
 end module
