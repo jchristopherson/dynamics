@@ -16,7 +16,7 @@ module dynamics_linkage_dynamics
     !! linkages. Link mass properties and joint attachment frames are converted
     !! into the rigid bodies and holonomic constraints required by the
     !! variational integrator.
-    use iso_fortran_env, only : int32, real64
+    use iso_fortran_env, only : real64
     use dynamics_error_handling, only : DYN_ARRAY_SIZE_ERROR, &
         DYN_INVALID_INPUT_ERROR
     use dynamics_kinematics, only : transform_inverse

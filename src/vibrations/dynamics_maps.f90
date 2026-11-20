@@ -61,7 +61,7 @@ module dynamics_maps
         subroutine poincare_map_progress(completed_samples, total_samples, &
             time, args)
             !! Reports progress after a complete ODE sample chunk is processed.
-            import int32, real64
+            import real64
             integer, intent(in) :: completed_samples
                 !! Number of uniformly spaced samples completed so far.
             integer, intent(in) :: total_samples

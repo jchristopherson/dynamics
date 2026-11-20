@@ -1123,7 +1123,7 @@ end function
         ! Determine an appropriate workspace
         call ZGELSY(n, n, 1, K_dyn, n, dummy, n, jpvt, rcond, rnk, temp, &
             -1, rwork, info)
-        lwork = int(temp(1), kind = int32)
+        lwork = int(temp(1))
         allocate(work(lwork))
 
         ! Loop over each frequency and solve the linear system
@@ -1212,7 +1212,7 @@ end function
         ! Determine an appropriate workspace
         call ZGELSY(n, n, 1, dummy, n, dummy, n, idummy, rcond, rnk, temp, &
             -1, rdummy, info)
-        lwork = int(temp(1), kind = int32)
+        lwork = int(temp(1))
         allocate(work(lwork))
 
         ! Process

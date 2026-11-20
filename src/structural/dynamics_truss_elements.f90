@@ -22,7 +22,7 @@ module dynamics_truss_elements
     !! The inherited mass matrix uses consistent linear interpolation,
     !! giving rho*A*L/6 times [[2I,I],[I,2I]]. Neither element resists
     !! bending or has nodal rotational degrees of freedom.
-    use iso_fortran_env, only : int32, real64
+    use iso_fortran_env, only : real64
     use dynamics_structural, only : material, node, line_element
     use dynamics_helper, only : cross_product
     implicit none

@@ -234,7 +234,7 @@ contains
         ! Workspaec Sizing - only compute V**T
         call DGESVD(jobu, jobvt, m, n, dummy, m, dummy, dummy, m, dummy, mn, &
             temp, -1, info)
-        lwork = int(temp(1), int32)
+        lwork = int(temp(1))
         allocate(work(lwork), vt(mn, n), shifted(m, n), s(mn))
 
         ! Process
@@ -426,7 +426,7 @@ contains
         ! Workspace Sizing - only compute V**T
         call DGESVD(jobu, jobvt, m, n, dummy, m, dummy, dummy, m, dummy, mn, &
             temp, -1, info)
-        lwork = int(temp(1), int32)
+        lwork = int(temp(1))
         allocate(work(lwork), vt(mn, n), shifted(m, n), s(mn))
 
         ! Process
@@ -924,7 +924,7 @@ contains
         ! Set up the least-squares solver.  We use DGELSY as we have 3 equations
         ! but only 2 unknowns.
         call DGELSY(3, 2, 1, A, 3, x, 3, ipvt, rc, rnk, temp, -1, info)
-        lwork = int(temp(1), int32)
+        lwork = int(temp(1))
         allocate(work(lwork))
 
         ! Solve
@@ -993,7 +993,7 @@ contains
 
         ! Set up the least-squares solver
         call DGELSY(3, 2, 1, A, 3, x, 3, ipvt, rc, rnk, temp, -1, info)
-        lwork = int(temp(1), int32)
+        lwork = int(temp(1))
         allocate(work(lwork))
 
         ! Solve A {s;t} = X

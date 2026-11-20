@@ -211,7 +211,7 @@ pure function state_space_init(m, b, k, n_out) result(rst)
     ! Workspace
     call dgetri(p, rst%b(p+1:n,:), p, pvt, temp, -1, info)
     if (info /= 0) error stop DYN_INVALID_INPUT_ERROR
-    lwork = int(temp(1), int32)
+    lwork = int(temp(1))
     allocate(work(lwork))
 
     ! Build p-by-p Identity sub-matrix matrix
@@ -599,7 +599,7 @@ pure function ss_transfer_fcn(this, s) result(rst)
     ! Determine DGELS workspace requirements
     call zgels('N', n, n, 1, Ac, n, Bj, n, temp, -1, info)
     if (info /= 0) error stop DYN_INVALID_INPUT_ERROR
-    lwork = int(temp(1), int32)
+    lwork = int(temp(1))
     allocate(work(lwork))
 
     ! Build s * I - A

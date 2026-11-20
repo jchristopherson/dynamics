@@ -17,7 +17,7 @@ module dynamics_boundary_conditions
     !! a mesh node. Force conditions are added to the global force vector.
     !! Displacement conditions are eliminated from the assembled system and can
     !! be restored after the reduced system is solved.
-    use iso_fortran_env, only : int32, real64
+    use iso_fortran_env, only : real64
     use dynamics_error_handling, only : DYN_INDEX_OUT_OF_RANGE, &
         DYN_ARRAY_SIZE_ERROR, DYN_MATRIX_SIZE_ERROR
     use dynamics_flexible_assembly, only : finite_element_mesh
@@ -201,8 +201,8 @@ contains
 
         ! Initialization
         call mesh%number_dofs(offsets)
-        ndof = int(offsets(size(offsets)), int32)
-        nnode = int(size(offsets) - 1, int32)
+        ndof = int(offsets(size(offsets)))
+        nnode = int(size(offsets) - 1)
         allocate(dofs(size(conditions)))
 
         ! Map each condition, rejecting nodes or components outside the mesh

@@ -96,7 +96,6 @@ module dynamics_parallel_linkage
     interface
         pure function mechanism_dimension(this) result(rst)
             !! Gets the dimension of the space in which the mechanism operates.
-            use iso_fortran_env, only : int32
             import kinematic_mechanism
             class(kinematic_mechanism), intent(in) :: this
                 !! The mechanism object.

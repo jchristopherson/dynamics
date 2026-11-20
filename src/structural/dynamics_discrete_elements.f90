@@ -34,7 +34,7 @@ module dynamics_discrete_elements
     !! additional degrees of freedom (e.g. beam nodes), the element degrees of
     !! freedom map onto the leading translational degrees of freedom of each
     !! node.
-    use iso_fortran_env, only : int32, real64
+    use iso_fortran_env, only : real64
     use linalg, only : csr_matrix, dense_to_csr
     use dynamics_error_handling
     use dynamics_structural, only : node, element

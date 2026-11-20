@@ -40,7 +40,6 @@ module dynamics_linkage
     interface
         pure function link_joint_count(this) result(rst)
             !! Gets the number of joint coordinate frames carried by the link.
-            use iso_fortran_env, only : int32
             import link
             class(link), intent(in) :: this
                 !! The link object.
@@ -52,7 +51,7 @@ module dynamics_linkage
             !! Gets the transformation matrix relating the requested joint
             !! coordinate frame to the link's body coordinate frame.  The matrix
             !! maps coordinates from the joint frame into the body frame.
-            use iso_fortran_env, only : int32, real64
+            use iso_fortran_env, only : real64
             import link
             class(link), intent(in) :: this
                 !! The link object.

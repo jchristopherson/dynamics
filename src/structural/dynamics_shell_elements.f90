@@ -88,7 +88,7 @@ module dynamics_shell_elements
     !! translational inertia \(\rho t\) and rotary inertia
     !! \(\rho t^3 / 12\).  The rotary inertia is also assigned to the drilling
     !! rotation to keep the mass matrix positive definite.
-    use iso_fortran_env, only : int32, real64
+    use iso_fortran_env, only : real64
     use dynamics_error_handling
     use dynamics_helper, only : cross_product
     use dynamics_structural, only : node, material, element

@@ -23,7 +23,7 @@ module dynamics_linear_structural_solvers
     !! reuse their work arrays and their effective-system factorization when
     !! the time step is unchanged. The linalg GMRES routine still allocates
     !! its own iteration workspace for large CSR systems.
-    use iso_fortran_env, only : int32, real64
+    use iso_fortran_env, only : real64
     use, intrinsic :: ieee_arithmetic, only : ieee_is_finite
     use dynamics_error_handling
     use linalg, only : csr_matrix, msr_matrix, size, matmul, &

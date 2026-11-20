@@ -23,7 +23,7 @@ module dynamics_variational_integrators
     !! solver is useful as a reference implementation; the graph-factorized
     !! solver eliminates six-variable body nodes and scalar constraint nodes
     !! according to the sparsity graph of the Newton matrix.
-    use iso_fortran_env, only : int32, real64
+    use iso_fortran_env, only : real64
     use linalg, only : lu_factor, solve_lu
     use dynamics_error_handling, only : DYN_ARRAY_SIZE_ERROR, &
         DYN_CONVERGENCE_ERROR, DYN_INVALID_INPUT_ERROR
@@ -879,7 +879,7 @@ function graph_factorized_solve(matrix, vector, nbody, nconstraint, &
     ! elimination forms their Schur-complement diagonal.
     do position = 1, nnode
         candidate = 0
-        candidate_degree = huge(1_int32)
+        candidate_degree = huge(candidate_degree)
         do i = 1, nnode
             if (.not.active(i)) cycle
             call graph_node_range(i, nbody, i1, i2)

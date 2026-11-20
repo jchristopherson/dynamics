@@ -12,7 +12,7 @@
 ! implied, including but not limited to the warranties of merchantability,
 ! fitness for a particular purpose and noninfringement.
 module dynamics_frequency_sweep
-    use iso_fortran_env, only : int32, real64
+    use iso_fortran_env, only : real64
     use diffeq, only : ode_container, ode_integrator
     use dynamics_error_handling
     use dynamics_frequency_response, only : frf

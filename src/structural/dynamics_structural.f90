@@ -140,7 +140,6 @@ module dynamics_structural
         pure function element_query(this) result(rst)
             !! Defines the signature of a function performing a query on an
             !! integer-valued property of a element type.
-            use iso_fortran_env, only : int32
             import element
             class(element), intent(in) :: this
                 !! The element object.
@@ -151,7 +150,6 @@ module dynamics_structural
         pure function element_get_node(this, i) result(rst)
             !! Defines the signature of a function for retrieving the requested
             !! node from the element.
-            use iso_fortran_env, only : int32
             import node
             import element
             class(element), intent(in) :: this
@@ -166,7 +164,7 @@ module dynamics_structural
             result(rst)
             !! Defines the signature of a function returning the natural
             !! coordinates of an element node.
-            use iso_fortran_env, only : int32, real64
+            use iso_fortran_env, only : real64
             import element
             class(element), intent(in) :: this
                 !! The element object.
@@ -204,7 +202,7 @@ module dynamics_structural
         pure function element_shape_function(this, i, s) result(rst)
             !! Defines the signature of a routine for computing the value of
             !! the i-th element shape function at natural coordinate.
-            use iso_fortran_env, only : int32, real64
+            use iso_fortran_env, only : real64
             import element
             class(element), intent(in) :: this
                 !! The element object.
@@ -231,7 +229,7 @@ module dynamics_structural
 
         pure subroutine line_element_get_terminal(this, i1, i2)
             !! Defines the signature for returning the terminal node numbers.
-            import :: line_element, int32
+            import :: line_element
             class(line_element), intent(in) :: this
                 !! The line_element object.
             integer, intent(out) :: i1
