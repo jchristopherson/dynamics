@@ -6,6 +6,7 @@
 * **`dynamics_flexible_materials`** defines strain-energy constitutive interfaces and the built-in linear-elastic isotropic material. Material routines provide derivatives through real, dual, and hyper-dual evaluations for force and tangent calculations.
 * **`dynamics_flexible_beam_elements`** provides energy-based spatial beam elements, including the two-node Euler-Bernoulli beam described below.
 * **`dynamics_flexible_assembly`** provides heterogeneous finite-element meshes, connectivity-based equation numbering, and dense or CSR assembly of mass, tangent stiffness, and internal force.
+* **`dynamics_boundary_conditions`** applies force and displacement boundary conditions to a mesh's assembled equations, dense or CSR, and restores prescribed displacements after the reduced solve.
 
 ## Flexible beams
 
@@ -79,6 +80,22 @@ call mesh%assemble_mass(mass)
 call mesh%assemble_stiffness(q, stiffness)
 call mesh%assemble_internal_force(q, force)
 ```
+
+### Mesh boundary conditions
+
+`dynamics_boundary_conditions` addresses a DOF with a `nodal_condition`, which
+holds a one-based node position in `mesh%nodes`, a one-based local component in
+that node's block, and a `value`. Force conditions accumulate into the global
+force vector, which is allocated as zeros if unallocated:
+`apply_force_boundary_conditions(mesh, conditions, f)`.
+
+Displacement conditions are eliminated symmetrically from the assembled system
+with `apply_displacement_boundary_conditions(mesh, conditions, k, f)`, where `k`
+is dense or `csr_matrix`. The matrix and force are reduced to the free DOFs, and
+the force becomes `f - K*u_p`. Duplicate displacement DOFs are rejected. After
+solving the reduced system, `restore_displacement_boundary_conditions(mesh,
+conditions, uf)` returns the full displacement vector with the prescribed values.
+Invalid node or component indices, and size mismatches, cause `error stop`.
 
 For dense output, declare `mass` and `stiffness` as allocatable rank-two
 `real(real64)` arrays instead; the calls are unchanged. Allocating from `beam`

@@ -56,6 +56,7 @@ program main
                 if (.not.test_flexible_material()) stop 191
                 if (.not.test_flexible_beam()) stop 192
                 if (.not.test_flexible_mesh()) stop 193
+                if (.not.test_flexible_mesh_boundary_conditions()) stop 194
                 stop
             end if
             if (index(selection, "motion-") == 1) then
@@ -92,6 +93,9 @@ program main
 
     check = test_flexible_mesh()
     if (.not.check) flag = 193
+
+    check = test_flexible_mesh_boundary_conditions()
+    if (.not.check) flag = 194
 
     check = test_frf_sweep()
     if (.not.check) flag = 1

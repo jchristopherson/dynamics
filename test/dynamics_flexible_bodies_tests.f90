@@ -5,6 +5,9 @@ module dynamics_flexible_bodies_tests
     use dynamics_flexible_beam_elements
     use dynamics_flexible_body_types, only : fe_node
     use dynamics_flexible_assembly, only : finite_element_mesh
+    use dynamics_boundary_conditions, only : nodal_condition, &
+        apply_force_boundary_conditions, apply_displacement_boundary_conditions, &
+        restore_displacement_boundary_conditions
     use linalg, only : csr_matrix, csr_to_dense
     use dynamics_flexible_materials
     use dynamics_helper, only : dot_product, matmul
@@ -13,6 +16,7 @@ module dynamics_flexible_bodies_tests
     public :: test_flexible_material
     public :: test_flexible_beam
     public :: test_flexible_mesh
+    public :: test_flexible_mesh_boundary_conditions
     public :: test_ad_products
     public :: invalid_ad_product
     public :: invalid_flexible_input
@@ -441,5 +445,95 @@ contains
        call mesh%assemble_internal_force(q, threaded_f, nthreads=2)
        ok = ok .and. all(threaded_f == f)
        if (.not.ok) print "(A)", "TEST FAILED: flexible mesh assembly"
+   end function
+
+   function test_flexible_mesh_boundary_conditions() result(ok)
+       logical :: ok
+       type(linear_elastic_isotropic_material), target :: material
+       type(euler_bernoulli_beam_element) :: beam
+       type(finite_element_mesh) :: mesh
+       type(nodal_condition), allocatable, dimension(:) :: conditions
+       type(csr_matrix) :: sparse
+       integer, dimension(12,2) :: eq
+       integer, dimension(12) :: ids
+       integer, allocatable, dimension(:) :: free
+       real(real64), dimension(18) :: q
+       real(real64), dimension(18) :: utarget
+       real(real64), dimension(18) :: u
+       real(real64), dimension(12,12) :: local
+       real(real64), allocatable, dimension(:) :: f
+       real(real64), allocatable, dimension(:) :: fr
+       real(real64), allocatable, dimension(:) :: fs
+       real(real64), allocatable, dimension(:) :: uf
+       real(real64), allocatable, dimension(:,:) :: k
+       real(real64), dimension(18,18) :: expected_k
+       real(real64), dimension(18) :: expected_f
+       integer :: i
+
+       ! Same mesh as test_flexible_mesh: node 2 is unused, so there are 18 DOFs
+       mesh%nodes = [fe_node(41, [0.0d0, 0.0d0, 0.0d0]), &
+           fe_node(80, [0.0d0, 5.0d0, 0.0d0]), fe_node(25, [2.0d0, 0.0d0, 0.0d0]), &
+           fe_node(64, [3.0d0, 0.0d0, 0.0d0])]
+       material = linear_elastic_isotropic_material(100.0d0, 0.25d0, 2.0d0)
+       beam%material => material
+       beam%area = 1.0d0
+       beam%j = 0.1d0
+       beam%iyy = 0.2d0
+       beam%izz = 0.3d0
+       allocate(mesh%elements(2))
+       beam%node_indices = [1, 3]
+       allocate(mesh%elements(1)%element, source=beam)
+       beam%node_indices = [4, 3]
+       allocate(mesh%elements(2)%element, source=beam)
+
+       eq(:,1) = [(i, i=1,12)]
+       eq(:,2) = [(i, i=13,18), (i, i=7,12)]
+       q = [(0.001d0*i, i=1,18)]
+       expected_k = 0.0d0
+       expected_f = 0.0d0
+       do i = 1, 2
+           ids = eq(:,i)
+           associate (element => mesh%elements(i)%element)
+               call element%stiffness_matrix(q(ids), local, mesh%nodes)
+               expected_k(ids,ids) = expected_k(ids,ids) + local
+           end associate
+       end do
+
+       ! Force conditions: node 3 component 2 is global DOF 8, node 4 component 1 is DOF 13
+       conditions = [nodal_condition(3, 2, 2.0d0), nodal_condition(3, 2, 0.5d0), &
+           nodal_condition(4, 1, -1.0d0)]
+       call apply_force_boundary_conditions(mesh, conditions, f)
+       ok = size(f) == 18
+       ok = ok .and. abs(f(8) - 2.5d0) < 1.0d-12 .and. abs(f(13) + 1.0d0) < 1.0d-12
+       ok = ok .and. abs(sum(abs(f)) - 3.5d0) < 1.0d-12
+       call apply_force_boundary_conditions(mesh, conditions(3:3), f)
+       ok = ok .and. abs(f(13) + 2.0d0) < 1.0d-12
+
+       ! Displacement conditions on global DOFs 1, 2, and 13
+       utarget = [(0.01d0*i, i=1,18)]
+       conditions = [nodal_condition(1, 1, utarget(1)), nodal_condition(1, 2, utarget(2)), &
+           nodal_condition(4, 1, utarget(13))]
+       free = [(i, i=3,12), (i, i=14,18)]
+       expected_f = matmul(expected_k, utarget)
+       k = expected_k
+       fr = expected_f
+       call apply_displacement_boundary_conditions(mesh, conditions, k, fr)
+       ok = ok .and. size(k,1) == 15 .and. size(fr) == 15
+       ok = ok .and. maxval(abs(k - expected_k(free,free))) < 1.0d-12
+       ok = ok .and. maxval(abs(fr - matmul(expected_k(free,free), utarget(free)))) < 1.0d-12
+
+       ! Restoring the reduced solution reproduces the prescribed state
+       uf = utarget(free)
+       u = restore_displacement_boundary_conditions(mesh, conditions, uf)
+       ok = ok .and. maxval(abs(u - utarget)) < 1.0d-12
+
+       ! The CSR overload must match the dense reduction
+       call mesh%assemble_stiffness(q, sparse)
+       fs = expected_f
+       call apply_displacement_boundary_conditions(mesh, conditions, sparse, fs)
+       ok = ok .and. maxval(abs(csr_to_dense(sparse) - expected_k(free,free))) < 1.0d-12
+       ok = ok .and. maxval(abs(fs - matmul(expected_k(free,free), utarget(free)))) < 1.0d-12
+
+       if (.not.ok) print "(A)", "TEST FAILED: flexible mesh boundary conditions"
    end function
 end module
