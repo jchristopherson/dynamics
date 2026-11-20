@@ -106,8 +106,18 @@ program example
 
         do el = 1, nel
             elem_count = elem_count + 1
-            allocate(mesh%elements(elem_count)%element, source=euler_bernoulli_beam_element( &
-                mat, area, torsion_constant, moi, moi, leg_nodes(el, leg), leg_nodes(el + 1, leg), reference_y))
+            call mesh%assign_element(elem_count, &
+                euler_bernoulli_beam_element( &
+                    mat, &
+                    area, &
+                    torsion_constant, &
+                    moi, &
+                    moi, &
+                    leg_nodes(el, leg), &
+                    leg_nodes(el + 1, leg), &
+                    reference_y &
+                ) &
+            )
         end do
     end do
 

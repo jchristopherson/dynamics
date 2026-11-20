@@ -62,6 +62,8 @@ module dynamics_flexible_assembly
         procedure :: assemble_internal_force
             !! Assemble element internal forces in global equation order.
             !! Optional `nthreads` enables parallel element evaluation.
+        procedure :: assign_element
+            !! Assigns an element to the specified location in the mesh.
     end type
 
     type :: node_layout
@@ -92,6 +94,29 @@ contains
         allocate(rst%nodes(nnodes))
         allocate(rst%elements(nelements))
     end function
+
+! ------------------------------------------------------------------------------
+    subroutine assign_element(this, index, elem)
+        !! Assigns an element to the specified location in the mesh.
+        class(finite_element_mesh), intent(inout) :: this
+            !! The [[finite_element_mesh]] object.
+        integer, intent(in) :: index
+            !! The index of where to assign the element.  If an element 
+            !! already resides at the specified location it is destroyed and
+            !! replaced with the supplied element `elem`.  If `index` is 
+            !! outside the bounds of the element collection an error stop
+            !! condition is triggered.
+        class(finite_element), intent(in) :: elem
+            !! The element.
+
+        if (index < 1 .or. index > size(this%elements)) then
+            error stop DYN_INDEX_OUT_OF_RANGE
+        end if
+        if (allocated(this%elements(index)%element)) then
+            deallocate(this%elements(index)%element)
+        end if
+        allocate(this%elements(index)%element, source = elem)
+    end subroutine
 
 ! ------------------------------------------------------------------------------
     subroutine number_dofs(this, offsets)
