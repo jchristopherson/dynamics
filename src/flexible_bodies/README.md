@@ -36,14 +36,8 @@ the beam's AD workspace is reused and must not be accessed concurrently.
 
 ### Flexible mesh assembly
 
-The [flexible truss example](../../examples/flexible_truss_example.f90) uses
-50 spatial Euler–Bernoulli beam elements per leg to reproduce the five-leg
-geometry of the [structural example](../../examples/structural_example.f90).
-Build the `flexible_truss_example` target with `BUILD_DYNAMICS_EXAMPLES=ON` and
-run it with Gnuplot on `PATH`. It assembles the reference mass and tangent
-stiffness in CSR format, fixes all six DOFs at node 1, and restrains only
-`DOF_UY` at node 3. It plots the undeformed mesh without applying loads or
-running a solve.
+See the [Flexible Truss Example](#flexible-truss-example) for a complete
+sparse static and modal analysis.
 
 Populate a `finite_element_mesh` with its `nodes` array and allocate each
 `elements(i)%element` from a concrete finite element. Elements reference nodes
@@ -123,3 +117,37 @@ For dense output, declare `mass` and `stiffness` as allocatable rank-two
 `real(real64)` arrays instead; the calls are unchanged. Allocating from `beam`
 copies the element but not its material target, which must remain alive while
 the mesh uses it.
+
+## Flexible Truss Example
+
+The [`flexible_truss_example`](../../examples/flexible_truss_example.f90)
+reproduces the five-member geometry of the
+[structural example](../structural/README.md#structural-example) using spatial
+Euler–Bernoulli beams. Each member is divided into 50 elements, giving 250
+elements and 249 nodes. All six DOFs are fixed at the lower-left support
+(node 1); only vertical translation (`DOF_UY`) is restrained at the
+lower-right support (node 3). The mesh has 1,487 free DOFs.
+
+![Undeformed five-member flexible truss mesh with markers at the beam nodes](../../images/flexible_truss_example_mesh.png?raw=true)
+
+The example assembles the reference mass and undeformed tangent stiffness in
+CSR format. The linearized static solution for a 10 kN downward load at the
+apex gives an apex displacement of **0.229 mm downward**. The XY plot overlays
+the dotted reference outline with the displacement-colored shape, magnified
+100 times for visibility.
+
+![Static deformation of the flexible truss under a 10 kN apex load, magnified 100 times](../../images/flexible_truss_example_static_deformation.png?raw=true)
+
+The six lowest vibration modes use the same undeformed tangent. The 3D
+plots rotate the display coordinates by +90 degrees about X so global Y
+points up and the depth axis is labeled `-Z`. Each mode is scaled
+for display; the plotted amplitudes are not physical displacements.
+
+| Mode 1: 33.173 Hz | Mode 2: 153.396 Hz | Mode 3: 251.955 Hz |
+|:--:|:--:|:--:|
+| ![Mode 1](../../images/flexible_truss_example_mode_1.png?raw=true) | ![Mode 2](../../images/flexible_truss_example_mode_2.png?raw=true) | ![Mode 3](../../images/flexible_truss_example_mode_3.png?raw=true) |
+| **Mode 4: 379.459 Hz** | **Mode 5: 552.349 Hz** | **Mode 6: 554.742 Hz** |
+| ![Mode 4](../../images/flexible_truss_example_mode_4.png?raw=true) | ![Mode 5](../../images/flexible_truss_example_mode_5.png?raw=true) | ![Mode 6](../../images/flexible_truss_example_mode_6.png?raw=true) |
+
+Build the `flexible_truss_example` target with `BUILD_DYNAMICS_EXAMPLES=ON`
+and run it with Gnuplot on `PATH`.
