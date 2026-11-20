@@ -17,7 +17,8 @@ program example
         DOF_UX, DOF_UY, DOF_UZ, DOF_RX, DOF_RY, DOF_RZ, &
         euler_bernoulli_beam_element, fe_node, finite_element_mesh, &
         flexible_material, linear_elastic_isotropic_material, solve_static_system, &
-        apply_force_boundary_conditions, restore_constrained_values, degree_of_freedom
+        apply_force_boundary_conditions, restore_constrained_values, degree_of_freedom, &
+        flexible_static_settings, flexible_static_info, solve_flexible_static
     use fplot_core, only : plot_2d, plot_data_2d, plot_3d, plot_data_3d, plot_axis, rainbow_colormap, CLR_BLACK, LINE_DOTTED
     use linalg, only : csr_matrix, size, eigen, matmul
     implicit none
@@ -31,8 +32,9 @@ program example
     !     1---4---3
     !
     ! All nodes lie in the XY plane, but the spatial beams give each node six
-    ! DOFs: three translations and three rotations. Both analyses use the
-    ! tangent stiffness at the undeformed configuration.
+    ! DOFs: three translations and three rotations. The linear static and
+    ! modal analyses use the undeformed tangent; the nonlinear static solve
+    ! updates the internal forces and tangent at the current displacement.
 
     ! Mesh Refinement
     integer, parameter :: nel = 50
@@ -68,10 +70,15 @@ program example
     type(finite_element_mesh) :: mesh
     type(csr_matrix) :: mass
     type(csr_matrix) :: stiffness
+    type(flexible_static_settings) :: static_settings
+    type(flexible_static_info) :: static_info
+    type(nodal_condition), dimension(7) :: supports
     integer, allocatable, dimension(:) :: bc
     real(real64), allocatable, dimension(:) :: q
     real(real64), allocatable, dimension(:) :: force
+    real(real64), allocatable, dimension(:) :: reduced_force
     real(real64), allocatable, dimension(:) :: u
+    real(real64), allocatable, dimension(:) :: nonlinear_u
     real(real64), allocatable, dimension(:) :: freqs
     real(real64), allocatable, dimension(:,:) :: modes
     type(degree_of_freedom), allocatable, dimension(:) :: translations
@@ -135,10 +142,11 @@ program example
 
     ! Fix all six DOFs at node 1. At node 3, restrain only the vertical
     ! translation, as in structural_example.
-    call resolve_boundary_conditions(mesh, [ &
+    supports = [ &
         nodal_condition(1, DOF_UX), nodal_condition(1, DOF_UY), nodal_condition(1, DOF_UZ), &
         nodal_condition(1, DOF_RX), nodal_condition(1, DOF_RY), nodal_condition(1, DOF_RZ), &
-        nodal_condition(3, DOF_UY)], bc, ndof)
+        nodal_condition(3, DOF_UY)]
+    call resolve_boundary_conditions(mesh, supports, bc, ndof)
 
     ! The zero state selects the undeformed tangent; the CSR outputs select
     ! direct sparse assembly. Use the same support equations for both matrices.
@@ -146,10 +154,10 @@ program example
     call mesh%assemble_mass(mass)
     call mesh%assemble_stiffness(q, stiffness)
 
-    ! Apply the apex load in global -Y, then remove the same support equations
-    ! from the force vector and both matrices.
+    ! Keep the full applied force for the nonlinear solver. Reduce a separate
+    ! copy and the matrices for the linear static and modal analyses.
     call apply_force_boundary_conditions(mesh, [nodal_condition(2, DOF_UY, -applied_force)], force)
-    force = apply_boundary_conditions(bc, force)
+    reduced_force = apply_boundary_conditions(bc, force)
     mass = apply_boundary_conditions(bc, mass)
     stiffness = apply_boundary_conditions(bc, stiffness)
 
@@ -165,10 +173,27 @@ program example
     print "(A,I0)", "Free DOFs after applying supports: ", size(stiffness, 1)
     
     ! Restore zero translations and rotations at the supports before plotting.
-    q = solve_static_system(stiffness, force)
+    q = solve_static_system(stiffness, reduced_force)
     u = restore_constrained_values(bc, q)
-    print "(A,ES13.5,A)", "Static apex UY: ", u(translation_eq(2,2)), " m"
+    print "(A,ES13.5,A)", "Linear static apex UY: ", u(translation_eq(2,2)), " m"
 
+    ! Start from the linear solution, but evaluate equilibrium with the
+    ! nonlinear internal forces and current tangent on the full mesh.
+    nonlinear_u = u
+    static_settings%sparse = .true.
+    call solve_flexible_static(mesh, force, supports, nonlinear_u, static_settings, static_info)
+    if (.not.static_info%converged) then
+        print "(A,I0,A,ES13.5,A,L1)", "Nonlinear iterations: ", static_info%iterations, &
+            ", residual norm: ", static_info%residual_norm, ", linear solve failed: ", static_info%linear_solve_failed
+        error stop "Nonlinear static equilibrium failed"
+    end if
+    print "(A,ES13.5,A)", "Nonlinear static apex UY: ", nonlinear_u(translation_eq(2,2)), " m"
+    print "(A,I0,A,ES13.5)", "Nonlinear iterations: ", static_info%iterations, &
+        ", free residual norm: ", static_info%residual_norm
+
+! ******************************************************************************
+! MODAL ANALYSIS
+! ------------------------------------------------------------------------------
     ! Solve K*phi = omega**2*M*phi using the same reduced reference tangent.
     call solve_modes()
     freqs = freqs / (2.0d0 * pi)
@@ -177,7 +202,8 @@ program example
     end do
 
     call plot_mesh()
-    call plot_deflection(u, 1.0d2, "Static Deformation (x100)")
+    call plot_deflection(u, 1.0d2, "Linear Static Deformation (x100)")
+    call plot_deflection(nonlinear_u, 1.0d2, "Nonlinear Static Deformation (x100)")
     do i = 1, size(freqs)
         u = restore_constrained_values(bc, modes(:,i))
         ! Eigenvector amplitudes are arbitrary. Scale the largest translation

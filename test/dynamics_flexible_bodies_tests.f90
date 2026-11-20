@@ -9,6 +9,7 @@ module dynamics_flexible_bodies_tests
         apply_force_boundary_conditions, apply_displacement_boundary_conditions, &
         restore_displacement_boundary_conditions, resolve_boundary_conditions
     use dynamics_flexible_body_solvers, only : flexible_static_settings, flexible_static_info, solve_flexible_static
+    use dynamics_structural, only : apply_boundary_conditions, restore_constrained_values, solve_static_system
     use linalg, only : csr_matrix, csr_to_dense
     use dynamics_flexible_materials
     use dynamics_helper, only : dot_product, matmul
@@ -19,6 +20,7 @@ module dynamics_flexible_bodies_tests
     public :: test_flexible_mesh
     public :: test_flexible_mesh_boundary_conditions
     public :: test_flexible_static
+    public :: test_flexible_truss_static
     public :: test_ad_products
     public :: invalid_ad_product
     public :: invalid_flexible_input
@@ -41,6 +43,11 @@ module dynamics_flexible_bodies_tests
     contains
         procedure :: internal_force_vector => static_test_force
         procedure :: stiffness_matrix => static_test_stiffness
+    end type
+
+    type, extends(static_test_element) :: zero_tangent_test_element
+    contains
+        procedure :: stiffness_matrix => zero_test_stiffness
     end type
 
 contains
@@ -70,14 +77,24 @@ contains
         end do
     end subroutine
 
+    subroutine zero_test_stiffness(this, q, k, nodes)
+        class(zero_tangent_test_element), intent(inout), target :: this
+        real(real64), intent(in), dimension(:) :: q
+        real(real64), intent(out), dimension(:,:) :: k
+        type(fe_node), intent(in), target, dimension(:) :: nodes
+        k = 0.0d0
+    end subroutine
+
     function test_flexible_static() result(ok)
         logical :: ok
         type(nonlinear_material), target :: material
         type(linear_elastic_isotropic_material), target :: linear_material
         type(euler_bernoulli_beam_element) :: beam
         type(static_test_element) :: element
+        type(zero_tangent_test_element) :: zero_element
         type(finite_element_mesh) :: mesh
         type(finite_element_mesh) :: large_mesh
+        type(finite_element_mesh) :: zero_mesh
         type(flexible_static_settings) :: settings
         type(flexible_static_info) :: info
         type(nodal_condition), dimension(11) :: conditions
@@ -152,6 +169,13 @@ contains
         q = 0.0d0
         call solve_flexible_static(mesh, load, no_conditions, q, settings, info)
         ok = ok .and. .not.info%converged .and. info%linear_solve_failed .and. all(q == 0.0d0)
+        zero_mesh%nodes = mesh%nodes
+        allocate(zero_mesh%elements(1))
+        zero_element%node_indices = [1, 2]
+        call zero_mesh%assign_element(1, zero_element)
+        q = 0.0d0
+        call solve_flexible_static(zero_mesh, load, no_conditions, q, settings, info)
+        ok = ok .and. .not.info%converged .and. info%linear_solve_failed .and. all(q == 0.0d0)
         all_conditions(:11) = conditions
         all_conditions(12) = nodal_condition(2, DOF_UX, 0.4d0)
         call solve_flexible_static(mesh, load, all_conditions, q, settings, info)
@@ -202,6 +226,108 @@ contains
         call solve_flexible_static(large_mesh, large_load, one_condition, large_q, settings, info)
         ok = ok .and. info%converged .and. info%iterations == 0
         if (.not.ok) print "(A)", "TEST FAILED: nonlinear flexible static solver"
+    end function
+
+    function test_flexible_truss_static() result(ok)
+        !! Exercise the sparse solver on the finely discretized example mesh.
+        logical :: ok
+        integer, parameter :: nel = 50
+        integer, parameter :: nlegs = 5
+        integer, parameter :: nnodes = 4 + nlegs * (nel - 1)
+        real(real64), parameter :: pi = acos(-1.0d0)
+        real(real64), parameter :: diameter = 0.05d0
+        real(real64), parameter :: area = pi * diameter**2 / 4.0d0
+        real(real64), parameter :: moi = pi * diameter**4 / 64.0d0
+        real(real64), parameter, dimension(4) :: cx = [0.0d0, 0.5d0, 1.0d0, 0.5d0]
+        real(real64), parameter, dimension(4) :: cy = [0.0d0, 0.2d0, 0.0d0, 0.0d0]
+        integer, parameter, dimension(nlegs) :: starts = [1, 2, 3, 4, 2]
+        integer, parameter, dimension(nlegs) :: ends = [2, 3, 4, 1, 4]
+        type(linear_elastic_isotropic_material), target :: material
+        class(flexible_material), pointer :: mat
+        type(finite_element_mesh) :: mesh
+        type(flexible_static_settings) :: settings
+        type(flexible_static_info) :: info
+        type(csr_matrix) :: stiffness
+        type(nodal_condition), dimension(7) :: supports
+        integer, dimension(nel+1,nlegs) :: leg_nodes
+        integer, allocatable, dimension(:) :: bc
+        logical, allocatable, dimension(:) :: free
+        real(real64), allocatable, dimension(:) :: force
+        real(real64), allocatable, dimension(:) :: reduced_force
+        real(real64), allocatable, dimension(:) :: internal
+        real(real64), allocatable, dimension(:) :: initial
+        real(real64), allocatable, dimension(:) :: sparse_q
+        real(real64), allocatable, dimension(:) :: dense_q
+        real(real64), dimension(3) :: p1
+        real(real64), dimension(3) :: p2
+        real(real64) :: t
+        real(real64) :: residual_norm
+        integer :: ndof
+        integer :: node_count
+        integer :: element_count
+        integer :: i
+        integer :: leg
+        integer :: el
+
+        material = linear_elastic_isotropic_material(70.0d9, 0.33d0, 2700.0d0)
+        mat => material
+        mesh = finite_element_mesh(nnodes, nlegs*nel)
+        do i = 1, 4
+            mesh%nodes(i) = fe_node(i, [cx(i), cy(i), 0.0d0])
+        end do
+        node_count = 4
+        element_count = 0
+        do leg = 1, nlegs
+            leg_nodes(1,leg) = starts(leg)
+            leg_nodes(nel+1,leg) = ends(leg)
+            p1 = mesh%nodes(starts(leg))%coordinates
+            p2 = mesh%nodes(ends(leg))%coordinates
+            do i = 1, nel-1
+                t = real(i,real64) / real(nel,real64)
+                node_count = node_count+1
+                mesh%nodes(node_count) = fe_node(node_count, p1+t*(p2-p1))
+                leg_nodes(i+1,leg) = node_count
+            end do
+            do el = 1, nel
+                element_count = element_count+1
+                call mesh%assign_element(element_count, euler_bernoulli_beam_element( &
+                    mat, area, 2.0d0*moi, moi, moi, leg_nodes(el,leg), leg_nodes(el+1,leg), &
+                    [0.0d0, 0.0d0, 1.0d0]))
+            end do
+        end do
+        supports = [nodal_condition(1, DOF_UX), nodal_condition(1, DOF_UY), &
+            nodal_condition(1, DOF_UZ), nodal_condition(1, DOF_RX), &
+            nodal_condition(1, DOF_RY), nodal_condition(1, DOF_RZ), nodal_condition(3, DOF_UY)]
+        call resolve_boundary_conditions(mesh, supports, bc, ndof)
+        allocate(initial(ndof), source=0.0d0)
+        call mesh%assemble_stiffness(initial, stiffness)
+        call apply_force_boundary_conditions(mesh, [nodal_condition(2, DOF_UY, -1.0d4)], force)
+        reduced_force = apply_boundary_conditions(bc, force)
+        stiffness = apply_boundary_conditions(bc, stiffness)
+        initial = restore_constrained_values(bc, solve_static_system(stiffness, reduced_force))
+        sparse_q = initial
+        settings%sparse = .true.
+        call solve_flexible_static(mesh, force, supports, sparse_q, settings, info)
+        if (.not.info%converged) then
+            print "(A,L1,A,ES13.5)", "TEST FAILED: sparse truss solve; linear failure: ", &
+                info%linear_solve_failed, ", residual: ", info%residual_norm
+            ok = .false.
+            return
+        end if
+        call mesh%assemble_internal_force(sparse_q, internal)
+        allocate(free(ndof), source=.true.)
+        free(bc) = .false.
+        residual_norm = norm2(pack(force-internal, free))
+        ok = residual_norm <= settings%absolute_tolerance + settings%relative_tolerance * norm2(reduced_force)
+        ok = ok .and. all(sparse_q(bc) == 0.0d0)
+        ok = ok .and. abs(sparse_q(8) + 2.294363d-4) < 1.0d-9
+
+        dense_q = initial
+        settings%sparse = .false.
+        call solve_flexible_static(mesh, force, supports, dense_q, settings, info)
+        ok = ok .and. info%converged
+        ok = ok .and. maxval(abs(sparse_q-dense_q)) <= 1.0d-12 + 1.0d-7*maxval(abs(dense_q))
+        if (.not.ok) print "(A)", "TEST FAILED: sparse truss equilibrium or dense agreement"
     end function
 
     pure function test_beam_components(this) result(components)

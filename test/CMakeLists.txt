@@ -60,6 +60,11 @@ add_test(
     WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
     COMMAND $<TARGET_FILE:dynamics_tests> flexible-bodies
 )
+add_test(
+    NAME dynamics_flexible_truss_static_tests
+    WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+    COMMAND $<TARGET_FILE:dynamics_tests> flexible-truss-static
+)
 foreach(case IN ITEMS dual-dot hyperdual-dot dual-matmul hyperdual-matmul)
     add_test(
         NAME dynamics_ad_error_${case}

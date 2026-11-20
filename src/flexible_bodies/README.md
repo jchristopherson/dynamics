@@ -138,6 +138,24 @@ the dotted reference outline with the displacement-colored shape, magnified
 
 ![Static deformation of the flexible truss under a 10 kN apex load, magnified 100 times](../../images/flexible_truss_example_static_deformation.png?raw=true)
 
+The example also solves nonlinear equilibrium under the same load, using the
+linear displacement as its initial guess. It passes the **full** load and
+displacement vectors and the original nodal support conditions to the solver;
+the solver applies the constraints itself. It reports the nonlinear apex
+displacement, Newton iterations, and free residual norm, and displays a separate
+deformation plot. The built-in material is linear elastic; the nonlinearity
+here comes from the beam's finite-strain kinematics. For this load, the
+nonlinear apex displacement is approximately **0.229436 mm downward**, close
+to the linear result; the example converged in two Newton iterations. It uses
+CSR tangents and ILUT-preconditioned GMRES for the nonlinear corrections.
+
+```fortran
+nonlinear_u = u  ! Full displacement recovered from the linear solution.
+static_settings%sparse = .true.
+call solve_flexible_static(mesh, force, supports, nonlinear_u, static_settings, static_info)
+if (.not.static_info%converged) error stop "Nonlinear static equilibrium failed"
+```
+
 The six lowest vibration modes use the same undeformed tangent. The 3D
 plots rotate the display coordinates by +90 degrees about X so global Y
 points up and the depth axis is labeled `-Z`. Each mode is scaled

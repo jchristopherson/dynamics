@@ -26,7 +26,7 @@ module dynamics_flexible_body_solvers
     use dynamics_flexible_assembly, only : finite_element_mesh
     use dynamics_boundary_conditions, only : nodal_condition, resolve_boundary_conditions
     use dynamics_structural, only : apply_boundary_conditions
-    use linalg, only : csr_matrix, msr_matrix, pgmres_solve, matmul
+    use linalg, only : csr_matrix, msr_matrix, lu_factor, pgmres_solve, matmul
     use lapack, only : DGETRF, DGETRS
     implicit none
     private
@@ -38,8 +38,8 @@ module dynamics_flexible_body_solvers
         !! Controls the residual test and Newton iteration. Default values are
         !! used when [[solve_flexible_static]] is called without settings.
         logical :: sparse = .false.
-            !! If true, assemble a CSR tangent and solve with diagonally
-            !! preconditioned GMRES. Otherwise use dense LU.
+            !! If true, assemble a CSR tangent and solve with ILUT-preconditioned
+            !! GMRES. Otherwise use dense LU.
         integer :: max_iterations = 30
             !! Maximum number of Newton corrections; must be positive.
         integer :: max_backtracks = 20
@@ -170,6 +170,7 @@ contains
         if (ndof < 1 .or. any(.not.ieee_is_finite(force)) .or. &
             any(.not.ieee_is_finite(displacement)) .or. &
             any(.not.ieee_is_finite(conditions%value))) error stop DYN_INVALID_INPUT_ERROR
+
         ! Keep prescribed values separate from the free Newton corrections.
         allocate(is_free(ndof), source=.true.)
         do i = 1, size(constrained)
@@ -178,6 +179,7 @@ contains
         end do
         free = pack([(i, i=1,ndof)], is_free)
         nfree = size(free)
+
         ! Work on a private candidate so failure never publishes a partial step.
         q = displacement
         q(constrained) = conditions%value
@@ -195,6 +197,7 @@ contains
             return
         end if
         initial_norm = status%residual_norm
+
         ! Use a fixed reference throughout this solve, including displacement-driven cases.
         threshold = opts%absolute_tolerance + opts%relative_tolerance * max(initial_norm, norm2(force(free)))
         if (.not.ieee_is_finite(threshold) .or. .not.ieee_is_finite(initial_norm)) then
@@ -239,6 +242,7 @@ contains
             end if
             accepted = .false.
             alpha = 1.0d0
+
             ! Test equilibrium at the full trial before halving the correction.
             do backtrack = 0, opts%max_backtracks
                 trial = q
@@ -286,9 +290,9 @@ contains
     end subroutine
 
     subroutine sparse_correction(k, rhs, delta, success)
-        !! Solve a reduced CSR Newton system using a diagonal MSR
-        !! preconditioner and restarted GMRES. Require a finite, nonzero
-        !! diagonal and verify the true residual to relative tolerance 1e-10.
+        !! Solve a reduced CSR Newton system using ILUT-preconditioned
+        !! restarted GMRES and verify the true residual to relative tolerance
+        !! 1e-10. ILUT uses a drop tolerance of sqrt(machine epsilon).
         type(csr_matrix), intent(in) :: k
             !! Nonempty reduced tangent matrix.
         real(real64), intent(in), dimension(:) :: rhs
@@ -298,8 +302,8 @@ contains
             !! false, even if allocated.
         logical, intent(out) :: success
             !! True only if GMRES and the true-residual check both succeed.
+
         type(msr_matrix) :: preconditioner
-        real(real64), allocatable, dimension(:) :: diagonal
         integer, allocatable, dimension(:) :: upper_start
         integer :: n
         integer :: flag
@@ -307,18 +311,12 @@ contains
         success = .false.
         n = size(rhs)
         if (any(.not.ieee_is_finite(k%values))) return
-        diagonal = k%extract_diagonal()
-        if (any(.not.ieee_is_finite(diagonal)) .or. any(abs(diagonal) <= tiny(1.0d0))) return
-        preconditioner%m = n
-        preconditioner%n = n
-        preconditioner%nnz = 0
-        ! MSR stores inverse diagonal factors first; empty off-diagonal rows
-        ! start immediately after the diagonal and sentinel entries.
-        allocate(preconditioner%values(n+1), preconditioner%indices(n+1), upper_start(n))
-        preconditioner%values(1:n) = 1.0d0 / diagonal
-        preconditioner%values(n+1) = 0.0d0
-        preconditioner%indices = n + 2
-        upper_start = n + 2
+        allocate(upper_start(n))
+        
+        ! The factors precondition this tangent; GMRES still solves the full system.
+        call lu_factor(k, preconditioner, upper_start, droptol=sqrt(epsilon(1.0d0)), flag=flag)
+        if (flag /= 0) return
+        if (any(.not.ieee_is_finite(preconditioner%values))) return
         call pgmres_solve(k, preconditioner, upper_start, rhs, delta, &
             im=min(n, 50), tol=1.0d-10, maxits=500, flag=flag)
         if (flag /= 0 .or. .not.allocated(delta)) return

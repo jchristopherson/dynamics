@@ -60,6 +60,10 @@ program main
                 if (.not.test_flexible_static()) stop 195
                 stop
             end if
+            if (selection == "flexible-truss-static") then
+                if (.not.test_flexible_truss_static()) stop 196
+                stop
+            end if
             if (index(selection, "motion-") == 1) then
                 call invalid_prescribed_joint_motion(trim(selection))
                 stop
@@ -100,6 +104,9 @@ program main
 
     check = test_flexible_static()
     if (.not.check) flag = 195
+
+    check = test_flexible_truss_static()
+    if (.not.check) flag = 196
 
     check = test_frf_sweep()
     if (.not.check) flag = 1

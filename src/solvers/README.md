@@ -30,9 +30,10 @@ backtracking. Convergence requires the free residual norm to be no greater than
 The norm combines all free components without per-DOF scaling; models with
 different force and moment scales may need nondimensionalization. Set tolerances
 in units appropriate to the model. Dense tangents use LU;
-CSR tangents use diagonally preconditioned restarted GMRES with a checked true
-linear residual. The sparse method requires a nonzero diagonal and may fail on
-poorly conditioned or indefinite systems even when a solution exists.
+CSR tangents use ILUT-preconditioned restarted GMRES with a checked true linear
+residual. ILUT uses a drop tolerance of the square root of machine epsilon and
+is rebuilt for each Newton tangent. The sparse method may still fail on poorly
+conditioned or indefinite systems even when a solution exists.
 `nthreads` has the same element thread-safety requirements as mesh assembly.
 With `info`, convergence or linear-solver failure leaves `q` unchanged;
 without it, failure triggers `error stop`. Invalid inputs also stop. With no
