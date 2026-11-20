@@ -48,6 +48,35 @@ contract provides energy-based nonlinear laws, not commit/rollback for
 history-dependent plasticity. Geometric and constitutive fidelity remain those
 of the selected element and material.
 
+## Progress reporting
+
+Each solver accepts an optional progress callback, so reporting is off unless
+you supply one. Callbacks are declared in
+[`dynamics_solver_reporting`](./dynamics_solver_reporting.f90), except the
+variational integrator callback, which is declared in its own module because it
+receives a `variational_state`. Each callback receives an optional `args`
+argument, which the solver forwards unchanged.
+
+* **`solve_flexible_static`** reports each accepted Newton iterate through a
+  `static_solver_callback`. The `static_solver_progress` argument contains the
+  iteration count, free residual norm, convergence tolerance, and the fraction of
+  the Newton correction accepted after backtracking. Rejected trial steps are
+  not reported.
+* **`integrator_solve`** (the `solve` method of the structural integrators)
+  reports each completed time step through a `time_history_solver_callback`. The
+  `time_history_solver_progress` argument contains the step number, total steps,
+  elapsed time, and copies of the displacement, velocity, and acceleration.
+* **`vi_solve`** reports each completed time step through a
+  `variational_step_callback` that receives the step number, total steps, and the
+  new `variational_state`. It does not report iteration counts or look-ahead
+  steps.
+
+Pass a procedure whose interface matches the callback:
+
+```fortran
+call integrator%solve(force_history, dt, displacement, velocity, acceleration, print_step)
+```
+
 ## Variational Integrator Example
 The [`variational_integrator_example`](../../examples/variational_integrator_example.f90) simulates a planar double pendulum in maximal coordinates. Both connecting rods have distributed mass, finite cross-section inertia, and gravity loading at their centers of mass. Six holonomic constraints pin the first rod to ground and join the two rod endpoints.
 

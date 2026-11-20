@@ -26,6 +26,7 @@ module dynamics_flexible_body_solvers
     use dynamics_flexible_assembly, only : finite_element_mesh
     use dynamics_boundary_conditions, only : nodal_condition, resolve_boundary_conditions
     use dynamics_structural, only : apply_boundary_conditions
+    use dynamics_solver_reporting, only : static_solver_progress, static_solver_callback
     use linalg, only : csr_matrix, msr_matrix, lu_factor, pgmres_solve, matmul
     use lapack, only : DGETRF, DGETRS
     implicit none
@@ -76,7 +77,8 @@ module dynamics_flexible_body_solvers
     end type
 
 contains
-    subroutine solve_flexible_static(mesh, force, conditions, displacement, settings, info)
+    subroutine solve_flexible_static(mesh, force, conditions, displacement, settings, info, &
+        progress, args)
         !! Solve static equilibrium on the free equations of a flexible mesh:
         !!
         !! $$r_f(q) = f_f - f_{\mathrm{int},f}(q) = 0.$$
@@ -129,9 +131,14 @@ contains
         type(flexible_static_info), intent(out), optional :: info
             !! Optional convergence diagnostics. Supplying this argument makes
             !! nonlinear and linear-solver failures recoverable.
+        procedure(static_solver_callback), optional :: progress
+            !! Optional callback invoked after each accepted Newton iterate.
+        class(*), intent(in), optional :: args
+            !! Optional user-supplied data forwarded to the progress callback.
 
         type(flexible_static_settings) :: opts
         type(flexible_static_info) :: status
+        type(static_solver_progress) :: report
         type(csr_matrix) :: sparse_k
         integer, allocatable, dimension(:) :: constrained
         integer, allocatable, dimension(:) :: sorted
@@ -270,6 +277,13 @@ contains
             residual = force(free) - internal(free)
             status%residual_norm = trial_norm
             status%iterations = iteration
+            if (present(progress)) then
+                report%iteration = iteration
+                report%residual_norm = trial_norm
+                report%tolerance = threshold
+                report%step_fraction = alpha
+                call progress(report, args)
+            end if
         end do
         if (status%residual_norm > threshold) then
             call failure()

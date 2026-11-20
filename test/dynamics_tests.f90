@@ -183,6 +183,9 @@ program main
     check = test_generalized_alpha_integrator()
     if (.not.check) flag = 152
 
+    check = test_integrator_progress()
+    if (.not.check) flag = 197
+
     check = test_spring_elements()
     if (.not.check) flag = 156
 

@@ -26,6 +26,7 @@ module dynamics_linear_structural_solvers
     use iso_fortran_env, only : real64
     use, intrinsic :: ieee_arithmetic, only : ieee_is_finite
     use dynamics_error_handling
+    use dynamics_solver_reporting, only : time_history_solver_progress, time_history_solver_callback
     use linalg, only : csr_matrix, msr_matrix, size, matmul, &
         csr_to_dense, pgmres_solver, operator(+), operator(*)
     use lapack, only : DGETRF, DGETRS
@@ -118,9 +119,11 @@ contains
 ! ******************************************************************************
 ! STRUCTURAL_INTEGRATOR
 ! ------------------------------------------------------------------------------
-subroutine integrator_solve(this, forces, dt, displacement, velocity, acceleration)
+subroutine integrator_solve(this, forces, dt, displacement, velocity, acceleration, &
+    progress, args)
     !! Advances through a force history with one column per time point. The
-    !! number of steps is size(forces, 2) - 1; only the final state is returned.
+    !! number of steps is size(forces, 2) - 1; only the final state is returned
+    !! unless a progress callback is supplied.
     class(structural_integrator), intent(inout) :: this
         !! Initialized dense or sparse integrator.
     real(real64), intent(in), dimension(:,:) :: forces
@@ -133,7 +136,12 @@ subroutine integrator_solve(this, forces, dt, displacement, velocity, accelerati
         !! Initial state on input, final state on output.
     real(real64), intent(inout), dimension(:) :: acceleration
         !! Initial state on input, final state on output.
+    procedure(time_history_solver_callback), optional :: progress
+        !! Optional callback invoked after each completed time step.
+    class(*), intent(in), optional :: args
+        !! Optional user-supplied data forwarded to the progress callback.
     integer :: step_index
+    type(time_history_solver_progress) :: report
 
     if (.not.allocated(this%rhs)) error stop DYN_INVALID_INPUT_ERROR
     if (size(forces, 2) < 2) error stop DYN_ARRAY_SIZE_ERROR
@@ -141,8 +149,18 @@ subroutine integrator_solve(this, forces, dt, displacement, velocity, accelerati
     do step_index = 1, size(forces, 2) - 1
         call this%step(forces(:,step_index), forces(:,step_index+1), dt, &
             displacement, velocity, acceleration)
+        if (present(progress)) then
+            report%step = step_index
+            report%total_steps = size(forces, 2) - 1
+            report%time = step_index * dt
+            report%displacement = displacement
+            report%velocity = velocity
+            report%acceleration = acceleration
+            call progress(report, args)
+        end if
     end do
 end subroutine
+
 
 ! ------------------------------------------------------------------------------
 subroutine initialize_workspace(this, n, spectral_radius)

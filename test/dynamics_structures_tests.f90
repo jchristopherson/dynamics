@@ -17,6 +17,11 @@ module dynamics_structures_tests
     use fortran_test_helper
     implicit none
 
+    integer, save :: progress_count = 0
+    integer, save :: progress_last_step = 0
+    integer, save :: progress_total_steps = 0
+    real(real64), allocatable, dimension(:), save :: progress_last_displacement
+
 contains
 ! ------------------------------------------------------------------------------
     pure function beam2d_n1(s) result(rst)
@@ -2197,6 +2202,73 @@ function test_generalized_alpha_integrator() result(rst)
         norm2(large_acceleration - large_object_acceleration) > 1.0d-8) then
         rst = .false.
         print "(A)", "TEST FAILED: test_generalized_alpha_integrator sparse changed dt"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
+subroutine record_integrator_progress(progress, args)
+    type(time_history_solver_progress), intent(in) :: progress
+    class(*), intent(in), optional :: args
+    progress_count = progress_count + 1
+    progress_last_step = progress%step
+    progress_total_steps = progress%total_steps
+    progress_last_displacement = progress%displacement
+end subroutine
+
+! ------------------------------------------------------------------------------
+function test_integrator_progress() result(rst)
+    !! Verifies that the optional time-history progress callback is invoked
+    !! once per step and that it does not alter the solution.
+    logical :: rst
+    integer :: i, nsteps
+    real(real64) :: dt
+    real(real64), dimension(2) :: displacement, velocity, acceleration
+    real(real64), dimension(2) :: ref_displacement, ref_velocity, ref_acceleration
+    real(real64), dimension(2,11) :: force_history
+    real(real64), dimension(2,2) :: mass, damping, stiffness
+    type(dense_generalized_alpha_integrator) :: integrator
+    rst = .true.
+    nsteps = 10
+    dt = 0.05d0
+    mass = reshape([2.0d0, 0.2d0, 0.2d0, 1.5d0], [2, 2])
+    damping = reshape([0.4d0, -0.1d0, -0.1d0, 0.3d0], [2, 2])
+    stiffness = reshape([8.0d0, -2.0d0, -2.0d0, 5.0d0], [2, 2])
+    do i = 1, nsteps + 1
+        force_history(:,i) = [1.0d0 + 0.2d0 * (i - 1), -0.5d0 + 0.1d0 * (i - 1)]
+    end do
+    call integrator%initialize(mass, damping, stiffness, 0.5d0)
+
+    displacement = [0.3d0, -0.2d0]
+    velocity = [0.1d0, 0.4d0]
+    acceleration = solve_static_system(mass, force_history(:,1) - &
+        matmul(damping, velocity) - matmul(stiffness, displacement))
+    ref_displacement = displacement
+    ref_velocity = velocity
+    ref_acceleration = acceleration
+
+    progress_count = 0
+    progress_last_step = 0
+    progress_total_steps = 0
+    call integrator%solve(force_history, dt, displacement, velocity, acceleration, &
+        record_integrator_progress)
+    if (progress_count /= nsteps .or. progress_last_step /= nsteps .or. &
+        progress_total_steps /= nsteps) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_integrator_progress - callback count or step"
+        return
+    end if
+    if (norm2(progress_last_displacement - displacement) > 1.0d-12) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_integrator_progress - final reported state"
+        return
+    end if
+
+    call integrator%solve(force_history, dt, ref_displacement, ref_velocity, ref_acceleration)
+    if (norm2(ref_displacement - displacement) > 1.0d-12 .or. &
+        norm2(ref_velocity - velocity) > 1.0d-12 .or. &
+        norm2(ref_acceleration - acceleration) > 1.0d-12) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_integrator_progress - callback altered solution"
     end if
 end function
 

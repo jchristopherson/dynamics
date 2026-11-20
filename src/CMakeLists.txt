@@ -27,10 +27,10 @@ set(DYNAMICS_SOURCES
     ${dir}/structural/dynamics_truss_elements.f90
     ${dir}/structural/dynamics_discrete_elements.f90
     ${dir}/structural/dynamics_shell_elements.f90
+    ${dir}/solvers/dynamics_solver_reporting.f90
     ${dir}/solvers/dynamics_variational_integrators.f90
     ${dir}/solvers/dynamics_flexible_body_solvers.f90
     ${dir}/solvers/dynamics_linear_structural_solvers.f90
-    ${dir}/solvers/dynamics_solver_reporting.f90
     ${dir}/frequency/dynamics_frequency_sweep.f90
     ${dir}/frequency/dynamics_modal_analysis.f90
     ${dir}/flexible_bodies/dynamics_flexible_element.f90

@@ -40,6 +40,7 @@ module dynamics_variational_integrators
     public :: variational_force
     public :: variational_constraint
     public :: variational_constraint_jacobian
+    public :: variational_step_callback
     public :: initialize_variational_state
     public :: VI_DENSE_SOLVER
     public :: VI_GRAPH_FACTORIZED_SOLVER
@@ -139,6 +140,21 @@ module dynamics_variational_integrators
                 !! [dx, quaternion-vector variation] for each body.
             class(*), intent(in), optional :: args
                 !! Optional user-supplied data.
+        end subroutine
+
+        subroutine variational_step_callback(step, total_steps, state, args)
+            !! Receives progress after each completed time step of
+            !! [[variational_integrator]]%solve. Trial states from look-ahead
+            !! steps and failed steps are not reported.
+            import :: variational_state
+            integer, intent(in) :: step
+                !! The number of time steps completed in the current solve.
+            integer, intent(in) :: total_steps
+                !! The number of time steps requested by the current solve.
+            type(variational_state), intent(in) :: state
+                !! The converged state at the completed time point.
+            class(*), intent(in), optional :: args
+                !! Optional user-supplied data shared with the other callbacks.
         end subroutine
     end interface
 
@@ -626,8 +642,8 @@ end subroutine
 
 ! ------------------------------------------------------------------------------
 function vi_solve(this, bodies, state, dt, ntime, constraint_count, &
-    constraint, force_function, constraint_jacobian, multipliers, args, info) &
-    result(rst)
+    constraint, force_function, constraint_jacobian, multipliers, args, info, &
+    progress) result(rst)
     !! Computes the solution for the rigid-body system for the specified number
     !! of sequential time steps.
     !! Physical initial velocities are converted through a discrete Legendre
@@ -667,6 +683,9 @@ function vi_solve(this, bodies, state, dt, ntime, constraint_count, &
         !! Optional diagnostics; iterations are summed over attempted steps,
         !! including the look-ahead when multipliers are requested. On failure,
         !! rst contains the initial state and all completed steps.
+    procedure(variational_step_callback), optional :: progress
+        !! Optional callback invoked after each completed time step. It
+        !! receives args, the same user data forwarded to the other callbacks.
     type(variational_state), allocatable, dimension(:) :: rst
         !! The solution at each time step.
 
@@ -727,6 +746,7 @@ function vi_solve(this, bodies, state, dt, ntime, constraint_count, &
                 initialize_momenta = .not.new_state%discrete_momenta)
         end if
         rst(i) = new_state
+        if (present(progress)) call progress(i - 1, ntime - 1, new_state, args)
         if (present(multipliers)) then
             multiplier_history(:,i - 1) = mult
         end if
