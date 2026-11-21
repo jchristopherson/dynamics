@@ -138,7 +138,7 @@ contains
         real(real64), intent(in), dimension(:) :: freq
             !! An M-element array of frequency values at which to evaluate the
             !! frequency response functions, in units of rad/s.
-        procedure(modal_excite), pointer, intent(in) :: frc
+        procedure(modal_excite) :: frc
             !! A pointer to a routine used to compute the modal forcing 
             !! function.
         real(real64), intent(out), allocatable, optional, &
@@ -181,7 +181,6 @@ contains
             error stop DYN_INVALID_INPUT_ERROR
         if (.not.(alpha >= 0.0d0) .or. .not.(beta >= 0.0d0)) &
             error stop DYN_INVALID_INPUT_ERROR
-        if (.not.associated(frc)) error stop DYN_NULL_POINTER_ERROR
 
         ! Memory allocations
         allocate(zeta(n))
@@ -246,7 +245,7 @@ contains
             !! must be greater than zero and less than N.
         real(real64), intent(in), dimension(:) :: freq
             !! An M-element array of frequency values in units of rad/s.
-        procedure(modal_excite), pointer, intent(in) :: frc
+        procedure(modal_excite) :: frc
             !! A pointer to the physical forcing function.
         real(real64), intent(out), allocatable, optional, dimension(:) :: modes
             !! An optional NMODES-element array containing the retained modal
@@ -275,7 +274,6 @@ contains
 
         if (.not.(alpha >= 0.0d0) .or. .not.(beta >= 0.0d0)) &
             error stop DYN_INVALID_INPUT_ERROR
-        if (.not.associated(frc)) error stop DYN_NULL_POINTER_ERROR
 
         call modal_response(mass, stiff, nmodes, modal_freqs, vecs)
 
@@ -348,7 +346,7 @@ contains
             !! The starting frequency, in units of rad/s.
         real(real64), intent(in) :: freq2
             !! The ending frequency, in units of rad/s.
-        procedure(modal_excite), pointer, intent(in) :: frc
+        procedure(modal_excite) :: frc
             !! A pointer to a routine used to compute the modal forcing 
             !! function.
         real(real64), intent(out), allocatable, optional, &
@@ -409,7 +407,7 @@ contains
             !! The starting frequency, in units of rad/s.
         real(real64), intent(in) :: freq2
             !! The ending frequency, in units of rad/s.
-        procedure(modal_excite), pointer, intent(in) :: frc
+        procedure(modal_excite) :: frc
             !! A pointer to the physical forcing function.
         real(real64), intent(out), allocatable, optional, dimension(:) :: modes
             !! An optional NMODES-element array containing the retained modal

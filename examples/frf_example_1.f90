@@ -60,7 +60,6 @@ program example
     type(frf) :: rsp
     real(real64), allocatable, dimension(:) :: freq
     real(real64), allocatable, dimension(:,:) :: mag, phase
-    procedure(modal_excite), pointer :: fcn
 
     ! Plot Variables
     type(multiplot) :: plt
@@ -68,9 +67,6 @@ program example
     type(plot_data_2d) :: pd1, pd2, pd3
     class(plot_axis), pointer :: xAxis, yAxis
     class(legend), pointer :: lgnd
-
-    ! Initialization
-    fcn => modal_frf_forcing_term
 
     ! Define the mass matrix
     m = reshape([m1, 0.0d0, 0.0d0, 0.0d0, m2, 0.0d0, 0.0d0, 0.0d0, m3], [3, 3])
@@ -84,7 +80,7 @@ program example
         [3, 3])
 
     ! Compute the frequency response functions
-    rsp = frequency_response(m, b, k, nfreq, fmin, fmax, fcn)
+    rsp = frequency_response(m, b, k, nfreq, fmin, fmax, modal_frf_forcing_term)
 
     ! Extract the magnitude and phase information.
     freq = rsp%frequency / (2.0d0 * pi)

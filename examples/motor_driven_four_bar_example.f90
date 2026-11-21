@@ -58,7 +58,6 @@ program example
     type(variational_integrator) :: integrator
     type(variational_state), allocatable, dimension(:) :: solution
     type(joint_reaction), allocatable, dimension(:) :: joint_reactions
-    procedure(linkage_prescribed_motion), pointer :: motion_ptr
     type(multiplot) :: plt
     type(plot_2d) :: plt1, plt2, plt3, plt4
 
@@ -90,10 +89,9 @@ program example
     ! crank. Prescribing its absolute angle adds one rheonomic constraint. The
     ! final constraint multiplier is the motor torque required to follow it.
     integrator%settings%linear_solver = VI_DENSE_SOLVER
-    motion_ptr => crank_motion
     solution = dynamic_model%solve(integrator, dt, ntime, &
 		gravity = [0.0d0, -9.80665d0, 0.0d0], &
-                prescribed_body = 1, prescribed_motion = motion_ptr, &
+                prescribed_body = 1, prescribed_motion = crank_motion, &
                 multipliers = constraint_multipliers)
 
     ! Recover the absolute orientation of each moving link.

@@ -109,7 +109,7 @@ contains
         !! b = \frac{2}{N} \sum_{k=0}^{N-1} y_k \sin(\omega t_k). $$
         use diffeq, only : runge_kutta_45
         use dynamics_error_handling
-        procedure(harmonic_ode), pointer, intent(in) :: fcn
+        procedure(harmonic_ode) :: fcn
             !! A pointer to the routine containing the ODE's to integrate.
         real(real64), intent(in), dimension(:) :: freq
             !! An M-element array containing the frequency points at which the 
@@ -206,7 +206,6 @@ contains
         end if
 
         ! Input Checking
-        if (.not.associated(fcn)) error stop DYN_NULL_POINTER_ERROR
         if (nfreq < 1 .or. neqn < 1) error stop DYN_INVALID_INPUT_ERROR
         if (nc < 1) error stop DYN_INVALID_INPUT_ERROR
         if (nt < 1) error stop DYN_INVALID_INPUT_ERROR
@@ -322,7 +321,7 @@ contains
         !! where
         !! $$ a = \frac{2}{N} \sum_{k=0}^{N-1} y_k \cos(\omega t_k), \qquad
         !! b = \frac{2}{N} \sum_{k=0}^{N-1} y_k \sin(\omega t_k). $$
-        procedure(harmonic_ode), pointer, intent(in) :: fcn
+        procedure(harmonic_ode) :: fcn
             !! A pointer to the routine containing the ODE's to integrate.
         integer, intent(in) :: nfreq
             !! The number of frequency values to analyze.  This value must be
@@ -365,7 +364,6 @@ contains
         real(real64), allocatable, dimension(:) :: freq
 
         ! Input Checking
-        if (.not.associated(fcn)) error stop DYN_NULL_POINTER_ERROR
         if (abs(freq1 - freq2) < sqrt(epsilon(freq1))) error stop DYN_INVALID_INPUT_ERROR
         if (nfreq < 2) error stop DYN_INVALID_INPUT_ERROR
 

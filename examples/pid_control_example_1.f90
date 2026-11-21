@@ -59,7 +59,6 @@ program example
     real(real64), parameter :: init_velocity = 0.0d0
 
     ! Local Variables
-    procedure(ss_excitation), pointer :: fcn
     integer :: i, n
     real(real64) :: ic(4), t(2), ri(1)
     real(real64), allocatable, dimension(:) :: r, freq, omega, mag, phase
@@ -86,8 +85,7 @@ program example
     ic = [init_position, init_velocity, 0.0d0, 0.0d0]
 
     ! Compute the solution
-    fcn => command_signal   ! from the model module
-    sol = lti_solve(mdl, fcn, t, ic)
+    sol = lti_solve(mdl, command_signal, t, ic)
 
     ! Compute the poles and zeros of the closed-loop system
     poles = mdl%poles()
@@ -115,7 +113,7 @@ program example
     n = size(sol, 1)
     allocate(r(n))
     do i = 1, n
-        call fcn(sol(i,1), ri)
+        call command_signal(sol(i,1), ri)
         r(i) = ri(1)
     end do
 

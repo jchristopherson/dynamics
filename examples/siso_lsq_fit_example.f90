@@ -65,7 +65,6 @@ program example
     integer :: i
     real(real64) :: dt, tmax, p(2), ic(2)
     type(dynamic_system_measurement) :: measurements(1)
-    procedure(ode), pointer :: fcn
     type(ode_container) :: mdl
     type(runge_kutta_45) :: integrator
     type(model_information) :: info
@@ -115,8 +114,7 @@ program example
     controls%residual_tolerance = 1.0d-8
 
     ! Set up the problem and solve
-    fcn => eom
-    call siso_model_fit_least_squares(fcn, measurements, ic, p, &
+    call siso_model_fit_least_squares(eom, measurements, ic, p, &
         controls = controls, stats = stats)
 
     ! Compare the solution and the actual values

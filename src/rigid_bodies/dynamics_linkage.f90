@@ -494,12 +494,10 @@ contains
             !! satisfy the constraints.
 
         ! Local Variables
-        procedure(vecfcn), pointer :: vfcn
         type(serial_linkage_solver_data) :: obj
         real(real64) :: constraints(6)
         
         ! Initialization
-        vfcn => sl_vecfcn
         obj%linkage => this
         obj%target = trg
         constraints(1:3) = trg(1:3,4)
@@ -510,7 +508,7 @@ contains
         if (size(qo) < 1 .or. size(qo) > 6) error stop DYN_ARRAY_SIZE_ERROR
 
         ! Process
-        rst = solve_inverse_kinematics(vfcn, qo, constraints, ib = ib, &
+        rst = solve_inverse_kinematics(sl_vecfcn, qo, constraints, ib = ib, &
             args = obj)
     end function
 

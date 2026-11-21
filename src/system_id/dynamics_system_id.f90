@@ -122,7 +122,7 @@ subroutine siso_model_fit_least_squares_1(fcn, x, ic, p, integrator, ind, &
     !! $$ \min_{p}\;\frac{1}{2}\sum_{i=1}^{N}w_i
     !! \left[y_i-\hat{y}(t_i;p)\right]^2, $$
     !! subject to any supplied parameter bounds and constraint equations.
-    procedure(ode), pointer, intent(in) :: fcn
+    procedure(ode) :: fcn
         !! The routine containing the ODE's being fit.  To communicate 
         !! model parameters and other relevant information, an instance of the
         !! [[model_information]] type is passed to the optional argument of this
@@ -197,7 +197,6 @@ subroutine siso_model_fit_least_squares_1(fcn, x, ic, p, integrator, ind, &
     real(real64), allocatable, dimension(:) :: t, f, ymod, resid
     type(runge_kutta_45), target :: default_ode_solver
     type(regression_information) :: addinfo
-    procedure(regression_function), pointer :: fcnptr
     type(iteration_controls) :: def_tol;
     
     ! Initialization
@@ -208,7 +207,6 @@ subroutine siso_model_fit_least_squares_1(fcn, x, ic, p, integrator, ind, &
         nc = 0
     end if
     n = size(x)
-    fcnptr => nlsq_fun
     if (present(controls)) then
         def_tol = controls
     else
@@ -273,7 +271,7 @@ subroutine siso_model_fit_least_squares_1(fcn, x, ic, p, integrator, ind, &
     if (present(args)) addinfo%user_info => args
 
     ! Solve the system
-    call nonlinear_least_squares(fcnptr, t, f, p, ymod, resid, maxp = maxp, &
+    call nonlinear_least_squares(nlsq_fun, t, f, p, ymod, resid, maxp = maxp, &
         minp = minp, stats = stats, alpha = alpha, controls = def_tol, &
         settings = settings, info = info, status = status, cov = cov, &
         args = addinfo, weights = weights)
@@ -291,7 +289,7 @@ subroutine siso_model_fit_least_squares_2(fcn, x, ic, p, integrator, ind, &
     !! Each measurement record is integrated from its own initial condition,
     !! then all residuals are assembled into the common objective
     !! $$ \Phi(p)=\frac{1}{2}\boldsymbol{r}(p)^T W\boldsymbol{r}(p). $$
-    procedure(ode), pointer, intent(in) :: fcn
+    procedure(ode) :: fcn
         !! The routine containing the ODE's being fit.  To communicate 
         !! model parameters and other relevant information, an instance of the
         !! [[model_information]] type is passed to the optional argument of this
@@ -336,7 +334,7 @@ subroutine siso_model_fit_least_squares_2(fcn, x, ic, p, integrator, ind, &
     type(convergence_info), intent(out), optional :: info
         !! An optional output that can be used to gain information about the 
         !! iterative solution and the nature of the convergence.
-    procedure(iteration_update), pointer, intent(in), optional :: status
+    procedure(iteration_update), optional :: status
         !! An optional pointer to a routine that can be used to extract 
         !! iteration information.
     real(real64), intent(out), optional, dimension(:,:) :: cov
@@ -348,7 +346,7 @@ subroutine siso_model_fit_least_squares_2(fcn, x, ic, p, integrator, ind, &
     real(real64), intent(in), optional, dimension(:) :: yc
         !! An optional NC-element array containing the constraint function 
         !! values at xc.
-    procedure(constraint_equations), pointer, optional :: constraints
+    procedure(constraint_equations), optional :: constraints
         !! An optional input, that must be utilized with the xc and yc inputs,
         !! but allows for the implementation of additional constraints on the
         !! solution outside of the differential equations being fitted.  An
@@ -367,7 +365,6 @@ subroutine siso_model_fit_least_squares_2(fcn, x, ic, p, integrator, ind, &
     real(real64), allocatable, dimension(:) :: t, f, ymod, resid
     type(runge_kutta_45), target :: default_ode_solver
     type(regression_information) :: addinfo
-    procedure(regression_function), pointer :: fcnptr
     type(iteration_controls) :: def_tol
     
     ! Initialization & Error Checking
@@ -378,7 +375,6 @@ subroutine siso_model_fit_least_squares_2(fcn, x, ic, p, integrator, ind, &
         nc = 0
     end if
     n = size(x)
-    fcnptr => nlsq_fun
 
     if (present(controls)) then
         def_tol = controls
@@ -445,7 +441,7 @@ subroutine siso_model_fit_least_squares_2(fcn, x, ic, p, integrator, ind, &
     if (present(args)) addinfo%user_info => args
 
     ! Solve the system
-    call nonlinear_least_squares(fcnptr, t, f, p, ymod, resid, maxp = maxp, &
+    call nonlinear_least_squares(nlsq_fun, t, f, p, ymod, resid, maxp = maxp, &
         minp = minp, stats = stats, alpha = alpha, controls = def_tol, &
         settings = settings, info = info, status = status, cov = cov, &
         args = addinfo, weights = weights)

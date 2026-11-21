@@ -49,7 +49,6 @@ program example
     type(joint) :: joints(4)
     type(planar_linkage) :: mechanism
     type(linkage_dynamic_model) :: model
-    procedure(linkage_prescribed_motion), pointer :: motor_motion
     type(torsional_spring) :: spring
     type(torsional_damper) :: damper
     real(real64) :: g(3), R(3,3)
@@ -128,9 +127,6 @@ program example
         mechanism%get_configuration() &     ! the initial configuration
     )
 
-    ! Now we can define the necessary routines for the integrator
-    motor_motion => crank_motor
-
     ! Add a spring and damper element
     spring%free_angle = 0.0d0
     spring%joint_index = 4      ! the spring is tied to the rocker-ground connection
@@ -152,7 +148,7 @@ program example
         ntime, &                                ! # of time steps
         gravity = g, &                          ! gravitational vector
         prescribed_body = 1, &                  ! the index of the driven body - ground is ignored in this instance, so the driving body is the crank and thus index 1
-        prescribed_motion = motor_motion, &     ! motor motion routine
+        prescribed_motion = crank_motor, &      ! motor motion routine
         multipliers = constraint_multipliers &  ! Lagrange multiplier values - use to get motor torque
     )
 

@@ -98,7 +98,6 @@ program example
     real(real64), allocatable, dimension(:,:) :: shapesbc, shapes
     type(csr_matrix) :: K, Kbc, M, Mbc
     type(frf) :: frsp
-    procedure(modal_excite), pointer :: excitefcn
     character(len = 32) :: str
 
     ! Create the material
@@ -218,9 +217,8 @@ program example
 ! ******************************************************************************
 ! HARMONIC ANALYSIS
 ! ------------------------------------------------------------------------------
-    excitefcn => modal_frf_forcing_term
     frsp = frequency_response(Mbc, Kbc, alpha, beta, n_plot_modes, nfreq, &
-        minfreq, maxfreq, excitefcn)
+        minfreq, maxfreq, modal_frf_forcing_term)
     call plot_frf(frsp, 5)
 
 contains

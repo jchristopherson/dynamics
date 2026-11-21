@@ -613,7 +613,7 @@ contains
         slvr, ib, jfcn, qmax, qmin, args) result(rst)
         !! Solves the inverse kinematics problem for a linkage.  An iterative
         !! solution procedure is utilized.
-        procedure(vecfcn), intent(in), pointer :: mdl
+        procedure(vecfcn) :: mdl
             !! A routine used to compute the forward kinematics for the linkage
             !! given the current joint variable estimates.
         real(real64), intent(in), dimension(:) :: qo
@@ -632,7 +632,7 @@ contains
         type(iteration_behavior), intent(out), optional :: ib
             !! An optional output that can be used to gather information on the
             !! solver.
-        procedure(jacobianfcn), intent(in), pointer, optional :: jfcn
+        procedure(jacobianfcn), optional :: jfcn
             !! A routine that can be used to provide the Jacobian matrix for
             !! the linkage.
         real(real64), intent(in), dimension(size(qo)), optional :: qmax
@@ -655,7 +655,6 @@ contains
         type(vecfcn_helper) :: helper
         class(constrained_equation_solver), pointer :: solver
         type(constrained_least_squares_solver), target :: default_solver
-        procedure(vecfcn), pointer :: fcn
         type(inverse_kinematics_container) :: obj
         
         ! Initialization
@@ -671,7 +670,6 @@ contains
         if (present(args)) obj%user_args => args
 
         ! Input Check
-        if (.not.associated(mdl)) error stop DYN_NULL_POINTER_ERROR
         if (nvar < 1) error stop DYN_INVALID_INPUT_ERROR
         if (neqn < nvar) error stop DYN_CONSTRAINT_ERROR
         if (present(df)) then
@@ -684,8 +682,7 @@ contains
         if (present(qmin)) call solver%set_lower_limits(qmin)
 
         ! Set up the solver
-        fcn => inverse_kinematics_solver_fcn
-        call helper%set_fcn(fcn, neqn, nvar)
+        call helper%set_fcn(inverse_kinematics_solver_fcn, neqn, nvar)
         if (present(jfcn)) then
             call helper%set_jacobian(jfcn)
         end if

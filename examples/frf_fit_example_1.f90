@@ -57,7 +57,6 @@ program example
     integer :: i
     real(real64) :: m(3,3), k(3,3)
     type(frf) :: rsp
-    procedure(modal_excite), pointer :: fcn
     real(real64), allocatable, dimension(:) :: mdl, freq, amp, mdlamp, phase, &
         mdlphase, natfreqs
     complex(real64), allocatable, dimension(:) :: mdlrsp
@@ -69,9 +68,6 @@ program example
     class(plot_axis), pointer :: x1, x2, y1, y2
     class(legend), pointer :: lgnd
 
-    ! Initialization
-    fcn => modal_frf_forcing_term
-
     ! Define the mass matrix
     m = reshape([m1, 0.0d0, 0.0d0, 0.0d0, m2, 0.0d0, 0.0d0, 0.0d0, m3], [3, 3])
 
@@ -80,7 +76,7 @@ program example
         [3, 3])
 
     ! Compute the frequency response functions
-    rsp = frequency_response(m, k, alpha, beta, nfreq, fmin, fmax, fcn)
+    rsp = frequency_response(m, k, alpha, beta, nfreq, fmin, fmax, modal_frf_forcing_term)
 
     ! Attempt to fit the modeled frequency response function
     mdl = fit_frf(FRF_RECEPTANCE_MODEL, 3, rsp%frequency, rsp%responses(:,1))

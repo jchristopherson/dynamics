@@ -247,8 +247,7 @@ contains
             !! Defaults to the first three state components.
         class(*), intent(inout), optional :: args
             !! Optional user data forwarded to each ODE solver call.
-        procedure(poincare_map_progress), intent(in), pointer, optional :: &
-            progress_callback
+        procedure(poincare_map_progress), optional :: progress_callback
             !! Optional notification after each completed sample chunk.
         real(real64), allocatable, dimension(:,:) :: rst
             !! An N-by-3 array of section intersections in x, y, z order.

@@ -797,7 +797,7 @@ function ldm_solve(this, integrator, dt, ntime, initial_state, gravity, &
         !! The one-based moving body whose absolute world-z planar angle is
         !! prescribed (legacy input). Only planar models support this selector.
         !! Mutually exclusive with prescribed_joint.
-    procedure(linkage_prescribed_motion), pointer, intent(in), optional :: prescribed_motion
+    procedure(linkage_prescribed_motion), optional :: prescribed_motion
         !! The scalar motion callback. Supply exactly one of prescribed_body
         !! or prescribed_joint with this associated procedure pointer.
     real(real64), allocatable, intent(out), optional, dimension(:,:) :: multipliers
@@ -832,8 +832,6 @@ function ldm_solve(this, integrator, dt, ntime, initial_state, gravity, &
     type(variational_state) :: state
     integer :: constraint_count, joint_type
     real(real64) :: initial_residual
-    procedure(variational_force), pointer :: frc
-    procedure(variational_constraint), pointer :: constraint
 
     state = this%m_initial_state
     if (present(initial_state)) state = initial_state
@@ -858,9 +856,6 @@ function ldm_solve(this, integrator, dt, ntime, initial_state, gravity, &
     if ((present(prescribed_body) .or. present(prescribed_joint)) .neqv. &
         present(prescribed_motion)) &
         error stop DYN_INVALID_INPUT_ERROR
-    if (present(prescribed_motion)) then
-        if (.not.associated(prescribed_motion)) error stop DYN_INVALID_INPUT_ERROR
-    end if
     constraint_count = this%m_constraint_count
     if (present(prescribed_body)) then
         if (.not.this%m_planar .or. prescribed_body < 1 .or. &
@@ -883,12 +878,10 @@ function ldm_solve(this, integrator, dt, ntime, initial_state, gravity, &
             error stop DYN_INVALID_INPUT_ERROR
         constraint_count = constraint_count + 1
     end if
-    frc => linkage_gravity
-    constraint => linkage_constraints
     rst = integrator%solve(this%m_bodies, state, dt, ntime, &
         constraint_count = constraint_count, &
-        constraint = constraint, &
-        force_function = frc, multipliers = multipliers, &
+        constraint = linkage_constraints, &
+        force_function = linkage_gravity, multipliers = multipliers, &
         args = context, info = info)
 end function
 

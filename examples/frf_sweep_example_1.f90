@@ -117,7 +117,6 @@ program example
     real(real64), parameter :: zmin = 0.5d0
     
     ! Local Variables
-    procedure(harmonic_ode), pointer :: fcn
     integer :: i
     real(real64) :: dz, phase1(nfreq), phase2(nfreq), z(npts), w1(npts), w2(npts)
     type(frf) :: solup, soldown
@@ -129,15 +128,12 @@ program example
     class(plot_axis), pointer :: xAxis, yAxis
     class(legend), pointer :: lgnd
 
-    ! Point to the ODE routin
-    fcn => duffing_ode
-
     ! Perform the ascending sweep
-    solup = frequency_sweep(fcn, nfreq, f1, f2, [0.0d0, 0.0d0])
+    solup = frequency_sweep(duffing_ode, nfreq, f1, f2, [0.0d0, 0.0d0])
     phase1 = atan2(aimag(solup%responses(:,1)), real(solup%responses(:,1)))
 
     ! Perform the descending sweep
-    soldown = frequency_sweep(fcn, nfreq, f2, f1, [0.0d0, 0.0d0])
+    soldown = frequency_sweep(duffing_ode, nfreq, f2, f1, [0.0d0, 0.0d0])
     phase2 = atan2(aimag(soldown%responses(:,1)), real(soldown%responses(:,1)))
 
     ! Compute the analytical solution
