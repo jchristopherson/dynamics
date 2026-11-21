@@ -19,6 +19,7 @@ module dynamics_controls
     use diffeq
     use linalg, only : eigen
     use lapack, only : dgetrf, dgetri, dgetrs, zgels
+    use dynamics_helper, only : siso_resolvent_coefficients
     implicit none
     private
     public :: polynomial
@@ -60,6 +61,7 @@ module dynamics_controls
         procedure, public :: evaluate_output => ss_eval_output
         procedure, public :: poles => ss_poles
         procedure, public :: zeros => ss_zeros
+        procedure, public :: to_transfer_function => ss_to_tf
         generic, public :: transfer_function => ss_transfer_fcn, &
             ss_transfer_fcn_omega, ss_transfer_fcn_array, &
             ss_transfer_fcn_omega_array
@@ -877,6 +879,39 @@ pure function tf_to_ocf_statespace(this) result(rst)
     end do
 
     rst%C(1,order) = 1.0d0
+end function
+
+! ------------------------------------------------------------------------------
+pure function ss_to_tf(this) result(rst)
+    !! Converts a single-input, single-output state-space model into a
+    !! transfer function
+    !! $$ H(s) = C(sI-A)^{-1}B + D. $$
+    !! The denominator is the characteristic polynomial of \(A\), and the
+    !! numerator is formed from the Faddeev-LeVerrier expansion of
+    !! \(\text{adj}(sI-A)\).
+    class(state_space), intent(in) :: this
+        !! The state-space model to convert.
+    type(transfer_function) :: rst
+        !! The resulting [[transfer_function]].
+
+    ! Local Variables
+    integer :: i, n
+    real(real64) :: d
+    real(real64), allocatable, dimension(:) :: den, markov, num, x
+
+    ! Process
+    call validate_state_space(this)
+    n = size(this%A, 1)
+    d = this%D(1,1)
+    call siso_resolvent_coefficients(this%A, this%B, this%C, den, markov)
+    allocate(num(n + 1), x(n + 1))
+    do i = 1, n + 1
+        ! den(n + 2 - i) holds the coefficient of s^(i-1)
+        x(i) = den(n + 2 - i)
+        num(i) = d * den(n + 2 - i)
+        if (i <= n) num(i) = num(i) + markov(n + 1 - i)
+    end do
+    rst = transfer_function(num, x)
 end function
 
 ! ******************************************************************************

@@ -5,6 +5,14 @@ The `dynamics_controls` module provides continuous-time linear control-system to
 * `state_space` represents a system as $\dot{x}=Ax+Bu,\; y=Cx+Du$. It has constructors for general matrix systems, second-order mass-damping-stiffness systems, and PID-controlled plants. Its methods evaluate derivatives and outputs and compute poles, zeros, and transfer functions.
 * `transfer_function` and `polynomial` represent and combine scalar transfer functions. Transfer functions can be evaluated in the Laplace domain or at a supplied angular frequency, and converted to controllable or observable canonical state-space form.
 * `lti_solve` time-integrates a state-space system for a user-supplied excitation callback (`ss_excitation`). An optional ODE integrator and user data can also be supplied.
+* `state_space%to_transfer_function` converts a continuous state-space system to a `transfer_function`.
+
+The `dynamics_discrete_controls` module provides discrete-time counterparts that carry a `sample_time`:
+
+* `discrete_state_space` represents $x_{k+1}=Ax_k+Bu_k,\; y_k=Cx_k+Du_k$. It has `poles` and `to_transfer_function` methods.
+* `discrete_transfer_function` represents a rational function in $z^{-1}$, $H(z)=Y(z^{-1})/X(z^{-1})$. Its polynomial coefficients are in ascending powers of $z^{-1}$. It has `poles` and `zeros` methods, which return roots in $z$.
+* `c2d` discretizes a continuous `state_space` using `DISCRETIZE_ZOH` (zero-order hold, via the matrix exponential) or `DISCRETIZE_TUSTIN` (bilinear transform).
+* `d2c` converts a `discrete_state_space` back to continuous time using the same methods. The ZOH inverse uses the principal matrix logarithm, which requires that $A_d$ has no eigenvalues on the negative real axis. Otherwise the routine stops with an error.
 
 ## PID Control Example
 

@@ -14,6 +14,9 @@
 module dynamics_helper
     use iso_fortran_env
     use autodiff
+    use linalg, only : mtx_inverse
+    use dynamics_error_handling, only : DYN_NONSQUARE_MATRIX_ERROR, &
+        DYN_INVALID_INPUT_ERROR
     implicit none
     private
     public :: is_symmetric
@@ -24,6 +27,8 @@ module dynamics_helper
     public :: vector_projection
     public :: dot_product
     public :: matmul
+    public :: matrix_exponential
+    public :: siso_resolvent_coefficients
 
     interface cross_product
         module procedure :: real_cross
@@ -246,6 +251,109 @@ pure function dual_matmul_mtx_vec(x, y) result(rst)
         rst(i) = temp
     end do
 end function
+
+! ------------------------------------------------------------------------------
+pure function matrix_exponential(a) result(rst)
+    !! Computes the matrix exponential \( e^{A} \) using a degree-six Padé
+    !! approximant combined with scaling and squaring.  The matrix inverse
+    !! required by the approximant is computed with
+    !! [[mtx_inverse]].
+    real(real64), intent(in), dimension(:,:) :: a
+        !! The N-by-N matrix.
+    real(real64), allocatable, dimension(:,:) :: rst
+        !! The N-by-N matrix exponential.
+
+    ! Parameters
+    real(real64), parameter :: theta = 0.25d0
+    real(real64), parameter, dimension(0:6) :: c = [1.0d0, 0.5d0, &
+        5.0d0 / 44.0d0, 1.0d0 / 66.0d0, 1.0d0 / 792.0d0, &
+        1.0d0 / 15840.0d0, 1.0d0 / 665280.0d0]
+
+    ! Local Variables
+    integer :: i, k, n, s
+    real(real64) :: norm_a, sgn
+    real(real64), allocatable, dimension(:,:) :: x, xk, num, den
+
+    ! Process
+    n = size(a, 1)
+    if (size(a, 2) /= n) error stop DYN_NONSQUARE_MATRIX_ERROR
+
+    ! Scale the matrix such that its 1-norm is no larger than theta
+    norm_a = maxval(sum(abs(a), dim = 1))
+    s = 0
+    if (norm_a > theta) s = ceiling(log(norm_a / theta) / log(2.0d0))
+    x = a / 2.0d0**s
+
+    ! Evaluate the Padé approximant N(x) / D(x)
+    allocate(num(n,n), den(n,n), xk(n,n), source = 0.0d0)
+    do i = 1, n
+        num(i,i) = c(0)
+        den(i,i) = c(0)
+        xk(i,i) = 1.0d0
+    end do
+    do k = 1, ubound(c, 1)
+        xk = matmul(xk, x)
+        sgn = merge(-1.0d0, 1.0d0, mod(k, 2) == 1)
+        num = num + c(k) * xk
+        den = den + sgn * c(k) * xk
+    end do
+    rst = matmul(mtx_inverse(den), num)
+
+    ! Undo the scaling
+    do k = 1, s
+        rst = matmul(rst, rst)
+    end do
+end function
+
+! ------------------------------------------------------------------------------
+pure subroutine siso_resolvent_coefficients(a, b, c, den, markov)
+    !! Computes the coefficients of the characteristic polynomial
+    !! \( p(s) = \det(sI - A) \) and the scalar terms \( CB_kB \) required to
+    !! form the numerator of a single-input, single-output transfer function
+    !! from a state-space realization.  The Faddeev-LeVerrier algorithm is
+    !! employed:
+    !! $$ B_0 = I, \quad a_k = -\frac{1}{k}\text{tr}(AB_{k-1}), \quad
+    !! B_k = AB_{k-1} + a_k I $$
+    !! such that \( p(s) = \sum_{k=0}^{N} a_k s^{N-k} \) and
+    !! \( \text{adj}(sI - A) = \sum_{k=0}^{N-1} B_k s^{N-1-k} \).
+    !! The output arrays are 1-based, such that `den(k+1)` holds \(a_k\) and
+    !! `markov(k+1)` holds \( CB_kB \).
+    real(real64), intent(in), dimension(:,:) :: a
+        !! The N-by-N dynamics matrix.
+    real(real64), intent(in), dimension(:,:) :: b
+        !! The N-by-1 input matrix.
+    real(real64), intent(in), dimension(:,:) :: c
+        !! The 1-by-N output matrix.
+    real(real64), intent(out), allocatable, dimension(:) :: den
+        !! The N+1 characteristic polynomial coefficients, ordered from the
+        !! leading coefficient.
+    real(real64), intent(out), allocatable, dimension(:) :: markov
+        !! The N scalar values \( CB_kB \) for \( k = 0, \ldots, N-1 \).
+
+    ! Local Variables
+    integer :: i, k, n
+    real(real64), allocatable, dimension(:,:) :: bk, ab
+
+    ! Process
+    n = size(a, 1)
+    if (size(a, 2) /= n .or. size(b, 1) /= n .or. size(b, 2) /= 1 .or. &
+        size(c, 1) /= 1 .or. size(c, 2) /= n) &
+        error stop DYN_INVALID_INPUT_ERROR
+    allocate(den(n + 1), markov(n), bk(n,n), source = 0.0d0)
+    do i = 1, n
+        bk(i,i) = 1.0d0
+    end do
+    den(1) = 1.0d0
+    do k = 1, n
+        markov(k) = sum(c(1,:) * matmul(bk, b(:,1)))
+        ab = matmul(a, bk)
+        den(k + 1) = -sum([(ab(i,i), i = 1, n)]) / k
+        bk = ab
+        do i = 1, n
+            bk(i,i) = bk(i,i) + den(k + 1)
+        end do
+    end do
+end subroutine
 
 ! ------------------------------------------------------------------------------
 pure function hyperdual_matmul_mtx_vec(x, y) result(rst)

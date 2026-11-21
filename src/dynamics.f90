@@ -22,6 +22,7 @@ module dynamics
     use dynamics_helper
     use dynamics_stability
     use dynamics_controls
+    use dynamics_discrete_controls
     use dynamics_system_id
     use dynamics_linkage
     use dynamics_graph

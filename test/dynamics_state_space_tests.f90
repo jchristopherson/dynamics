@@ -278,4 +278,170 @@ function test_state_space_to_transfer_function() result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+function test_state_space_to_transfer_function_round_trip() result(rst)
+    logical :: rst
+
+    ! Parameters
+    real(real64), parameter :: tol = 1.0d-8
+    complex(real64), parameter :: s = (0.3d0, 1.7d0)
+
+    ! Local Variables
+    complex(real64) :: ans, z
+    type(transfer_function) :: tf, tf2
+    type(state_space) :: mdl
+
+    ! Initialization
+    rst = .true.
+    tf = transfer_function([4.0d0, 3.0d0], [4.0d0, 3.0d0, 2.0d0])
+    mdl = tf%to_ccf_state_space()
+
+    ! Process
+    tf2 = mdl%to_transfer_function()
+
+    ! Test
+    ans = tf%evaluate(s)
+    z = tf2%evaluate(s)
+    if (.not.assert(ans, z, tol)) rst = .false.
+end function
+
+! ------------------------------------------------------------------------------
+function test_matrix_exponential() result(rst)
+    logical :: rst
+
+    ! Parameters
+    real(real64), parameter :: tol = 1.0d-12
+
+    ! Local Variables
+    real(real64), allocatable, dimension(:,:) :: a, ans, z
+
+    ! Initialization
+    rst = .true.
+
+    ! Test a nilpotent matrix: exp([0 2; 0 0]) = [1 2; 0 1]
+    a = reshape([0.0d0, 0.0d0, 2.0d0, 0.0d0], [2, 2])
+    ans = reshape([1.0d0, 0.0d0, 2.0d0, 1.0d0], [2, 2])
+    z = matrix_exponential(a)
+    if (.not.assert(z, ans, tol)) rst = .false.
+
+    ! Test a diagonal matrix
+    a = reshape([-1.0d0, 0.0d0, 0.0d0, -2.0d0], [2, 2])
+    ans = reshape([exp(-1.0d0), 0.0d0, 0.0d0, exp(-2.0d0)], [2, 2])
+    z = matrix_exponential(a)
+    if (.not.assert(z, ans, tol)) rst = .false.
+end function
+
+! ------------------------------------------------------------------------------
+function test_discrete_state_space_to_transfer_function() result(rst)
+    logical :: rst
+
+    ! Parameters
+    real(real64), parameter :: tol = 1.0d-12
+
+    ! Local Variables
+    complex(real64), allocatable, dimension(:) :: p, z
+    type(discrete_state_space) :: mdl
+    type(discrete_transfer_function) :: tf
+
+    ! Initialization
+    rst = .true.
+    mdl = discrete_state_space(reshape([0.5d0], [1, 1]), &
+        reshape([1.0d0], [1, 1]), reshape([1.0d0], [1, 1]), &
+        reshape([2.0d0], [1, 1]), 0.1d0)
+
+    ! Process
+    tf = mdl%to_transfer_function()
+    p = tf%poles()
+    z = tf%zeros()
+
+    ! Test: H(z) = 2z / (z - 0.5)
+    if (size(p) /= 1 .or. size(z) /= 1) then
+        rst = .false.
+        return
+    end if
+    if (.not.assert(real(p(1)), 0.5d0, tol)) rst = .false.
+    if (.not.assert(abs(z(1)), 0.0d0, tol)) rst = .false.
+end function
+
+! ------------------------------------------------------------------------------
+function test_discretize_zoh_scalar() result(rst)
+    logical :: rst
+
+    ! Parameters
+    real(real64), parameter :: tol = 1.0d-12
+
+    ! Local Variables
+    type(discrete_state_space) :: dsys
+    type(state_space) :: sys
+
+    ! Initialization
+    rst = .true.
+    sys = state_space(reshape([-1.0d0], [1, 1]), reshape([1.0d0], [1, 1]), &
+        reshape([1.0d0], [1, 1]), reshape([0.0d0], [1, 1]))
+
+    ! Process
+    dsys = c2d(sys, 0.5d0)
+
+    ! Test: Ad = exp(-T), Bd = 1 - exp(-T)
+    if (.not.assert(dsys%A, reshape([exp(-0.5d0)], [1, 1]), tol)) rst = .false.
+    if (.not.assert(dsys%B, reshape([1.0d0 - exp(-0.5d0)], [1, 1]), tol)) &
+        rst = .false.
+end function
+
+! ------------------------------------------------------------------------------
+function test_discretize_tustin_scalar() result(rst)
+    logical :: rst
+
+    ! Parameters
+    real(real64), parameter :: tol = 1.0d-12
+
+    ! Local Variables
+    type(discrete_state_space) :: dsys
+    type(state_space) :: sys
+
+    ! Initialization
+    rst = .true.
+    sys = state_space(reshape([-1.0d0], [1, 1]), reshape([1.0d0], [1, 1]), &
+        reshape([1.0d0], [1, 1]), reshape([0.0d0], [1, 1]))
+
+    ! Process
+    dsys = c2d(sys, 0.5d0, DISCRETIZE_TUSTIN)
+
+    ! Test: Ad = 0.6, Bd = 0.32, Dd = 0.2
+    if (.not.assert(dsys%A, reshape([0.6d0], [1, 1]), tol)) rst = .false.
+    if (.not.assert(dsys%B, reshape([0.32d0], [1, 1]), tol)) rst = .false.
+    if (.not.assert(dsys%D, reshape([0.2d0], [1, 1]), tol)) rst = .false.
+end function
+
+! ------------------------------------------------------------------------------
+function test_discretize_round_trip() result(rst)
+    logical :: rst
+
+    ! Parameters
+    real(real64), parameter :: tol = 1.0d-8
+
+    ! Local Variables
+    integer :: i
+    integer, dimension(2) :: methods
+    type(discrete_state_space) :: dsys
+    type(state_space) :: back, sys
+
+    ! Initialization
+    rst = .true.
+    methods = [DISCRETIZE_ZOH, DISCRETIZE_TUSTIN]
+    sys = state_space(reshape([-1.0d0, 0.0d0, 2.0d0, -3.0d0], [2, 2]), &
+        reshape([1.0d0, 1.0d0], [2, 1]), reshape([1.0d0, 0.0d0], [1, 2]), &
+        reshape([0.5d0], [1, 1]))
+
+    ! Test: continuous -> discrete -> continuous recovers the original model
+    do i = 1, size(methods)
+        dsys = c2d(sys, 0.2d0, methods(i))
+        back = d2c(dsys, methods(i))
+        if (.not.assert(back%A, sys%A, tol)) rst = .false.
+        if (.not.assert(back%B, sys%B, tol)) rst = .false.
+        if (.not.assert(back%C, sys%C, tol)) rst = .false.
+        if (.not.assert(back%D, sys%D, tol)) rst = .false.
+    end do
+end function
+
+! ------------------------------------------------------------------------------
 end module

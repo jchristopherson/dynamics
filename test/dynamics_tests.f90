@@ -531,6 +531,24 @@ program main
     check = test_state_space_to_transfer_function()
     if (.not.check) flag = 100
 
+    check = test_state_space_to_transfer_function_round_trip()
+    if (.not.check) flag = 198
+
+    check = test_matrix_exponential()
+    if (.not.check) flag = 199
+
+    check = test_discrete_state_space_to_transfer_function()
+    if (.not.check) flag = 200
+
+    check = test_discretize_zoh_scalar()
+    if (.not.check) flag = 201
+
+    check = test_discretize_tustin_scalar()
+    if (.not.check) flag = 202
+
+    check = test_discretize_round_trip()
+    if (.not.check) flag = 203
+
     check = test_graph_topology()
     if (.not.check) flag = 101
 
