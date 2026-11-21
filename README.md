@@ -18,13 +18,13 @@ A library of routines used for the analysis of dynamic systems.
 | Robotics Utilities | Jacobians, transformations, quaternion algebra | ✅ | ✅ | ✅ |
 | Serial-Link Mechanisms | Revolute/prismatic linkages and motion analysis | ✅ | ✅ | ✅ |
 | Parallel Mechanisms | Loop-closure constraints, mobility analysis, Jacobian partitioning | ✅ | ✅ | ✅ |
-| Multibody Dynamics | Rigid-body variational integration | ✅ | ✅ | ⚠️ |
+| Multibody Dynamics | Rigid-body variational integration | ✅ | ✅ | ✅ |
 | Force Elements | Springs, dampers, torsional elements, custom force models | ✅ | ✅ | ✅ |
 | Geometry | Points, lines, planes, Plücker lines, intersections, projections | ✅ | ✅ | ✅ |
 | Structural Mechanics | Beam, truss, and shell finite elements | ✅ | ✅ | ✅ |
 | Structural Dynamics | Generalized-α integration, dense and sparse assemblies | ✅ | ✅ | ✅ |
-| Stability Analysis | Fixed-point stability classification | ✅ | ✅ | ⚠️ |
-| C Interface | Native C API | ✅ | ✅ | ⚠️ |
+| Stability Analysis | Fixed-point stability classification | ✅ | ✅ | ✅ |
+| C Interface | Native C API | ✅ | ✅ | ✅ |
 
 ## Documentation
 - [Fortran API documentation](https://jchristopherson.github.io/dynamics/)

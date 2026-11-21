@@ -4,7 +4,7 @@
 * [`dynamics_stability`](dynamics_stability.f90) classifies fixed points from the eigenvalues of the linearized dynamics matrix. Eigenvalues with zero real part may require further nonlinear analysis.
 * [`dynamics_maps`](dynamics_maps.f90) extracts Poincaré sections from either a sampled trajectory or an ODE model. It interpolates crossings between samples and can retain both crossing directions or only crossings from a specified side of the plane.
 
-A Poincaré section records where a trajectory crosses a surface instead of plotting the entire time history. The examples below show how to use a geometric plane to slice an existing trajectory and how to sample a periodically forced oscillator at a fixed forcing phase.
+A Poincaré section records where a trajectory crosses a surface instead of plotting the entire time history. The Poincaré examples below show how to use a geometric plane to slice an existing trajectory and how to sample a periodically forced oscillator at a fixed forcing phase.
 
 ## Lorenz System: Section of a Sampled Trajectory
 
@@ -47,4 +47,34 @@ The example discards the first 50 forcing cycles, then analyzes 50,000 cycles at
 
 ![Duffing oscillator displacement and velocity sampled once per forcing period](../../images/duffing_poincare_example.png)
 
-To build the examples, configure CMake with `BUILD_DYNAMICS_EXAMPLES=ON` and build the `poincare_example` and `duffing_poincare_example` targets.
+## Pendulum Stability: Linearized Equilibria
+
+[`stability_example`](../../examples/stability_example.f90) linearizes the pendulum equation $\ddot{\theta} = -(g/L)\sin\theta - c\dot{\theta}$ about its equilibria. With state $[\theta, \dot{\theta}]$, the dynamics matrix at $\theta=0$ is $\begin{bmatrix}0 & 1\\ -g/L & -c\end{bmatrix}$. At $\theta=\pi$, the $-g/L$ entry becomes $+g/L$. `determine_local_stability` returns one of the fixed-point classification constants from the eigenvalues of that matrix:
+
+```fortran
+flag = determine_local_stability(a_, ev = ev)
+select case (flag)
+case (HYPERBOLIC_FIXED_POINT_SINK)
+    name = "Hyperbolic sink (stable)"
+case (HYPERBOLIC_FIXED_POINT_SADDLE)
+    name = "Hyperbolic saddle (unstable)"
+! ...
+end select
+```
+
+The example classifies the damped bottom equilibrium as a sink, the damped top equilibrium as a saddle, the undamped bottom equilibrium as a center, and the negative-damping bottom equilibrium as a source. A free mass with viscous damping, $\dot{x}=v$ and $\dot{v}=-cv$, has a zero eigenvalue and is classified as neutrally stable. Eigenvalues with zero real part make the point nonhyperbolic, so the linearization alone cannot settle its stability.
+
+## Vibration Helpers: Free, Step, and Sweep Metrics
+
+[`vibrations_helper_example`](../../examples/vibrations_helper_example.f90) illustrates the helper routines in `dynamics_vibrations` for a 2 Hz second-order system. It uses `find_free_response_properties`, `logarithmic_decrement`, and `damping_from_log_decrement` on a free response, `rise_time`, `find_settling_amplitude`, and `damping_from_fractional_overshoot` on a step response, and `q_factor` and `estimate_bandwidth` over a range of damping ratios. The printed values match the analytic results to within the sampling resolution.
+
+![Vibration helper example panels](../../images/vibrations_helper_example.png)
+
+The figure has four panels:
+
+* **Free response (top left):** The decaying response $x(t)$ with $\zeta=0.05$. The two open circles mark the first two peaks detected by `find_free_response_properties`. Their spacing gives the damped period, and the ratio of their amplitudes gives the logarithmic decrement.
+* **Step response (bottom left):** The normalized step response $x(t)/X_s$ with $\zeta=0.3$. The open circle marks the rise time, where the response first reaches the final value. The dashed line is the settling amplitude estimated from the sampled response. The overshoot peak above this line is used to estimate $\zeta$.
+* **Q-factor (top right):** $Q$ versus $\zeta$ from `q_factor`. The circle marks the value at the free-response damping ratio, $Q=10$ at $\zeta=0.05$.
+* **Bandwidth (bottom right):** The half-power bandwidth $\Delta f$ in hertz versus $\zeta$ from `estimate_bandwidth`. The bandwidth grows linearly with $\zeta$, reaching 0.2 Hz at $\zeta=0.05$.
+
+To build the examples, configure CMake with `BUILD_DYNAMICS_EXAMPLES=ON` and build the `poincare_example`, `duffing_poincare_example`, `stability_example`, and `vibrations_helper_example` targets.
