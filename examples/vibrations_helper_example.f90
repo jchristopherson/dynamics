@@ -37,7 +37,7 @@ program example
     real(real64), parameter :: zeta_step = 3.0d-1
     real(real64), parameter :: xs = 1.0d0
     real(real64), parameter :: dt_step = 1.0d-2
-    integer, parameter :: n_step = 2001
+    integer, parameter :: n_step = 301
 
     ! Sweep Parameters
     real(real64), parameter :: zeta_min = 5.0d-2
