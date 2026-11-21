@@ -52,8 +52,6 @@ Here `Kp`, `Ki`, and `Kd` are the proportional, integral, and derivative gains. 
 
 The gains and filter time constant are chosen by matching the closed-loop characteristic polynomial to four real poles at $-1400$, $-1600$, $-2200$, and $-3200$ per second, using the example's scaled displacement output $y=kXq$. This improves nominal square-wave tracking, at the cost of a larger force spike at each command edge. The example does not model actuator limits or sensor noise.
 
-The plots below were captured before this retuning. Run the example to see the updated response.
-
 ![Closed-loop output and square-wave command](../../images/pid_control_example_1.png?raw=true)
 
 The Bode plot is evaluated at angular frequencies $\omega=2\pi f$, where $f$ spans 1--1000 Hz. The code converts the transfer-function magnitude to dB with $20\log_{10}\lvert H\rvert$ and the phase to degrees.
