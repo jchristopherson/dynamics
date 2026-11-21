@@ -43,6 +43,15 @@ program main
         block
             character(32) :: selection
             call get_command_argument(1, selection)
+            if (selection == "discrete-canonical") then
+                if (.not.test_discrete_canonical_forms()) stop 204
+                if (.not.test_discrete_tf_evaluate()) stop 205
+                stop
+            end if
+            if (index(selection, "discrete-invalid-") == 1) then
+                call invalid_discrete_canonical(trim(selection))
+                stop
+            end if
             if (index(selection, "ad-") == 1) then
                 call invalid_ad_product(trim(selection))
                 stop
@@ -539,6 +548,12 @@ program main
 
     check = test_discrete_state_space_to_transfer_function()
     if (.not.check) flag = 200
+
+    check = test_discrete_canonical_forms()
+    if (.not.check) flag = 204
+
+    check = test_discrete_tf_evaluate()
+    if (.not.check) flag = 205
 
     check = test_discretize_zoh_scalar()
     if (.not.check) flag = 201

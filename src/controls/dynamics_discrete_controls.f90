@@ -17,10 +17,10 @@
 module dynamics_discrete_controls
     use iso_fortran_env
     use nonlin_polynomials
-    use linalg, only : mtx_inverse, eigen
+    use linalg, only : mtx_inverse, eigen, identity
     use dynamics_error_handling, only : DYN_INVALID_INPUT_ERROR
     use dynamics_helper, only : matrix_exponential, siso_resolvent_coefficients
-    use dynamics_controls, only : state_space
+    use dynamics_controls, only : state_space, transfer_function
     implicit none
     private
     public :: discrete_state_space
@@ -75,6 +75,9 @@ module dynamics_discrete_controls
     contains
         procedure, public :: poles => dtf_poles
         procedure, public :: zeros => dtf_zeros
+        procedure, public :: evaluate => dtf_eval_omega
+        procedure, public :: to_ccf_state_space => dtf_to_ccf_statespace
+        procedure, public :: to_ocf_state_space => dtf_to_ocf_statespace
     end type
 
     interface discrete_transfer_function
@@ -203,6 +206,113 @@ pure function dtf_zeros(this) result(rst)
 
     ! Process
     rst = z_roots(this%Y%get_all())
+end function
+
+! ------------------------------------------------------------------------------
+pure elemental function dtf_eval_omega(this, omega) result(rst)
+    !! Evaluates the transfer function at the specified frequency.
+    class(discrete_transfer_function), intent(in) :: this
+        !! The [[discrete_transfer_function]] object.
+    real(real64), intent(in) :: omega
+        !! The frequency, in rad/s.
+    complex(real64) :: rst
+        !! The result.
+
+    complex(real64), parameter :: zero = (0.0d0, 0.0d0)
+
+    integer :: j, nb, na
+    complex(real64) :: delay, num, den
+
+    na = this%X%order() + 1
+    nb = this%Y%order() + 1
+    delay = exp(cmplx(0.0d0, -omega * this%sample_time, kind = real64))
+    num = zero
+    do j = 1, nb
+        num = num + this%Y%get(j) * delay**(j - 1)
+    end do
+    den = zero
+    do j = 1, na
+        den = den + this%X%get(j) * delay**(j - 1)
+    end do
+    rst = num / den
+end function
+
+! ------------------------------------------------------------------------------
+pure function dtf_to_ccf_statespace(this) result(rst)
+    !! Converts a causal discrete transfer function to controllable canonical
+    !! state-space form.  The denominator's constant term in \(z^{-1}\)
+    !! must be nonzero.
+    class(discrete_transfer_function), intent(in) :: this
+        !! The transfer function to convert.
+    type(discrete_state_space) :: rst
+        !! The resulting state-space model, with the original sample time.
+
+    rst = dtf_to_canonical(this, .false.)
+end function
+
+! ------------------------------------------------------------------------------
+pure function dtf_to_ocf_statespace(this) result(rst)
+    !! Converts a causal discrete transfer function to observable canonical
+    !! state-space form.  The denominator's constant term in \(z^{-1}\)
+    !! must be nonzero.
+    class(discrete_transfer_function), intent(in) :: this
+        !! The transfer function to convert.
+    type(discrete_state_space) :: rst
+        !! The resulting state-space model, with the original sample time.
+
+    rst = dtf_to_canonical(this, .true.)
+end function
+
+! ------------------------------------------------------------------------------
+pure function dtf_to_canonical(this, observable) result(rst)
+    class(discrete_transfer_function), intent(in) :: this
+    logical, intent(in) :: observable
+    type(discrete_state_space) :: rst
+
+    integer :: i
+    integer :: na
+    integer :: nb
+    integer :: n
+    real(real64), allocatable, dimension(:) :: a
+    real(real64), allocatable, dimension(:) :: b
+    type(transfer_function) :: tf
+    type(state_space) :: ss
+
+    na = this%X%order() + 1
+    nb = this%Y%order() + 1
+    if (na < 1 .or. nb < 1) error stop DYN_INVALID_INPUT_ERROR
+    if (this%sample_time <= 0.0d0) error stop DYN_INVALID_INPUT_ERROR
+    if (this%X%get(1) == 0.0d0) error stop DYN_INVALID_INPUT_ERROR
+
+    ! Pad in z**(-1), then reverse to obtain polynomials in z.  A numerator
+    ! longer than the denominator represents delays, not an improper model.
+    do while (na > 1)
+        if (this%X%get(na) /= 0.0d0) exit
+        na = na - 1
+    end do
+    do while (nb > 1)
+        if (this%Y%get(nb) /= 0.0d0) exit
+        nb = nb - 1
+    end do
+    n = max(na, nb) - 1
+    allocate(a(n + 1), b(n + 1), source = 0.0d0)
+    do i = 1, na
+        a(i) = this%X%get(i)
+    end do
+    do i = 1, nb
+        b(i) = this%Y%get(i)
+    end do
+    tf = transfer_function(b(n+1:1:-1), a(n+1:1:-1))
+    if (observable) then
+        ss = tf%to_ocf_state_space()
+    else
+        ss = tf%to_ccf_state_space()
+    end if
+    rst%A = ss%A
+    rst%B = ss%B
+    rst%C = ss%C
+    rst%D = ss%D
+    rst%sample_time = this%sample_time
 end function
 
 ! ------------------------------------------------------------------------------
@@ -408,24 +518,6 @@ pure function matrix_log(a) result(rst)
         if (norm1(term) / real(j, real64) <= 1.0d-17) exit
     end do
     rst = (2.0d0 ** k) * rst
-end function
-
-! ------------------------------------------------------------------------------
-pure function identity(n) result(rst)
-    !! Constructs an N-by-N identity matrix.
-    integer, intent(in) :: n
-        !! The number of rows and columns.
-    real(real64), allocatable, dimension(:,:) :: rst
-        !! The identity matrix.
-
-    ! Local Variables
-    integer :: i
-
-    ! Process
-    allocate(rst(n, n), source = 0.0d0)
-    do i = 1, n
-        rst(i, i) = 1.0d0
-    end do
 end function
 
 ! ------------------------------------------------------------------------------

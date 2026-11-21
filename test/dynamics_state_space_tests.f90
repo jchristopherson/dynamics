@@ -363,6 +363,175 @@ function test_discrete_state_space_to_transfer_function() result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+function test_discrete_canonical_forms() result(rst)
+    logical :: rst
+    real(real64), parameter :: tol = 1.0d-12
+    real(real64), dimension(2,2) :: expected_a
+    real(real64), dimension(2,1) :: expected_b
+    real(real64), dimension(1,2) :: expected_c
+    type(discrete_transfer_function) :: tf
+    type(discrete_state_space) :: ccf
+    type(discrete_state_space) :: ocf
+
+    rst = .true.
+    tf = discrete_transfer_function([1.0d0, 0.6d0], &
+        [2.0d0, -1.2d0, 0.2d0], 0.125d0)
+    ccf = tf%to_ccf_state_space()
+    ocf = tf%to_ocf_state_space()
+    expected_a = reshape([0.0d0, -0.1d0, 1.0d0, 0.6d0], [2,2])
+    expected_b = reshape([0.0d0, 1.0d0], [2,1])
+    expected_c = reshape([-0.05d0, 0.6d0], [1,2])
+    if (.not.assert(ccf%A, expected_a, tol)) rst = .false.
+    if (.not.assert(ccf%B, expected_b, tol)) rst = .false.
+    if (.not.assert(ccf%C, expected_c, tol)) rst = .false.
+    if (abs(ccf%D(1,1) - 0.5d0) > tol) rst = .false.
+    if (.not.assert(ocf%A, transpose(expected_a), tol)) rst = .false.
+    if (.not.assert(ocf%B, transpose(expected_c), tol)) rst = .false.
+    if (.not.assert(ocf%C, transpose(expected_b), tol)) rst = .false.
+    if (abs(ocf%D(1,1) - 0.5d0) > tol) rst = .false.
+
+    if (.not.check_discrete_canonical([1.0d0, 0.6d0], &
+        [2.0d0, -1.2d0, 0.2d0], 2)) rst = .false.
+    if (.not.check_discrete_canonical([0.0d0, 1.0d0, -0.5d0], &
+        [2.0d0], 2)) rst = .false.
+    if (.not.check_discrete_canonical([1.0d0, 0.2d0, -0.3d0, 0.4d0], &
+        [2.0d0, -0.4d0], 3)) rst = .false.
+    if (.not.check_discrete_canonical([0.0d0, 0.3d0], &
+        [1.0d0, -1.2d0, 0.36d0], 2)) rst = .false.
+    if (.not.check_discrete_canonical([3.0d0], &
+        [2.0d0, -1.0d0, 0.0d0, 0.0d0], 1)) rst = .false.
+    if (.not.check_discrete_canonical([0.0d0, 0.0d0], [2.0d0], 0)) rst = .false.
+    if (.not.check_discrete_canonical([3.0d0], [2.0d0], 0)) rst = .false.
+    if (.not.rst) print "(A)", "TEST FAILED: test_discrete_canonical_forms"
+end function
+
+! ------------------------------------------------------------------------------
+function check_discrete_canonical(b, a, n) result(rst)
+    real(real64), intent(in), dimension(:) :: b
+    real(real64), intent(in), dimension(:) :: a
+    integer, intent(in) :: n
+    logical :: rst
+    integer, parameter :: ns = 20
+    real(real64), parameter :: ts = 0.125d0
+    real(real64), parameter :: tol = 1.0d-11
+    integer :: i
+    integer :: j
+    integer :: form
+    real(real64) :: value
+    real(real64), dimension(ns) :: u
+    real(real64), dimension(ns) :: y
+    real(real64), allocatable, dimension(:) :: x
+    type(discrete_transfer_function) :: tf
+    type(discrete_transfer_function) :: round_trip
+    type(discrete_state_space) :: ss
+
+    rst = .true.
+    tf = discrete_transfer_function(b, a, ts)
+    u = [(sin(real(i, real64)) + 0.2d0 * cos(0.7d0 * real(i, real64)), i = 1, ns)]
+    y = 0.0d0
+    do i = 1, ns
+        do j = 1, min(i, size(b))
+            y(i) = y(i) + b(j) * u(i - j + 1)
+        end do
+        do j = 2, min(i, size(a))
+            y(i) = y(i) - a(j) * y(i - j + 1)
+        end do
+        y(i) = y(i) / a(1)
+    end do
+    do form = 1, 2
+        if (form == 1) then
+            ss = tf%to_ccf_state_space()
+        else
+            ss = tf%to_ocf_state_space()
+        end if
+        if (size(ss%A, 1) /= n .or. size(ss%A, 2) /= n .or. &
+            size(ss%B, 1) /= n .or. size(ss%B, 2) /= 1 .or. &
+            size(ss%C, 1) /= 1 .or. size(ss%C, 2) /= n .or. &
+            size(ss%D, 1) /= 1 .or. size(ss%D, 2) /= 1) then
+            rst = .false.
+            return
+        end if
+        if (ss%sample_time /= ts) rst = .false.
+        allocate(x(n), source = 0.0d0)
+        do i = 1, ns
+            value = dot_product(ss%C(1,:), x) + ss%D(1,1) * u(i)
+            if (abs(value - y(i)) > tol) rst = .false.
+            x = matmul(ss%A, x) + ss%B(:,1) * u(i)
+        end do
+        deallocate(x)
+        round_trip = ss%to_transfer_function()
+        do i = 1, n + 1
+            value = 0.0d0
+            if (i <= size(a)) value = a(i) / a(1)
+            if (abs(round_trip%X%get(i) - value) > tol) rst = .false.
+            value = 0.0d0
+            if (i <= size(b)) value = b(i) / a(1)
+            if (abs(round_trip%Y%get(i) - value) > tol) rst = .false.
+        end do
+    end do
+end function
+
+! ------------------------------------------------------------------------------
+function test_discrete_tf_evaluate() result(rst)
+    logical :: rst
+    real(real64), parameter :: ts = 0.125d0
+    real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
+    real(real64), parameter :: tol = 1.0d-12
+    integer :: i
+    real(real64), dimension(4) :: omega
+    complex(real64) :: q
+    complex(real64) :: expected
+    complex(real64), dimension(4) :: actual
+    type(discrete_transfer_function) :: tf
+
+    rst = .true.
+    omega = [0.0d0, 2.4d0, -3.1d0, pi / ts]
+    tf = discrete_transfer_function([0.4d0, -0.2d0, 0.1d0], &
+        [2.0d0, -0.8d0], ts)
+    actual = tf%evaluate(omega)
+    do i = 1, size(omega)
+        q = cmplx(cos(omega(i) * ts), -sin(omega(i) * ts), kind = real64)
+        expected = (0.4d0 - 0.2d0 * q + 0.1d0 * q**2) / (2.0d0 - 0.8d0 * q)
+        if (abs(actual(i) - expected) > tol) rst = .false.
+        if (abs(tf%evaluate(omega(i)) - expected) > tol) rst = .false.
+    end do
+    tf = discrete_transfer_function([0.0d0, 1.0d0], [1.0d0], ts)
+    q = cmplx(cos(omega(2) * ts), -sin(omega(2) * ts), kind = real64)
+    if (abs(tf%evaluate(omega(2)) - q) > tol) rst = .false.
+    if (abs(tf%evaluate(omega(2) + 2.0d0 * pi / ts) - q) > tol) rst = .false.
+    tf = discrete_transfer_function([3.0d0], [2.0d0], ts)
+    if (abs(tf%evaluate(omega(3)) - 1.5d0) > tol) rst = .false.
+    tf = discrete_transfer_function([0.3d0], [1.0d0, -0.4d0, 0.15d0], ts)
+    q = cmplx(cos(omega(3) * ts), -sin(omega(3) * ts), kind = real64)
+    expected = 0.3d0 / (1.0d0 - 0.4d0 * q + 0.15d0 * q**2)
+    if (abs(tf%evaluate(omega(3)) - expected) > tol) rst = .false.
+    if (.not.rst) print "(A)", "TEST FAILED: test_discrete_tf_evaluate"
+end function
+
+! ------------------------------------------------------------------------------
+subroutine invalid_discrete_canonical(selection)
+    character(len = *), intent(in) :: selection
+    type(discrete_transfer_function) :: tf
+    type(discrete_state_space) :: ss
+
+    select case (selection)
+    case ("discrete-invalid-ccf")
+        tf = discrete_transfer_function([1.0d0], [0.0d0, 1.0d0], 0.1d0)
+        ss = tf%to_ccf_state_space()
+    case ("discrete-invalid-ocf")
+        tf = discrete_transfer_function([1.0d0], [0.0d0, 1.0d0], 0.1d0)
+        ss = tf%to_ocf_state_space()
+    case ("discrete-invalid-sample-time")
+        tf = discrete_transfer_function([1.0d0], [1.0d0], 0.1d0)
+        tf%sample_time = 0.0d0
+        ss = tf%to_ccf_state_space()
+    case ("discrete-invalid-uninitialized")
+        tf%sample_time = 0.1d0
+        ss = tf%to_ocf_state_space()
+    end select
+end subroutine
+
+! ------------------------------------------------------------------------------
 function test_discretize_zoh_scalar() result(rst)
     logical :: rst
 

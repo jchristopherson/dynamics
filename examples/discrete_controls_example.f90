@@ -137,13 +137,12 @@ program discrete_controls_example
     print "(A, ES12.4)", "Max ZOH / exact sampled step error: ", &
         maxval(abs(y_zoh - y_exact))
 
-    ! Evaluate H(exp(i*omega*Ts)) below Nyquist; the discrete type stores
-    ! polynomials but does not provide a frequency-response method.
+    ! Evaluate H(exp(i*omega*Ts)) below Nyquist
     do i = 1, nf
         freq(i) = 0.49d0 / ts * real(i - 1, real64) / real(nf - 1, real64)
         omega = 2.0d0 * pi * freq(i)
-        h_zoh = frequency_response(tf_coefficients, omega)
-        h_tustin = frequency_response(tf_tustin, omega)
+        h_zoh = tf_coefficients%evaluate(omega)
+        h_tustin = tf_tustin%evaluate(omega)
         h_cont = 1.0d0 / cmplx(stiffness - mass * omega**2, &
             damping * omega, kind = real64)
         mag_zoh(i) = 20.0d0 * log10(abs(h_zoh))
@@ -243,30 +242,5 @@ contains
 
         err = max(maxval(abs(a%A - b%A)), maxval(abs(a%B - b%B)), &
             maxval(abs(a%C - b%C)), maxval(abs(a%D - b%D)))
-    end function
-
-    function frequency_response(tf, omega) result(h)
-        type(discrete_transfer_function), intent(in) :: tf
-        real(real64), intent(in) :: omega
-        complex(real64) :: h
-        complex(real64) :: delay
-        complex(real64) :: num
-        complex(real64) :: den
-        real(real64), allocatable, dimension(:) :: b
-        real(real64), allocatable, dimension(:) :: a
-        integer :: j
-
-        b = tf%Y%get_all()
-        a = tf%X%get_all()
-        delay = exp(cmplx(0.0d0, -omega * tf%sample_time, kind = real64))
-        num = (0.0d0, 0.0d0)
-        den = (0.0d0, 0.0d0)
-        do j = 1, size(b)
-            num = num + b(j) * delay**(j - 1)
-        end do
-        do j = 1, size(a)
-            den = den + a(j) * delay**(j - 1)
-        end do
-        h = num / den
     end function
 end program

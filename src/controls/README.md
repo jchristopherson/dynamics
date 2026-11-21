@@ -10,7 +10,8 @@ The `dynamics_controls` module provides continuous-time linear control-system to
 The `dynamics_discrete_controls` module provides discrete-time counterparts that carry a `sample_time`:
 
 * `discrete_state_space` represents $x_{k+1}=Ax_k+Bu_k,\; y_k=Cx_k+Du_k$. It has `poles` and `to_transfer_function` methods.
-* `discrete_transfer_function` represents a rational function in $z^{-1}$, $H(z)=Y(z^{-1})/X(z^{-1})$. Its polynomial coefficients are in ascending powers of $z^{-1}$. It has `poles` and `zeros` methods, which return roots in $z$.
+* `discrete_transfer_function` represents a rational function in $z^{-1}$, $H(z)=Y(z^{-1})/X(z^{-1})$. Its polynomial coefficients are in ascending powers of $z^{-1}$. Its `poles` and `zeros` methods return roots in $z$, and `evaluate` computes the response at an angular frequency in rad/s.
+* `discrete_transfer_function%to_ccf_state_space` and `%to_ocf_state_space` convert to controllable and observable canonical form, respectively, preserving the sample time. The denominator's constant term in $z^{-1}$ must be nonzero. Numerators of higher order in $z^{-1}$ are supported, including pure delays. Constant gains yield zero-state models.
 * `c2d` discretizes a continuous `state_space` using `DISCRETIZE_ZOH` (zero-order hold, via the matrix exponential) or `DISCRETIZE_TUSTIN` (bilinear transform).
 * `d2c` converts a `discrete_state_space` back to continuous time using the same methods. The ZOH inverse uses the principal matrix logarithm, which requires that $A_d$ has no eigenvalues on the negative real axis. Otherwise the routine stops with an error.
 

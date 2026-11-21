@@ -51,6 +51,19 @@ add_test(
     COMMAND $<TARGET_FILE:dynamics_tests>
 )
 add_test(
+    NAME dynamics_discrete_canonical_tests
+    WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+    COMMAND $<TARGET_FILE:dynamics_tests> discrete-canonical
+)
+foreach(case IN ITEMS ccf ocf sample-time uninitialized)
+    add_test(
+        NAME dynamics_discrete_invalid_${case}
+        WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+        COMMAND $<TARGET_FILE:dynamics_tests> discrete-invalid-${case}
+    )
+    set_tests_properties(dynamics_discrete_invalid_${case} PROPERTIES WILL_FAIL TRUE)
+endforeach()
+add_test(
     NAME dynamics_generalized_alpha_tests
     WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
     COMMAND $<TARGET_FILE:dynamics_tests> generalized-alpha
