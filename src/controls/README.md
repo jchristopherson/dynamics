@@ -67,3 +67,15 @@ The Bode plot is evaluated at angular frequencies $\omega=2\pi f$, where $f$ spa
 ![Closed-loop PID Bode magnitude and phase](../../images/pid_control_example_1_bode.png?raw=true)
 
 Build with `BUILD_DYNAMICS_EXAMPLES=ON`, then build and run the `pid_control_example_1` target. The Bode image in the repository is named `pid_control_example_1_bode.png`.
+
+## Discrete State-Space and Transfer Function Example
+
+[`discrete_controls_example`](../../examples/discrete_controls_example.f90) models the displacement of a mass-spring-damper system driven by a unit force. It discretizes the continuous plant with a 0.1 s sample time using both zero-order hold (ZOH) and Tustin, converts each model to a discrete transfer function, and converts both back to continuous time to report round-trip matrix errors.
+
+The ZOH transfer function's coefficients are printed in ascending powers of $z^{-1}$ and used to construct a `discrete_transfer_function` directly. Its poles and zeros are reported in the $z$ plane. The example applies the coefficients in a difference equation and compares the resulting step response with the state-space recurrence and the exact sampled continuous step response. Both simulations start at rest; the Tustin model has direct feedthrough and therefore responds at the first sample.
+
+The four plot panels show the sampled step responses, ZOH poles and zeros relative to the unit circle, and the magnitude and phase of the ZOH, Tustin, and continuous frequency responses. Discrete responses are evaluated at $z=e^{i\omega T_s}$ up to 4.9 Hz, just below the 5 Hz Nyquist frequency; the ZOH phase is unwrapped. The ZOH step samples match the continuous response for a held input, while the Tustin frequency response shows the effects of bilinear frequency warping.
+
+![Discrete control step response, poles and zeros, and frequency responses](../../images/discrete_controls_example.png)
+
+Build with `BUILD_DYNAMICS_EXAMPLES=ON`, then build and run the `discrete_controls_example` target.

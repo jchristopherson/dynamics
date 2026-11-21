@@ -269,6 +269,10 @@ target_link_libraries(stability_example ${PROJECT_NAME})
 add_executable(vibrations_helper_example vibrations_helper_example.f90)
 target_link_libraries(vibrations_helper_example ${PROJECT_NAME} ${FPLOT_LIBRARIES})
 
+# Discrete Controls Example
+add_executable(discrete_controls_example discrete_controls_example.f90)
+target_link_libraries(discrete_controls_example ${PROJECT_NAME} ${FPLOT_LIBRARIES})
+
 if (${BUILD_SHARED_LIBS} AND WIN32)
     add_custom_command(
         TARGET duffing_poincare_example
