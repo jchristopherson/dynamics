@@ -118,6 +118,33 @@ For dense output, declare `mass` and `stiffness` as allocatable rank-two
 copies the element but not its material target, which must remain alive while
 the mesh uses it.
 
+### Kinematic joints
+
+`dynamics_flexible_joints` adds kinematic constraints between two mesh nodes.
+A `flexible_joint` is built with `flexible_joint(joint_type, node1, node2[,
+frame1, frame2])`, where `joint_type` is one of the constants in
+`dynamics_joints` (`FIXED_JOINT`, `REVOLUTE_JOINT`, `PRISMATIC_JOINT`,
+`CYLINDRICAL_JOINT`, `UNIVERSAL_JOINT`, `SPHERICAL_JOINT`). Node indices refer
+to positions in `mesh%nodes`. Each joint frame is a rotation matrix expressed in
+the attachment node's rotated frame. Attachment nodes must carry all six DOFs.
+Assign joints with `mesh%joints`.
+
+Constraints are enforced with Lagrange multipliers, kept separate from the
+element energy terms. The constraint counts are 6 (fixed), 5 (revolute,
+prismatic), 4 (cylindrical, universal), and 3 (spherical). `mesh%assemble_constraints(q,
+g, jac)` returns the constraint residual and dense Jacobian.
+
+`solve_flexible_static` solves the augmented system `[K G^T; G 0]` when joints
+are present. Multipliers are returned in the optional `multipliers` argument.
+Limitations:
+
+- Static analysis only, and dense only. Joints require `sparse = .false.`.
+- The Newton tangent omits the multiplier-weighted constraint Hessian, so the
+  method is quasi-Newton. Convergence is linear rather than quadratic for
+  large multipliers.
+- Orientation constraints are singular when the relative rotation is π.
+- Joints attach at mesh nodes only; no joint-to-element or ground attachment.
+
 ## Flexible Truss Example
 
 The [`flexible_truss_example`](../../examples/flexible_truss_example.f90)

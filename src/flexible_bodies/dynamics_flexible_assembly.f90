@@ -10,9 +10,12 @@ module dynamics_flexible_assembly
     !! element order. Do not assemble the same mesh concurrently from multiple
     !! callers; element evaluations can update their workspaces.
     use iso_fortran_env, only : real64, int64
-    use dynamics_flexible_body_types, only : fe_node, degree_of_freedom
+    use dynamics_flexible_body_types, only : fe_node, degree_of_freedom, DOF_UX, DOF_UY, &
+        DOF_UZ, DOF_RX, DOF_RY, DOF_RZ
     use dynamics_error_handling, only : DYN_ARRAY_SIZE_ERROR, DYN_INDEX_OUT_OF_RANGE
     use dynamics_finite_element, only : finite_element
+    use dynamics_flexible_joints, only : flexible_joint, joint_constraint_count, &
+        flexible_joint_constraints
     use linalg, only : csr_matrix, create_csr_matrix, create_empty_csr_matrix
     implicit none
     private
@@ -43,11 +46,18 @@ module dynamics_flexible_assembly
         type(mesh_element), allocatable, dimension(:) :: elements
             !! Collection of concrete elements. An unallocated collection is
             !! empty; an allocated collection must have every slot populated.
+        type(flexible_joint), allocatable, dimension(:) :: joints
+            !! Kinematic joints between node-table positions. Unallocated
+            !! means no joints. Each attachment node must carry all six DOFs.
     contains
         procedure :: number_dofs
             !! Return global DOF offsets by node, without evaluating elements.
         procedure :: resolve_dofs
             !! Look up numbered DOFs by node-table position and physical label.
+        procedure :: number_constraints
+            !! Return the total number of scalar joint constraint rows.
+        procedure :: assemble_constraints
+            !! Evaluate joint constraint values and their dense Jacobian.
         procedure, private :: mass_dense
         procedure, private :: mass_csr
         generic :: assemble_mass => mass_dense, mass_csr
@@ -162,6 +172,81 @@ contains
             slot = findloc(layouts(node)%components, components(i), dim=1)
             if (slot == 0) error stop DYN_INDEX_OUT_OF_RANGE
             dofs(i) = degree_of_freedom(offsets(node) + slot, this%nodes(node)%id, components(i))
+        end do
+    end subroutine
+
+! ------------------------------------------------------------------------------
+    pure function number_constraints(this) result(rst)
+        !! Total scalar constraint rows contributed by all joints.
+        class(finite_element_mesh), intent(in) :: this
+            !! The mesh.
+        integer :: rst
+            !! Number of constraint rows.
+
+        integer :: i
+
+        rst = 0
+        if (.not.allocated(this%joints)) return
+        do i = 1, size(this%joints)
+            rst = rst + joint_constraint_count(this%joints(i)%joint_type)
+        end do
+    end function
+
+! ------------------------------------------------------------------------------
+    subroutine assemble_constraints(this, q, g, jac)
+        !! Evaluate joint constraint values and their dense Jacobian with
+        !! respect to the full displacement vector. Rows follow the order of
+        !! `joints`. Invalid joints or attachments cause `error stop`.
+        class(finite_element_mesh), intent(in) :: this
+            !! Mesh supplying the node table, element layout, and joints.
+        real(real64), intent(in), dimension(:) :: q
+            !! Displacements in global equation order.
+        real(real64), allocatable, intent(out), dimension(:) :: g
+            !! Constraint values, one per row.
+        real(real64), allocatable, intent(out), dimension(:,:) :: jac
+            !! Jacobian with one row per constraint and one column per DOF.
+
+        type(degree_of_freedom), allocatable, dimension(:) :: dofs
+        integer, allocatable, dimension(:) :: positions
+        integer, allocatable, dimension(:) :: components
+        real(real64), allocatable, dimension(:) :: gj
+        real(real64), allocatable, dimension(:,:) :: jj
+        real(real64), dimension(3) :: dx
+        integer, dimension(12) :: eq
+        integer :: nj, nc, ndof, i, k, c, r, row, mj
+
+        nj = 0
+        if (allocated(this%joints)) nj = size(this%joints)
+        allocate(positions(12*nj), components(12*nj))
+        do i = 1, nj
+            k = 12*(i-1)
+            positions(k+1:k+6) = this%joints(i)%node1
+            positions(k+7:k+12) = this%joints(i)%node2
+            components(k+1:k+12) = [DOF_UX, DOF_UY, DOF_UZ, DOF_RX, DOF_RY, DOF_RZ, &
+                DOF_UX, DOF_UY, DOF_UZ, DOF_RX, DOF_RY, DOF_RZ]
+        end do
+        call this%resolve_dofs(positions, components, dofs, ndof)
+        if (size(q) /= ndof) error stop DYN_ARRAY_SIZE_ERROR
+        nc = this%number_constraints()
+        allocate(g(nc), jac(nc,ndof), source=0.0d0)
+
+        row = 0
+        do i = 1, nj
+            k = 12*(i-1)
+            eq = dofs(k+1:k+12)%equation_id
+            mj = joint_constraint_count(this%joints(i)%joint_type)
+            dx = (this%nodes(this%joints(i)%node1)%coordinates + q(eq(1:3))) - &
+                (this%nodes(this%joints(i)%node2)%coordinates + q(eq(7:9)))
+            allocate(gj(mj), jj(mj,12))
+            call flexible_joint_constraints(this%joints(i), dx, q(eq(4:6)), q(eq(10:12)), gj, jj)
+            g(row+1:row+mj) = gj
+            do c = 1, 12
+                do r = 1, mj
+                    jac(row+r,eq(c)) = jac(row+r,eq(c)) + jj(r,c)
+                end do
+            end do
+            row = row + mj
+            deallocate(gj, jj)
         end do
     end subroutine
 

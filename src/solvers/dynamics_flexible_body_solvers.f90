@@ -78,7 +78,7 @@ module dynamics_flexible_body_solvers
 
 contains
     subroutine solve_flexible_static(mesh, force, conditions, displacement, settings, info, &
-        progress, args)
+        progress, args, multipliers)
         !! Solve static equilibrium on the free equations of a flexible mesh:
         !!
         !! $$r_f(q) = f_f - f_{\mathrm{int},f}(q) = 0.$$
@@ -95,6 +95,12 @@ contains
         !! The norm is unscaled across DOFs; force and moment components may
         !! need a nondimensionalized model. If all DOFs are prescribed, the
         !! solve succeeds without evaluating forces or tangents.
+        !!
+        !! Joints in `mesh%joints` are enforced with Lagrange multipliers
+        !! \(\lambda\) in the augmented Newton system
+        !! \([K_{ff}\ G_f^T; G_f\ 0]\). The tangent omits the multiplier-weighted
+        !! constraint Hessian, so the iteration is quasi-Newton. Joints require
+        !! the dense path and at least one free DOF.
         !!
         !! Element internal forces must use the positive internal-force
         !! convention and their tangents must be consistent derivatives.
@@ -135,6 +141,9 @@ contains
             !! Optional callback invoked after each accepted Newton iterate.
         class(*), intent(in), optional :: args
             !! Optional user-supplied data forwarded to the progress callback.
+        real(real64), allocatable, intent(out), optional, dimension(:) :: multipliers
+            !! Optional converged Lagrange multipliers in joint-row order.
+            !! Allocated only on success; empty when there are no joints.
 
         type(flexible_static_settings) :: opts
         type(flexible_static_info) :: status
@@ -147,10 +156,16 @@ contains
         logical, allocatable, dimension(:) :: is_free
         real(real64), allocatable, dimension(:) :: q
         real(real64), allocatable, dimension(:) :: trial
-        real(real64), allocatable, dimension(:) :: internal
         real(real64), allocatable, dimension(:) :: residual
+        real(real64), allocatable, dimension(:) :: trial_residual
         real(real64), allocatable, dimension(:) :: delta
+        real(real64), allocatable, dimension(:) :: rhs
+        real(real64), allocatable, dimension(:) :: lam
+        real(real64), allocatable, dimension(:) :: lam_trial
+        real(real64), allocatable, dimension(:) :: gcon
         real(real64), allocatable, dimension(:,:) :: dense_k
+        real(real64), allocatable, dimension(:,:) :: jcon
+        real(real64), allocatable, dimension(:,:) :: augmented
         real(real64), allocatable, dimension(:,:) :: original_k
         real(real64) :: initial_norm
         real(real64) :: threshold
@@ -158,12 +173,15 @@ contains
         real(real64) :: alpha
         integer :: ndof
         integer :: nfree
+        integer :: nc
+        integer :: n
         integer :: i
         integer :: iteration
         integer :: backtrack
         integer :: lapack_info
         logical :: linear_ok
         logical :: accepted
+        logical :: valid
 
         if (present(settings)) opts = settings
         if (opts%max_iterations < 1 .or. opts%max_backtracks < 0 .or. opts%nthreads < 1 .or. &
@@ -186,6 +204,9 @@ contains
         end do
         free = pack([(i, i=1,ndof)], is_free)
         nfree = size(free)
+        nc = mesh%number_constraints()
+        if (nc > 0 .and. (opts%sparse .or. nfree == 0)) error stop DYN_INVALID_INPUT_ERROR
+        allocate(lam(nc), source=0.0d0)
 
         ! Work on a private candidate so failure never publishes a partial step.
         q = displacement
@@ -193,13 +214,13 @@ contains
         if (nfree == 0) then
             status%converged = .true.
             displacement = q
+            if (present(multipliers)) multipliers = lam
             if (present(info)) info = status
             return
         end if
-        call mesh%assemble_internal_force(q, internal, nthreads=opts%nthreads)
-        residual = force(free) - internal(free)
+        call evaluate(q, lam, residual, valid)
         status%residual_norm = norm2(residual)
-        if (.not.all(ieee_is_finite(residual))) then
+        if (.not.valid) then
             call failure()
             return
         end if
@@ -224,20 +245,31 @@ contains
                 call sparse_correction(sparse_k, residual, delta, linear_ok)
             else
                 call mesh%assemble_stiffness(q, dense_k, nthreads=opts%nthreads)
-                dense_k = dense_k(free,free)
-                linear_ok = all(ieee_is_finite(dense_k))
+                n = nfree + nc
+                if (allocated(augmented)) deallocate(augmented)
+                allocate(augmented(n,n), source=0.0d0)
+                augmented(1:nfree,1:nfree) = dense_k(free,free)
+                if (nc > 0) then
+                    call mesh%assemble_constraints(q, gcon, jcon)
+                    augmented(nfree+1:n,1:nfree) = jcon(:,free)
+                    augmented(1:nfree,nfree+1:n) = transpose(jcon(:,free))
+                end if
+                linear_ok = all(ieee_is_finite(augmented))
                 if (linear_ok) then
-                    ! LU overwrites the tangent; retain it to check the true residual.
-                    original_k = dense_k
-                    allocate(pivots(nfree))
-                    call DGETRF(nfree, nfree, dense_k, nfree, pivots, lapack_info)
+                    ! Right-hand side [R_u; -g] for the system [K G^T; G 0].
+                    rhs = residual
+                    rhs(nfree+1:n) = -residual(nfree+1:n)
+                    ! LU overwrites the matrix; retain it to check the true residual.
+                    original_k = augmented
+                    allocate(pivots(n))
+                    call DGETRF(n, n, augmented, n, pivots, lapack_info)
                     linear_ok = lapack_info == 0
                     if (linear_ok) then
-                        delta = residual
-                        call DGETRS('N', nfree, 1, dense_k, nfree, pivots, delta, nfree, lapack_info)
+                        delta = rhs
+                        call DGETRS('N', n, 1, augmented, n, pivots, delta, n, lapack_info)
                         linear_ok = lapack_info == 0 .and. all(ieee_is_finite(delta))
-                        if (linear_ok) linear_ok = norm2(residual - matmul(original_k, delta)) <= &
-                            1.0d-10 * norm2(residual)
+                        if (linear_ok) linear_ok = norm2(rhs - matmul(original_k, delta)) <= &
+                            1.0d-10 * norm2(rhs)
                     end if
                     deallocate(pivots)
                 end if
@@ -253,11 +285,12 @@ contains
             ! Test equilibrium at the full trial before halving the correction.
             do backtrack = 0, opts%max_backtracks
                 trial = q
-                trial(free) = q(free) + alpha * delta
-                if (all(ieee_is_finite(trial))) then
-                    call mesh%assemble_internal_force(trial, internal, nthreads=opts%nthreads)
-                    if (all(ieee_is_finite(internal(free)))) then
-                        trial_norm = norm2(force(free) - internal(free))
+                trial(free) = q(free) + alpha * delta(1:nfree)
+                lam_trial = lam + alpha * delta(nfree+1:)
+                if (all(ieee_is_finite(trial)) .and. all(ieee_is_finite(lam_trial))) then
+                    call evaluate(trial, lam_trial, trial_residual, valid)
+                    if (valid) then
+                        trial_norm = norm2(trial_residual)
                         if (ieee_is_finite(trial_norm)) then
                             if (trial_norm <= threshold .or. &
                                 trial_norm <= (1.0d0 - 1.0d-4 * alpha) * status%residual_norm) then
@@ -274,7 +307,8 @@ contains
                 return
             end if
             q = trial
-            residual = force(free) - internal(free)
+            lam = lam_trial
+            residual = trial_residual
             status%residual_norm = trial_norm
             status%iterations = iteration
             if (present(progress)) then
@@ -291,8 +325,36 @@ contains
         end if
         status%converged = .true.
         displacement = q
+        if (present(multipliers)) multipliers = lam
         if (present(info)) info = status
     contains
+        subroutine evaluate(qq, lamv, rv, is_valid)
+            !! Evaluate the free residual `[f - f_int - G^T lambda; g]` and
+            !! report whether all of its entries are finite.
+            real(real64), intent(in), dimension(:) :: qq
+                !! Full displacement vector.
+            real(real64), intent(in), dimension(:) :: lamv
+                !! Current Lagrange multipliers.
+            real(real64), allocatable, intent(out), dimension(:) :: rv
+                !! Free momentum residual followed by constraint values.
+            logical, intent(out) :: is_valid
+                !! True when every entry of `rv` is finite.
+
+            real(real64), allocatable, dimension(:) :: fi
+            real(real64), allocatable, dimension(:) :: gv
+            real(real64), allocatable, dimension(:,:) :: jv
+
+            call mesh%assemble_internal_force(qq, fi, nthreads=opts%nthreads)
+            allocate(rv(nfree + nc), source=0.0d0)
+            rv(1:nfree) = force(free) - fi(free)
+            if (nc > 0) then
+                call mesh%assemble_constraints(qq, gv, jv)
+                rv(nfree+1:) = gv
+                rv(1:nfree) = rv(1:nfree) - matmul(transpose(jv(:,free)), lamv)
+            end if
+            is_valid = all(ieee_is_finite(rv))
+        end subroutine
+
         subroutine failure()
             !! Report a recoverable failure or terminate when no status was requested.
             if (present(info)) then

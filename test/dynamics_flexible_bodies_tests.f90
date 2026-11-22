@@ -13,6 +13,9 @@ module dynamics_flexible_bodies_tests
     use linalg, only : csr_matrix, csr_to_dense
     use dynamics_flexible_materials
     use dynamics_helper, only : dot_product, matmul
+    use dynamics_joints, only : FIXED_JOINT, REVOLUTE_JOINT, PRISMATIC_JOINT, CYLINDRICAL_JOINT, &
+        UNIVERSAL_JOINT, SPHERICAL_JOINT
+    use dynamics_flexible_joints, only : flexible_joint, joint_constraint_count, flexible_joint_constraints
     implicit none
     private
     public :: test_flexible_material
@@ -21,6 +24,8 @@ module dynamics_flexible_bodies_tests
     public :: test_flexible_mesh_boundary_conditions
     public :: test_flexible_static
     public :: test_flexible_truss_static
+    public :: test_flexible_joint_jacobian
+    public :: test_flexible_joints
     public :: test_ad_products
     public :: invalid_ad_product
     public :: invalid_flexible_input
@@ -226,6 +231,167 @@ contains
         call solve_flexible_static(large_mesh, large_load, one_condition, large_q, settings, info)
         ok = ok .and. info%converged .and. info%iterations == 0
         if (.not.ok) print "(A)", "TEST FAILED: nonlinear flexible static solver"
+    end function
+
+    function test_flexible_joint_jacobian() result(ok)
+        !! Compare each joint Jacobian with central differences.
+        logical :: ok
+        integer, dimension(6) :: joint_types
+        type(flexible_joint) :: joint
+        real(real64), dimension(3) :: dx
+        real(real64), dimension(3) :: theta1
+        real(real64), dimension(3) :: theta2
+        real(real64), dimension(3) :: dxp
+        real(real64), dimension(3) :: dxm
+        real(real64), dimension(3) :: t1p
+        real(real64), dimension(3) :: t1m
+        real(real64), dimension(3) :: t2p
+        real(real64), dimension(3) :: t2m
+        real(real64), allocatable, dimension(:) :: gp
+        real(real64), allocatable, dimension(:) :: gm
+        real(real64), allocatable, dimension(:) :: g
+        real(real64), allocatable, dimension(:,:) :: jac
+        real(real64), allocatable, dimension(:,:) :: jtmp
+        real(real64), parameter :: h = 1.0d-6
+        integer :: j
+        integer :: k
+        integer :: m
+
+        joint_types = [FIXED_JOINT, REVOLUTE_JOINT, PRISMATIC_JOINT, CYLINDRICAL_JOINT, &
+            UNIVERSAL_JOINT, SPHERICAL_JOINT]
+        dx = [0.3d0, -0.2d0, 0.5d0]
+        theta1 = [0.2d0, -0.1d0, 0.15d0]
+        theta2 = [-0.05d0, 0.25d0, 0.1d0]
+        ok = .true.
+        do k = 1, size(joint_types)
+            joint = flexible_joint(joint_types(k), 1, 2)
+            m = joint_constraint_count(joint_types(k))
+            allocate(g(m), gp(m), gm(m), jac(m,12), jtmp(m,12))
+            call flexible_joint_constraints(joint, dx, theta1, theta2, g, jac)
+            ok = ok .and. size(g) == m
+            ok = ok .and. size(jac, 1) == size(g) .and. size(jac, 2) == 12
+            if (.not.ok) exit
+            do j = 1, 12
+                dxp = dx
+                dxm = dx
+                t1p = theta1
+                t1m = theta1
+                t2p = theta2
+                t2m = theta2
+                if (j <= 3) then
+                    dxp(j) = dxp(j) + h
+                    dxm(j) = dxm(j) - h
+                else if (j <= 6) then
+                    t1p(j-3) = t1p(j-3) + h
+                    t1m(j-3) = t1m(j-3) - h
+                else if (j <= 9) then
+                    dxp(j-6) = dxp(j-6) - h
+                    dxm(j-6) = dxm(j-6) + h
+                else
+                    t2p(j-9) = t2p(j-9) + h
+                    t2m(j-9) = t2m(j-9) - h
+                end if
+                call flexible_joint_constraints(joint, dxp, t1p, t2p, gp, jtmp)
+                call flexible_joint_constraints(joint, dxm, t1m, t2m, gm, jtmp)
+                ok = ok .and. maxval(abs((gp - gm) / (2.0d0*h) - jac(:,j))) < 1.0d-7
+            end do
+            deallocate(g, gp, gm, jac, jtmp)
+        end do
+        if (.not.ok) print "(A)", "TEST FAILED: flexible joint Jacobian"
+    end function
+
+    function test_flexible_joints() result(ok)
+        !! A fixed joint between split nodes must reproduce a continuous
+        !! cantilever. A revolute joint must satisfy its constraints and
+        !! release rotation about its axis only.
+        logical :: ok
+        type(linear_elastic_isotropic_material), target :: material
+        type(euler_bernoulli_beam_element) :: beam
+        type(finite_element_mesh) :: continuous
+        type(finite_element_mesh) :: split
+        type(finite_element_mesh) :: hinged
+        type(flexible_static_settings) :: settings
+        type(flexible_static_info) :: info
+        type(nodal_condition), dimension(6) :: clamp_root
+        type(nodal_condition), dimension(12) :: clamp_both
+        real(real64), dimension(18) :: load_continuous
+        real(real64), dimension(18) :: q_continuous
+        real(real64), dimension(24) :: load_split
+        real(real64), dimension(24) :: q_split
+        real(real64), dimension(24) :: q_hinged
+        real(real64), allocatable, dimension(:) :: g
+        real(real64), allocatable, dimension(:) :: multipliers
+        real(real64), allocatable, dimension(:,:) :: jac
+
+        material%modulus = 100.0d0
+        material%poissons_ratio = 0.25d0
+        material%density = 1.0d0
+        beam%material => material
+        beam%area = 1.0d0
+        beam%j = 0.1d0
+        beam%iyy = 0.2d0
+        beam%izz = 0.3d0
+        clamp_root = [nodal_condition(1, DOF_UX), nodal_condition(1, DOF_UY), &
+            nodal_condition(1, DOF_UZ), nodal_condition(1, DOF_RX), &
+            nodal_condition(1, DOF_RY), nodal_condition(1, DOF_RZ)]
+        clamp_both(1:6) = clamp_root
+        clamp_both(7:12) = [nodal_condition(4, DOF_UX), nodal_condition(4, DOF_UY), &
+            nodal_condition(4, DOF_UZ), nodal_condition(4, DOF_RX), &
+            nodal_condition(4, DOF_RY), nodal_condition(4, DOF_RZ)]
+        settings%sparse = .false.
+
+        ! Continuous cantilever: nodes at x = 0, 1, 2.
+        continuous = finite_element_mesh(3, 2)
+        continuous%nodes = [fe_node(1, [0.0d0, 0.0d0, 0.0d0]), fe_node(2, [1.0d0, 0.0d0, 0.0d0]), &
+            fe_node(3, [2.0d0, 0.0d0, 0.0d0])]
+        beam%node_indices = [1, 2]
+        call continuous%assign_element(1, beam)
+        beam%node_indices = [2, 3]
+        call continuous%assign_element(2, beam)
+        load_continuous = 0.0d0
+        load_continuous(14) = 1.0d0
+        q_continuous = 0.0d0
+        call solve_flexible_static(continuous, load_continuous, clamp_root, q_continuous, settings, info)
+        ok = info%converged
+
+        ! The same beam split at x = 1 and tied by a fixed joint.
+        split = finite_element_mesh(4, 2)
+        split%nodes = [fe_node(1, [0.0d0, 0.0d0, 0.0d0]), fe_node(2, [1.0d0, 0.0d0, 0.0d0]), &
+            fe_node(3, [1.0d0, 0.0d0, 0.0d0]), fe_node(4, [2.0d0, 0.0d0, 0.0d0])]
+        beam%node_indices = [1, 2]
+        call split%assign_element(1, beam)
+        beam%node_indices = [3, 4]
+        call split%assign_element(2, beam)
+        split%joints = [flexible_joint(FIXED_JOINT, 2, 3)]
+        load_split = 0.0d0
+        load_split(20) = 1.0d0
+        q_split = 0.0d0
+        call solve_flexible_static(split, load_split, clamp_root, q_split, settings, info, &
+            multipliers=multipliers)
+        ok = ok .and. info%converged .and. size(multipliers) == 6
+        ok = ok .and. abs(q_split(20) - q_continuous(14)) < 1.0d-8
+        ok = ok .and. maxval(abs(q_split(7:12) - q_split(13:18))) < 1.0d-8
+
+        ! Revolute joint between the split nodes, clamped at both ends.
+        hinged = finite_element_mesh(4, 2)
+        hinged%nodes = split%nodes
+        beam%node_indices = [1, 2]
+        call hinged%assign_element(1, beam)
+        beam%node_indices = [3, 4]
+        call hinged%assign_element(2, beam)
+        hinged%joints = [flexible_joint(REVOLUTE_JOINT, 2, 3)]
+        load_split = 0.0d0
+        load_split(8) = 1.0d0
+        q_hinged = 0.0d0
+        call solve_flexible_static(hinged, load_split, clamp_both, q_hinged, settings, info, &
+            multipliers=multipliers)
+        ok = ok .and. info%converged .and. size(multipliers) == 5
+        call hinged%assemble_constraints(q_hinged, g, jac)
+        ok = ok .and. size(g) == 5 .and. maxval(abs(g)) < 1.0d-8
+        ok = ok .and. abs(q_hinged(10) - q_hinged(16)) < 1.0d-8
+        ok = ok .and. abs(q_hinged(11) - q_hinged(17)) < 1.0d-8
+        ok = ok .and. abs(q_hinged(12) - q_hinged(18)) > 1.0d-6
+        if (.not.ok) print "(A)", "TEST FAILED: flexible joints"
     end function
 
     function test_flexible_truss_static() result(ok)

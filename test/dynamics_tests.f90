@@ -68,6 +68,8 @@ program main
                 if (.not.test_flexible_mesh()) stop 193
                 if (.not.test_flexible_mesh_boundary_conditions()) stop 194
                 if (.not.test_flexible_static()) stop 195
+                if (.not.test_flexible_joint_jacobian()) stop 215
+                if (.not.test_flexible_joints()) stop 216
                 stop
             end if
             if (selection == "flexible-truss-static") then
@@ -117,6 +119,12 @@ program main
 
     check = test_flexible_truss_static()
     if (.not.check) flag = 196
+
+    check = test_flexible_joint_jacobian()
+    if (.not.check) flag = 215
+
+    check = test_flexible_joints()
+    if (.not.check) flag = 216
 
     check = test_frf_sweep()
     if (.not.check) flag = 1
