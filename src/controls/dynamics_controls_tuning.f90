@@ -66,6 +66,8 @@ module dynamics_controls_tuning
         procedure, private :: is_stable_discrete
         procedure, private :: ise_continuous
         procedure, private :: ise_discrete
+        procedure, public :: apply_to_state_space_plant => isfc_apply_to_ss_plant
+        procedure, public :: apply_to_discrete_state_space_plant => isfc_apply_to_dss_plant
     end type
 
     interface integral_state_feedback_controller
@@ -165,6 +167,94 @@ function ise_discrete(this, plant) result(rst)
     real(real64) :: rst
         !! The integral squared error.
     rst = plant_ise(plant_from_discrete(plant), this%K, this%Ki)
+end function
+
+! ------------------------------------------------------------------------------
+pure function isfc_apply_to_ss_plant(this, plant) result(rst)
+    !! Applies the [[integral_state_feedback_controller]] to a [[state_space]]
+    !! plant model, returning the closed loop as a state-space model with the
+    !! augmented state \([x; \xi]\).  The inputs are the \(P\) references, and
+    !! the outputs are the \(M\) control inputs followed by the \(P\) plant
+    !! outputs.
+    class(integral_state_feedback_controller), intent(in) :: this
+        !! The [[integral_state_feedback_controller]] object.
+    class(state_space), intent(in) :: plant
+        !! The [[state_space]] plant model.
+    type(state_space) :: rst
+        !! The resulting [[state_space]] object.
+
+    integer :: i, m, n, p
+    real(real64), allocatable, dimension(:,:) :: A, B, C, D
+
+    n = size(plant%A, 1)
+    m = size(this%K, 1)
+    p = size(this%Ki, 2)
+    if (size(this%K, 2) /= n .or. size(this%Ki, 1) /= m .or. &
+        size(plant%B, 2) /= m .or. size(plant%C, 1) /= p) &
+        error stop DYN_INVALID_INPUT_ERROR
+
+    allocate(A(n + p, n + p), B(n + p, p), C(m + p, n + p), D(m + p, p))
+    A(1:n, 1:n) = plant%A - matmul(plant%B, this%K)
+    A(1:n, n + 1:) = -matmul(plant%B, this%Ki)
+    A(n + 1:, 1:n) = plant%C - matmul(plant%D, this%K)
+    A(n + 1:, n + 1:) = -matmul(plant%D, this%Ki)
+
+    B = 0.0d0
+    do i = 1, p
+        B(n + i, i) = -1.0d0
+    end do
+
+    C(1:m, 1:n) = -this%K
+    C(1:m, n + 1:) = -this%Ki
+    C(m + 1:, 1:n) = plant%C - matmul(plant%D, this%K)
+    C(m + 1:, n + 1:) = -matmul(plant%D, this%Ki)
+    D = 0.0d0
+    rst = state_space(A, B, C, D)
+end function
+
+! ------------------------------------------------------------------------------
+pure function isfc_apply_to_dss_plant(this, plant) result(rst)
+    !! Applies the [[integral_state_feedback_controller]] to a
+    !! [[discrete_state_space]] plant model.  The integrator is updated as
+    !! \(\xi_{k+1} = \xi_k + T_s(y_k - r_k)\), and the inputs, outputs, and
+    !! augmented state match [[isfc_apply_to_ss_plant]].
+    class(integral_state_feedback_controller), intent(in) :: this
+        !! The [[integral_state_feedback_controller]] object.
+    class(discrete_state_space), intent(in) :: plant
+        !! The [[discrete_state_space]] plant model.
+    type(discrete_state_space) :: rst
+        !! The resulting [[discrete_state_space]] object.
+
+    integer :: i, m, n, p
+    real(real64), allocatable, dimension(:,:) :: A, B, C, D
+
+    n = size(plant%A, 1)
+    m = size(this%K, 1)
+    p = size(this%Ki, 2)
+    if (size(this%K, 2) /= n .or. size(this%Ki, 1) /= m .or. &
+        size(plant%B, 2) /= m .or. size(plant%C, 1) /= p) &
+        error stop DYN_INVALID_INPUT_ERROR
+
+    allocate(A(n + p, n + p), B(n + p, p), C(m + p, n + p), D(m + p, p))
+    A(1:n, 1:n) = plant%A - matmul(plant%B, this%K)
+    A(1:n, n + 1:) = -matmul(plant%B, this%Ki)
+    A(n + 1:, 1:n) = plant%sample_time * (plant%C - matmul(plant%D, this%K))
+    A(n + 1:, n + 1:) = -plant%sample_time * matmul(plant%D, this%Ki)
+    do i = 1, p
+        A(n + i, n + i) = A(n + i, n + i) + 1.0d0
+    end do
+
+    B = 0.0d0
+    do i = 1, p
+        B(n + i, i) = -plant%sample_time
+    end do
+
+    C(1:m, 1:n) = -this%K
+    C(1:m, n + 1:) = -this%Ki
+    C(m + 1:, 1:n) = plant%C - matmul(plant%D, this%K)
+    C(m + 1:, n + 1:) = -matmul(plant%D, this%Ki)
+    D = 0.0d0
+    rst = discrete_state_space(A, B, C, D, plant%sample_time)
 end function
 
 ! ******************************************************************************

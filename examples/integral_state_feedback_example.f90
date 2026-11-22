@@ -35,7 +35,7 @@ program integral_state_feedback_example
     implicit none
 
     ! Solution parameters
-    real(real64), parameter :: tmax = 20.0d0
+    real(real64), parameter :: tmax = 10.0d0
 
     ! Local variables
     integer :: i, n
@@ -43,7 +43,7 @@ program integral_state_feedback_example
     real(real64), allocatable, dimension(:) :: r
     real(real64), allocatable, dimension(:,:) :: A, B, C, D, K, Ki
     real(real64), allocatable, dimension(:,:) :: sol0, sol1, sol2
-    type(state_space) :: plant
+    type(state_space) :: plant, mdl0, mdl1, mdl2
     type(integral_state_feedback_controller) :: ctrl, ctrl_pen
     type(controller_optimizer) :: opt
 
@@ -52,6 +52,7 @@ program integral_state_feedback_example
     type(plot_data_2d) :: pd
     class(plot_axis), pointer :: xAxis, yAxis, x2, y2
     type(multiplot) :: fig
+    class(legend), pointer :: lgnd
 
     ! Define a continuous-time plant with a feedthrough term.  The state is
     ! [x1; x2] and the input is u.
@@ -91,14 +92,16 @@ program integral_state_feedback_example
     ! gains and compare the numerical ISE to the closed-form value.
     t = [0.0d0, tmax]
     ic = 0.0d0
-    call simulate_closed_loop(plant, ctrl, t, ic, sol1)
+    mdl1 = ctrl%apply_to_state_space_plant(plant)
+    sol1 = lti_solve(mdl1, step_command, t, ic)
     ise_num = integral_error(sol1)
     print "(A, F0.6)", "Numerical ISE (optimized gains): ", ise_num
     print "(A, I0)", "Solution points (optimized gains): ", size(sol1, 1)
 
     ! Simulate the response with the starting gains for comparison
     ctrl = integral_state_feedback_controller(K, Ki)
-    call simulate_closed_loop(plant, ctrl, t, ic, sol0)
+    mdl0 = ctrl%apply_to_state_space_plant(plant)
+    sol0 = lti_solve(mdl0, step_command, t, ic)
     print "(A, F0.6)", "Numerical ISE (initial gains): ", integral_error(sol0)
 
     ! Optimize again from the starting gains with a control effort weight.  The
@@ -115,16 +118,21 @@ program integral_state_feedback_example
     print "(A, 2F0.6)", achar(9), ctrl_pen%K
     print "(A)", "Control weight optimized Ki:"
     print "(A, F0.6)", achar(9), ctrl_pen%Ki(1,1)
-    call simulate_closed_loop(plant, ctrl_pen, t, ic, sol2)
+    mdl2 = ctrl_pen%apply_to_state_space_plant(plant)
+    sol2 = lti_solve(mdl2, step_command, t, ic)
     print "(A, F0.6)", "Numerical ISE (control weight, optimized gains): ", integral_error(sol2)
 
     ! Plot the reference and output (top) and control effort (bottom)
     allocate(r(size(sol1, 1)))
     r = 1.0d0
-    call fig%initialize(2, 1)
+    call fig%initialize(2, 1, width = 1000, height = 600)
     call plt1%initialize()
     xAxis => plt1%get_x_axis()
     yAxis => plt1%get_y_axis()
+    lgnd => plt1%get_legend()
+    call lgnd%set_is_visible(.true.)
+    call lgnd%set_draw_border(.false.)
+    call lgnd%set_vertical_position(LEGEND_BOTTOM)
     call xAxis%set_title("t [s]")
     call yAxis%set_title("y(t)")
 
@@ -179,47 +187,6 @@ program integral_state_feedback_example
     call fig%draw()
 
 contains
-    subroutine simulate_closed_loop(plant, ctrl, t, ic, sol)
-        !! Simulates the closed loop of a plant with an integral state
-        !! feedback controller.  The augmented state is z = [x; xi] with
-        !! dz/dt = Acl z + Bcl r, where the integral state is driven by y - r.
-        !! Columns of the solution are time, the control effort u, and the
-        !! plant output y.
-        type(state_space), intent(in) :: plant
-            !! The continuous-time plant.
-        type(integral_state_feedback_controller), intent(in) :: ctrl
-            !! The controller.
-        real(real64), intent(in) :: t(2)
-            !! The solution time span.
-        real(real64), intent(in) :: ic(:)
-            !! The initial augmented state.
-        real(real64), allocatable, intent(out) :: sol(:,:)
-            !! The solution.
-
-        ! Local variables
-        integer :: n
-        real(real64), allocatable, dimension(:,:) :: Acl, Bcl, Ccl, Dcl
-        type(state_space) :: mdl
-
-        n = size(plant%A, 1)
-        allocate(Acl(n+1, n+1), Bcl(n+1, 1), Ccl(2, n+1), Dcl(2, 1))
-        Acl(1:n, 1:n) = plant%A - matmul(plant%B, ctrl%K)
-        Acl(1:n, n+1:) = -matmul(plant%B, ctrl%Ki)
-        Acl(n+1:, 1:n) = plant%C - matmul(plant%D, ctrl%K)
-        Acl(n+1:, n+1:) = -matmul(plant%D, ctrl%Ki)
-        Bcl = 0.0d0
-        Bcl(n+1, 1) = -1.0d0
-
-        ! Output 1 is the control effort, output 2 is the plant output
-        Ccl(1, 1:n) = -ctrl%K(1, :)
-        Ccl(1, n+1:) = -ctrl%Ki(1, :)
-        Ccl(2, 1:n) = plant%C(1, :) - matmul(plant%D(1, :), ctrl%K)
-        Ccl(2, n+1:) = -matmul(plant%D(1, :), ctrl%Ki)
-        Dcl = 0.0d0
-
-        mdl = state_space(Acl, Bcl, Ccl, Dcl)
-        sol = lti_solve(mdl, step_command, t, ic)
-    end subroutine
 
     function integral_error(sol) result(rst)
         !! Numerically integrates the squared tracking error (y - 1)^2 over

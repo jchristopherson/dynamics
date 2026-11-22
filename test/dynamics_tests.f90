@@ -574,6 +574,12 @@ program main
     check = test_isf_optimizer_control_weight()
     if (.not.check) flag = 211
 
+    check = test_isf_apply_to_ss_plant()
+    if (.not.check) flag = 212
+
+    check = test_isf_apply_to_dss_plant()
+    if (.not.check) flag = 213
+
     check = test_discretize_zoh_scalar()
     if (.not.check) flag = 201
 

@@ -284,4 +284,103 @@ function test_isf_optimizer_control_weight() result(rst)
         sum(ctrl_ise%K**2) + sum(ctrl_ise%Ki**2)
 end function
 
+! ------------------------------------------------------------------------------
+function test_isf_apply_to_ss_plant() result(rst)
+    !! The closed loop realized by apply_to_state_space_plant must reproduce
+    !! the plant and controller equations for a two-output plant with
+    !! feedthrough.  The inputs are the references and the outputs are
+    !! [u; y].
+    logical :: rst
+
+    ! Parameters
+    real(real64), parameter :: tol = 1.0d-12
+
+    ! Local Variables
+    real(real64) :: u
+    real(real64), allocatable, dimension(:,:) :: A, B, C, D, K, Ki
+    real(real64), allocatable, dimension(:) :: x, xi, z, r, y, dx, dxi, dz, out, &
+        expected_dz, expected_out
+    type(state_space) :: sys_c, sys_r
+    type(integral_state_feedback_controller) :: ctrl
+
+    A = reshape([0.0d0, 1.0d0, -2.0d0, -3.0d0], [2, 2])
+    B = reshape([0.0d0, 1.0d0], [2, 1])
+    C = reshape([1.0d0, 0.0d0, 0.0d0, 1.0d0], [2, 2])
+    D = reshape([0.2d0, 0.1d0], [2, 1])
+    sys_c = state_space(A, B, C, D)
+    K = reshape([2.0d0, 1.0d0], [1, 2])
+    Ki = reshape([1.0d0, 0.5d0], [1, 2])
+    ctrl = integral_state_feedback_controller(K, Ki)
+    sys_r = ctrl%apply_to_state_space_plant(sys_c)
+
+    rst = .false.
+    if (size(sys_r%A, 1) /= 4 .or. size(sys_r%B, 2) /= 2 .or. &
+        size(sys_r%C, 1) /= 3 .or. size(sys_r%D, 2) /= 2) return
+
+    z = [0.3d0, -0.7d0, 0.4d0, -0.2d0]
+    r = [0.5d0, -0.1d0]
+    x = z(1:2)
+    xi = z(3:4)
+    u = -dot_product(K(1,:), x) - dot_product(Ki(1,:), xi)
+    y = matmul(C, x) + D(:,1) * u
+    dx = matmul(A, x) + B(:,1) * u
+    dxi = y - r
+    expected_dz = [dx, dxi]
+    expected_out = [u, y]
+
+    dz = matmul(sys_r%A, z) + matmul(sys_r%B, r)
+    out = matmul(sys_r%C, z) + matmul(sys_r%D, r)
+    rst = all(abs(dz - expected_dz) <= tol) .and. all(abs(out - expected_out) <= tol)
+end function
+
+! ------------------------------------------------------------------------------
+function test_isf_apply_to_dss_plant() result(rst)
+    !! The discrete closed loop realized by apply_to_discrete_state_space_plant
+    !! must reproduce the discrete plant and integrator updates for a
+    !! two-output plant with feedthrough, and keep the sample time.
+    logical :: rst
+
+    ! Parameters
+    real(real64), parameter :: tol = 1.0d-12
+    real(real64), parameter :: Ts = 0.1d0
+
+    ! Local Variables
+    real(real64) :: u
+    real(real64), allocatable, dimension(:,:) :: A, B, C, D, K, Ki
+    real(real64), allocatable, dimension(:) :: x, xi, z, r, y, dx, dxi, dz, out, &
+        expected_dz, expected_out
+    type(discrete_state_space) :: sys_d, sys_r
+    type(integral_state_feedback_controller) :: ctrl
+
+    A = reshape([0.9d0, 0.0d0, 0.1d0, 0.8d0], [2, 2])
+    B = reshape([0.0d0, 0.2d0], [2, 1])
+    C = reshape([1.0d0, 0.0d0, 0.0d0, 1.0d0], [2, 2])
+    D = reshape([0.1d0, 0.05d0], [2, 1])
+    sys_d = discrete_state_space(A, B, C, D, Ts)
+    K = reshape([1.0d0, 0.5d0], [1, 2])
+    Ki = reshape([0.3d0, 0.2d0], [1, 2])
+    ctrl = integral_state_feedback_controller(K, Ki)
+    sys_r = ctrl%apply_to_discrete_state_space_plant(sys_d)
+
+    rst = .false.
+    if (size(sys_r%A, 1) /= 4 .or. size(sys_r%B, 2) /= 2 .or. &
+        size(sys_r%C, 1) /= 3 .or. size(sys_r%D, 2) /= 2) return
+    if (sys_r%sample_time /= Ts) return
+
+    z = [0.3d0, -0.7d0, 0.4d0, -0.2d0]
+    r = [0.5d0, -0.1d0]
+    x = z(1:2)
+    xi = z(3:4)
+    u = -dot_product(K(1,:), x) - dot_product(Ki(1,:), xi)
+    y = matmul(C, x) + D(:,1) * u
+    dx = matmul(A, x) + B(:,1) * u
+    dxi = xi + Ts * (y - r)
+    expected_dz = [dx, dxi]
+    expected_out = [u, y]
+
+    dz = matmul(sys_r%A, z) + matmul(sys_r%B, r)
+    out = matmul(sys_r%C, z) + matmul(sys_r%D, r)
+    rst = all(abs(dz - expected_dz) <= tol) .and. all(abs(out - expected_out) <= tol)
+end function
+
 end module
