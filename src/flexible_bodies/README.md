@@ -156,10 +156,7 @@ call solve_flexible_static(mesh, force, supports, nonlinear_u, static_settings, 
 if (.not.static_info%converged) error stop "Nonlinear static equilibrium failed"
 ```
 
-The six lowest vibration modes use the same undeformed tangent. The 3D
-plots rotate the display coordinates by +90 degrees about X so global Y
-points up and the depth axis is labeled `-Z`. Each mode is scaled
-for display; the plotted amplitudes are not physical displacements.
+The six lowest vibration modes use the original undeformed geometry.
 
 | Mode 1: 33.173 Hz | Mode 2: 153.396 Hz | Mode 3: 251.955 Hz |
 |:--:|:--:|:--:|
