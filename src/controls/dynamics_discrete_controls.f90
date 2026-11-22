@@ -18,6 +18,7 @@ module dynamics_discrete_controls
     use iso_fortran_env
     use nonlin_polynomials
     use linalg, only : mtx_inverse, eigen, identity
+    use ieee_arithmetic, only : ieee_is_finite
     use dynamics_error_handling, only : DYN_INVALID_INPUT_ERROR
     use dynamics_helper, only : matrix_exponential, siso_resolvent_coefficients
     use dynamics_controls, only : state_space, transfer_function
@@ -53,6 +54,9 @@ module dynamics_discrete_controls
             !! The sample time, \(T_s > 0\), of the model.
     contains
         procedure, public :: poles => dss_poles
+        procedure, public :: zeros => dss_zeros
+        procedure, public :: evaluate_next_state => dss_eval_next_state
+        procedure, public :: evaluate_output => dss_eval_output
         procedure, public :: to_transfer_function => dss_to_tf
     end type
 
@@ -181,6 +185,84 @@ pure function dss_to_tf(this) result(rst)
     end do
     rst = discrete_transfer_function(num, den, this%sample_time)
 end function
+
+! ------------------------------------------------------------------------------
+pure function dss_zeros(this) result(rst)
+    !! Computes the zeros of the discrete-time state-space model.  The zeros
+    !! are the finite generalized eigenvalues of the discrete Rosenbrock
+    !! system matrix
+    !! $$ \mathcal{R}(z)=\begin{bmatrix}zI-A&-B\\C&D\end{bmatrix}, $$
+    !! which are the values of \(z\) at which \(\mathcal{R}(z)\) loses rank.
+    !! Zeros at \(z=\infty\) are not returned.  The model must have the same
+    !! number of inputs and outputs.
+    class(discrete_state_space), intent(in) :: this
+        !! The [[discrete_state_space]] object.
+    complex(real64), allocatable, dimension(:) :: rst
+        !! The zeros of the model.
+
+    ! Local Variables
+    integer :: i, n, m, nz
+    real(real64), allocatable, dimension(:,:) :: Az, Bz
+    complex(real64), allocatable, dimension(:) :: buffer
+
+    ! Process
+    n = size(this%A, 1)
+    m = size(this%B, 2)
+    if (size(this%C, 1) /= m .or. size(this%D, 1) /= m) &
+        error stop DYN_INVALID_INPUT_ERROR
+    nz = n + m
+    allocate(Az(nz, nz), Bz(nz, nz), source = 0.0d0)
+    allocate(buffer(nz))
+    Az(1:n,1:n) = this%A
+    Az(1:n,n+1:nz) = this%B
+    Az(n+1:nz,1:n) = -this%C
+    Az(n+1:nz,n+1:nz) = -this%D
+    do i = 1, n
+        Bz(i,i) = 1.0d0
+    end do
+
+    call eigen(Az, Bz, buffer)
+
+    ! Infinite eigenvalues correspond to zeros at z = inf and are excluded.
+    ! Exact zeros at z = 0 are retained.
+    rst = pack(buffer, ieee_is_finite(real(buffer)) .and. ieee_is_finite(aimag(buffer)))
+end function
+
+
+! ------------------------------------------------------------------------------
+pure function dss_eval_next_state(this, u, x) result(rst)
+    !! Evaluates the next state \( x_{k+1} = A x_k + B u_k \) for one step.
+    class(discrete_state_space), intent(in) :: this
+        !! The [[discrete_state_space]] object.
+    real(real64), intent(in), dimension(:) :: u
+        !! The M-element input array, \(u_k\).
+    real(real64), intent(in), dimension(:) :: x
+        !! The N-element state array, \(x_k\).
+    real(real64), allocatable, dimension(:) :: rst
+        !! The N-element next state array, \(x_{k+1}\).
+
+    if (size(u) /= size(this%B, 2) .or. size(x) /= size(this%A, 1)) &
+        error stop DYN_INVALID_INPUT_ERROR
+    rst = matmul(this%A, x) + matmul(this%B, u)
+end function
+
+! ------------------------------------------------------------------------------
+pure function dss_eval_output(this, u, x) result(rst)
+    !! Evaluates the output \( y_k = C x_k + D u_k \) for one sample.
+    class(discrete_state_space), intent(in) :: this
+        !! The [[discrete_state_space]] object.
+    real(real64), intent(in), dimension(:) :: u
+        !! The M-element input array, \(u_k\).
+    real(real64), intent(in), dimension(:) :: x
+        !! The N-element state array, \(x_k\).
+    real(real64), allocatable, dimension(:) :: rst
+        !! The P-element output array, \(y_k\).
+
+    if (size(u) /= size(this%D, 2) .or. size(x) /= size(this%C, 2)) &
+        error stop DYN_INVALID_INPUT_ERROR
+    rst = matmul(this%C, x) + matmul(this%D, u)
+end function
+
 
 ! ------------------------------------------------------------------------------
 pure function dtf_poles(this) result(rst)

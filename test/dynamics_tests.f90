@@ -556,6 +556,9 @@ program main
     check = test_discrete_tf_evaluate()
     if (.not.check) flag = 205
 
+    check = test_discrete_state_space_zeros_evaluate()
+    if (.not.check) flag = 214
+
     check = test_isf_continuous_ise()
     if (.not.check) flag = 206
 

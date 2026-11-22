@@ -363,6 +363,73 @@ function test_discrete_state_space_to_transfer_function() result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+function test_discrete_state_space_zeros_evaluate() result(rst)
+    logical :: rst
+
+    ! Parameters
+    real(real64), parameter :: ts = 0.1d0
+    real(real64), parameter :: tol = 1.0d-10
+    real(real64), parameter :: tol_eval = 1.0d-12
+
+    ! Local Variables
+    complex(real64) :: z
+    complex(real64), allocatable, dimension(:) :: zeros
+    real(real64), allocatable, dimension(:) :: x_next, y
+    integer :: i
+    type(discrete_state_space) :: mdl
+
+    ! Initialization
+    rst = .true.
+
+    ! Test: H(z) = 2z / (z - 0.5) has a single zero at the origin
+    mdl = discrete_state_space(reshape([0.5d0], [1, 1]), &
+        reshape([1.0d0], [1, 1]), reshape([1.0d0], [1, 1]), &
+        reshape([2.0d0], [1, 1]), ts)
+    zeros = mdl%zeros()
+    if (size(zeros) /= 1) then
+        rst = .false.
+    else if (abs(zeros(1)) > tol) then
+        rst = .false.
+    end if
+    ! x_{k+1} = 0.5(0.3) + 1.5 = 1.65 and y_k = 0.3 + 2(1.5) = 3.3
+    x_next = mdl%evaluate_next_state([1.5d0], [0.3d0])
+    y = mdl%evaluate_output([1.5d0], [0.3d0])
+    if (abs(x_next(1) - 1.65d0) > tol_eval) rst = .false.
+    if (abs(y(1) - 3.3d0) > tol_eval) rst = .false.
+
+    ! Test: H(z) = (0.5z^2 + 2.85z - 0.85) / ((z - 0.5)(z + 0.2)) + 0.5,
+    ! which has two zeros
+    mdl = discrete_state_space(reshape([0.5d0, 0.0d0, 0.0d0, -0.2d0], [2, 2]), &
+        reshape([1.0d0, 1.0d0], [2, 1]), reshape([1.0d0, 2.0d0], [1, 2]), &
+        reshape([0.5d0], [1, 1]), ts)
+    zeros = mdl%zeros()
+    if (size(zeros) /= 2) then
+        rst = .false.
+    else
+        do i = 1, size(zeros)
+            z = zeros(i)
+            if (abs(0.5d0 * z * z + 2.85d0 * z - 0.85d0) > tol) rst = .false.
+        end do
+    end if
+    ! x_{k+1} = [0.5(1) + 3; -0.2(2) + 3] = [3.5; 2.6]
+    ! y_k = (1 + 2(2)) + 0.5(3) = 6.5
+    x_next = mdl%evaluate_next_state([3.0d0], [1.0d0, 2.0d0])
+    y = mdl%evaluate_output([3.0d0], [1.0d0, 2.0d0])
+    if (abs(x_next(1) - 3.5d0) > tol_eval) rst = .false.
+    if (abs(x_next(2) - 2.6d0) > tol_eval) rst = .false.
+    if (abs(y(1) - 6.5d0) > tol_eval) rst = .false.
+
+    ! Test: H(z) = 1 / (z - 0.5) has no finite zeros
+    mdl = discrete_state_space(reshape([0.5d0], [1, 1]), &
+        reshape([1.0d0], [1, 1]), reshape([1.0d0], [1, 1]), &
+        reshape([0.0d0], [1, 1]), ts)
+    zeros = mdl%zeros()
+    if (size(zeros) /= 0) rst = .false.
+
+    if (.not.rst) print "(A)", "TEST FAILED: test_discrete_state_space_zeros_evaluate"
+end function
+
+! ------------------------------------------------------------------------------
 function test_discrete_canonical_forms() result(rst)
     logical :: rst
     real(real64), parameter :: tol = 1.0d-12
@@ -513,6 +580,8 @@ subroutine invalid_discrete_canonical(selection)
     character(len = *), intent(in) :: selection
     type(discrete_transfer_function) :: tf
     type(discrete_state_space) :: ss
+    type(discrete_state_space) :: mdl
+    real(real64), allocatable, dimension(:) :: y
 
     select case (selection)
     case ("discrete-invalid-ccf")
@@ -528,6 +597,16 @@ subroutine invalid_discrete_canonical(selection)
     case ("discrete-invalid-uninitialized")
         tf%sample_time = 0.1d0
         ss = tf%to_ocf_state_space()
+    case ("discrete-invalid-evaluate-input")
+        mdl = discrete_state_space(reshape([0.5d0, 0.0d0, 0.0d0, 0.5d0], [2, 2]), &
+            reshape([1.0d0, 1.0d0], [2, 1]), reshape([1.0d0, 1.0d0], [1, 2]), &
+            reshape([0.0d0], [1, 1]), 0.1d0)
+        y = mdl%evaluate_next_state([1.0d0, 2.0d0], [1.0d0, 2.0d0])
+    case ("discrete-invalid-evaluate-state")
+        mdl = discrete_state_space(reshape([0.5d0, 0.0d0, 0.0d0, 0.5d0], [2, 2]), &
+            reshape([1.0d0, 1.0d0], [2, 1]), reshape([1.0d0, 1.0d0], [1, 2]), &
+            reshape([0.0d0], [1, 1]), 0.1d0)
+        y = mdl%evaluate_output([1.0d0], [1.0d0])
     end select
 end subroutine
 

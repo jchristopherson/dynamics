@@ -9,11 +9,16 @@ The `dynamics_controls` module provides continuous-time linear control-system to
 
 The `dynamics_discrete_controls` module provides discrete-time counterparts that carry a `sample_time`:
 
-* `discrete_state_space` represents $x_{k+1}=Ax_k+Bu_k,\; y_k=Cx_k+Du_k$. It has `poles` and `to_transfer_function` methods.
+* `discrete_state_space` represents $x_{k+1}=Ax_k+Bu_k,\; y_k=Cx_k+Du_k$. It has `poles`, `zeros`, and `to_transfer_function` methods. The `zeros` method solves the discrete Rosenbrock pencil directly, without forming a transfer function, and returns the finite zeros in $z$. The `evaluate_next_state` and `evaluate_output` methods take the current state $x_k$ and input $u_k$ and return $x_{k+1}$ and $y_k$ in one call.
 * `discrete_transfer_function` represents a rational function in $z^{-1}$, $H(z)=Y(z^{-1})/X(z^{-1})$. Its polynomial coefficients are in ascending powers of $z^{-1}$. Its `poles` and `zeros` methods return roots in $z$, and `evaluate` computes the response at an angular frequency in rad/s.
 * `discrete_transfer_function%to_ccf_state_space` and `%to_ocf_state_space` convert to controllable and observable canonical form, respectively, preserving the sample time. The denominator's constant term in $z^{-1}$ must be nonzero. Numerators of higher order in $z^{-1}$ are supported, including pure delays. Constant gains yield zero-state models.
 * `c2d` discretizes a continuous `state_space` using `DISCRETIZE_ZOH` (zero-order hold, via the matrix exponential) or `DISCRETIZE_TUSTIN` (bilinear transform).
 * `d2c` converts a `discrete_state_space` back to continuous time using the same methods. The ZOH inverse uses the principal matrix logarithm, which requires that $A_d$ has no eigenvalues on the negative real axis. Otherwise the routine stops with an error.
+
+The `dynamics_controls_tuning` module provides controller design and gain optimization for both continuous and discrete plants:
+
+* `integral_state_feedback_controller` holds the state-feedback gain $K$ and integral gain $K_i$. It applies the control law to a `state_space` or `discrete_state_space` plant, reports closed-loop stability, and computes the integral squared error for a unit step in the reference. Its `apply_to_state_space_plant` and `apply_to_discrete_state_space_plant` methods build the augmented closed-loop model.
+* `controller_optimizer` tunes $K$ and $K_i$ by minimizing the ISE with BFGS from nonlin, with gradients from automatic differentiation. An optional `control_weight` penalizes the control rate. See [Integral State Feedback Tuning](#integral-state-feedback-tuning) below for details and an example.
 
 ## PID Control Example
 

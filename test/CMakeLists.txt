@@ -56,7 +56,7 @@ add_test(
     WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
     COMMAND $<TARGET_FILE:dynamics_tests> discrete-canonical
 )
-foreach(case IN ITEMS ccf ocf sample-time uninitialized)
+foreach(case IN ITEMS ccf ocf sample-time uninitialized evaluate-input evaluate-state)
     add_test(
         NAME dynamics_discrete_invalid_${case}
         WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
