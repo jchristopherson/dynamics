@@ -1,0 +1,9 @@
+- Update C API with the following features
+    - discrete control types
+    - controller optimization
+- Employ a time history solver for the flexible bodies branch
+- Figure out how to include kinematic joints with the flexible bodies - no need to include rigid bodies as well
+- Define a Timoshenko finite strain finite element type for the flexible bodies branch
+- Define discrete element types (e.g. spring, damper, and mass) for the flexible bodies branch
+- Update documentation
+- Update version - major version bump
