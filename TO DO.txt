@@ -1,8 +1,7 @@
 - Update C API with the following features
     - discrete control types & solvers
     - controller optimization
-- Discrete time integrator to provide a discrete alternative to lti_solve
-- Break lti_solve into its own module and place the discrete version there as well
+- Discrete time evaluation routine to simplify time domain evaluation
 - Employ a time history solver for the flexible bodies branch
 - Figure out how to include kinematic joints with the flexible bodies - no need to include rigid bodies as well
 - Define a Timoshenko finite strain finite element type for the flexible bodies branch
