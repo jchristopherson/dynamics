@@ -145,7 +145,11 @@ Hessian, so the iteration is quasi-Newton. For transient analysis, use
 
 ### Dense transient analysis
 
+Call `solve_flexible_transient` with a mesh, the output time grid, constant
+prescribed displacements, and the initial displacement and velocity:
+
 ```fortran
+use iso_fortran_env, only : real64
 use dynamics_flexible_body_solvers, only : solve_flexible_transient, &
     flexible_transient_settings, FLEXIBLE_ROSENBROCK
 ! Declare along with mesh, times, supports, q0 and v0:
@@ -157,40 +161,101 @@ settings%maximum_step_size = 0.01_real64
 call solve_flexible_transient(mesh, times, supports, q0, v0, q, v, settings)
 ```
 
-Use at least two strictly increasing output times. Give `q0` and `v0` in full
-mesh equation order. Prescribed DOFs are set to the support values with zero
-velocity, regardless of their initial entries. Each column of `q` and `v` is
-one requested sample. By default there is no applied load; pass
-`load=callback` for a smooth applied force. The callback takes `(time, force,
-args)`, writes the full force vector in mesh equation order, and accepts an
-optional `class(*)` argument forwarded from the solve. The force may be
-evaluated repeatedly at internal times. Rotational velocities are rates of
-the nodal rotation-vector coordinates.
+**Inputs and outputs.** Use at least two finite, strictly increasing values
+in `times`, starting at the time corresponding to `q0` and `v0`. The solver
+chooses its own internal steps and returns one column of `q` and `v` per
+requested time, in full mesh equation order. Both initial vectors must be
+finite and use that same equation order. `supports` is an array of
+`nodal_condition` entries with distinct DOFs and finite values; pass
+`[nodal_condition::]` for an unsupported mesh. Prescribed entries of `q0` and
+`v0` are replaced by the support displacements and zero velocity,
+respectively. Rotational entries in `v` are rotation-vector rates, not
+angular velocities.
 
-BDF (`FLEXIBLE_BDF`) is the default. Other choices are `FLEXIBLE_ROSENBROCK`,
-`FLEXIBLE_KENNEDY_CARPENTER_4`, and `FLEXIBLE_KENNEDY_CARPENTER_5`. The settings
-also expose scalar error tolerances, step-size bounds, a step limit, the number
-of assembly threads, and an initial joint consistency tolerance.
+**Applied loads.** Omit `load` for zero applied force. To supply a smooth
+time-dependent or constant load, pass `load=callback` and optionally
+`args=parameters`. The callback interface is:
 
-The solver assembles one dense, constant reference mass and removes prescribed
-DOFs before integrating. The reduced mass must be positive definite. Joint
-constraints are handled internally with a stabilized DAE. Initial values must
-satisfy `g(q0) = 0` and `G(q0)*v0 = 0` within `constraint_tolerance`; the solver
-does not project them. Joint rows must be independent after support elimination.
-Optional `multipliers` has shape `(joint constraint rows, output times)` and
-reports the multipliers whose generalized joint force is `-G^T*lambda`.
+```fortran
+subroutine callback(time, force, args)
+    use iso_fortran_env, only : real64
+    real(real64), intent(in) :: time
+    real(real64), intent(out), dimension(:) :: force
+    class(*), intent(in), optional :: args
+    ! Fill every entry of force in full mesh equation order.
+end subroutine
+```
 
-Moving supports, configuration-dependent inertia, and history-dependent
-materials are outside this solver's scope. Invalid inputs and integration
-failures cause an error stop.
+Set unused entries to zero. Loads on prescribed DOFs do not enter the
+reduced equations. Evaluations can repeat or occur out of time order at
+internal solver times. Do not use the callback to advance external state.
+
+**Solver settings.** Omit `settings` to use these defaults:
+
+| Field | Default | Meaning |
+| --- | --- | --- |
+| `solver` | `FLEXIBLE_BDF` | Also accepts `FLEXIBLE_ROSENBROCK`, `FLEXIBLE_KENNEDY_CARPENTER_4`, and `FLEXIBLE_KENNEDY_CARPENTER_5`. |
+| `absolute_tolerance` | `1.0e-8` | Positive scalar absolute integration error tolerance. |
+| `relative_tolerance` | `1.0e-6` | Nonnegative scalar relative integration error tolerance. |
+| `minimum_step_size` | `10*epsilon(1.0d0)` | Positive lower bound on internal step size. |
+| `maximum_step_size` | `huge(1.0d0)` | Upper bound, at least the minimum step size. |
+| `step_limit` | `1000000` | Positive step budget for the integration. |
+| `nthreads` | `1` | Positive thread count for internal-force assembly; parallel assembly requires thread-safe elements and materials. |
+| `constraint_tolerance` | `1.0e-8` | Nonnegative absolute bound on each initial position and velocity constraint residual. |
+
+**Mass and joints.** The solver assembles the reference mass once and
+retains its free-free block, which must be positive definite. It
+automatically uses a stabilized DAE when the mesh has joints. After
+imposing supports, the initial state must satisfy both `g(q0) = 0` and
+`G(q0)*v0 = 0` within `constraint_tolerance`. The solver initializes the
+multipliers but does not project the initial state. The reduced constraint
+Jacobian must have independent rows; avoid duplicate constraints, constraints
+already imposed by the supports, and configurations where the rank changes.
+The initial consistency tolerance is not a bound on drift over the returned
+history. Use `mesh%assemble_constraints(q(:,i), g, jac)` and evaluate
+`matmul(jac, v(:,i))` to check the position and velocity residuals at sample `i`.
+
+Optional `multipliers` has shape `(joint constraint rows, output times)`,
+with rows in the same order as `mesh%assemble_constraints`. The generalized
+joint force is `-transpose(G)*lambda`; these multipliers are not support
+reactions. For a mesh without joints the array has zero rows. If every DOF is
+prescribed and there are no joints, the solver returns the constant support
+history without evaluating mass or loads.
+
+Invalid inputs and integration failures cause `error stop`. Moving supports,
+state-dependent applied loads, configuration-dependent inertia, and
+history-dependent materials are outside this solver's scope.
+
+#### Flexible pendulum example
 
 The [flexible pendulum example](../../examples/flexible_pendulum_example.f90)
-releases a flexible beam from rest at 20 degrees to the vertical. A
-revolute joint connects the beam root to a fixed support stub, and gravity is
-applied as a consistent nodal load. Build the `flexible_pendulum_example`
-target and run it with gnuplot available. FPLOT writes `flexible_pendulum.png`
-in the working directory with the pivot angle and the transverse tip
-deflection measured relative to the rotating beam root.
+releases a flexible beam from rest at 20 degrees from the downward vertical.
+A revolute joint pins the beam root to a fixed support. The release angle
+is built into the mesh, so both initial displacement and velocity are zero.
+The example uses the fifth-order Kennedy–Carpenter solver and samples the
+response every 0.01 seconds through 5 seconds.
+
+```fortran
+mesh%joints = [flexible_joint(REVOLUTE_JOINT, 2, 3)]
+call mesh%assemble_mass(mass)
+gravity_load%force = matmul(mass, gravity_acceleration)
+settings%solver = FLEXIBLE_KENNEDY_CARPENTER_5
+call solve_flexible_transient(mesh, times, supports, initial, initial, q, v, settings, &
+    load=apply_gravity, args=gravity_load)
+```
+
+![Flexible pendulum time histories: pivot angle and transverse tip deflection](../../images/flexible_pendulum_example.png?raw=true)
+
+The transverse deflection is **signed**, not an absolute value. It is the
+projection of the pivot-to-tip vector onto the beam root's rotating normal,
+so rigid swing alone gives zero. The beam starts straight and, in the
+plotted response, the tip stays on the positive side of the line tangent
+to the beam at the root even as the pivot angle changes sign. The
+deflection would be negative if the tip crossed to the other side.
+
+Build the `flexible_pendulum_example` target and run it with gnuplot available.
+The example prints peak transverse tip deflection and the maximum sampled
+joint position residual and displays the time histories with FPLOT.
 
 ## Flexible Truss Example
 

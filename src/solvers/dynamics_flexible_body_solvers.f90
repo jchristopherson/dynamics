@@ -14,10 +14,10 @@
 module dynamics_flexible_body_solvers
     !! Static equilibrium and transient dynamics for flexible finite-element meshes.
     !!
-    !! The solver uses the mesh's internal force and consistent tangent, so
-    !! geometric and material nonlinearity are those implemented by its
-    !! elements and materials. Neither solver manages history-dependent
-    !! material state.
+    !! Both solvers use the mesh's internal force. Static equilibrium also
+    !! uses the assembled tangent; transient integration uses a constant
+    !! reference mass and lets the integrator approximate its own Jacobian.
+    !! Neither solver manages history-dependent material state.
     use iso_fortran_env, only : real64
     use, intrinsic :: ieee_arithmetic, only : ieee_is_finite
     use dynamics_error_handling, only : DYN_ARRAY_SIZE_ERROR, DYN_INVALID_INPUT_ERROR, &
@@ -39,41 +39,69 @@ module dynamics_flexible_body_solvers
     public :: FLEXIBLE_BDF, FLEXIBLE_ROSENBROCK, FLEXIBLE_KENNEDY_CARPENTER_4, FLEXIBLE_KENNEDY_CARPENTER_5
 
     integer, parameter :: FLEXIBLE_BDF = 1
+        !! Backward differentiation formula (the transient default).
     integer, parameter :: FLEXIBLE_ROSENBROCK = 2
+        !! Linearly implicit Rosenbrock method.
     integer, parameter :: FLEXIBLE_KENNEDY_CARPENTER_4 = 3
+        !! Fourth-order Kennedy-Carpenter implicit Runge-Kutta method.
     integer, parameter :: FLEXIBLE_KENNEDY_CARPENTER_5 = 4
+        !! Fifth-order Kennedy-Carpenter implicit Runge-Kutta method.
 
     type :: flexible_transient_settings
-        !! Controls for dense time integration. Tolerances are scalar, so
-        !! models with very different coordinate scales may need rescaling.
+        !! Controls for [[solve_flexible_transient]]. All real-valued
+        !! settings must be finite.
         integer :: solver = FLEXIBLE_BDF
+            !! One of `FLEXIBLE_BDF`, `FLEXIBLE_ROSENBROCK`,
+            !! `FLEXIBLE_KENNEDY_CARPENTER_4`, or `FLEXIBLE_KENNEDY_CARPENTER_5`.
         real(real64) :: absolute_tolerance = 1.0d-8
+            !! Positive absolute error tolerance applied to every integrated
+            !! state component, including algebraic variables when present.
         real(real64) :: relative_tolerance = 1.0d-6
+            !! Nonnegative relative error tolerance applied to every state
+            !! component. Models with disparate scales may need rescaling.
         real(real64) :: minimum_step_size = 10.0d0 * epsilon(1.0d0)
+            !! Positive lower step-size bound in the units of `times`.
         real(real64) :: maximum_step_size = huge(1.0d0)
+            !! Upper step-size bound, at least `minimum_step_size`. It does
+            !! not set the spacing of the requested output samples.
         integer :: step_limit = 1000000
+            !! Positive integration step limit passed to the selected solver.
         integer :: nthreads = 1
+            !! Positive thread count requested for internal-force assembly.
+            !! Parallel assembly requires thread-safe elements and materials.
         real(real64) :: constraint_tolerance = 1.0d-8
-            !! Absolute initial consistency tolerance for both g and G*v.
+            !! Nonnegative absolute bound on each initial entry of `g` and
+            !! `G*v`. This is not an integration or drift tolerance.
     end type
 
     abstract interface
         subroutine flexible_load_callback(time, force, args)
+            !! Supply an applied load that depends on time, not the state.
+            !! Evaluations may repeat or be made out of chronological order.
+            !! Smooth loads are required; do not advance external state here.
             import :: real64
             real(real64), intent(in) :: time
+                !! Internal evaluation time, not necessarily an output time.
             real(real64), intent(out), dimension(:) :: force
-                !! Entire applied force vector in mesh equation order.
+                !! Fill every entry with a finite value in full mesh equation
+                !! order, including zeros for unloaded DOFs. Prescribed DOF
+                !! entries do not enter the free equations.
             class(*), intent(in), optional :: args
+                !! User data forwarded only if supplied to the solve.
         end subroutine
     end interface
 
     type :: flexible_transient_context
+        !! Per-solve data shared by the private integration callbacks.
         type(finite_element_mesh), pointer :: mesh => null()
         procedure(flexible_load_callback), pointer, nopass :: load => null()
         class(*), pointer :: load_args => null()
         integer, allocatable, dimension(:) :: free
+            !! Maps reduced coordinates back to full mesh equations.
         real(real64), allocatable, dimension(:) :: support
+            !! Full displacement template with zero entries at free DOFs.
         real(real64), allocatable, dimension(:,:) :: mass
+            !! Constant free-free block of the assembled reference mass.
         integer :: nthreads
     end type
 
@@ -121,27 +149,59 @@ module dynamics_flexible_body_solvers
 contains
     subroutine solve_flexible_transient(mesh, times, conditions, initial_displacement, initial_velocity, &
         displacement, velocity, settings, load, args, multipliers)
-        !! Integrate with a constant reference mass and constant prescribed
-        !! displacements. `times` contains at least two strictly increasing
-        !! output times. The initial vectors use full mesh equation order;
-        !! prescribed entries are overwritten by the support values and zero
-        !! velocity. Histories are indexed by (mesh DOF, sample).
+        !! Integrate a mesh with a dense, constant reference mass. Prescribed
+        !! displacements are constant and eliminated from the integration
+        !! equations. The reduced mass must be positive definite. If all
+        !! DOFs are prescribed and there are no joints, return the prescribed
+        !! history without assembling mass or evaluating loads.
         !!
-        !! An absent `load` means zero applied force. Loads must be smooth
-        !! and safe to evaluate repeatedly at internal solver times. Invalid
-        !! inputs and failures of the underlying integrator cause error stop.
+        !! For meshes without joints the free equations are `qdot = v` and
+        !! `M*vdot = f_ext - f_int`. For meshes with joints a private stabilized
+        !! GGL adapter adds the joint force `-transpose(G)*lambda`, where `G`
+        !! is the constraint Jacobian restricted to free columns. It also
+        !! adds a kinematic correction to control drift.
+        !!
+        !! With joints, the initial state after imposing supports must satisfy
+        !! both `g(q) = 0` and `G(q)*v = 0` within `constraint_tolerance`.
+        !! The initial reduced Jacobian must have independent rows. The
+        !! solver computes consistent multipliers but does not project the
+        !! input displacement or velocity. Avoid configurations where the
+        !! joint Jacobian loses rank during the motion.
+        !!
+        !! Invalid inputs and integration failures cause `error stop`.
+        !! Moving supports, state-dependent applied loads and inertia, and
+        !! history-dependent materials are not supported.
         type(finite_element_mesh), intent(inout), target :: mesh
+            !! Mesh to assemble. Element workspaces may change; do not
+            !! assemble or solve this mesh concurrently from callers.
         real(real64), intent(in), dimension(:) :: times
+            !! Finite, strictly increasing output times, with at least two
+            !! entries. Integration starts at `times(1)`.
         type(nodal_condition), intent(in), dimension(:) :: conditions
+            !! Constant prescribed displacements. Values must be finite and
+            !! DOFs distinct; an empty array imposes no supports.
         real(real64), intent(in), dimension(:) :: initial_displacement
+            !! Finite initial displacement in full mesh equation order.
+            !! Prescribed entries are ignored in favor of `conditions`.
         real(real64), intent(in), dimension(:) :: initial_velocity
+            !! Finite initial coordinate rates in full mesh equation order.
+            !! Prescribed entries are ignored; those rates are set to zero.
         real(real64), allocatable, intent(out), dimension(:,:) :: displacement
+            !! Full displacement history, indexed by (mesh DOF, time sample).
         real(real64), allocatable, intent(out), dimension(:,:) :: velocity
+            !! Full coordinate-rate history, indexed by (mesh DOF, time sample).
+            !! Rotational entries are rotation-vector rates, not angular velocity.
         type(flexible_transient_settings), intent(in), optional :: settings
+            !! Omit to use [[flexible_transient_settings]] defaults.
         procedure(flexible_load_callback), optional :: load
+            !! Smooth applied load. Omit to use zero applied force.
         class(*), intent(in), optional, target :: args
+            !! Optional user data forwarded unchanged to `load`.
         real(real64), allocatable, intent(out), optional, dimension(:,:) :: multipliers
-            !! Joint force multipliers indexed by (joint constraint row, sample).
+            !! Physical joint force multipliers `lambda` in constraint assembly
+            !! row order, with one column per time sample. Allocated with zero
+            !! rows if the mesh has no joints. The kinematic correction
+            !! multiplier is not returned.
 
         type(flexible_transient_settings) :: opts
         type(flexible_transient_context) :: ctx
@@ -217,6 +277,7 @@ contains
         ctx%mass = full_mass(ctx%free,ctx%free)
         deallocate(full_mass)
         if (.not.all(ieee_is_finite(ctx%mass))) error stop DYN_INVALID_INPUT_ERROR
+        ! Validate definiteness without overwriting the mass used by callbacks.
         factor = ctx%mass
         call DPOTRF('L', n, factor, n, flag)
         if (flag /= 0) error stop DYN_INVALID_INPUT_ERROR
@@ -229,6 +290,7 @@ contains
         call solver%set_step_limit(opts%step_limit)
         call solver%set_allow_overshoot(.false.)
 
+        ! State order is [q, v] or [q, v, lambda, mu] with joints.
         allocate(state(2*n+2*nc), source=0.0d0)
         state(:n) = initial_displacement(ctx%free)
         state(n+1:2*n) = initial_velocity(ctx%free)
@@ -270,6 +332,8 @@ contains
     end subroutine
 
     subroutine transient_force(t, y, f, args)
+        !! Assemble the free net force from the state prefix `q`. Joint
+        !! forces are excluded here because the GGL adapter supplies them.
         real(real64), intent(in) :: t
         real(real64), intent(in), dimension(:) :: y
         real(real64), intent(out), dimension(:) :: f
@@ -301,6 +365,7 @@ contains
     end subroutine
 
     subroutine transient_rhs(t, y, f, args)
+        !! Unconstrained RHS for the mass-matrix system with state `[q, v]`.
         real(real64), intent(in) :: t
         real(real64), intent(in), dimension(:) :: y
         real(real64), intent(out), dimension(:) :: f
@@ -313,6 +378,7 @@ contains
     end subroutine
 
     subroutine transient_physical_mass(t, y, mass, args)
+        !! Return the cached reduced physical mass, independent of time and state.
         real(real64), intent(in) :: t
         real(real64), intent(in), dimension(:) :: y
         real(real64), intent(out), dimension(:,:) :: mass
@@ -328,6 +394,8 @@ contains
     end subroutine
 
     subroutine transient_state_mass(t, y, mass, args)
+        !! Unconstrained state mass `diag(I, M)`: unit kinematic block and
+        !! the reduced physical mass in the momentum block.
         real(real64), intent(in) :: t
         real(real64), intent(in), dimension(:) :: y
         real(real64), intent(out), dimension(:,:) :: mass
@@ -344,6 +412,8 @@ contains
     end subroutine
 
     subroutine transient_joint_data(q, g, jac, args)
+        !! Evaluate the joints in full coordinates, including the prescribed
+        !! displacements, then retain only free columns in the Jacobian.
         real(real64), intent(in), dimension(:) :: q
         real(real64), allocatable, intent(out), dimension(:) :: g
         real(real64), allocatable, intent(out), dimension(:,:) :: jac
@@ -364,6 +434,7 @@ contains
     end subroutine
 
     subroutine transient_constraints(t, q, g, args)
+        !! GGL callback for the autonomous joint position residual `g(q)`.
         real(real64), intent(in) :: t
         real(real64), intent(in), dimension(:) :: q
         real(real64), intent(out), dimension(:) :: g
@@ -376,6 +447,7 @@ contains
     end subroutine
 
     subroutine transient_gradient(t, q, jac, args)
+        !! GGL callback for `G = dg/dq` with respect to free coordinates.
         real(real64), intent(in) :: t
         real(real64), intent(in), dimension(:) :: q
         real(real64), intent(out), dimension(:,:) :: jac
@@ -388,6 +460,9 @@ contains
     end subroutine
 
     subroutine transient_curvature(t, q, direction, v, curvature, args)
+        !! Approximate `DG(q)[direction]*v` by centered differences of the
+        !! reduced Jacobian. Normalize the direction before perturbing `q`
+        !! so the displacement increment is set by the coordinate scale.
         real(real64), intent(in) :: t
         real(real64), intent(in), dimension(:) :: q
         real(real64), intent(in), dimension(:) :: direction
@@ -410,6 +485,8 @@ contains
     end subroutine
 
     logical function independent_constraints(gradient) result(ok)
+        !! Test initial reduced row rank by SVD. With no more rows than
+        !! columns, the cutoff is `epsilon * size(gradient,2) * sigma_max`.
         real(real64), intent(in), dimension(:,:) :: gradient
         real(real64), dimension(size(gradient,1),size(gradient,2)) :: copy
         real(real64), dimension(size(gradient,1)) :: sigma
