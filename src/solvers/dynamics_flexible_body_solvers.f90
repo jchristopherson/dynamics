@@ -12,28 +12,70 @@
 ! implied, including but not limited to the warranties of merchantability,
 ! fitness for a particular purpose and noninfringement.
 module dynamics_flexible_body_solvers
-    !! Nonlinear static equilibrium for flexible finite-element meshes.
+    !! Static equilibrium and transient dynamics for flexible finite-element meshes.
     !!
     !! The solver uses the mesh's internal force and consistent tangent, so
     !! geometric and material nonlinearity are those implemented by its
-    !! elements and materials. External forces are fixed in the global frame.
-    !! This module does not integrate in time, follow equilibrium branches,
-    !! or manage history-dependent material state.
+    !! elements and materials. Neither solver manages history-dependent
+    !! material state.
     use iso_fortran_env, only : real64
     use, intrinsic :: ieee_arithmetic, only : ieee_is_finite
     use dynamics_error_handling, only : DYN_ARRAY_SIZE_ERROR, DYN_INVALID_INPUT_ERROR, &
-        DYN_CONVERGENCE_ERROR, DYN_NONMONOTONIC_ARRAY_ERROR
+        DYN_CONVERGENCE_ERROR, DYN_NONMONOTONIC_ARRAY_ERROR, DYN_CONSTRAINT_ERROR
     use dynamics_flexible_assembly, only : finite_element_mesh
     use dynamics_boundary_conditions, only : nodal_condition, resolve_boundary_conditions
     use dynamics_structural, only : apply_boundary_conditions
     use dynamics_solver_reporting, only : static_solver_progress, static_solver_callback
     use linalg, only : csr_matrix, msr_matrix, lu_factor, pgmres_solve, matmul
-    use lapack, only : DGETRF, DGETRS
+    use lapack, only : DGETRF, DGETRS, DPOTRF, DGESVD
+    use diffeq, only : ode_container, ggl_container, ode_integrator, bdf, rosenbrock, &
+        kennedy_carpenter_4, kennedy_carpenter_5
     implicit none
     private
     public :: flexible_static_settings
     public :: flexible_static_info
     public :: solve_flexible_static
+    public :: solve_flexible_transient, flexible_transient_settings, flexible_load_callback
+    public :: FLEXIBLE_BDF, FLEXIBLE_ROSENBROCK, FLEXIBLE_KENNEDY_CARPENTER_4, FLEXIBLE_KENNEDY_CARPENTER_5
+
+    integer, parameter :: FLEXIBLE_BDF = 1
+    integer, parameter :: FLEXIBLE_ROSENBROCK = 2
+    integer, parameter :: FLEXIBLE_KENNEDY_CARPENTER_4 = 3
+    integer, parameter :: FLEXIBLE_KENNEDY_CARPENTER_5 = 4
+
+    type :: flexible_transient_settings
+        !! Controls for dense time integration. Tolerances are scalar, so
+        !! models with very different coordinate scales may need rescaling.
+        integer :: solver = FLEXIBLE_BDF
+        real(real64) :: absolute_tolerance = 1.0d-8
+        real(real64) :: relative_tolerance = 1.0d-6
+        real(real64) :: minimum_step_size = 10.0d0 * epsilon(1.0d0)
+        real(real64) :: maximum_step_size = huge(1.0d0)
+        integer :: step_limit = 1000000
+        integer :: nthreads = 1
+        real(real64) :: constraint_tolerance = 1.0d-8
+            !! Absolute initial consistency tolerance for both g and G*v.
+    end type
+
+    abstract interface
+        subroutine flexible_load_callback(time, force, args)
+            import :: real64
+            real(real64), intent(in) :: time
+            real(real64), intent(out), dimension(:) :: force
+                !! Entire applied force vector in mesh equation order.
+            class(*), intent(in), optional :: args
+        end subroutine
+    end interface
+
+    type :: flexible_transient_context
+        type(finite_element_mesh), pointer :: mesh => null()
+        procedure(flexible_load_callback), pointer, nopass :: load => null()
+        class(*), pointer :: load_args => null()
+        integer, allocatable, dimension(:) :: free
+        real(real64), allocatable, dimension(:) :: support
+        real(real64), allocatable, dimension(:,:) :: mass
+        integer :: nthreads
+    end type
 
     type :: flexible_static_settings
         !! Controls the residual test and Newton iteration. Default values are
@@ -77,6 +119,316 @@ module dynamics_flexible_body_solvers
     end type
 
 contains
+    subroutine solve_flexible_transient(mesh, times, conditions, initial_displacement, initial_velocity, &
+        displacement, velocity, settings, load, args, multipliers)
+        !! Integrate with a constant reference mass and constant prescribed
+        !! displacements. `times` contains at least two strictly increasing
+        !! output times. The initial vectors use full mesh equation order;
+        !! prescribed entries are overwritten by the support values and zero
+        !! velocity. Histories are indexed by (mesh DOF, sample).
+        !!
+        !! An absent `load` means zero applied force. Loads must be smooth
+        !! and safe to evaluate repeatedly at internal solver times. Invalid
+        !! inputs and failures of the underlying integrator cause error stop.
+        type(finite_element_mesh), intent(inout), target :: mesh
+        real(real64), intent(in), dimension(:) :: times
+        type(nodal_condition), intent(in), dimension(:) :: conditions
+        real(real64), intent(in), dimension(:) :: initial_displacement
+        real(real64), intent(in), dimension(:) :: initial_velocity
+        real(real64), allocatable, intent(out), dimension(:,:) :: displacement
+        real(real64), allocatable, intent(out), dimension(:,:) :: velocity
+        type(flexible_transient_settings), intent(in), optional :: settings
+        procedure(flexible_load_callback), optional :: load
+        class(*), intent(in), optional, target :: args
+        real(real64), allocatable, intent(out), optional, dimension(:,:) :: multipliers
+            !! Joint force multipliers indexed by (joint constraint row, sample).
+
+        type(flexible_transient_settings) :: opts
+        type(flexible_transient_context) :: ctx
+        class(ode_integrator), allocatable :: solver
+        type(ode_container) :: ode
+        type(ggl_container) :: dae
+        integer, allocatable, dimension(:) :: constrained
+        logical, allocatable, dimension(:) :: is_free
+        real(real64), allocatable, dimension(:,:) :: full_mass
+        real(real64), allocatable, dimension(:,:) :: factor
+        real(real64), allocatable, dimension(:,:) :: sol
+        real(real64), allocatable, dimension(:,:) :: gradient
+        real(real64), allocatable, dimension(:) :: state
+        integer :: ndof
+        integer :: n
+        integer :: nc
+        integer :: nt
+        integer :: i
+        integer :: row
+        integer :: flag
+
+        if (present(settings)) opts = settings
+        if (.not.all(ieee_is_finite([opts%absolute_tolerance, opts%relative_tolerance, opts%minimum_step_size, &
+            opts%maximum_step_size, opts%constraint_tolerance]))) error stop DYN_INVALID_INPUT_ERROR
+        if (opts%absolute_tolerance <= 0.0d0 .or. opts%relative_tolerance < 0.0d0 .or. &
+            opts%minimum_step_size <= 0.0d0 .or. opts%maximum_step_size < opts%minimum_step_size .or. &
+            opts%constraint_tolerance < 0.0d0 .or. opts%step_limit < 1 .or. opts%nthreads < 1) &
+            error stop DYN_INVALID_INPUT_ERROR
+        select case (opts%solver)
+        case (FLEXIBLE_BDF)
+            allocate(bdf :: solver)
+        case (FLEXIBLE_ROSENBROCK)
+            allocate(rosenbrock :: solver)
+        case (FLEXIBLE_KENNEDY_CARPENTER_4)
+            allocate(kennedy_carpenter_4 :: solver)
+        case (FLEXIBLE_KENNEDY_CARPENTER_5)
+            allocate(kennedy_carpenter_5 :: solver)
+        case default
+            error stop DYN_INVALID_INPUT_ERROR
+        end select
+
+        nt = size(times)
+        if (nt < 2) error stop DYN_ARRAY_SIZE_ERROR
+        if (.not.all(ieee_is_finite(times))) error stop DYN_INVALID_INPUT_ERROR
+        if (any(times(2:) <= times(:nt-1))) error stop DYN_NONMONOTONIC_ARRAY_ERROR
+        call resolve_boundary_conditions(mesh, conditions, constrained, ndof)
+        if (size(initial_displacement) /= ndof .or. size(initial_velocity) /= ndof) error stop DYN_ARRAY_SIZE_ERROR
+        if (ndof < 1 .or. .not.all(ieee_is_finite(initial_displacement)) .or. &
+            .not.all(ieee_is_finite(initial_velocity)) .or. .not.all(ieee_is_finite(conditions%value))) &
+            error stop DYN_INVALID_INPUT_ERROR
+        allocate(is_free(ndof), source=.true.)
+        do i = 1, size(constrained)
+            if (.not.is_free(constrained(i))) error stop DYN_NONMONOTONIC_ARRAY_ERROR
+            is_free(constrained(i)) = .false.
+        end do
+        ctx%mesh => mesh
+        if (present(load)) ctx%load => load
+        if (present(args)) ctx%load_args => args
+        ctx%nthreads = opts%nthreads
+        ctx%free = pack([(i, i=1,ndof)], is_free)
+        allocate(ctx%support(ndof), source=0.0d0)
+        ctx%support(constrained) = conditions%value
+        n = size(ctx%free)
+        nc = mesh%number_constraints()
+        if (nc > n) error stop DYN_CONSTRAINT_ERROR
+
+        allocate(displacement(ndof,nt), velocity(ndof,nt), source=0.0d0)
+        displacement = spread(ctx%support, 2, nt)
+        if (present(multipliers)) allocate(multipliers(nc,nt), source=0.0d0)
+        if (n == 0) return
+
+        call mesh%assemble_mass(full_mass)
+        ctx%mass = full_mass(ctx%free,ctx%free)
+        deallocate(full_mass)
+        if (.not.all(ieee_is_finite(ctx%mass))) error stop DYN_INVALID_INPUT_ERROR
+        factor = ctx%mass
+        call DPOTRF('L', n, factor, n, flag)
+        if (flag /= 0) error stop DYN_INVALID_INPUT_ERROR
+        deallocate(factor)
+
+        call solver%set_absolute_tolerance(opts%absolute_tolerance)
+        call solver%set_relative_tolerance(opts%relative_tolerance)
+        call solver%set_minimum_step_size(opts%minimum_step_size)
+        call solver%set_maximum_step_size(opts%maximum_step_size)
+        call solver%set_step_limit(opts%step_limit)
+        call solver%set_allow_overshoot(.false.)
+
+        allocate(state(2*n+2*nc), source=0.0d0)
+        state(:n) = initial_displacement(ctx%free)
+        state(n+1:2*n) = initial_velocity(ctx%free)
+        if (nc == 0) then
+            ode%fcn => transient_rhs
+            ode%mass_matrix => transient_state_mass
+            call ode%set_is_mass_matrix_dependent(.false.)
+            call solver%solve(ode, times, state, args=ctx)
+        else
+            dae = ggl_container(n, nc)
+            dae%fcn => transient_force
+            dae%mass_matrix => transient_physical_mass
+            dae%constraints => transient_constraints
+            dae%constraint_jacobian => transient_gradient
+            dae%constraint_curvature => transient_curvature
+            call dae%set_is_mass_matrix_dependent(.false.)
+            if (.not.dae%validate_initial_conditions(times(1), state, opts%constraint_tolerance, ctx)) &
+                error stop DYN_CONSTRAINT_ERROR
+            allocate(gradient(nc,n))
+            call transient_gradient(times(1), state(:n), gradient, ctx)
+            if (.not.independent_constraints(gradient)) error stop DYN_CONSTRAINT_ERROR
+            call dae%initialize_multipliers(times(1), state, ctx)
+            call solver%solve(dae, times, state, args=ctx)
+        end if
+
+        sol = solver%get_solution()
+        if (size(sol,1) < nt .or. size(sol,2) /= size(state)+1) error stop DYN_CONVERGENCE_ERROR
+        do i = 1, nt
+            ! diffeq returns internal steps when given just the two endpoints.
+            row = i
+            if (nt == 2 .and. i == 2) row = size(sol,1)
+            if (abs(sol(row,1) - times(i)) > spacing(max(abs(times(i)), abs(sol(row,1))))) &
+                error stop DYN_CONVERGENCE_ERROR
+            if (.not.all(ieee_is_finite(sol(row,:)))) error stop DYN_CONVERGENCE_ERROR
+            displacement(ctx%free,i) = sol(row,2:n+1)
+            velocity(ctx%free,i) = sol(row,n+2:2*n+1)
+            if (present(multipliers)) multipliers(:,i) = sol(row,2*n+2:2*n+nc+1)
+        end do
+    end subroutine
+
+    subroutine transient_force(t, y, f, args)
+        real(real64), intent(in) :: t
+        real(real64), intent(in), dimension(:) :: y
+        real(real64), intent(out), dimension(:) :: f
+        class(*), intent(in), optional :: args
+        real(real64), allocatable, dimension(:) :: q
+        real(real64), allocatable, dimension(:) :: internal
+        real(real64), allocatable, dimension(:) :: applied
+
+        if (.not.present(args)) error stop DYN_INVALID_INPUT_ERROR
+        select type (args)
+        type is (flexible_transient_context)
+            q = args%support
+            q(args%free) = y(:size(f))
+            call args%mesh%assemble_internal_force(q, internal, nthreads=args%nthreads)
+            f = -internal(args%free)
+            if (associated(args%load)) then
+                allocate(applied(size(q)))
+                if (associated(args%load_args)) then
+                    call args%load(t, applied, args%load_args)
+                else
+                    call args%load(t, applied)
+                end if
+                if (.not.all(ieee_is_finite(applied))) error stop DYN_INVALID_INPUT_ERROR
+                f = f + applied(args%free)
+            end if
+        class default
+            error stop DYN_INVALID_INPUT_ERROR
+        end select
+    end subroutine
+
+    subroutine transient_rhs(t, y, f, args)
+        real(real64), intent(in) :: t
+        real(real64), intent(in), dimension(:) :: y
+        real(real64), intent(out), dimension(:) :: f
+        class(*), intent(in), optional :: args
+        integer :: n
+
+        n = size(y) / 2
+        f(:n) = y(n+1:)
+        call transient_force(t, y, f(n+1:), args)
+    end subroutine
+
+    subroutine transient_physical_mass(t, y, mass, args)
+        real(real64), intent(in) :: t
+        real(real64), intent(in), dimension(:) :: y
+        real(real64), intent(out), dimension(:,:) :: mass
+        class(*), intent(in), optional :: args
+
+        if (.not.present(args)) error stop DYN_INVALID_INPUT_ERROR
+        select type (args)
+        type is (flexible_transient_context)
+            mass = args%mass
+        class default
+            error stop DYN_INVALID_INPUT_ERROR
+        end select
+    end subroutine
+
+    subroutine transient_state_mass(t, y, mass, args)
+        real(real64), intent(in) :: t
+        real(real64), intent(in), dimension(:) :: y
+        real(real64), intent(out), dimension(:,:) :: mass
+        class(*), intent(in), optional :: args
+        integer :: n
+        integer :: i
+
+        n = size(y) / 2
+        mass = 0.0d0
+        do i = 1, n
+            mass(i,i) = 1.0d0
+        end do
+        call transient_physical_mass(t, y(:n), mass(n+1:,n+1:), args)
+    end subroutine
+
+    subroutine transient_joint_data(q, g, jac, args)
+        real(real64), intent(in), dimension(:) :: q
+        real(real64), allocatable, intent(out), dimension(:) :: g
+        real(real64), allocatable, intent(out), dimension(:,:) :: jac
+        class(*), intent(in), optional :: args
+        real(real64), allocatable, dimension(:) :: full_q
+        real(real64), allocatable, dimension(:,:) :: full_jac
+
+        if (.not.present(args)) error stop DYN_INVALID_INPUT_ERROR
+        select type (args)
+        type is (flexible_transient_context)
+            full_q = args%support
+            full_q(args%free) = q
+            call args%mesh%assemble_constraints(full_q, g, full_jac)
+            jac = full_jac(:,args%free)
+        class default
+            error stop DYN_INVALID_INPUT_ERROR
+        end select
+    end subroutine
+
+    subroutine transient_constraints(t, q, g, args)
+        real(real64), intent(in) :: t
+        real(real64), intent(in), dimension(:) :: q
+        real(real64), intent(out), dimension(:) :: g
+        class(*), intent(in), optional :: args
+        real(real64), allocatable, dimension(:) :: values
+        real(real64), allocatable, dimension(:,:) :: jac
+
+        call transient_joint_data(q, values, jac, args)
+        g = values
+    end subroutine
+
+    subroutine transient_gradient(t, q, jac, args)
+        real(real64), intent(in) :: t
+        real(real64), intent(in), dimension(:) :: q
+        real(real64), intent(out), dimension(:,:) :: jac
+        class(*), intent(in), optional :: args
+        real(real64), allocatable, dimension(:) :: values
+        real(real64), allocatable, dimension(:,:) :: gradient
+
+        call transient_joint_data(q, values, gradient, args)
+        jac = gradient
+    end subroutine
+
+    subroutine transient_curvature(t, q, direction, v, curvature, args)
+        real(real64), intent(in) :: t
+        real(real64), intent(in), dimension(:) :: q
+        real(real64), intent(in), dimension(:) :: direction
+        real(real64), intent(in), dimension(:) :: v
+        real(real64), intent(out), dimension(:) :: curvature
+        class(*), intent(in), optional :: args
+        real(real64), dimension(size(curvature),size(q)) :: plus
+        real(real64), dimension(size(curvature),size(q)) :: minus
+        real(real64) :: scale
+        real(real64) :: h
+
+        scale = maxval(abs(direction))
+        curvature = 0.0d0
+        if (scale == 0.0d0 .or. all(v == 0.0d0)) return
+        ! Off the manifold, direction is qdot, not necessarily v.
+        h = epsilon(1.0d0)**(1.0d0/3.0d0) * max(1.0d0, maxval(abs(q)))
+        call transient_gradient(t, q + h * (direction / scale), plus, args)
+        call transient_gradient(t, q - h * (direction / scale), minus, args)
+        curvature = (scale / (2.0d0*h)) * matmul(plus - minus, v)
+    end subroutine
+
+    logical function independent_constraints(gradient) result(ok)
+        real(real64), intent(in), dimension(:,:) :: gradient
+        real(real64), dimension(size(gradient,1),size(gradient,2)) :: copy
+        real(real64), dimension(size(gradient,1)) :: sigma
+        real(real64), dimension(1,1) :: unused_u
+        real(real64), dimension(1,1) :: unused_v
+        real(real64), allocatable, dimension(:) :: work
+        integer :: m
+        integer :: n
+        integer :: flag
+
+        m = size(gradient,1)
+        n = size(gradient,2)
+        copy = gradient
+        allocate(work(max(3*m+n,5*m)))
+        call DGESVD('N', 'N', m, n, copy, m, sigma, unused_u, 1, unused_v, 1, work, size(work), flag)
+        ok = .false.
+        if (flag == 0) ok = sigma(m) > epsilon(1.0d0) * n * sigma(1)
+    end function
+
     subroutine solve_flexible_static(mesh, force, conditions, displacement, settings, info, &
         progress, args, multipliers)
         !! Solve static equilibrium on the free equations of a flexible mesh:

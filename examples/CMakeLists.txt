@@ -261,6 +261,10 @@ target_link_libraries(shell_element_example ${PROJECT_NAME} ${FPLOT_LIBRARIES})
 add_executable(flexible_truss_example flexible_truss_example.f90)
 target_link_libraries(flexible_truss_example ${PROJECT_NAME} ${FPLOT_LIBRARIES})
 
+# Flexible Pendulum Example
+add_executable(flexible_pendulum_example flexible_pendulum_example.f90)
+target_link_libraries(flexible_pendulum_example ${PROJECT_NAME} ${FPLOT_LIBRARIES})
+
 # Stability Example
 add_executable(stability_example stability_example.f90)
 target_link_libraries(stability_example ${PROJECT_NAME})

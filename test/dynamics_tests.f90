@@ -72,6 +72,10 @@ program main
                 if (.not.test_flexible_joints()) stop 216
                 stop
             end if
+            if (selection == "flexible-transient") then
+                if (.not.test_flexible_transient()) stop 217
+                stop
+            end if
             if (selection == "flexible-truss-static") then
                 if (.not.test_flexible_truss_static()) stop 196
                 stop
@@ -125,6 +129,9 @@ program main
 
     check = test_flexible_joints()
     if (.not.check) flag = 216
+
+    check = test_flexible_transient()
+    if (.not.check) flag = 217
 
     check = test_frf_sweep()
     if (.not.check) flag = 1

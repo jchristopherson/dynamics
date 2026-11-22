@@ -134,16 +134,63 @@ element energy terms. The constraint counts are 6 (fixed), 5 (revolute,
 prismatic), 4 (cylindrical, universal), and 3 (spherical). `mesh%assemble_constraints(q,
 g, jac)` returns the constraint residual and dense Jacobian.
 
-`solve_flexible_static` solves the augmented system `[K G^T; G 0]` when joints
-are present. Multipliers are returned in the optional `multipliers` argument.
-Limitations:
+For static analysis, `solve_flexible_static` solves the augmented system
+`[K G^T; G 0]` and returns joint multipliers on request. This requires
+`sparse = .false.`. Its Newton tangent omits the multiplier-weighted constraint
+Hessian, so the iteration is quasi-Newton. For transient analysis, use
+`solve_flexible_transient` below. In both cases:
 
-- Static analysis only, and dense only. Joints require `sparse = .false.`.
-- The Newton tangent omits the multiplier-weighted constraint Hessian, so the
-  method is quasi-Newton. Convergence is linear rather than quadratic for
-  large multipliers.
 - Orientation constraints are singular when the relative rotation is π.
 - Joints attach at mesh nodes only; no joint-to-element or ground attachment.
+
+### Dense transient analysis
+
+```fortran
+use dynamics_flexible_body_solvers, only : solve_flexible_transient, &
+    flexible_transient_settings, FLEXIBLE_ROSENBROCK
+! Declare along with mesh, times, supports, q0 and v0:
+type(flexible_transient_settings) :: settings
+real(real64), allocatable, dimension(:,:) :: q, v
+
+settings%solver = FLEXIBLE_ROSENBROCK
+settings%maximum_step_size = 0.01_real64
+call solve_flexible_transient(mesh, times, supports, q0, v0, q, v, settings)
+```
+
+Use at least two strictly increasing output times. Give `q0` and `v0` in full
+mesh equation order. Prescribed DOFs are set to the support values with zero
+velocity, regardless of their initial entries. Each column of `q` and `v` is
+one requested sample. By default there is no applied load; pass
+`load=callback` for a smooth applied force. The callback takes `(time, force,
+args)`, writes the full force vector in mesh equation order, and accepts an
+optional `class(*)` argument forwarded from the solve. The force may be
+evaluated repeatedly at internal times. Rotational velocities are rates of
+the nodal rotation-vector coordinates.
+
+BDF (`FLEXIBLE_BDF`) is the default. Other choices are `FLEXIBLE_ROSENBROCK`,
+`FLEXIBLE_KENNEDY_CARPENTER_4`, and `FLEXIBLE_KENNEDY_CARPENTER_5`. The settings
+also expose scalar error tolerances, step-size bounds, a step limit, the number
+of assembly threads, and an initial joint consistency tolerance.
+
+The solver assembles one dense, constant reference mass and removes prescribed
+DOFs before integrating. The reduced mass must be positive definite. Joint
+constraints are handled internally with a stabilized DAE. Initial values must
+satisfy `g(q0) = 0` and `G(q0)*v0 = 0` within `constraint_tolerance`; the solver
+does not project them. Joint rows must be independent after support elimination.
+Optional `multipliers` has shape `(joint constraint rows, output times)` and
+reports the multipliers whose generalized joint force is `-G^T*lambda`.
+
+Moving supports, configuration-dependent inertia, and history-dependent
+materials are outside this solver's scope. Invalid inputs and integration
+failures cause an error stop.
+
+The [flexible pendulum example](../../examples/flexible_pendulum_example.f90)
+releases a flexible beam from rest at 20 degrees to the vertical. A
+revolute joint connects the beam root to a fixed support stub, and gravity is
+applied as a consistent nodal load. Build the `flexible_pendulum_example`
+target and run it with gnuplot available. FPLOT writes `flexible_pendulum.png`
+in the working directory with the pivot angle and the transverse tip
+deflection measured relative to the rotating beam root.
 
 ## Flexible Truss Example
 
