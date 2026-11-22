@@ -29,6 +29,7 @@ module dynamics_helper
     public :: matmul
     public :: matrix_exponential
     public :: siso_resolvent_coefficients
+    public :: solve_linear
 
     interface cross_product
         module procedure :: real_cross
@@ -382,6 +383,59 @@ pure function hyperdual_matmul_mtx_vec(x, y) result(rst)
         rst(i) = temp
     end do
 end function
+
+! ------------------------------------------------------------------------------
+subroutine solve_linear(a, b)
+    !! Solves a dense linear system in place using Gaussian elimination with
+    !! partial pivoting.  On output, b contains the solution.  The matrix
+    !! must be nonsingular.
+    type(dual), intent(inout), dimension(:,:) :: a
+        !! The coefficient matrix.  Its contents are overwritten.
+    type(dual), intent(inout), dimension(:) :: b
+        !! On input, the right-hand side.  On output, the solution.
+
+    ! Local Variables
+    integer :: n, i, j, k, piv
+    real(real64) :: pmax
+    type(dual) :: f, t
+
+    n = size(b)
+    do k = 1, n
+        piv = k
+        pmax = abs(a(k, k)%x)
+        do i = k + 1, n
+            if (abs(a(i, k)%x) > pmax) then
+                pmax = abs(a(i, k)%x)
+                piv = i
+            end if
+        end do
+        if (piv /= k) then
+            do j = k, n
+                t = a(k, j)
+                a(k, j) = a(piv, j)
+                a(piv, j) = t
+            end do
+            t = b(k)
+            b(k) = b(piv)
+            b(piv) = t
+        end if
+        do i = k + 1, n
+            f = a(i, k) / a(k, k)
+            do j = k + 1, n
+                a(i, j) = a(i, j) - f * a(k, j)
+            end do
+            b(i) = b(i) - f * b(k)
+        end do
+    end do
+
+    do i = n, 1, -1
+        t = b(i)
+        do j = i + 1, n
+            t = t - a(i, j) * b(j)
+        end do
+        b(i) = t / a(i, i)
+    end do
+end subroutine
 
 ! ------------------------------------------------------------------------------
 end module

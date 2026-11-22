@@ -20,6 +20,7 @@ program main
     use dynamics_stability_tests
     use dynamics_transfer_function_tests
     use dynamics_state_space_tests
+    use dynamics_controls_tuning_tests
     use dynamics_system_id_tests
     use dynamics_rotation_tests
     use dynamics_geometry_tests
@@ -554,6 +555,24 @@ program main
 
     check = test_discrete_tf_evaluate()
     if (.not.check) flag = 205
+
+    check = test_isf_continuous_ise()
+    if (.not.check) flag = 206
+
+    check = test_isf_discrete_ise()
+    if (.not.check) flag = 207
+
+    check = test_isf_unstable_gains()
+    if (.not.check) flag = 208
+
+    check = test_isf_optimizer_continuous()
+    if (.not.check) flag = 209
+
+    check = test_isf_optimizer_discrete()
+    if (.not.check) flag = 210
+
+    check = test_isf_optimizer_control_weight()
+    if (.not.check) flag = 211
 
     check = test_discretize_zoh_scalar()
     if (.not.check) flag = 201

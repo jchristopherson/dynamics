@@ -273,6 +273,10 @@ target_link_libraries(vibrations_helper_example ${PROJECT_NAME} ${FPLOT_LIBRARIE
 add_executable(discrete_controls_example discrete_controls_example.f90)
 target_link_libraries(discrete_controls_example ${PROJECT_NAME} ${FPLOT_LIBRARIES})
 
+# Integral State Feedback Example
+add_executable(integral_state_feedback_example integral_state_feedback_example.f90)
+target_link_libraries(integral_state_feedback_example ${PROJECT_NAME} ${FPLOT_LIBRARIES})
+
 if (${BUILD_SHARED_LIBS} AND WIN32)
     add_custom_command(
         TARGET duffing_poincare_example

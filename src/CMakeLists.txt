@@ -14,6 +14,7 @@ set(DYNAMICS_SOURCES
     ${dir}/vibrations/dynamics_stability.f90
     ${dir}/controls/dynamics_controls.f90
     ${dir}/controls/dynamics_discrete_controls.f90
+    ${dir}/controls/dynamics_controls_tuning.f90
     ${dir}/system_id/dynamics_system_id.f90
     ${dir}/rigid_bodies/dynamics_quaternions.f90
     ${dir}/vibrations/dynamics_maps.f90

@@ -12,9 +12,9 @@
 ! implied, including but not limited to the warranties of merchantability,
 ! fitness for a particular purpose and noninfringement.
 
-!> Defines discrete-time state-space and transfer function models along with
-!! conversions between continuous and discrete forms.
 module dynamics_discrete_controls
+    !! Defines discrete-time state-space and transfer function models along with
+    !! conversions between continuous and discrete forms.
     use iso_fortran_env
     use nonlin_polynomials
     use linalg, only : mtx_inverse, eigen, identity

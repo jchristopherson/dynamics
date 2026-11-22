@@ -8,6 +8,7 @@ set(dynamics_test_sources
     dynamics_stability_tests.f90
     dynamics_transfer_function_tests.f90
     dynamics_state_space_tests.f90
+    dynamics_controls_tuning_tests.f90
     dynamics_system_id_tests.f90
     dynamics_rotation_tests.f90
     dynamics_geometry_tests.f90

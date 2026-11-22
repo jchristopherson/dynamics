@@ -80,3 +80,17 @@ The four plot panels show the sampled step responses, ZOH poles and zeros relati
 ![Discrete control step response, poles and zeros, and frequency responses](../../images/discrete_controls_example.png)
 
 Build with `BUILD_DYNAMICS_EXAMPLES=ON`, then build and run the `discrete_controls_example` target.
+
+## Integral State Feedback Tuning
+
+`dynamics_controls_tuning` provides `integral_state_feedback_controller`, which applies $u=-Kx-K_i\xi$ with $\dot{\xi}=y-r$ for continuous-time `state_space` models, or $\xi_{k+1}=\xi_k+T_s(y_k-r_k)$ for `discrete_state_space` models. The `is_stable` and `integral_squared_error` methods evaluate the closed loop for a unit step in the reference. The ISE is computed in closed form from a Lyapunov equation (continuous) or a Stein equation (discrete), so it is exact for the linear model.
+
+`controller_optimizer` minimizes the ISE over $K$ and $K_i$ with BFGS from nonlin. The gradient is computed with automatic differentiation. Candidate gains that make the closed loop unstable receive a large constant penalty. The starting controller must be stable; otherwise the optimizer stops with an error.
+
+The optional `control_weight` property (default zero) adds a penalty on the rate of change of the control input, $\rho\int\dot{u}^2\,dt$, to the cost. For discrete systems the first difference of $u$ is used. The ISE alone can favor very large gains, because the closed loop settles faster as the gains grow. The rate penalty limits this without penalizing the steady-state input. The optimizer's `fout` output is the penalized cost, which is the ISE plus the weighted control rate. The penalty is evaluated in the same closed-form Lyapunov (or Stein) solve, so its gradient also comes from AD.
+
+[`integral_state_feedback_example`](../../examples/integral_state_feedback_example.f90) designs an integral state feedback controller for a continuous second-order plant. It optimizes the gains with the ISE alone, then with `control_weight = 1`, and plots the output and control effort with fplot. The top plot shows the output $y(t)$ against the unit-step reference, and the bottom plot shows the control input $u(t)$. The ISE-only design uses high gains, so it has a large initial control spike near $t=0$. The design with `control_weight = 1` has much smaller control effort and a smoother approach to the reference, at the cost of a slower rise.
+
+![Integral state feedback output and control effort](../../images/integral_state_feedback_example.png?raw=true)
+
+Build with `BUILD_DYNAMICS_EXAMPLES=ON`, then build and run the `integral_state_feedback_example` target.
