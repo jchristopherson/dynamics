@@ -112,7 +112,7 @@ contains
     end subroutine
 
 ! ------------------------------------------------------------------------------
-    subroutine modal_response_sparse(mass, stiff, nmodes, freqs, modeshapes)
+    subroutine modal_response_sparse(mass, stiff, nmodes, freqs, modeshapes, sigma)
         !! Computes selected modal frequencies and mode shapes for a
         !! multi-degree-of-freedom system using CSR sparse matrices.
         !! The generalized eigenproblem is
@@ -132,9 +132,15 @@ contains
             modeshapes
             !! An optional, allocatable N-by-NMODES matrix containing one mode
             !! shape per column.
+        real(real64), intent(in), optional :: sigma
+            !! An optional shift, in units of (rad/s)^2, used by the
+            !! shift-invert solver.  The default is zero.  For models with a
+            !! large stiffness range, a negative value near the frequency
+            !! range of interest, such as -(2*pi*f)^2 with f in Hz, is more
+            !! robust.  The shift must not equal a modal eigenvalue.
 
         integer :: i, j, loc, n
-        real(real64) :: mass_scale, stiff_scale, temp, tol
+        real(real64) :: mass_scale, shift, stiff_scale, temp, tol
         real(real64), allocatable, dimension(:) :: temp_vec, vals
         real(real64), allocatable, dimension(:,:) :: vecs
 
@@ -166,8 +172,11 @@ contains
             end do
         end do
 
+        shift = 0.0d0
+        if (present(sigma)) shift = sigma
+
         if (present(modeshapes)) then
-            call eigen(stiff, mass, nmodes, vals, vecs, sigma = 0.0d0)
+            call eigen(stiff, mass, nmodes, vals, vecs, sigma = shift)
             allocate(temp_vec(n))
             do i = 1, size(vals) - 1
                 loc = i - 1 + minloc(vals(i:), 1)
@@ -182,7 +191,7 @@ contains
             end do
             allocate(modeshapes(n, size(vals)), source = vecs)
         else
-            call eigen(stiff, mass, nmodes, vals, sigma = 0.0d0)
+            call eigen(stiff, mass, nmodes, vals, sigma = shift)
             call sort(vals)
         end if
 

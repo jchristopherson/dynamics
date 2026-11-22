@@ -500,6 +500,13 @@ function test_modal_response() result(rst)
         rst = .false.
         print "(A)", "TEST FAILED: test_modal_response -9"
     end if
+
+    call modal_response(sparse_m, sparse_k, sparse_nmodes, sparse_modes_only, &
+        sigma = -1.0d0)
+    if (.not.assert(modes(1:sparse_nmodes), sparse_modes_only, tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_modal_response -10"
+    end if
 end function
 
 ! ------------------------------------------------------------------------------

@@ -18,9 +18,9 @@ program example
         euler_bernoulli_beam_element, fe_node, finite_element_mesh, &
         flexible_material, linear_elastic_isotropic_material, solve_static_system, &
         apply_force_boundary_conditions, restore_constrained_values, degree_of_freedom, &
-        flexible_static_settings, flexible_static_info, solve_flexible_static
+        flexible_static_settings, flexible_static_info, solve_flexible_static, modal_response
     use fplot_core, only : plot_2d, plot_data_2d, plot_3d, plot_data_3d, plot_axis, rainbow_colormap, CLR_BLACK, LINE_DOTTED
-    use linalg, only : csr_matrix, size, eigen, matmul
+    use linalg, only : csr_matrix, size
     implicit none
 
     ! Structure Geometry (same as structural_example):
@@ -194,8 +194,10 @@ program example
 ! ******************************************************************************
 ! MODAL ANALYSIS
 ! ------------------------------------------------------------------------------
-    ! Solve K*phi = omega**2*M*phi using the same reduced reference tangent.
-    call solve_modes()
+    ! Solve K*phi = omega**2*M*phi for the six lowest modes. A negative shift
+    ! near the 1 kHz range keeps the shift-invert solves well conditioned.
+    call modal_response(mass, stiffness, n_plot_modes, freqs, modes, &
+        sigma = -(2.0d0 * pi * 1000.0d0)**2)
     freqs = freqs / (2.0d0 * pi)
     do i = 1, size(freqs)
         print "(A,I0,A,F0.3,A)", "Mode ", i, ": ", freqs(i), " Hz"
@@ -215,69 +217,6 @@ program example
     end do
 
 contains
-! ------------------------------------------------------------------------------
-    subroutine solve_modes()
-        !! Extract the six lowest modes of the sparse tangent/mass pencil.
-        real(real64), parameter :: sigma = -(2.0d0 * pi * 1000.0d0)**2
-        real(real64), parameter :: residual_tolerance = 1.0d-4
-        type(csr_matrix) :: scaled_mass
-        type(csr_matrix) :: scaled_stiffness
-        real(real64), dimension(size(stiffness, 1)) :: scale
-        real(real64), allocatable, dimension(:) :: eigenvalues
-        real(real64), allocatable, dimension(:,:) :: eigenvectors
-        real(real64), dimension(size(stiffness, 1)) :: k_phi
-        real(real64), dimension(size(stiffness, 1)) :: lambda_m_phi
-        integer :: mode
-        integer :: k
-        real(real64) :: residual
-
-        ! Equilibrate the stiffness diagonal with a congruence transform.
-        ! This preserves the spectrum and improves the shift-invert solves.
-        do k = 1, size(scale)
-            scale(k) = stiffness%get(k, k)
-        end do
-        if (any(scale <= 0.0d0)) error stop "Nonpositive tangent stiffness diagonal"
-        scale = 1.0d0 / sqrt(scale)
-        scaled_mass = scale_matrix(mass, scale)
-        scaled_stiffness = scale_matrix(stiffness, scale)
-
-        ! A negative shift improves conditioning without changing which
-        ! positive eigenvalues are closest to the shift.
-        call eigen(scaled_stiffness, scaled_mass, n_plot_modes, eigenvalues, eigenvectors, sigma=sigma)
-        if (size(eigenvalues) /= n_plot_modes .or. any(eigenvalues <= 0.0d0)) &
-            error stop "Expected six positive modal eigenvalues"
-        allocate(freqs(n_plot_modes), modes(size(stiffness, 1), n_plot_modes))
-        do mode = 1, n_plot_modes
-            k = minloc(eigenvalues, dim=1)
-            freqs(mode) = sqrt(eigenvalues(k))
-            modes(:,mode) = scale * eigenvectors(:,k)
-            k_phi = matmul(stiffness, modes(:,mode))
-            lambda_m_phi = eigenvalues(k) * matmul(mass, modes(:,mode))
-            residual = norm2(k_phi - lambda_m_phi) / norm2(lambda_m_phi)
-            if (.not.(residual <= residual_tolerance)) then
-                print "(A,I0,A,ES13.5)", "Mode ", mode, " relative residual: ", residual
-                error stop "Modal eigenpair residual exceeds tolerance"
-            end if
-            eigenvalues(k) = huge(0.0d0)
-        end do
-    end subroutine
-
-! ------------------------------------------------------------------------------
-    function scale_matrix(matrix, scale) result(scaled)
-        type(csr_matrix), intent(in) :: matrix
-        real(real64), intent(in), dimension(:) :: scale
-        type(csr_matrix) :: scaled
-        integer :: row
-        integer :: k
-
-        scaled = matrix
-        do row = 1, size(scale)
-            do k = matrix%row_indices(row), matrix%row_indices(row+1) - 1
-                scaled%values(k) = matrix%values(k) * (scale(row) * scale(matrix%column_indices(k)))
-            end do
-        end do
-    end function
-
 ! ------------------------------------------------------------------------------
     subroutine plot_deflection(displacement, scaling, title)
         !! Overlay the reference centerlines and displacement-colored shapes.
