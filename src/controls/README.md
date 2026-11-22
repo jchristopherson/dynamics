@@ -75,6 +75,27 @@ Build with `BUILD_DYNAMICS_EXAMPLES=ON`, then build and run the `pid_control_exa
 
 The ZOH transfer function's coefficients are printed in ascending powers of $z^{-1}$ and used to construct a `discrete_transfer_function` directly. Its poles and zeros are reported in the $z$ plane. The example applies the coefficients in a difference equation and compares the resulting step response with the state-space recurrence and the exact sampled continuous step response. Both simulations start at rest; the Tustin model has direct feedthrough and therefore responds at the first sample.
 
+The discretization and transfer-function conversion are the core of the example:
+
+```fortran
+continuous = state_space(mass, damping, stiffness)
+continuous%C = reshape([1.0d0, 0.0d0], [1, 2])
+zoh = c2d(continuous, ts, DISCRETIZE_ZOH)
+tustin = c2d(continuous, ts, DISCRETIZE_TUSTIN)
+tf_zoh = zoh%to_transfer_function()
+```
+
+The state-space step response advances the sampled state with the discrete recurrence, and the transfer-function response applies the difference equation:
+
+```fortran
+x_zoh = matmul(zoh%A, x_zoh) + zoh%B(:,1)
+
+y_tf(i) = numerator(1)
+if (i > 1) y_tf(i) = y_tf(i) + numerator(2) - denominator(2) * y_tf(i-1)
+if (i > 2) y_tf(i) = y_tf(i) + numerator(3) - denominator(3) * y_tf(i-2)
+y_tf(i) = y_tf(i) / denominator(1)
+```
+
 The four plot panels show the sampled step responses, ZOH poles and zeros relative to the unit circle, and the magnitude and phase of the ZOH, Tustin, and continuous frequency responses. Discrete responses are evaluated at $z=e^{i\omega T_s}$ up to 4.9 Hz, just below the 5 Hz Nyquist frequency; the ZOH phase is unwrapped. The ZOH step samples match the continuous response for a held input, while the Tustin frequency response shows the effects of bilinear frequency warping.
 
 ![Discrete control step response, poles and zeros, and frequency responses](../../images/discrete_controls_example.png)
@@ -89,7 +110,37 @@ Build with `BUILD_DYNAMICS_EXAMPLES=ON`, then build and run the `discrete_contro
 
 The optional `control_weight` property (default zero) adds a penalty on the rate of change of the control input, $\rho\int\dot{u}^2\,dt$, to the cost. For discrete systems the first difference of $u$ is used. The ISE alone can favor very large gains, because the closed loop settles faster as the gains grow. The rate penalty limits this without penalizing the steady-state input. The optimizer's `fout` output is the penalized cost, which is the ISE plus the weighted control rate. The penalty is evaluated in the same closed-form Lyapunov (or Stein) solve, so its gradient also comes from AD.
 
+The example defines the plant, builds a stable starting controller, and optimizes the gains:
+
+```fortran
+A = reshape([0.0d0, -2.0d0, 1.0d0, -3.0d0], [2, 2])
+B = reshape([0.0d0, 1.0d0], [2, 1])
+C = reshape([1.0d0, 0.0d0], [1, 2])
+D = reshape([0.2d0], [1, 1])
+plant = state_space(A, B, C, D)
+
+K = reshape([2.0d0, 1.0d0], [1, 2])
+Ki = reshape([1.0d0], [1, 1])
+ctrl = integral_state_feedback_controller(K, Ki)
+
+opt%tolerance = 1.0d-8
+opt%max_evaluations = 1000
+call opt%optimize(plant, ctrl, fout)
+```
+
+The optimized controller is then simulated with `apply_to_state_space_plant` and `lti_solve`. The control-weight case reuses the starting gains and sets `control_weight`:
+
+```fortran
+ctrl_pen = integral_state_feedback_controller(K, Ki)
+opt%control_weight = 1.0d0
+call opt%optimize(plant, ctrl_pen, fout)
+mdl2 = ctrl_pen%apply_to_state_space_plant(plant)
+sol2 = lti_solve(mdl2, step_command, t, ic)
+```
+
 [`integral_state_feedback_example`](../../examples/integral_state_feedback_example.f90) designs an integral state feedback controller for a continuous second-order plant. It optimizes the gains with the ISE alone, then with `control_weight = 1`, and plots the output and control effort with fplot. The top plot shows the output $y(t)$ against the unit-step reference, and the bottom plot shows the control input $u(t)$. The ISE-only design uses high gains, so it has a large initial control spike near $t=0$. The design with `control_weight = 1` has much smaller control effort and a smoother approach to the reference, at the cost of a slower rise.
+
+For a `discrete_state_space` plant, use `apply_to_discrete_state_space_plant` in place of `apply_to_state_space_plant`. It returns a `discrete_state_space` model with the plant's sample time, whose states are the plant states followed by the integrator states. The output is $[u; y]$ with no feedthrough, so the closed loop can be simulated with the usual discrete solvers.
 
 ![Integral state feedback output and control effort](../../images/integral_state_feedback_example.png?raw=true)
 
