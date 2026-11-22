@@ -2,7 +2,7 @@ program flexible_pendulum_example
     !! Gravity-driven swing and bending of a beam pinned to a fixed stub.
     !! Uses SI units and plots the motion with FPLOT.
     use iso_fortran_env, only : real64
-    use dynamics, only : fe_node, degree_of_freedom, finite_element_mesh, euler_bernoulli_beam_element, &
+    use dynamics, only : fe_node, degree_of_freedom, finite_element_mesh, timoshenko_beam_element, &
         linear_elastic_isotropic_material, nodal_condition, flexible_joint, REVOLUTE_JOINT, &
         DOF_UX, DOF_UY, DOF_UZ, DOF_RX, DOF_RY, DOF_RZ, flexible_transient_settings, solve_flexible_transient, &
         FLEXIBLE_KENNEDY_CARPENTER_5
@@ -23,7 +23,7 @@ program flexible_pendulum_example
     end type
 
     type(linear_elastic_isotropic_material), target :: material
-    type(euler_bernoulli_beam_element) :: beam
+    type(timoshenko_beam_element) :: beam
     type(finite_element_mesh) :: mesh
     type(flexible_transient_settings) :: settings
     type(nodal_condition), dimension(12) :: supports

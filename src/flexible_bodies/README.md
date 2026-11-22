@@ -277,12 +277,9 @@ call solve_flexible_transient(mesh, times, supports, initial, initial, q, v, set
 
 ![Flexible pendulum time histories: pivot angle and transverse tip deflection](../../images/flexible_pendulum_example.png?raw=true)
 
-The transverse deflection is **signed**, not an absolute value. It is the
+The transverse deflection is **signed**, and it is the
 projection of the pivot-to-tip vector onto the beam root's rotating normal,
-so rigid swing alone gives zero. The beam starts straight and, in the
-plotted response, the tip stays on the positive side of the line tangent
-to the beam at the root even as the pivot angle changes sign. The
-deflection would be negative if the tip crossed to the other side.
+so rigid swing alone gives zero.
 
 Build the `flexible_pendulum_example` target and run it with gnuplot available.
 The example prints peak transverse tip deflection and the maximum sampled
