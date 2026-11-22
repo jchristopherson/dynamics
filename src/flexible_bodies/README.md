@@ -4,7 +4,7 @@
 * **`dynamics_flexible_element`** defines the common abstract element contract for degree-of-freedom mapping, mass, internal force, and tangent stiffness.
 * **`dynamics_finite_element`** extends that contract with mesh connectivity, node count, degrees of freedom per node, and spatial dimensionality.
 * **`dynamics_flexible_materials`** defines strain-energy constitutive interfaces and the built-in linear-elastic isotropic material. Material routines provide derivatives through real, dual, and hyper-dual evaluations for force and tangent calculations.
-* **`dynamics_flexible_beam_elements`** provides energy-based spatial beam elements, including the two-node Euler-Bernoulli beam described below.
+* **`dynamics_flexible_beam_elements`** provides two-node Euler-Bernoulli and Timoshenko spatial beam elements.
 * **`dynamics_flexible_assembly`** provides heterogeneous finite-element meshes, connectivity-based equation numbering, and dense or CSR assembly of mass, tangent stiffness, and internal force.
 * **`dynamics_boundary_conditions`** applies force and displacement boundary conditions to a mesh's assembled equations, dense or CSR, and restores prescribed displacements after the reduced solve.
 
@@ -33,6 +33,37 @@ torsional energies are separate; there is no through-section fiber integration.
 The consistent reference mass uses `iyy + izz` for polar rotary inertia, not `j`.
 Internal force is the positive energy gradient and stiffness its Hessian;
 the beam's AD workspace is reused and must not be accessed concurrently.
+
+### Timoshenko beam
+
+Use `timoshenko_beam_element` when transverse shear compliance matters. It
+uses the same node positions, section properties, material pointer, and
+six DOFs per node as the Euler-Bernoulli beam. The constructor also accepts
+optional `shear_factor_y` and `shear_factor_z` arguments for the two local
+transverse directions. Both default to `5/6`; choose values appropriate
+for the section and keep them finite and positive.
+
+```fortran
+use dynamics, only : timoshenko_beam_element
+type(timoshenko_beam_element) :: beam
+
+beam = timoshenko_beam_element(mat, area, j, iyy, izz, 1, 2, &
+    [0.0d0, 1.0d0, 0.0d0], shear_factor_y=0.85d0)
+call mesh%assign_element(1, beam)
+```
+
+The centerline is linear, and the section rotations are interpolated
+independently using normalized quaternions. Subdivide the beam for large
+curvature; relative nodal rotations at 180 degrees have no unique shortest
+interpolation and are rejected. The element uses the same axial, bending,
+and torsional material methods as the Euler-Bernoulli beam. It computes
+transverse shear at the midpoint to relieve shear locking and evaluates the
+material's 3D energy with only engineering `xy` and `zx` strains nonzero,
+each scaled by the square root of its shear factor. For a quadratic isotropic
+material this gives local shear stiffnesses `shear_factor_y*G*area` and
+`shear_factor_z*G*area`. Force and tangent are differentiated from that
+same stored energy. The constant consistent reference mass uses linear
+translation and rotation fields and includes rotary inertia.
 
 ### Flexible mesh assembly
 

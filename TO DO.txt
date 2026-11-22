@@ -1,7 +1,6 @@
 - Update C API with the following features
     - discrete control types & solvers
     - controller optimization
-- Define a Timoshenko finite strain finite element type for the flexible bodies branch
 - Define discrete element types (e.g. spring, damper, and mass) for the flexible bodies branch
 - Update documentation
 - Update version - major version bump

@@ -36,7 +36,7 @@ See the subdirectory READMEs for detailed module descriptions, code examples, an
 
 - [C API](src/c/README.md) — C calling conventions and examples for kinematics and LTI simulation.
 - [Controls](src/controls/README.md) — state-space models, transfer functions, and PID control.
-- [Flexible Bodies](src/flexible_bodies/README.md) — flexible beams, material models, and mesh assembly.
+- [Flexible Bodies](src/flexible_bodies/README.md) — Euler-Bernoulli and [Timoshenko beams](src/flexible_bodies/README.md#timoshenko-beam), material models, and mesh assembly.
 - [Frequency Analysis](src/frequency/README.md) — modal analysis, frequency response, and nonlinear sweeps.
 - [Rigid Bodies and Mechanisms](src/rigid_bodies/README.md) — serial and closed-loop kinematics and linkage dynamics.
 - [Solvers](src/solvers/README.md) — linear structural time integration and constrained rigid-body integration.

@@ -15,6 +15,7 @@ module dynamics_flexible_beam_elements
     private
     public :: flexible_beam_element
     public :: euler_bernoulli_beam_element
+    public :: timoshenko_beam_element
 
     type, abstract, extends(finite_element) :: flexible_beam_element
         !! Base for beams whose force and tangent derive from strain energy.
@@ -52,18 +53,13 @@ module dynamics_flexible_beam_elements
         end function
     end interface
 
-    type, extends(flexible_beam_element) :: euler_bernoulli_beam_element
-        !! Two-node, shear-free spatial beam referenced to centroidal
-        !! principal section axes.
+    type, abstract, extends(flexible_beam_element) :: two_node_beam_element
+        !! Shared layout and section data for spatial beams referenced to
+        !! centroidal principal section axes.
         !! The twelve DOFs are ordered [ux, uy, uz, rx, ry, rz] per node.
         !! Translations and rotation vectors are in global axes; rotations
         !! are expressed in radians. Coordinates and section dimensions
         !! describe the undeformed configuration.
-        !!
-        !! The material supplies separate axial, bending, and torsional laws.
-        !! Section energy is integrated at four Gauss points along the beam.
-        !! The reference mass is constant, not a configuration-dependent
-        !! finite-rotation inertia.
         integer, dimension(2) :: node_indices = 0
             !! One-based positions in the supplied node table, in element
             !! DOF order. These are not `fe_node%id` values.
@@ -80,15 +76,35 @@ module dynamics_flexible_beam_elements
             !! Caller-supplied indices for manual assembly. The mesh numbers
             !! equations from node connectivity instead.
     contains
-        procedure :: dof_count => eb_dof_count
-        procedure :: dof_indices => eb_dof_indices
-        procedure :: node_count => eb_node_count
-        procedure :: node_connectivity => eb_node_connectivity
-        procedure :: dof_per_node => eb_dof_per_node
-        procedure :: dof_components => eb_dof_components
-        procedure :: dimensionality => eb_dimensionality
+        procedure :: dof_count => beam_dof_count
+        procedure :: dof_indices => beam_dof_indices
+        procedure :: node_count => beam_node_count
+        procedure :: node_connectivity => beam_node_connectivity
+        procedure :: dof_per_node => beam_dof_per_node
+        procedure :: dof_components => beam_dof_components
+        procedure :: dimensionality => beam_dimensionality
+    end type
+
+    type, extends(two_node_beam_element) :: euler_bernoulli_beam_element
+        !! Shear-free spatial beam with four-point section energy integration
+        !! and constant reference mass.
+    contains
         procedure :: mass_matrix => eb_mass
         procedure :: strain_energy => eb_energy
+    end type
+
+    type, extends(two_node_beam_element) :: timoshenko_beam_element
+        !! Finite-strain spatial beam with linear centerline interpolation
+        !! and independently interpolated section rotations. Axial, bending
+        !! and torsional energy use four Gauss points; transverse shear uses
+        !! the midpoint to relieve thin-beam shear locking.
+        real(real64) :: shear_factor_y = 5.0d0/6.0d0
+            !! Positive shear correction for displacement along local y.
+        real(real64) :: shear_factor_z = 5.0d0/6.0d0
+            !! Positive shear correction for displacement along local z.
+    contains
+        procedure :: mass_matrix => tm_mass
+        procedure :: strain_energy => tm_energy
     end type
 
     type :: beam_context
@@ -101,6 +117,10 @@ module dynamics_flexible_beam_elements
 
     interface euler_bernoulli_beam_element
         module procedure :: eb_init
+    end interface
+
+    interface timoshenko_beam_element
+        module procedure :: tm_init
     end interface
 
 ! ------------------------------------------------------------------------------
@@ -120,9 +140,9 @@ module dynamics_flexible_beam_elements
 
 contains
 ! ------------------------------------------------------------------------------
-    pure function eb_dof_components(this) result(components)
+    pure function beam_dof_components(this) result(components)
         !! Return the global translation and rotation components in local order.
-        class(euler_bernoulli_beam_element), intent(in) :: this
+        class(two_node_beam_element), intent(in) :: this
         integer, allocatable, dimension(:) :: components
 
         components = [DOF_UX, DOF_UY, DOF_UZ, DOF_RX, DOF_RY, DOF_RZ]
@@ -155,15 +175,61 @@ contains
         type(euler_bernoulli_beam_element) :: rst
             !! The new [[euler_bernoulli_beam_element]] object.
 
-        rst%material => mat
-        rst%area = A
-        rst%j = J
-        rst%iyy = Iyy
-        rst%izz = Izz
-        rst%node_indices(1) = n1
-        rst%node_indices(2) = n2
-        rst%reference_y = ydir
+        call init_beam_section(rst, mat, A, J, Iyy, Izz, n1, n2, ydir)
     end function
+
+    function tm_init(mat, A, J, Iyy, Izz, n1, n2, ydir, shear_factor_y, shear_factor_z) result(rst)
+        !! Construct a [[timoshenko_beam_element]]. Geometry and section
+        !! properties are validated when the element is evaluated.
+        class(flexible_material), intent(in), pointer :: mat
+            !! Material pointer; its target must outlive the element.
+        real(real64), intent(in) :: A
+            !! Positive reference cross-sectional area.
+        real(real64), intent(in) :: J
+            !! Positive Saint-Venant torsion constant.
+        real(real64), intent(in) :: Iyy
+            !! Positive second moment of area about local y.
+        real(real64), intent(in) :: Izz
+            !! Positive second moment of area about local z.
+        integer, intent(in) :: n1
+            !! One-based position of the first node in the node table.
+        integer, intent(in) :: n2
+            !! One-based position of the second node in the node table.
+        real(real64), intent(in), dimension(3) :: ydir
+            !! Global direction for local y, projected normal to the chord.
+        real(real64), intent(in), optional :: shear_factor_y
+            !! Positive, dimensionless local-y shear correction; defaults to 5/6.
+        real(real64), intent(in), optional :: shear_factor_z
+            !! Positive, dimensionless local-z shear correction; defaults to 5/6.
+        type(timoshenko_beam_element) :: rst
+            !! Configured element with unset manual equation indices.
+
+        call init_beam_section(rst, mat, A, J, Iyy, Izz, n1, n2, ydir)
+        if (present(shear_factor_y)) rst%shear_factor_y = shear_factor_y
+        if (present(shear_factor_z)) rst%shear_factor_z = shear_factor_z
+    end function
+
+    subroutine init_beam_section(beam, mat, A, J, Iyy, Izz, n1, n2, ydir)
+        !! Set the geometry, orientation and material fields shared by the
+        !! two beam constructors; borrow the material without copying it.
+        class(two_node_beam_element), intent(inout) :: beam
+        class(flexible_material), intent(in), pointer :: mat
+        real(real64), intent(in) :: A
+        real(real64), intent(in) :: J
+        real(real64), intent(in) :: Iyy
+        real(real64), intent(in) :: Izz
+        integer, intent(in) :: n1
+        integer, intent(in) :: n2
+        real(real64), intent(in), dimension(3) :: ydir
+
+        beam%material => mat
+        beam%area = A
+        beam%j = J
+        beam%iyy = Iyy
+        beam%izz = Izz
+        beam%node_indices = [n1, n2]
+        beam%reference_y = ydir
+    end subroutine
 
 ! ------------------------------------------------------------------------------
     subroutine beam_internal_force(this, q, f, nodes)
@@ -246,19 +312,18 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
-    pure function eb_dof_count(this) result(n)
+    pure function beam_dof_count(this) result(n)
         !! Return the total number of element DOFs.
-        class(euler_bernoulli_beam_element), intent(in) :: this
-            !! The spatial Euler-Bernoulli beam.
+        class(two_node_beam_element), intent(in) :: this
         integer :: n
             !! Twelve DOFs.
         n = 12
     end function
 
 ! ------------------------------------------------------------------------------
-    pure function eb_dof_indices(this) result(indices)
+    pure function beam_dof_indices(this) result(indices)
         !! Copy the caller-supplied equation indices in element DOF order.
-        class(euler_bernoulli_beam_element), intent(in) :: this
+        class(two_node_beam_element), intent(in) :: this
             !! Beam containing the index mapping.
         integer, allocatable, dimension(:) :: indices
             !! Allocated array of twelve equation indices.
@@ -266,38 +331,35 @@ contains
     end function
 
 ! ------------------------------------------------------------------------------
-    pure function eb_node_connectivity(this) result(indices)
+    pure function beam_node_connectivity(this) result(indices)
         !! Return the two node positions in local DOF block order.
-        class(euler_bernoulli_beam_element), intent(in) :: this
+        class(two_node_beam_element), intent(in) :: this
         integer, allocatable, dimension(:) :: indices
         indices = this%node_indices
     end function
 
 ! ------------------------------------------------------------------------------
-    pure function eb_node_count(this) result(n)
+    pure function beam_node_count(this) result(n)
         !! Return the number of element nodes.
-        class(euler_bernoulli_beam_element), intent(in) :: this
-            !! The spatial Euler-Bernoulli beam.
+        class(two_node_beam_element), intent(in) :: this
         integer :: n
             !! Two nodes.
         n = 2
     end function
 
 ! ------------------------------------------------------------------------------
-    pure function eb_dof_per_node(this) result(n)
+    pure function beam_dof_per_node(this) result(n)
         !! Return the number of DOFs at each node.
-        class(euler_bernoulli_beam_element), intent(in) :: this
-            !! The spatial Euler-Bernoulli beam.
+        class(two_node_beam_element), intent(in) :: this
         integer :: n
             !! Three translations and three rotation-vector components.
         n = 6
     end function
 
 ! ------------------------------------------------------------------------------
-    pure function eb_dimensionality(this) result(n)
+    pure function beam_dimensionality(this) result(n)
         !! Return the spatial dimension of the element.
-        class(euler_bernoulli_beam_element), intent(in) :: this
-            !! The spatial Euler-Bernoulli beam.
+        class(two_node_beam_element), intent(in) :: this
         integer :: n
             !! Three spatial dimensions.
         n = 3
@@ -309,7 +371,7 @@ contains
         !! then construct an orthonormal, right-handed reference frame.
         !! Invalid geometry or nonpositive section properties terminate with
         !! an error.
-        class(euler_bernoulli_beam_element), intent(in) :: this
+        class(two_node_beam_element), intent(in) :: this
             !! Beam supplying node indices, orientation, and section properties.
         type(fe_node), intent(in), dimension(:) :: nodes
             !! Caller-owned reference node table.
@@ -498,6 +560,144 @@ contains
             w = w + weights(j)*length*section
         end do
     end function
+
+! ------------------------------------------------------------------------------
+    subroutine tm_mass(this, m, nodes)
+        !! Consistent reference mass for independently linear translational
+        !! and rotational fields. Rotary inertia uses `Iyy + Izz` about the
+        !! beam axis, not `J`. Invalid geometry, shape, or a nonfinite or
+        !! negative density causes `error stop`.
+        class(timoshenko_beam_element), intent(inout) :: this
+            !! Beam supplying the section geometry and reference density.
+        real(real64), intent(out), dimension(:,:) :: m
+            !! Constant 12-by-12 mass matrix in global element DOF order.
+        type(fe_node), intent(in), dimension(:) :: nodes
+            !! Caller-owned reference node table.
+
+        real(real64), dimension(3,3) :: frame
+        real(real64), dimension(6,6) :: inertia
+        real(real64), dimension(3) :: rotary
+        real(real64) :: length
+        integer :: i
+
+        if (size(m,1) /= 12 .or. size(m,2) /= 12) error stop "Invalid beam mass dimensions"
+        call reference_frame(this, nodes, length, frame)
+        if (.not.ieee_is_finite(this%material%density) .or. this%material%density < 0.0d0) &
+            error stop "Invalid beam density"
+        rotary = [this%iyy+this%izz, this%iyy, this%izz]
+        inertia = 0.0d0
+        do i = 1, 3
+            inertia(i,i) = this%area
+            inertia(4:6,4:6) = inertia(4:6,4:6) + rotary(i)*spread(frame(:,i),2,3)*spread(frame(:,i),1,3)
+        end do
+        inertia = (this%material%density*length/6.0d0)*inertia
+        m(1:6,1:6) = 2.0d0*inertia
+        m(7:12,7:12) = 2.0d0*inertia
+        m(1:6,7:12) = inertia
+        m(7:12,1:6) = inertia
+    end subroutine
+
+    function tm_energy(this, u, nodes) result(w)
+        !! Integrate the centroidal Green-Lagrange strain, section curvature,
+        !! and engineering shear in the rotating section frame, per reference
+        !! length. The custom material's 3D law supplies shear energy through
+        !! its pure-transverse-shear slice. Invalid geometry, section data,
+        !! or DOF count causes `error stop`, as does a relative nodal rotation
+        !! too close to pi where the shortest quaternion branch is ambiguous.
+        class(timoshenko_beam_element), intent(in) :: this
+            !! Beam with an associated material and valid section properties.
+        type(hyperdual), intent(in), dimension(:) :: u
+            !! Twelve seeded global translations and rotation-vector DOFs.
+        type(fe_node), intent(in), dimension(:) :: nodes
+            !! Caller-owned reference node table.
+        type(hyperdual) :: w
+            !! Total stored energy with propagated derivatives.
+
+        real(real64), dimension(3,3) :: frame
+        real(real64), dimension(3) :: reference_chord
+        real(real64) :: length
+        type(hyperdual), dimension(4,2) :: q
+        type(hyperdual), dimension(4) :: section_q
+        type(hyperdual), dimension(3) :: dr
+        type(hyperdual), dimension(3) :: spin
+        type(hyperdual), dimension(3) :: curvature
+        type(hyperdual), dimension(6) :: shear
+        type(hyperdual) :: axial
+        type(hyperdual) :: alignment
+        type(hyperdual) :: norm_squared
+        integer :: i
+        integer :: j
+
+        if (size(u) /= 12) error stop "Beam requires twelve degrees of freedom"
+        call reference_frame(this, nodes, length, frame, reference_chord)
+        if (.not.all(ieee_is_finite([this%shear_factor_y, this%shear_factor_z])) .or. &
+            min(this%shear_factor_y, this%shear_factor_z) <= 0.0d0) error stop "Invalid beam shear correction factors"
+        do i = 1, 3
+            dr(i) = (reference_chord(i) + (u(i+6) - u(i))) / length
+        end do
+        axial = dot_product(dr, dr)
+        if (.not.(axial%x > 0.0d0)) error stop "Beam current chord is zero"
+        axial = 0.5d0*(axial - 1.0d0)
+
+        q(:,1) = rotation_quaternion(u(4:6))
+        q(:,2) = rotation_quaternion(u(10:12))
+        alignment = dot_product(q(:,1), q(:,2))
+        if (.not.(abs(alignment%x) > frame_tol)) error stop "Beam relative rotation is too close to pi"
+        if (alignment%x < 0.0d0) then
+            do i = 1, 4
+                q(i,2) = -q(i,2)
+            end do
+        end if
+
+        ! Spatial spin is 2*vec(q' * conj(q)). For a normalized linear
+        ! quaternion blend, the normalization derivative contributes no vector part.
+        spin = cross_product(q(2:4,1), q(2:4,2))
+        do i = 1, 3
+            spin(i) = 2.0d0*(spin(i) + q(1,1)*q(i+1,2) - q(1,2)*q(i+1,1))/length
+        end do
+        w = this%area*this%material%plane_stress_energy(axial)
+        do j = 1, size(points)
+            call blend_quaternion(q, points(j), section_q, norm_squared)
+            do i = 1, 3
+                curvature(i) = dot_product(rotate_axis(section_q, frame(:,i)), spin)/norm_squared
+            end do
+            w = w + weights(j)*(this%material%bending_energy(curvature(2), curvature(3), this%iyy, this%izz) + &
+                this%material%torsional_energy(curvature(1), this%j))
+        end do
+
+        ! Selective integration replaces shear strains by their midpoint
+        ! values. The material sees the engineering shear entries [xy, zx].
+        call blend_quaternion(q, 0.5d0, section_q, norm_squared)
+        do i = 1, 6
+            shear(i) = 0.0d0
+        end do
+        shear(4) = sqrt(this%shear_factor_y)*dot_product(rotate_axis(section_q, frame(:,2)), dr)
+        shear(6) = sqrt(this%shear_factor_z)*dot_product(rotate_axis(section_q, frame(:,3)), dr)
+        w = length*(w + this%area*this%material%energy_density(shear))
+    end function
+
+    subroutine blend_quaternion(nodal, s, q, norm_squared)
+        !! Normalize the linear blend of sign-aligned nodal quaternions.
+        type(hyperdual), intent(in), dimension(4,2) :: nodal
+            !! Scalar-first unit quaternions, one per column, in the same hemisphere.
+        real(real64), intent(in) :: s
+            !! Fractional reference distance from the first node, in [0, 1].
+        type(hyperdual), intent(out), dimension(4) :: q
+            !! Interpolated unit quaternion with propagated derivatives.
+        type(hyperdual), intent(out) :: norm_squared
+            !! Squared norm before normalization, used in the curvature formula.
+        type(hyperdual) :: norm
+        integer :: i
+
+        do i = 1, 4
+            q(i) = (1.0d0-s)*nodal(i,1) + s*nodal(i,2)
+        end do
+        norm_squared = dot_product(q, q)
+        norm = sqrt(norm_squared)
+        do i = 1, 4
+            q(i) = q(i)/norm
+        end do
+    end subroutine
 
 ! ------------------------------------------------------------------------------
     function rotation_quaternion(r) result(q)

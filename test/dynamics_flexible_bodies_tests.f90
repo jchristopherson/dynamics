@@ -22,6 +22,7 @@ module dynamics_flexible_bodies_tests
     private
     public :: test_flexible_material
     public :: test_flexible_beam
+    public :: test_timoshenko_beam
     public :: test_flexible_mesh
     public :: test_flexible_mesh_boundary_conditions
     public :: test_flexible_static
@@ -852,6 +853,89 @@ contains
             error stop "Unknown flexible input test"
         end select
     end subroutine
+
+    function test_timoshenko_beam() result(ok)
+        !! Check the linearized stiffness, rigid rotation, finite-strain
+        !! tangent, inertia, and assembled cantilever compliance.
+        logical :: ok
+        type(linear_elastic_isotropic_material), target :: material
+        class(flexible_material), pointer :: mat
+        type(timoshenko_beam_element) :: beam
+        type(finite_element_mesh) :: mesh
+        type(flexible_static_info) :: info
+        type(nodal_condition), dimension(6) :: clamp
+        type(fe_node), dimension(2) :: nodes
+        real(real64), dimension(12) :: q
+        real(real64), dimension(12) :: f
+        real(real64), dimension(12) :: fp
+        real(real64), dimension(12) :: fm
+        real(real64), dimension(12) :: direction
+        real(real64), dimension(12,12) :: k
+        real(real64), dimension(12,12) :: m
+        real(real64), dimension(30) :: displacement
+        real(real64), dimension(30) :: load
+        real(real64), parameter :: h = 1.0d-5
+        real(real64), parameter :: length = 2.0d0
+        real(real64), parameter :: tip_force = 1.0d-5
+        real(real64) :: expected
+        real(real64) :: shear_modulus
+        integer :: i
+
+        material = linear_elastic_isotropic_material(100.0d0, 0.25d0, 3.0d0)
+        mat => material
+        beam = timoshenko_beam_element(mat, 0.08d0, 0.007d0, 0.004d0, 0.013d0, 1, 2, &
+            [0.0d0, 1.0d0, 0.0d0], shear_factor_z=0.7d0)
+        nodes = [fe_node(101, [0.0d0, 0.0d0, 0.0d0]), fe_node(307, [length, 0.0d0, 0.0d0])]
+        shear_modulus = material%modulus / (2.0d0*(1.0d0 + material%poissons_ratio))
+
+        q = 0.0d0
+        call beam%stiffness_matrix(q, k, nodes)
+        ok = abs(k(7,7) - material%modulus*beam%area/length) < 1.0d-12
+        ok = ok .and. abs(k(10,10) - shear_modulus*beam%j/length) < 1.0d-12
+        ok = ok .and. abs(k(8,8) - (5.0d0/6.0d0)*shear_modulus*beam%area/length) < 1.0d-12
+        ok = ok .and. abs(k(9,9) - 0.7d0*shear_modulus*beam%area/length) < 1.0d-12
+
+        q(7) = length*(cos(0.8d0)-1.0d0)
+        q(8) = length*sin(0.8d0)
+        q(6) = 0.8d0
+        q(12) = 0.8d0
+        call beam%internal_force_vector(q, f, nodes)
+        ok = ok .and. maxval(abs(f)) < 1.0d-12
+
+        q = [0.01d0, 0.03d0, -0.02d0, 0.24d0, -0.33d0, 0.15d0, &
+             0.12d0, -0.04d0, 0.06d0, -0.22d0, 0.13d0, -0.31d0]
+        direction = [0.3d0, -0.2d0, 0.1d0, 0.4d0, -0.3d0, 0.2d0, &
+                    -0.1d0, 0.2d0, 0.3d0, -0.4d0, 0.1d0, 0.2d0]
+        call beam%stiffness_matrix(q, k, nodes)
+        call beam%internal_force_vector(q+h*direction, fp, nodes)
+        call beam%internal_force_vector(q-h*direction, fm, nodes)
+        ok = ok .and. maxval(abs((fp-fm)/(2*h) - matmul(k,direction))) < 1.0d-8
+
+        call beam%mass_matrix(m, nodes)
+        ok = ok .and. abs(sum(m([2,8],[2,8])) - material%density*length*beam%area) < 1.0d-12
+        ok = ok .and. abs(sum(m([4,10],[4,10])) - material%density*length*(beam%iyy+beam%izz)) < 1.0d-12
+
+        mesh = finite_element_mesh(5, 4)
+        do i = 1, 5
+            mesh%nodes(i) = fe_node(i, [length*(i-1)/4.0d0, 0.0d0, 0.0d0])
+        end do
+        do i = 1, 4
+            beam%node_indices = [i, i+1]
+            call mesh%assign_element(i, beam)
+        end do
+        clamp = [nodal_condition(1, DOF_UX), nodal_condition(1, DOF_UY), nodal_condition(1, DOF_UZ), &
+            nodal_condition(1, DOF_RX), nodal_condition(1, DOF_RY), nodal_condition(1, DOF_RZ)]
+        load = 0.0d0
+        load(26) = tip_force
+        displacement = 0.0d0
+        call solve_flexible_static(mesh, load, clamp, displacement, info=info)
+        ! The element bending moment is constant at each midpoint in the
+        ! linearized solution. Midpoint quadrature gives the bending correction.
+        expected = tip_force*(length**3/(3.0d0*material%modulus*beam%izz)*(1.0d0 - 1.0d0/64.0d0) + &
+            length/(beam%shear_factor_y*shear_modulus*beam%area))
+        ok = ok .and. info%converged .and. abs(displacement(26) - expected) < 1.0d-9
+        if (.not.ok) print "(A)", "TEST FAILED: Timoshenko beam"
+    end function
 
     function test_flexible_beam() result(ok)
         logical :: ok

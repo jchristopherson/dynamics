@@ -65,6 +65,7 @@ program main
                 if (.not.test_ad_products()) stop 190
                 if (.not.test_flexible_material()) stop 191
                 if (.not.test_flexible_beam()) stop 192
+                if (.not.test_timoshenko_beam()) stop 218
                 if (.not.test_flexible_mesh()) stop 193
                 if (.not.test_flexible_mesh_boundary_conditions()) stop 194
                 if (.not.test_flexible_static()) stop 195
@@ -111,6 +112,9 @@ program main
 
     check = test_flexible_beam()
     if (.not.check) flag = 192
+
+    check = test_timoshenko_beam()
+    if (.not.check) flag = 218
 
     check = test_flexible_mesh()
     if (.not.check) flag = 193
