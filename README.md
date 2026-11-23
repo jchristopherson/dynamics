@@ -50,6 +50,7 @@ See the subdirectory READMEs for detailed module descriptions, code examples, an
 - A Fortran compiler with Fortran 2018 support.
 - CMake 3.24+ for the CMake workflow.
 - fpm for the FPM workflow.
+- An OpenMP-capable Fortran compiler and runtime.
 - BLAS and LAPACK available to the linker (required by the FPM build configuration).
 
 ### Build With CMake
@@ -98,6 +99,8 @@ fpm install --prefix <install-prefix>
 ```
 
 FPM resolves the package dependencies declared in `fpm.toml` automatically.
+With fpm 0.10.1, projects that depend on DYNAMICS must also declare
+`openmp = "*"` in their own `[dependencies]` table.
 
 ## Contributing
 Contributors should follow the [style guide](STYLE_GUIDE.md) for Fortran source, tests, and documentation comments.

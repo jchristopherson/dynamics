@@ -11,6 +11,7 @@ homepage = "https://github.com/jchristopherson/dynamics"
 source-dir = "src"
 
 [dependencies]
+openmp = "*"
 linalg = { git = "https://github.com/jchristopherson/linalg" }
 nonlin = { git = "https://github.com/jchristopherson/nonlin" }
 diffeq = { git = "https://github.com/jchristopherson/diffeq" }
