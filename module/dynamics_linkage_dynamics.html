@@ -90,7 +90,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 8.9% of total for modules and submodules.">904 statements</a>
+               title=" 6.6% of total for modules and submodules.">907 statements</a>
           </li>
 
             <li id="source-file">
@@ -174,8 +174,32 @@
       </div>
     </div>
 
-  
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#funcs-0">Functions</a>
+        </h3>
+      </div>
+      <div id="funcs-0" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_linkage_dynamics.html#proc-joint_constraint_count">joint_constraint_count</a>
+        </div>
+      </div>
+    </div>
+
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#subs-0">Subroutines</a>
+        </h3>
+      </div>
+      <div id="subs-0" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_linkage_dynamics.html#proc-append_spatial_joint_constraints">append_spatial_joint_constraints</a>
+        </div>
+      </div>
+    </div>
+
   
   
   
@@ -200,17 +224,17 @@ variational integrator.</p>
       <ul class="list-group">
           <li class="list-group-item">
             <ul class="list-inline">
-                <li>linalg</li>
-                <li><a href='../module/dynamics_parallel_linkage.html'>dynamics_parallel_linkage</a></li>
-                <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
-                <li><a href='../module/dynamics_helper.html'>dynamics_helper</a></li>
-                <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
                 <li><a href='../module/dynamics_joints.html'>dynamics_joints</a></li>
-                <li><a href='../module/dynamics_rigid_bodies.html'>dynamics_rigid_bodies</a></li>
-                <li><a href='../module/dynamics_linkage.html'>dynamics_linkage</a></li>
-                <li><a href='../module/dynamics_variational_integrators.html'>dynamics_variational_integrators</a></li>
-                <li><a href='../module/dynamics_quaternions.html'>dynamics_quaternions</a></li>
                 <li><a href='../module/dynamics_kinematics.html'>dynamics_kinematics</a></li>
+                <li>linalg</li>
+                <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
+                <li><a href='../module/dynamics_helper.html'>dynamics_helper</a></li>
+                <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
+                <li><a href='../module/dynamics_quaternions.html'>dynamics_quaternions</a></li>
+                <li><a href='../module/dynamics_parallel_linkage.html'>dynamics_parallel_linkage</a></li>
+                <li><a href='../module/dynamics_rigid_bodies.html'>dynamics_rigid_bodies</a></li>
+                <li><a href='../module/dynamics_variational_integrators.html'>dynamics_variational_integrators</a></li>
+                <li><a href='../module/dynamics_linkage.html'>dynamics_linkage</a></li>
             </ul>
           </li>
       </ul>
@@ -278,8 +302,32 @@ variational integrator.</p>
       </div>
     </div>
 
-  
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#funcs-1">Functions</a>
+        </h3>
+      </div>
+      <div id="funcs-1" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_linkage_dynamics.html#proc-joint_constraint_count">joint_constraint_count</a>
+        </div>
+      </div>
+    </div>
+
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#subs-1">Subroutines</a>
+        </h3>
+      </div>
+      <div id="subs-1" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_linkage_dynamics.html#proc-append_spatial_joint_constraints">append_spatial_joint_constraints</a>
+        </div>
+      </div>
+    </div>
+
   
   
   
@@ -475,7 +523,7 @@ time. The solve selector determines its meaning.</p>
               <span class="anchor" ></span>
               class(*),
             </td>
-<td>intent(inout),</td>
+<td>intent(in),</td>
               <td>optional</td>            <td>
               
             </td>
@@ -530,7 +578,7 @@ prescribed_body: absolute planar body angle (radians).</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-force~7"></span>
+              <span class="anchor" id="variable-force~6"></span>
               real(kind=real64),
             </td>
               <td>public</td>
@@ -547,7 +595,7 @@ prescribed_body: absolute planar body angle (radians).</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-length~6"></span>
+              <span class="anchor" id="variable-length~4"></span>
               real(kind=real64),
             </td>
               <td>public</td>
@@ -618,7 +666,7 @@ compute a force from the current length and length rate.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-body_1~2"></span>
-              integer(kind=int32),
+              integer,
             </td>
               <td>public</td>
             <td>
@@ -636,7 +684,7 @@ for a ground point.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-body_2~2"></span>
-              integer(kind=int32),
+              integer,
             </td>
               <td>public</td>
             <td>
@@ -743,7 +791,7 @@ joint constraint is satisfied.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-child_body"></span>
-              integer(kind=int32),
+              integer,
             </td>
               <td>public</td>
             <td>
@@ -779,8 +827,8 @@ zero.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-joint_type~7"></span>
-              integer(kind=int32),
+              <span class="anchor" id="variable-joint_type~6"></span>
+              integer,
             </td>
               <td>public</td>
             <td>
@@ -798,7 +846,7 @@ dynamics_joints.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-parent_body"></span>
-              integer(kind=int32),
+              integer,
             </td>
               <td>public</td>
             <td>
@@ -868,7 +916,7 @@ exerted on the parent link is equal and opposite.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-force~6"></span>
+              <span class="anchor" id="variable-force~5"></span>
               real(kind=real64),
             </td>
               <td>public,</td>
@@ -935,7 +983,7 @@ exerted on the parent link is equal and opposite.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-body_1~2"></span>
-              integer(kind=int32),
+              integer,
             </td>
               <td>public</td>
             <td>
@@ -953,7 +1001,7 @@ for a ground point.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-body_2~2"></span>
-              integer(kind=int32),
+              integer,
             </td>
               <td>public</td>
             <td>
@@ -970,7 +1018,7 @@ for a ground point.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-damping~3"></span>
+              <span class="anchor" id="variable-damping"></span>
               real(kind=real64),
             </td>
               <td>public</td>
@@ -1071,7 +1119,7 @@ coordinates when body_2 is zero.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-body_1~2"></span>
-              integer(kind=int32),
+              integer,
             </td>
               <td>public</td>
             <td>
@@ -1089,7 +1137,7 @@ for a ground point.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-body_2~2"></span>
-              integer(kind=int32),
+              integer,
             </td>
               <td>public</td>
             <td>
@@ -1159,7 +1207,7 @@ coordinates when body_2 is zero.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-stiffness~3"></span>
+              <span class="anchor" id="variable-stiffness"></span>
               real(kind=real64),
             </td>
               <td>public</td>
@@ -1353,7 +1401,7 @@ maximal-coordinate rigid bodies.</p></td>
                 <td>
                     procedure
                     ,                  public
-                  :: <strong><a href='../type/linkage_dynamic_model.html#boundprocedure-get_constraint_count~3'>get_constraint_count</a></strong>
+                  :: <strong><a href='../type/linkage_dynamic_model.html#boundprocedure-get_constraint_count~2'>get_constraint_count</a></strong>
  =>
                     ldm_get_constraint_count
 <small>Function</small>                </td>
@@ -1373,7 +1421,7 @@ maximal-coordinate rigid bodies.</p></td>
                 <td>
                     procedure
                     ,                  public
-                  :: <strong><a href='../type/linkage_dynamic_model.html#boundprocedure-get_joint~2'>get_joint</a></strong>
+                  :: <strong><a href='../type/linkage_dynamic_model.html#boundprocedure-get_joint'>get_joint</a></strong>
  =>
                     ldm_get_joint
 <small>Function</small>                </td>
@@ -1383,7 +1431,7 @@ maximal-coordinate rigid bodies.</p></td>
                 <td>
                     procedure
                     ,                  public
-                  :: <strong><a href='../type/linkage_dynamic_model.html#boundprocedure-get_joint_count~5'>get_joint_count</a></strong>
+                  :: <strong><a href='../type/linkage_dynamic_model.html#boundprocedure-get_joint_count'>get_joint_count</a></strong>
  =>
                     ldm_get_joint_count
 <small>Function</small>                </td>
@@ -1459,7 +1507,7 @@ maximal-coordinate rigid bodies.</p></td>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-damping~4"></span>
+              <span class="anchor" id="variable-damping~2"></span>
               real(kind=real64),
             </td>
               <td>public</td>
@@ -1477,7 +1525,7 @@ maximal-coordinate rigid bodies.</p></td>
         <tr>
             <td>
               <span class="anchor" id="variable-joint_index"></span>
-              integer(kind=int32),
+              integer,
             </td>
               <td>public</td>
             <td>
@@ -1540,7 +1588,7 @@ maximal-coordinate rigid bodies.</p></td>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-angle~15"></span>
+              <span class="anchor" id="variable-angle~11"></span>
               real(kind=real64),
             </td>
               <td>public</td>
@@ -1574,7 +1622,7 @@ maximal-coordinate rigid bodies.</p></td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-torque~6"></span>
+              <span class="anchor" id="variable-torque~5"></span>
               real(kind=real64),
             </td>
               <td>public</td>
@@ -1624,7 +1672,7 @@ maximal-coordinate rigid bodies.</p></td>
         <tr>
             <td>
               <span class="anchor" id="variable-joint_index"></span>
-              integer(kind=int32),
+              integer,
             </td>
               <td>public</td>
             <td>
@@ -1705,7 +1753,7 @@ maximal-coordinate rigid bodies.</p></td>
         <tr>
             <td>
               <span class="anchor" id="variable-joint_index"></span>
-              integer(kind=int32),
+              integer,
             </td>
               <td>public</td>
             <td>
@@ -1721,7 +1769,7 @@ maximal-coordinate rigid bodies.</p></td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-stiffness~4"></span>
+              <span class="anchor" id="variable-stiffness~2"></span>
               real(kind=real64),
             </td>
               <td>public</td>
@@ -1763,7 +1811,179 @@ maximal-coordinate rigid bodies.</p></td>
     </section>
   <br>
     
+ 
+    <section>
+    <h2>Functions</h2>
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-joint_constraint_count"></span><h3>public pure function <a href='../proc/joint_constraint_count.html'>joint_constraint_count</a>(joint_type, planar) result(rst)  
+</h3></div>
+    <div class="panel-body">
+          
+  <p>Gets the number of scalar multipliers associated with one joint.</p>
 
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>joint_type</strong></td>
+            <td>
+<p>The joint kind whose scalar constraint count is requested.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              logical,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>planar</strong></td>
+            <td>
+<p>Whether to use planar or spatial joint constraints.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>integer</small>
+    </h4>
+    <p>The number of scalar constraints, or an error for an unsupported
+joint/mode combination.</p>
+
+    </div>
+  </div>
+
+    </section>
+    <br>
+
+    <section>
+    <h2>Subroutines</h2>
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-append_spatial_joint_constraints"></span><h3>public  subroutine <a href='../proc/append_spatial_joint_constraints.html'>append_spatial_joint_constraints</a>(joint_type, relative, value, index, use_half_angle)  
+</h3></div>
+    <div class="panel-body">
+          
+  <p>Appends spatial joint residuals from a relative joint transform.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>joint_type</strong></td>
+            <td>
+<p>The joint kind determining the residual components and count.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(4,4)
+            </td>
+            <td>::</td>
+            <td><strong>relative</strong></td>
+            <td>
+<p>The child joint frame relative to the parent joint frame.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(inout),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>value</strong></td>
+            <td>
+<p>The constraint vector receiving the spatial residuals.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer,
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>index</strong></td>
+            <td>
+<p>The one-based insertion position, advanced past the appended values.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>use_half_angle</strong></td>
+            <td>
+<p>Use the shortest-arc quaternion residual for fixed/prismatic
+orientation, avoiding a spurious zero at a half turn. Defaults to
+false to preserve the rigid solver's multiplier convention.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+    </section>
+    <br>
 
 
 
@@ -1782,7 +2002,7 @@ maximal-coordinate rigid bodies.</p></td>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-10-31 12:53            </p>
+ on 2026-11-23 20:11            </p>
         </div>
       </div>
       <br>

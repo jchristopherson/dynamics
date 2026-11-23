@@ -90,7 +90,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 5.6% of total for modules and submodules.">570 statements</a>
+               title=" 4.2% of total for modules and submodules.">569 statements</a>
           </li>
 
             <li id="source-file">
@@ -213,13 +213,13 @@
       <ul class="list-group">
           <li class="list-group-item">
             <ul class="list-inline">
-                <li>linalg</li>
                 <li><a href='../module/dynamics_geometry.html'>dynamics_geometry</a></li>
                 <li>nonlin</li>
-                <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
+                <li>linalg</li>
                 <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
-                <li><a href='../module/dynamics_quaternions.html'>dynamics_quaternions</a></li>
                 <li><a href='../module/dynamics_helper.html'>dynamics_helper</a></li>
+                <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
+                <li><a href='../module/dynamics_quaternions.html'>dynamics_quaternions</a></li>
             </ul>
           </li>
       </ul>
@@ -332,7 +332,7 @@
         <tr>
             <td>
               <span class="anchor" id="variable-prismatic_joint"></span>
-              integer(kind=int32),
+              integer,
             </td>
               <td>public,</td>
             <td>
@@ -349,7 +349,7 @@ parameter
         <tr>
             <td>
               <span class="anchor" id="variable-revolute_joint"></span>
-              integer(kind=int32),
+              integer,
             </td>
               <td>public,</td>
             <td>
@@ -1618,7 +1618,7 @@ x(i-1) axis and the link's x-axis along the z(i-1) axis.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              integer(kind=int32),
+              integer,
             </td>
 <td>intent(in),</td>
               <td></td>            <td>
@@ -1829,7 +1829,7 @@ of the N links of the linkage.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-i~2"></span>
+              <span class="anchor" id="variable-i~10"></span>
               real(kind=real64),
             </td>
               <td>public</td>
@@ -1846,7 +1846,7 @@ of the N links of the linkage.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-j~2"></span>
+              <span class="anchor" id="variable-j~4"></span>
               real(kind=real64),
             </td>
               <td>public</td>
@@ -1880,7 +1880,7 @@ of the N links of the linkage.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-origin"></span>
+              <span class="anchor" id="variable-origin~2"></span>
               real(kind=real64),
             </td>
               <td>public</td>
@@ -1965,7 +1965,7 @@ to one another.</p></td>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-joint_angle"></span>
+              <span class="anchor" id="variable-joint_angle~2"></span>
               real(kind=real64),
             </td>
               <td>public</td>
@@ -1984,7 +1984,7 @@ current link's x-axis.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-link_length"></span>
+              <span class="anchor" id="variable-link_length~2"></span>
               real(kind=real64),
             </td>
               <td>public</td>
@@ -2002,7 +2002,7 @@ joint axes as measured along the link's x-axis.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-link_offset"></span>
+              <span class="anchor" id="variable-link_offset~2"></span>
               real(kind=real64),
             </td>
               <td>public</td>
@@ -2021,7 +2021,7 @@ axis of the proximal joint.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-link_twist"></span>
+              <span class="anchor" id="variable-link_twist~2"></span>
               real(kind=real64),
             </td>
               <td>public</td>
@@ -2490,7 +2490,7 @@ frame relative to the base coordinate frame.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              integer(kind=int32),
+              integer,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -2537,11 +2537,11 @@ solution procedure is utilized.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              procedure(vecfcn),
+              procedure(vecfcn)
             </td>
-<td>intent(in),</td>
+<td></td>
               <td></td>            <td>
-              pointer
+              
             </td>
             <td>::</td>
             <td><strong>mdl</strong></td>
@@ -2686,7 +2686,7 @@ the 'huge' intrinsic function.</p>
               <span class="anchor" ></span>
               class(*),
             </td>
-<td>intent(inout),</td>
+<td>intent(in),</td>
               <td>optional,</td>            <td>
               target
             </td>
@@ -2774,7 +2774,7 @@ the 'huge' intrinsic function.</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-10-31 12:53            </p>
+ on 2026-11-23 20:11            </p>
         </div>
       </div>
       <br>

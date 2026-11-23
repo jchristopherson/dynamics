@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+   <meta name="description" content="DYNAMICS is a library of routines used for the analysis of dynamic systems.">
+    <meta name="author" content="Jason Christopherson" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>dynamics_flexible_body_solvers &ndash; DYNAMICS</title>
+
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+    <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    
+    <script src="../js/jquery-2.1.3.min.js"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html">DYNAMICS </a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li class="dropdown hidden-xs visible-sm visible-md hidden-lg">
+              <a href="#" class="dropdown-toggle"
+              data-toggle="dropdown" role="button"
+              aria-haspopup="true"
+     aria-expanded="false">Contents <span class="caret"></span></a>
+        <ul class="dropdown-menu">
+            <li><a href="../lists/files.html">Source Files</a></li>
+            <li><a href="../lists/modules.html">Modules</a></li>
+            <li><a href="../lists/procedures.html">Procedures</a></li>
+            <li><a href="../lists/absint.html">Abstract Interfaces</a></li>
+                   <li><a href="../lists/types.html">Derived Types</a></li>
+       
+            </ul>
+        
+            </li>
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/files.html">Source Files</a></li>
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/modules.html">Modules</a></li>
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/procedures.html">Procedures</a></li>
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/absint.html">Abstract Interfaces</a></li>
+                             <li class="visible-xs hidden-sm visible-lg"><a href="../lists/types.html">Derived Types</a></li>
+          </ul>
+        <form action="../search.html" class="navbar-form navbar-right" role="search">
+        <div class="form-group">
+          <input type="text" class="form-control" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+        </div>
+<!--
+        <button type="submit" class="btn btn-default">Submit</button>
+-->
+        </form>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container">
+  <div class="row">
+    <h1>dynamics_flexible_body_solvers 
+    <small>Module</small>
+    
+    </h1>
+      <div class="row" id="info-bar">
+    <div class="col-lg-12">
+      <div class="well well-sm">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+
+          <li id="statements"><i class="fa fa-list-ol"></i>
+            <a data-toggle="tooltip"
+               data-placement="bottom" data-html="true"
+               title=" 4.0% of total for modules and submodules.">549 statements</a>
+          </li>
+
+            <li id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/dynamics_flexible_body_solvers.f90"> Source File</a>
+            </li>
+        </ul>
+        <ol class="breadcrumb in-well text-right">
+              <li><a href='../sourcefile/dynamics_flexible_body_solvers.f90.html'>dynamics_flexible_body_solvers.f90</a></li>
+          <li class="active">dynamics_flexible_body_solvers</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+  <script>
+    $(function () {
+    $('[data-toggle="tooltip"]').tooltip()
+    })
+  </script>
+
+  </div>
+  
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+      <div id="sidebar">
+      <h3>Contents</h3>
+  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#vars-0">Variables</a>
+        </h3>
+      </div>
+      <div id="vars-0" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_flexible_body_solvers.html#variable-flexible_bdf">FLEXIBLE_BDF</a>
+            <a class="list-group-item" href="../module/dynamics_flexible_body_solvers.html#variable-flexible_kennedy_carpenter_4">FLEXIBLE_KENNEDY_CARPENTER_4</a>
+            <a class="list-group-item" href="../module/dynamics_flexible_body_solvers.html#variable-flexible_kennedy_carpenter_5">FLEXIBLE_KENNEDY_CARPENTER_5</a>
+            <a class="list-group-item" href="../module/dynamics_flexible_body_solvers.html#variable-flexible_rosenbrock">FLEXIBLE_ROSENBROCK</a>
+        </div>
+      </div>
+    </div>
+
+  
+  
+  
+  
+  
+  
+  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#absints-0">Abstract Interfaces</a>
+        </h3>
+      </div>
+      <div id="absints-0" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_flexible_body_solvers.html#interface-flexible_load_callback">flexible_load_callback</a>
+        </div>
+      </div>
+    </div>
+
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#types-0">Derived Types</a>
+        </h3>
+      </div>
+      <div id="types-0" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_flexible_body_solvers.html#type-flexible_static_info">flexible_static_info</a>
+            <a class="list-group-item" href="../module/dynamics_flexible_body_solvers.html#type-flexible_static_settings">flexible_static_settings</a>
+            <a class="list-group-item" href="../module/dynamics_flexible_body_solvers.html#type-flexible_transient_settings">flexible_transient_settings</a>
+        </div>
+      </div>
+    </div>
+
+  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#subs-0">Subroutines</a>
+        </h3>
+      </div>
+      <div id="subs-0" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_flexible_body_solvers.html#proc-solve_flexible_static">solve_flexible_static</a>
+            <a class="list-group-item" href="../module/dynamics_flexible_body_solvers.html#proc-solve_flexible_transient">solve_flexible_transient</a>
+        </div>
+      </div>
+    </div>
+
+  
+  
+  
+  
+  
+  
+
+
+  </div>
+
+    </div>
+    
+    <div class="col-md-9" id='text'>
+    <p>Static equilibrium and transient dynamics for flexible finite-element meshes.</p>
+<p>Both solvers use the mesh's internal force. Static equilibrium also
+uses the assembled tangent; transient integration uses a constant
+reference mass and lets the integrator approximate its own Jacobian.
+Neither solver manages history-dependent material state.</p>
+<br>        <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">Uses</h3>
+      </div>
+      <ul class="list-group">
+          <li class="list-group-item">
+            <ul class="list-inline">
+                <li><a href='../module/dynamics_structural.html'>dynamics_structural</a></li>
+                <li>linalg</li>
+                <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
+                <li>diffeq</li>
+                <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
+                <li><a href='../module/dynamics_solver_reporting.html'>dynamics_solver_reporting</a></li>
+                <li>lapack</li>
+                <li><a href='../module/dynamics_flexible_assembly.html'>dynamics_flexible_assembly</a></li>
+                <li><a href='../module/dynamics_boundary_conditions.html'>dynamics_boundary_conditions</a></li>
+                <li><a href="http://fortranwiki.org/fortran/show/ieee_arithmetic">ieee_arithmetic</a></li>
+            </ul>
+          </li>
+      </ul>
+    </div>
+
+    
+    <br>
+
+    <section class="visible-xs visible-sm hidden-md">
+        <h3>Contents</h3>
+  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#vars-1">Variables</a>
+        </h3>
+      </div>
+      <div id="vars-1" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_flexible_body_solvers.html#variable-flexible_bdf">FLEXIBLE_BDF</a>
+            <a class="list-group-item" href="../module/dynamics_flexible_body_solvers.html#variable-flexible_kennedy_carpenter_4">FLEXIBLE_KENNEDY_CARPENTER_4</a>
+            <a class="list-group-item" href="../module/dynamics_flexible_body_solvers.html#variable-flexible_kennedy_carpenter_5">FLEXIBLE_KENNEDY_CARPENTER_5</a>
+            <a class="list-group-item" href="../module/dynamics_flexible_body_solvers.html#variable-flexible_rosenbrock">FLEXIBLE_ROSENBROCK</a>
+        </div>
+      </div>
+    </div>
+
+  
+  
+  
+  
+  
+  
+  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#absints-1">Abstract Interfaces</a>
+        </h3>
+      </div>
+      <div id="absints-1" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_flexible_body_solvers.html#interface-flexible_load_callback">flexible_load_callback</a>
+        </div>
+      </div>
+    </div>
+
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#types-1">Derived Types</a>
+        </h3>
+      </div>
+      <div id="types-1" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_flexible_body_solvers.html#type-flexible_static_info">flexible_static_info</a>
+            <a class="list-group-item" href="../module/dynamics_flexible_body_solvers.html#type-flexible_static_settings">flexible_static_settings</a>
+            <a class="list-group-item" href="../module/dynamics_flexible_body_solvers.html#type-flexible_transient_settings">flexible_transient_settings</a>
+        </div>
+      </div>
+    </div>
+
+  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#subs-1">Subroutines</a>
+        </h3>
+      </div>
+      <div id="subs-1" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_flexible_body_solvers.html#proc-solve_flexible_static">solve_flexible_static</a>
+            <a class="list-group-item" href="../module/dynamics_flexible_body_solvers.html#proc-solve_flexible_transient">solve_flexible_transient</a>
+        </div>
+      </div>
+    </div>
+
+  
+  
+  
+  
+  
+  
+
+
+    </section>
+    <br class="visible-xs visible-sm hidden-md">
+
+
+    <section>
+    <h2>Variables</h2>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Visibility</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+<th></th><th>Initial</th>        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-flexible_bdf"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>FLEXIBLE_BDF</strong></td>
+<td> =</td>
+                <td>1</td>
+            <td>
+                <p>Backward differentiation formula (the transient default).</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-flexible_kennedy_carpenter_4"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>FLEXIBLE_KENNEDY_CARPENTER_4</strong></td>
+<td> =</td>
+                <td>3</td>
+            <td>
+                <p>Fourth-order Kennedy-Carpenter implicit Runge-Kutta method.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-flexible_kennedy_carpenter_5"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>FLEXIBLE_KENNEDY_CARPENTER_5</strong></td>
+<td> =</td>
+                <td>4</td>
+            <td>
+                <p>Fifth-order Kennedy-Carpenter implicit Runge-Kutta method.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-flexible_rosenbrock"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>FLEXIBLE_ROSENBROCK</strong></td>
+<td> =</td>
+                <td>2</td>
+            <td>
+                <p>Linearly implicit Rosenbrock method.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    </section>
+    <br>
+    
+    
+
+    <section>
+     <h2>Abstract Interfaces</h2>
+       <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="interface-flexible_load_callback"></span><h3>abstract interface
+        
+    </h3></div>
+    <ul class="list-group">
+      <li class="list-group-item">
+            <h3>
+    public  subroutine flexible_load_callback(time, force, args)  
+
+    </h3>
+  <p>Supply an applied load that depends on time, not the state.
+Evaluations may repeat or be made out of chronological order.
+Smooth loads are required; do not advance external state here.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>time</strong></td>
+            <td>
+                <p>Internal evaluation time, not necessarily an output time.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>force</strong></td>
+            <td>
+                <p>Fill every entry with a finite value in full mesh equation
+order, including zeros for unloaded DOFs. Prescribed DOF
+entries do not enter the free equations.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(*),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>args</strong></td>
+            <td>
+                <p>User data forwarded only if supplied to the solve.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+      </li>
+    </ul>
+  </div>
+
+    </section>
+  <br>
+    
+    <section>
+     <h2>Derived Types</h2>
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="type-flexible_static_info"></span>
+      <h3>
+        type, public&nbsp;::&nbsp;
+        <a href='../type/flexible_static_info.html'>flexible_static_info</a>
+        
+      </h3>
+    </div>
+    <div class="panel-body">
+      <p>Diagnostics for the initial or last accepted iterate, even when
+the solve fails and the output displacement is left unchanged.</p>
+
+        <h4>Components</h4>
+          <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Visibility</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+<th></th><th>Initial</th>        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-converged"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>converged</strong></td>
+<td> =</td>
+                <td>.false.</td>
+            <td>
+<p>True only when the residual test passes or all DOFs are fixed.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-iterations"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>iterations</strong></td>
+<td> =</td>
+                <td>0</td>
+            <td>
+<p>Number of accepted Newton corrections, not force evaluations
+or backtracking trials.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-linear_solve_failed"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>linear_solve_failed</strong></td>
+<td> =</td>
+                <td>.false.</td>
+            <td>
+<p>True if the tangent, factorization, or correction solve failed
+its validity or true linear-residual check. False does not
+imply convergence: line search or the iteration limit can fail.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-residual_norm"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>residual_norm</strong></td>
+<td> =</td>
+                <td>0.0d0</td>
+            <td>
+<p>Euclidean norm of <code>force - internal_force</code> on free DOFs at the
+last accepted iterate. It can be nonfinite if evaluation fails;
+it is zero when all DOFs are prescribed.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+
+    </div>
+  </div>
+
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="type-flexible_static_settings"></span>
+      <h3>
+        type, public&nbsp;::&nbsp;
+        <a href='../type/flexible_static_settings.html'>flexible_static_settings</a>
+        
+      </h3>
+    </div>
+    <div class="panel-body">
+      <p>Controls the residual test and Newton iteration. Default values are
+used when <a href="../proc/solve_flexible_static.html">solve_flexible_static</a> is called without settings.</p>
+
+        <h4>Components</h4>
+          <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Visibility</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+<th></th><th>Initial</th>        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-absolute_tolerance~2"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>absolute_tolerance</strong></td>
+<td> =</td>
+                <td>1.0d-10</td>
+            <td>
+<p>Nonnegative absolute free-residual norm tolerance. This and
+<code>relative_tolerance</code> cannot both be zero.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-max_backtracks"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>max_backtracks</strong></td>
+<td> =</td>
+                <td>20</td>
+            <td>
+<p>Maximum halvings of the correction after the full step is
+tried; zero permits only a full Newton step.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-max_iterations"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>max_iterations</strong></td>
+<td> =</td>
+                <td>30</td>
+            <td>
+<p>Maximum number of Newton corrections; must be positive.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nthreads~7"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nthreads</strong></td>
+<td> =</td>
+                <td>1</td>
+            <td>
+<p>Positive number of threads requested for force and tangent
+assembly. Parallel evaluation requires thread-safe elements
+and materials, as documented by <a href="../type/finite_element_mesh.html">finite_element_mesh</a>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-relative_tolerance~2"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>relative_tolerance</strong></td>
+<td> =</td>
+                <td>1.0d-8</td>
+            <td>
+<p>Nonnegative tolerance relative to the larger of the initial
+free-residual norm and the applied free-force norm.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-sparse~2"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>sparse</strong></td>
+<td> =</td>
+                <td>.false.</td>
+            <td>
+<p>If true, assemble a CSR tangent and solve with ILUT-preconditioned
+GMRES. Otherwise use dense LU.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+
+    </div>
+  </div>
+
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="type-flexible_transient_settings"></span>
+      <h3>
+        type, public&nbsp;::&nbsp;
+        <a href='../type/flexible_transient_settings.html'>flexible_transient_settings</a>
+        
+      </h3>
+    </div>
+    <div class="panel-body">
+      <p>Controls for <a href="../proc/solve_flexible_transient.html">solve_flexible_transient</a>. All real-valued
+settings must be finite.</p>
+
+        <h4>Components</h4>
+          <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Visibility</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+<th></th><th>Initial</th>        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-absolute_tolerance"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>absolute_tolerance</strong></td>
+<td> =</td>
+                <td>1.0d-8</td>
+            <td>
+<p>Positive absolute error tolerance applied to every integrated
+state component, including algebraic variables when present.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-constraint_tolerance"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>constraint_tolerance</strong></td>
+<td> =</td>
+                <td>1.0d-8</td>
+            <td>
+<p>Nonnegative absolute bound on each initial entry of <code>g</code> and
+<code>G*v</code>. This is not an integration or drift tolerance.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-maximum_step_size"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>maximum_step_size</strong></td>
+<td> =</td>
+                <td>huge(1.0d0)</td>
+            <td>
+<p>Upper step-size bound, at least <code>minimum_step_size</code>. It does
+not set the spacing of the requested output samples.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-minimum_step_size"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>minimum_step_size</strong></td>
+<td> =</td>
+                <td>10.0d0*epsilon(1.0d0)</td>
+            <td>
+<p>Positive lower step-size bound in the units of <code>times</code>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nthreads~6"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nthreads</strong></td>
+<td> =</td>
+                <td>1</td>
+            <td>
+<p>Positive thread count requested for internal-force assembly.
+Parallel assembly requires thread-safe elements and materials.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-relative_tolerance"></span>
+              real(kind=real64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>relative_tolerance</strong></td>
+<td> =</td>
+                <td>1.0d-6</td>
+            <td>
+<p>Nonnegative relative error tolerance applied to every state
+component. Models with disparate scales may need rescaling.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-solver~5"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>solver</strong></td>
+<td> =</td>
+                <td>FLEXIBLE_BDF</td>
+            <td>
+<p>One of <code>FLEXIBLE_BDF</code>, <code>FLEXIBLE_ROSENBROCK</code>,
+<code>FLEXIBLE_KENNEDY_CARPENTER_4</code>, or <code>FLEXIBLE_KENNEDY_CARPENTER_5</code>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-step_limit"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>step_limit</strong></td>
+<td> =</td>
+                <td>1000000</td>
+            <td>
+<p>Positive integration step limit passed to the selected solver.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+
+    </div>
+  </div>
+
+    </section>
+  <br>
+    
+
+    <section>
+    <h2>Subroutines</h2>
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-solve_flexible_static"></span><h3>public  subroutine <a href='../proc/solve_flexible_static.html'>solve_flexible_static</a>(mesh, force, conditions, displacement, settings, info, progress, args, multipliers)  
+</h3></div>
+    <div class="panel-body">
+          
+  <p>Solve static equilibrium on the free equations of a flexible mesh:</p><a href="../proc/solve_flexible_static.html" class="pull-right"><emph>Read more&hellip;</emph></a>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(<a href='../type/finite_element_mesh.html'>finite_element_mesh</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>mesh</strong></td>
+            <td>
+<p>Mesh to assemble. Its element workspaces may be modified; do
+not assemble or solve the same mesh concurrently from callers.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>force</strong></td>
+            <td>
+<p>Finite, displacement-independent external force in full mesh
+equation order. Loads on prescribed DOFs are ignored by the
+equilibrium test but can be used when computing reactions.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(<a href='../type/nodal_condition.html'>nodal_condition</a>),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>conditions</strong></td>
+            <td>
+<p>Prescribed displacements addressed by node-table position and
+physical DOF label. Values must be finite and DOFs distinct.
+An empty array imposes no displacement constraints.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(inout),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>displacement</strong></td>
+            <td>
+<p>Finite full displacement vector in mesh equation order.
+Its free entries are the initial guess; prescribed entries are
+replaced by condition values on success. On recoverable failure
+the entire input vector remains unchanged.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(<a href='../type/flexible_static_settings.html'>flexible_static_settings</a>),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>settings</strong></td>
+            <td>
+<p>Optional iteration and linear-solver settings. Omit to use
+<a href="../type/flexible_static_settings.html">flexible_static_settings</a> defaults.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(<a href='../type/flexible_static_info.html'>flexible_static_info</a>),
+            </td>
+<td>intent(out),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>info</strong></td>
+            <td>
+<p>Optional convergence diagnostics. Supplying this argument makes
+nonlinear and linear-solver failures recoverable.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              procedure(<a href='../interface/static_solver_callback.html'>static_solver_callback</a>),
+            </td>
+<td></td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>progress</strong></td>
+            <td>
+<p>Optional callback invoked after each accepted Newton iterate.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(*),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>args</strong></td>
+            <td>
+<p>Optional user-supplied data forwarded to the progress callback.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td>optional,</td>            <td>
+              allocatable, dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>multipliers</strong></td>
+            <td>
+<p>Optional converged Lagrange multipliers in joint-row order.
+Allocated only on success; empty when there are no joints.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-solve_flexible_transient"></span><h3>public  subroutine <a href='../proc/solve_flexible_transient.html'>solve_flexible_transient</a>(mesh, times, conditions, initial_displacement, initial_velocity, displacement, velocity, settings, load, args, multipliers)  
+</h3></div>
+    <div class="panel-body">
+          
+  <p>Integrate a mesh with a dense, constant reference mass. Prescribed
+displacements are constant and eliminated from the integration
+equations. The reduced mass must be positive definite. If all
+DOFs are prescribed and there are no joints, return the prescribed
+history without assembling mass or evaluating loads.</p><a href="../proc/solve_flexible_transient.html" class="pull-right"><emph>Read more&hellip;</emph></a>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(<a href='../type/finite_element_mesh.html'>finite_element_mesh</a>),
+            </td>
+<td>intent(inout),</td>
+              <td></td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>mesh</strong></td>
+            <td>
+<p>Mesh to assemble. Element workspaces may change; do not
+assemble or solve this mesh concurrently from callers.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>times</strong></td>
+            <td>
+<p>Finite, strictly increasing output times, with at least two
+entries. Integration starts at <code>times(1)</code>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(<a href='../type/nodal_condition.html'>nodal_condition</a>),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>conditions</strong></td>
+            <td>
+<p>Constant prescribed displacements. Values must be finite and
+DOFs distinct; an empty array imposes no supports.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>initial_displacement</strong></td>
+            <td>
+<p>Finite initial displacement in full mesh equation order.
+Prescribed entries are ignored in favor of <code>conditions</code>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>initial_velocity</strong></td>
+            <td>
+<p>Finite initial coordinate rates in full mesh equation order.
+Prescribed entries are ignored; those rates are set to zero.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              allocatable, dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>displacement</strong></td>
+            <td>
+<p>Full displacement history, indexed by (mesh DOF, time sample).</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              allocatable, dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>velocity</strong></td>
+            <td>
+<p>Full coordinate-rate history, indexed by (mesh DOF, time sample).
+Rotational entries are rotation-vector rates, not angular velocity.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(<a href='../type/flexible_transient_settings.html'>flexible_transient_settings</a>),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>settings</strong></td>
+            <td>
+<p>Omit to use <a href="../type/flexible_transient_settings.html">flexible_transient_settings</a> defaults.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              procedure(<a href='../interface/flexible_load_callback.html'>flexible_load_callback</a>),
+            </td>
+<td></td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>load</strong></td>
+            <td>
+<p>Smooth applied load. Omit to use zero applied force.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(*),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              target
+            </td>
+            <td>::</td>
+            <td><strong>args</strong></td>
+            <td>
+<p>Optional user data forwarded unchanged to <code>load</code>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td>optional,</td>            <td>
+              allocatable, dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>multipliers</strong></td>
+            <td>
+<p>Physical joint force multipliers <code>lambda</code> in constraint assembly
+row order, with one column per time sample. Allocated with zero
+rows if the mesh has no joints. The kinematic correction
+multiplier is not returned.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+    </section>
+    <br>
+
+
+
+    </div>
+  </div>
+
+    <hr>    
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+      <div class="row">
+        <div class="col-xs-6 col-md-6"><p>DYNAMICS was developed by Jason Christopherson<br>&copy; 2026 
+</p>
+        </div>
+        <div class="col-xs-6 col-md-6">
+          <p class="text-right">
+            Documentation generated by 
+            <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+ on 2026-11-23 20:11            </p>
+        </div>
+      </div>
+      <br>
+      </div> <!-- /container -->    
+    </footer>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+<!--
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+-->
+    <script src="../js/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="../js/ie10-viewport-bug-workaround.js"></script>
+
+    <!-- MathJax JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+        jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+        extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+      });
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script src="../tipuesearch/tipuesearch_content.js"></script>
+    <script src="../tipuesearch/tipuesearch_set.js"></script>
+    <script src="../tipuesearch/tipuesearch.js"></script>
+    
+  </body>
+</html>

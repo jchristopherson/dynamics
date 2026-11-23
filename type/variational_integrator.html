@@ -90,7 +90,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title="<p> 0.8% of total for derived types.</p>Including implementation: 328 statements,  5.0% of total for derived types.">6 statements</a>
+               title="<p> 0.6% of total for derived types.</p>Including implementation: 338 statements,  4.2% of total for derived types.">6 statements</a>
           </li>
 
             <li id="source-file">
@@ -127,7 +127,7 @@
       </div>
       <div id="vars-0" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../type/variational_integrator.html#variable-settings~2">settings</a>
+            <a class="list-group-item" href="../type/variational_integrator.html#variable-settings~7">settings</a>
         </div>
       </div>
     </div>
@@ -155,8 +155,8 @@
       </div>
       <div id="boundprocs-0" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../type/variational_integrator.html#boundprocedure-solve">solve</a>
-            <a class="list-group-item" href="../type/variational_integrator.html#boundprocedure-step">step</a>
+            <a class="list-group-item" href="../type/variational_integrator.html#boundprocedure-solve~2">solve</a>
+            <a class="list-group-item" href="../type/variational_integrator.html#boundprocedure-step~6">step</a>
         </div>
       </div>
     </div>
@@ -187,7 +187,7 @@ paper's graph-structured block factorization.</p>
       </div>
       <div id="vars-1" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../type/variational_integrator.html#variable-settings~2">settings</a>
+            <a class="list-group-item" href="../type/variational_integrator.html#variable-settings~7">settings</a>
         </div>
       </div>
     </div>
@@ -215,8 +215,8 @@ paper's graph-structured block factorization.</p>
       </div>
       <div id="boundprocs-1" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../type/variational_integrator.html#boundprocedure-solve">solve</a>
-            <a class="list-group-item" href="../type/variational_integrator.html#boundprocedure-step">step</a>
+            <a class="list-group-item" href="../type/variational_integrator.html#boundprocedure-solve~2">solve</a>
+            <a class="list-group-item" href="../type/variational_integrator.html#boundprocedure-step~6">step</a>
         </div>
       </div>
     </div>
@@ -241,7 +241,7 @@ paper's graph-structured block factorization.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-settings~2"></span>
+              <span class="anchor" id="variable-settings~7"></span>
               type(<a href='../type/variational_integrator_settings.html'>variational_integrator_settings</a>),
             </td>
               <td>public</td>
@@ -267,7 +267,7 @@ paper's graph-structured block factorization.</p>
       <section>
         <h2>Type-Bound Procedures</h2>
             <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-solve"></span><h3>procedure, public :: <strong>solve</strong>  => vi_solve         
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-solve~2"></span><h3>procedure, public :: <strong>solve</strong>  => vi_solve         
     </h3></div>
       <div class="panel-body">
         
@@ -276,7 +276,7 @@ paper's graph-structured block factorization.</p>
     <ul class="list-group">
         <li class="list-group-item">
                   <h3>
-    private  function vi_solve(this, bodies, state, dt, ntime, constraint_count, constraint, force_function, constraint_jacobian, multipliers, args, info) result(rst)  
+    private  function vi_solve(this, bodies, state, dt, ntime, constraint_count, constraint, force_function, constraint_jacobian, multipliers, args, info, progress) result(rst)  
 </h3>
   <p>Computes the solution for the rigid-body system for the specified number
 of sequential time steps.
@@ -358,7 +358,7 @@ noninitial velocities describe discrete intervals, not nodal velocities.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              integer(kind=int32),
+              integer,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -373,7 +373,7 @@ noninitial velocities describe discrete intervals, not nodal velocities.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              integer(kind=int32),
+              integer,
             </td>
 <td>intent(in),</td>
               <td>optional</td>            <td>
@@ -390,9 +390,9 @@ noninitial velocities describe discrete intervals, not nodal velocities.</p>
               <span class="anchor" ></span>
               procedure(<a href='../interface/variational_constraint.html'>variational_constraint</a>),
             </td>
-<td>intent(in),</td>
-              <td>optional,</td>            <td>
-              pointer
+<td></td>
+              <td>optional</td>            <td>
+              
             </td>
             <td>::</td>
             <td><strong>constraint</strong></td>
@@ -406,9 +406,9 @@ constraint_count is greater than zero.</p>
               <span class="anchor" ></span>
               procedure(<a href='../interface/variational_force.html'>variational_force</a>),
             </td>
-<td>intent(in),</td>
-              <td>optional,</td>            <td>
-              pointer
+<td></td>
+              <td>optional</td>            <td>
+              
             </td>
             <td>::</td>
             <td><strong>force_function</strong></td>
@@ -422,9 +422,9 @@ forces and torques are zero.</p>
               <span class="anchor" ></span>
               procedure(<a href='../interface/variational_constraint_jacobian.html'>variational_constraint_jacobian</a>),
             </td>
-<td>intent(in),</td>
-              <td>optional,</td>            <td>
-              pointer
+<td></td>
+              <td>optional</td>            <td>
+              
             </td>
             <td>::</td>
             <td><strong>constraint_jacobian</strong></td>
@@ -458,7 +458,7 @@ point.</p>
               <span class="anchor" ></span>
               class(*),
             </td>
-<td>intent(inout),</td>
+<td>intent(in),</td>
               <td>optional</td>            <td>
               
             </td>
@@ -485,6 +485,22 @@ including the look-ahead when multipliers are requested. On failure,
 rst contains the initial state and all completed steps.</p>
             </td>
         </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              procedure(<a href='../interface/variational_step_callback.html'>variational_step_callback</a>),
+            </td>
+<td></td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>progress</strong></td>
+            <td>
+                <p>Optional callback invoked after each completed time step. It
+receives args, the same user data forwarded to the other callbacks.</p>
+            </td>
+        </tr>
     </tbody>
   </table>
 
@@ -499,7 +515,7 @@ rst contains the initial state and all completed steps.</p>
   </div>
 
             <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-step"></span><h3>procedure, public :: <strong>step</strong>  => vi_step         
+    <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-step~6"></span><h3>procedure, public :: <strong>step</strong>  => vi_step         
     </h3></div>
       <div class="panel-body">
         
@@ -594,7 +610,7 @@ On recoverable failure, the state is unchanged.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              integer(kind=int32),
+              integer,
             </td>
 <td>intent(in),</td>
               <td>optional</td>            <td>
@@ -611,9 +627,9 @@ On recoverable failure, the state is unchanged.</p>
               <span class="anchor" ></span>
               procedure(<a href='../interface/variational_constraint.html'>variational_constraint</a>),
             </td>
-<td>intent(in),</td>
-              <td>optional,</td>            <td>
-              pointer
+<td></td>
+              <td>optional</td>            <td>
+              
             </td>
             <td>::</td>
             <td><strong>constraint</strong></td>
@@ -627,9 +643,9 @@ constraint_count is greater than zero.</p>
               <span class="anchor" ></span>
               procedure(<a href='../interface/variational_force.html'>variational_force</a>),
             </td>
-<td>intent(in),</td>
-              <td>optional,</td>            <td>
-              pointer
+<td></td>
+              <td>optional</td>            <td>
+              
             </td>
             <td>::</td>
             <td><strong>force_function</strong></td>
@@ -643,9 +659,9 @@ forces and torques are zero.</p>
               <span class="anchor" ></span>
               procedure(<a href='../interface/variational_constraint_jacobian.html'>variational_constraint_jacobian</a>),
             </td>
-<td>intent(in),</td>
-              <td>optional,</td>            <td>
-              pointer
+<td></td>
+              <td>optional</td>            <td>
+              
             </td>
             <td>::</td>
             <td><strong>constraint_jacobian</strong></td>
@@ -675,7 +691,7 @@ failure.</p>
               <span class="anchor" ></span>
               class(*),
             </td>
-<td>intent(inout),</td>
+<td>intent(in),</td>
               <td>optional</td>            <td>
               
             </td>
@@ -744,7 +760,7 @@ input velocities. The default is false for standalone steps.</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-10-31 12:53            </p>
+ on 2026-11-23 20:11            </p>
         </div>
       </div>
       <br>

@@ -90,17 +90,17 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title="<p> 0.2% of total for procedures.</p>Including implementation: 9 statements,  0.6% of total for procedures.">3 statements</a>
+               title="<p> 0.2% of total for procedures.</p>Including implementation: 30 statements,  1.4% of total for procedures.">4 statements</a>
           </li>
 
             <li id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/dynamics_quaternions.f90"> Source File</a>
+              <a href="../src/dynamics_helper.f90"> Source File</a>
             </li>
         </ul>
         <ol class="breadcrumb in-well text-right">
-              <li><a href='../sourcefile/dynamics_quaternions.f90.html'>dynamics_quaternions.f90</a></li>
-              <li><a href='../module/dynamics_quaternions.html'>dynamics_quaternions</a></li>
+              <li><a href='../sourcefile/dynamics_helper.f90.html'>dynamics_helper.f90</a></li>
+              <li><a href='../module/dynamics_helper.html'>dynamics_helper</a></li>
           <li class="active">dot_product</li>
         </ol>
       </div>
@@ -144,7 +144,8 @@
       </div>
       <div id="modprocs-0" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../interface/dot_product.html#moduleprocedure-quat_dot_prd">quat_dot_prd</a>
+            <a class="list-group-item" href="../interface/dot_product.html#moduleprocedure-dual_dot_product">dual_dot_product</a>
+            <a class="list-group-item" href="../interface/dot_product.html#moduleprocedure-hyperdual_dot_product">hyperdual_dot_product</a>
         </div>
       </div>
     </div>
@@ -187,7 +188,8 @@
       </div>
       <div id="modprocs-1" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../interface/dot_product.html#moduleprocedure-quat_dot_prd">quat_dot_prd</a>
+            <a class="list-group-item" href="../interface/dot_product.html#moduleprocedure-dual_dot_product">dual_dot_product</a>
+            <a class="list-group-item" href="../interface/dot_product.html#moduleprocedure-hyperdual_dot_product">hyperdual_dot_product</a>
         </div>
       </div>
     </div>
@@ -201,10 +203,10 @@
 
    <h2>Module Procedures</h2>
       <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="proc-quat_dot_prd"></span><h3>private pure elemental function quat_dot_prd(x, y) result(rst)  
+    <div class="panel-heading codesum"><span class="anchor" id="proc-dual_dot_product"></span><h3>private pure function dual_dot_product(x, y) result(rst)  
 </h3></div>
     <div class="panel-body">
-        <p>Computes the dot product of two quaternions.</p>
+        <p>Computes the dot-product of two dual-type arrays.</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -220,11 +222,11 @@
         <tr>
             <td>
               <span class="anchor" ></span>
-              type(<a href='../type/quaternion.html'>quaternion</a>),
+              type(dual),
             </td>
-<td>intent(in)</td>
+<td>intent(in),</td>
               <td></td>            <td>
-              
+              dimension(:)
             </td>
             <td>::</td>
             <td><strong>x</strong></td>
@@ -235,11 +237,11 @@
         <tr>
             <td>
               <span class="anchor" ></span>
-              type(<a href='../type/quaternion.html'>quaternion</a>),
+              type(dual),
             </td>
-<td>intent(in)</td>
+<td>intent(in),</td>
               <td></td>            <td>
-              
+              dimension(:)
             </td>
             <td>::</td>
             <td><strong>y</strong></td>
@@ -252,7 +254,66 @@
 
     <h4>
     Return Value
-    <small>real(kind=real64)</small>
+    <small>type(dual)</small>
+    </h4>
+    <p>The dot product.</p>
+
+    </div>
+  </div>
+
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-hyperdual_dot_product"></span><h3>private pure function hyperdual_dot_product(x, y) result(rst)  
+</h3></div>
+    <div class="panel-body">
+        <p>Computes the dot-product of two hyperdual-type arrays.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(hyperdual),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+                <p>The left-hand-side argument.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(hyperdual),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>y</strong></td>
+            <td>
+                <p>The right-hand-side argument.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(hyperdual)</small>
     </h4>
     <p>The dot product.</p>
 
@@ -275,7 +336,7 @@
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-10-31 12:53            </p>
+ on 2026-11-23 20:11            </p>
         </div>
       </div>
       <br>

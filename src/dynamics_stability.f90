@@ -25,26 +25,26 @@ module dynamics_stability
     public :: NONHYPERBOLIC_FIXED_POINT_CENTER
     public :: determine_local_stability
 
-    integer(int32), parameter :: HYPERBOLIC_FIXED_POINT_SINK = 100
+    integer, parameter :: HYPERBOLIC_FIXED_POINT_SINK = 100
         !! Describes a hyperbolic fixed point where all of the eigenvalues of
         !! the dynamics matrix have a nonzero real part and all real parts are
         !! negative-valued.  This point is considered stable.
-    integer(int32), parameter :: HYPERBOLIC_FIXED_POINT_SOURCE = 101
+    integer, parameter :: HYPERBOLIC_FIXED_POINT_SOURCE = 101
         !! Describes a hyperbolic fixed point where all of the eigenvalues of
         !! the dynamics matrix have a nonzero real part and the real
         !! part is positive-valued for each.  This point is considered unstable.
-    integer(int32), parameter :: HYPERBOLIC_FIXED_POINT_SADDLE = 102
+    integer, parameter :: HYPERBOLIC_FIXED_POINT_SADDLE = 102
         !! Describes a hyperbolic fixed point where all of the eigenvalues of
         !! the dynamics matrix have a nonzero real part but one or more of the
         !! eigenvalues has a positive-valued real part.
-    integer(int32), parameter :: NONHYPERBOLIC_FIXED_POINT_UNSTABLE = 103
+    integer, parameter :: NONHYPERBOLIC_FIXED_POINT_UNSTABLE = 103
         !! Describes a nonhyperbolic fixed point where one or more of the 
         !! eigenvalues of the dynamics matrix have a positive-valued real part.
-    integer(int32), parameter :: NONHYPERBOLIC_FIXED_POINT_NEUTRALLY_STABLE = 104
+    integer, parameter :: NONHYPERBOLIC_FIXED_POINT_NEUTRALLY_STABLE = 104
         !! Describes a nonhyperbolic fixed point where some of the eigenvalues 
         !! of the dynamics matrix have negative real parts and the remaining
         !! eigenvalues all have zero-valued real parts.
-    integer(int32), parameter :: NONHYPERBOLIC_FIXED_POINT_CENTER = 105
+    integer, parameter :: NONHYPERBOLIC_FIXED_POINT_CENTER = 105
         !! Describes a nonhyperbolic fixed point where all of the eigenvalues
         !! of the dynamics matrix are purely imaginary and nonzero.  This point
         !! is considered stable.
@@ -67,12 +67,12 @@ function determine_local_stability(a, ev) result(rst)
     complex(real64), intent(out), optional, dimension(:) :: ev
         !! An optional N-element array that, if supplied, will be filled with 
         !! the eigenvalues of the matrix A.
-    integer(int32) :: rst
+    integer :: rst
         !! One of the fixed-point classification constants defined above.
 
     ! Local Variables
     logical :: hyperbolic
-    integer(int32) :: i, n, npositive, nnegative
+    integer :: i, n, npositive, nnegative
     real(real64) :: tol, rv
     complex(real64), allocatable, dimension(:) :: vals
     

@@ -48,7 +48,7 @@ contains
             !! The modal damping parameter.
 
         ! Local Variables
-        integer(int32) :: n
+        integer :: n
 
         ! Process
         rst = (alpha + beta * lambda) / (2.0d0 * sqrt(lambda))
@@ -77,7 +77,7 @@ contains
             !! columns.
 
         ! Local Variables
-        integer(int32) :: n
+        integer :: n
         complex(real64), allocatable, dimension(:) :: vals
         complex(real64), allocatable, dimension(:,:) :: vecs
         
@@ -112,7 +112,7 @@ contains
     end subroutine
 
 ! ------------------------------------------------------------------------------
-    subroutine modal_response_sparse(mass, stiff, nmodes, freqs, modeshapes)
+    subroutine modal_response_sparse(mass, stiff, nmodes, freqs, modeshapes, sigma)
         !! Computes selected modal frequencies and mode shapes for a
         !! multi-degree-of-freedom system using CSR sparse matrices.
         !! The generalized eigenproblem is
@@ -122,7 +122,7 @@ contains
             !! The N-by-N symmetric positive-definite mass matrix.
         type(csr_matrix), intent(in) :: stiff
             !! The N-by-N symmetric stiffness matrix.
-        integer(int32), intent(in) :: nmodes
+        integer, intent(in) :: nmodes
             !! The number of lowest-frequency modes to compute.  This value
             !! must be greater than zero and less than N.
         real(real64), intent(out), allocatable, dimension(:) :: freqs
@@ -132,9 +132,15 @@ contains
             modeshapes
             !! An optional, allocatable N-by-NMODES matrix containing one mode
             !! shape per column.
+        real(real64), intent(in), optional :: sigma
+            !! An optional shift, in units of (rad/s)^2, used by the
+            !! shift-invert solver.  The default is zero.  For models with a
+            !! large stiffness range, a negative value near the frequency
+            !! range of interest, such as -(2*pi*f)^2 with f in Hz, is more
+            !! robust.  The shift must not equal a modal eigenvalue.
 
-        integer(int32) :: i, j, loc, n
-        real(real64) :: mass_scale, stiff_scale, temp, tol
+        integer :: i, j, loc, n
+        real(real64) :: mass_scale, shift, stiff_scale, temp, tol
         real(real64), allocatable, dimension(:) :: temp_vec, vals
         real(real64), allocatable, dimension(:,:) :: vecs
 
@@ -166,8 +172,11 @@ contains
             end do
         end do
 
+        shift = 0.0d0
+        if (present(sigma)) shift = sigma
+
         if (present(modeshapes)) then
-            call eigen(stiff, mass, nmodes, vals, vecs, sigma = 0.0d0)
+            call eigen(stiff, mass, nmodes, vals, vecs, sigma = shift)
             allocate(temp_vec(n))
             do i = 1, size(vals) - 1
                 loc = i - 1 + minloc(vals(i:), 1)
@@ -182,7 +191,7 @@ contains
             end do
             allocate(modeshapes(n, size(vals)), source = vecs)
         else
-            call eigen(stiff, mass, nmodes, vals, sigma = 0.0d0)
+            call eigen(stiff, mass, nmodes, vals, sigma = shift)
             call sort(vals)
         end if
 
@@ -203,7 +212,7 @@ contains
             !! The matrix of mode shape vectors with one vector per column.
 
         ! Local Variables
-        integer(int32) :: i, loc
+        integer :: i, loc
         real(real64) :: factor
 
         ! Process

@@ -90,7 +90,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 1.3% of total for source files.">133 statements</a>
+               title=" 1.0% of total for source files.">133 statements</a>
           </li>
 
             <li id="source-file">
@@ -288,7 +288,7 @@
 <a id="ln-79" name="ln-79" href="#ln-79"></a><span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">real64</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">x2</span><span class="w"></span>
 <a id="ln-80" name="ln-80" href="#ln-80"></a><span class="w">        </span><span class="c">!! The amplitude of the second peak that occurs N periods after the</span>
 <a id="ln-81" name="ln-81" href="#ln-81"></a><span class="w">        </span><span class="c">!! first.</span>
-<a id="ln-82" name="ln-82" href="#ln-82"></a><span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">n</span><span class="w"></span>
+<a id="ln-82" name="ln-82" href="#ln-82"></a><span class="w">    </span><span class="kt">integer</span><span class="p">,</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">n</span><span class="w"></span>
 <a id="ln-83" name="ln-83" href="#ln-83"></a><span class="w">        </span><span class="c">!! The number of periods of oscillation seperating the two peaks.</span>
 <a id="ln-84" name="ln-84" href="#ln-84"></a><span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">real64</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">rst</span><span class="w"></span>
 <a id="ln-85" name="ln-85" href="#ln-85"></a><span class="w">        </span><span class="c">!! The logarithmic decrement \(\delta\).</span>
@@ -356,15 +356,15 @@
 <a id="ln-147" name="ln-147" href="#ln-147"></a><span class="w">        </span><span class="c">!! An optional input that, if provided, allows for control of the </span>
 <a id="ln-148" name="ln-148" href="#ln-148"></a><span class="w">        </span><span class="c">!! sensitivity of the peak detection algorithm.  The default is 0.1%</span>
 <a id="ln-149" name="ln-149" href="#ln-149"></a><span class="w">        </span><span class="c">!! of the peak-peak amplitude of the signal.</span>
-<a id="ln-150" name="ln-150" href="#ln-150"></a><span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">),</span><span class="w"> </span><span class="k">optional</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">n</span><span class="w"></span>
+<a id="ln-150" name="ln-150" href="#ln-150"></a><span class="w">    </span><span class="kt">integer</span><span class="p">,</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">),</span><span class="w"> </span><span class="k">optional</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">n</span><span class="w"></span>
 <a id="ln-151" name="ln-151" href="#ln-151"></a><span class="w">        </span><span class="c">!! An optional input that, if provided, determines the number of </span>
 <a id="ln-152" name="ln-152" href="#ln-152"></a><span class="w">        </span><span class="c">!! periods to allow between peak selection for the logarithmic </span>
 <a id="ln-153" name="ln-153" href="#ln-153"></a><span class="w">        </span><span class="c">!! decrement calculation.  The default is 1.</span>
 <a id="ln-154" name="ln-154" href="#ln-154"></a>
 <a id="ln-155" name="ln-155" href="#ln-155"></a><span class="w">    </span><span class="c">! Local Variables</span>
-<a id="ln-156" name="ln-156" href="#ln-156"></a><span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">np</span><span class="p">,</span><span class="w"> </span><span class="n">i1</span><span class="p">,</span><span class="w"> </span><span class="n">i2</span><span class="p">,</span><span class="w"> </span><span class="n">j2</span><span class="w"></span>
+<a id="ln-156" name="ln-156" href="#ln-156"></a><span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">np</span><span class="p">,</span><span class="w"> </span><span class="n">i1</span><span class="p">,</span><span class="w"> </span><span class="n">i2</span><span class="p">,</span><span class="w"> </span><span class="n">j2</span><span class="w"></span>
 <a id="ln-157" name="ln-157" href="#ln-157"></a><span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">real64</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">xmax</span><span class="p">,</span><span class="w"> </span><span class="n">xmin</span><span class="p">,</span><span class="w"> </span><span class="n">dx</span><span class="p">,</span><span class="w"> </span><span class="n">x1p</span><span class="p">,</span><span class="w"> </span><span class="n">x2p</span><span class="p">,</span><span class="w"> </span><span class="n">t1p</span><span class="p">,</span><span class="w"> </span><span class="n">t2p</span><span class="p">,</span><span class="w"> </span><span class="n">nan</span><span class="w"></span>
-<a id="ln-158" name="ln-158" href="#ln-158"></a><span class="w">    </span><span class="kt">integer</span><span class="p">(</span><span class="n">int32</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="p">,</span><span class="w"> </span><span class="k">dimension</span><span class="p">(:)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">maxind</span><span class="p">,</span><span class="w"> </span><span class="n">minind</span><span class="w"></span>
+<a id="ln-158" name="ln-158" href="#ln-158"></a><span class="w">    </span><span class="kt">integer</span><span class="p">,</span><span class="w"> </span><span class="k">allocatable</span><span class="p">,</span><span class="w"> </span><span class="k">dimension</span><span class="p">(:)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">maxind</span><span class="p">,</span><span class="w"> </span><span class="n">minind</span><span class="w"></span>
 <a id="ln-159" name="ln-159" href="#ln-159"></a><span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">real64</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="p">,</span><span class="w"> </span><span class="k">dimension</span><span class="p">(:)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">maxvals</span><span class="p">,</span><span class="w"> </span><span class="n">minvals</span><span class="w"></span>
 <a id="ln-160" name="ln-160" href="#ln-160"></a>
 <a id="ln-161" name="ln-161" href="#ln-161"></a><span class="w">    </span><span class="c">! Determine a suitable sensitivity to peak detection</span>
@@ -566,7 +566,7 @@
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-10-31 12:53            </p>
+ on 2026-11-23 20:11            </p>
         </div>
       </div>
       <br>

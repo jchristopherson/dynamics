@@ -110,6 +110,15 @@ coincident with the axis of the joint.  The link utilizes a
 Denavit-Hartenberg convention in order to express its geometry.</p></td>
                </tr>
 			   <tr>
+                 <td><a href='..\type\controller_optimizer.html'>controller_optimizer</a></td>
+                 <td><a href='..\module\dynamics_controls_tuning.html'>dynamics_controls_tuning</a></td>
+                 <td>None</td>
+                 <td><p>Defines the settings used to optimize the gains of an
+<a href="..\type\integral_state_feedback_controller.html">integral_state_feedback_controller</a> by minimizing the integral
+squared error of the closed-loop response to a unit step in the
+reference, plus an optional penalty on the control effort.</p></td>
+               </tr>
+			   <tr>
                  <td><a href='..\type\coordinate_system.html'>coordinate_system</a></td>
                  <td><a href='..\module\dynamics_kinematics.html'>dynamics_kinematics</a></td>
                  <td>None</td>
@@ -139,6 +148,12 @@ translations at each node.</p></td>
 translations at each node.</p></td>
                </tr>
 			   <tr>
+                 <td><a href='..\type\degree_of_freedom.html'>degree_of_freedom</a></td>
+                 <td><a href='..\module\dynamics_flexible_body_types.html'>dynamics_flexible_body_types</a></td>
+                 <td>None</td>
+                 <td><p>Describes a numbered DOF in the current mesh layout.</p></td>
+               </tr>
+			   <tr>
                  <td><a href='..\type\dense_generalized_alpha_integrator.html'>dense_generalized_alpha_integrator</a></td>
                  <td><a href='..\module\dynamics_linear_structural_solvers.html'>dynamics_linear_structural_solvers</a></td>
                  <td><a href='..\type\structural_integrator.html'>structural_integrator</a></td>
@@ -166,6 +181,23 @@ matrices default to zero and are overridden only where the element
 contributes to the system.  The inherited material is unused.</p></td>
                </tr>
 			   <tr>
+                 <td><a href='..\type\discrete_state_space.html'>discrete_state_space</a></td>
+                 <td><a href='..\module\dynamics_discrete_controls.html'>dynamics_discrete_controls</a></td>
+                 <td>None</td>
+                 <td><p>Defines a discrete-time state-space model of the form
+<script type="math/tex; mode=display"> x_{k+1}=Ax_k+Bu_k,\qquad y_k=Cx_k+Du_k. </script>
+</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\discrete_transfer_function.html'>discrete_transfer_function</a></td>
+                 <td><a href='..\module\dynamics_discrete_controls.html'>dynamics_discrete_controls</a></td>
+                 <td>None</td>
+                 <td><p>Defines a discrete-time transfer function of the form
+<script type="math/tex; mode=display"> H(z) = \frac{Y(z^{-1})}{X(z^{-1})}. </script>
+The polynomial coefficients are stored in ascending powers of
+<script type="math/tex">z^{-1}</script>, such that <script type="math/tex"> y_1 + y_2 z^{-1} + y_3 z^{-2} ... </script>.</p></td>
+               </tr>
+			   <tr>
                  <td><a href='..\type\dynamic_joint.html'>dynamic_joint</a></td>
                  <td><a href='..\module\dynamics_linkage_dynamics.html'>dynamics_linkage_dynamics</a></td>
                  <td>None</td>
@@ -187,6 +219,106 @@ joint constraint is satisfied.</p></td>
                  <td><a href='..\module\dynamics_structural.html'>dynamics_structural</a></td>
                  <td>None</td>
                  <td><p>Defines an element.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\euler_bernoulli_beam_element.html'>euler_bernoulli_beam_element</a></td>
+                 <td><a href='..\module\dynamics_flexible_beam_elements.html'>dynamics_flexible_beam_elements</a></td>
+                 <td>..\..\two_node_beam_element</td>
+                 <td><p>Shear-free spatial beam with four-point section energy integration
+and constant reference mass.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\fe_node.html'>fe_node</a></td>
+                 <td><a href='..\module\dynamics_flexible_body_types.html'>dynamics_flexible_body_types</a></td>
+                 <td>None</td>
+                 <td><p>Defines a node for a finite element body.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\finite_element.html'>finite_element</a></td>
+                 <td><a href='..\module\dynamics_finite_element.html'>dynamics_finite_element</a></td>
+                 <td><a href='..\type\flexible_element.html'>flexible_element</a></td>
+                 <td><p>Extends the flexible-element interface with node count, DOFs per
+node, and spatial dimensionality.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\finite_element_mesh.html'>finite_element_mesh</a></td>
+                 <td><a href='..\module\dynamics_flexible_assembly.html'>dynamics_flexible_assembly</a></td>
+                 <td>None</td>
+                 <td><p>Owns a node table and a heterogeneous collection of elements.
+Full-layout elements must agree on count and component order at
+shared nodes. Subset elements attach by matching component labels.
+Numbering is recomputed on each call.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\flexible_beam_element.html'>flexible_beam_element</a></td>
+                 <td><a href='..\module\dynamics_flexible_beam_elements.html'>dynamics_flexible_beam_elements</a></td>
+                 <td><a href='..\type\finite_element.html'>finite_element</a></td>
+                 <td><p>Base for beams whose force and tangent derive from strain energy.
+Each instance owns a reusable AD workspace; concurrent calls on
+the same instance require external synchronization.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\flexible_damper_element.html'>flexible_damper_element</a></td>
+                 <td><a href='..\module\dynamics_flexible_discrete_elements.html'>dynamics_flexible_discrete_elements</a></td>
+                 <td>..\..\axial_connector</td>
+                 <td><p>Viscous damper following the current chord; no static stiffness.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\flexible_element.html'>flexible_element</a></td>
+                 <td><a href='..\module\dynamics_flexible_element.html'>dynamics_flexible_element</a></td>
+                 <td>None</td>
+                 <td><p>Defines the DOF mapping, mass, internal force and tangent stiffness
+interface of a flexible element. Concrete types define their DOF
+ordering and force sign convention.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\flexible_joint.html'>flexible_joint</a></td>
+                 <td><a href='..\module\dynamics_flexible_joints.html'>dynamics_flexible_joints</a></td>
+                 <td>None</td>
+                 <td><p>Couples two nodes of a flexible mesh. Each frame is the reference
+orientation of the joint on its node, with columns as the joint
+x, y, and z axes.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\flexible_material.html'>flexible_material</a></td>
+                 <td><a href='..\module\dynamics_flexible_materials.html'>dynamics_flexible_materials</a></td>
+                 <td>None</td>
+                 <td><p>Constitutive energy contract for flexible elements. Implementations
+provide consistent real, dual and hyper-dual 3D energy evaluations
+and separate axial plane-stress, bending, and torsion laws for beams.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\flexible_point_mass_element.html'>flexible_point_mass_element</a></td>
+                 <td><a href='..\module\dynamics_flexible_discrete_elements.html'>dynamics_flexible_discrete_elements</a></td>
+                 <td>..\..\discrete_element_base</td>
+                 <td><p>Centered mass and constant rotary inertia at a single six-DOF node.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\flexible_spring_element.html'>flexible_spring_element</a></td>
+                 <td><a href='..\module\dynamics_flexible_discrete_elements.html'>dynamics_flexible_discrete_elements</a></td>
+                 <td>..\..\axial_connector</td>
+                 <td><p>Axial spring following the current chord, stress-free at its reference length.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\flexible_static_info.html'>flexible_static_info</a></td>
+                 <td><a href='..\module\dynamics_flexible_body_solvers.html'>dynamics_flexible_body_solvers</a></td>
+                 <td>None</td>
+                 <td><p>Diagnostics for the initial or last accepted iterate, even when
+the solve fails and the output displacement is left unchanged.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\flexible_static_settings.html'>flexible_static_settings</a></td>
+                 <td><a href='..\module\dynamics_flexible_body_solvers.html'>dynamics_flexible_body_solvers</a></td>
+                 <td>None</td>
+                 <td><p>Controls the residual test and Newton iteration. Default values are
+used when <a href="..\proc\solve_flexible_static.html">solve_flexible_static</a> is called without settings.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\flexible_transient_settings.html'>flexible_transient_settings</a></td>
+                 <td><a href='..\module\dynamics_flexible_body_solvers.html'>dynamics_flexible_body_solvers</a></td>
+                 <td>None</td>
+                 <td><p>Controls for <a href="..\proc\solve_flexible_transient.html">solve_flexible_transient</a>. All real-valued
+settings must be finite.</p></td>
                </tr>
 			   <tr>
                  <td><a href='..\type\frf.html'>frf</a></td>
@@ -221,6 +353,17 @@ closed by the tree paths leading to each of the edge's vertices.</p></td>
                  <td><a href='..\module\dynamics_graph.html'>dynamics_graph</a></td>
                  <td>None</td>
                  <td><p>Describes a path through a graph.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\integral_state_feedback_controller.html'>integral_state_feedback_controller</a></td>
+                 <td><a href='..\module\dynamics_controls_tuning.html'>dynamics_controls_tuning</a></td>
+                 <td>None</td>
+                 <td><p>Defines a state feedback controller with integral action of the
+form
+<script type="math/tex; mode=display"> u = -Kx - K_i \xi, \qquad \dot{\xi} = y - r </script>
+where <script type="math/tex">K</script> is the M-by-N state gain, <script type="math/tex">K_i</script> is the M-by-P integral
+gain, <script type="math/tex">r</script> is the reference, and <script type="math/tex">\xi</script> is the integral of the
+tracking error.</p></td>
                </tr>
 			   <tr>
                  <td><a href='..\type\joint.html'>joint</a></td>
@@ -267,6 +410,13 @@ to each joint appear in the order in which the joints were supplied.</p></td>
                  <td><a href='..\module\dynamics_linkage_dynamics.html'>dynamics_linkage_dynamics</a></td>
                  <td><a href='..\type\axial_force_element.html'>axial_force_element</a></td>
                  <td><p>Defines a linear viscous damper acting only along the element axis.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\linear_elastic_isotropic_material.html'>linear_elastic_isotropic_material</a></td>
+                 <td><a href='..\module\dynamics_flexible_materials.html'>dynamics_flexible_materials</a></td>
+                 <td><a href='..\type\flexible_material.html'>flexible_material</a></td>
+                 <td><p>Isotropic quadratic strain energy with Young's modulus and
+Poisson's ratio. Beam laws use the supplied section properties.</p></td>
                </tr>
 			   <tr>
                  <td><a href='..\type\linear_spring.html'>linear_spring</a></td>
@@ -324,6 +474,12 @@ translations.</p></td>
                  <td><p>Defines a linear-elastic-isotropic material.</p></td>
                </tr>
 			   <tr>
+                 <td><a href='..\type\mesh_element.html'>mesh_element</a></td>
+                 <td><a href='..\module\dynamics_flexible_assembly.html'>dynamics_flexible_assembly</a></td>
+                 <td>None</td>
+                 <td><p>Owns one polymorphic element, allowing different types in one mesh.</p></td>
+               </tr>
+			   <tr>
                  <td><a href='..\type\mimo_frf.html'>mimo_frf</a></td>
                  <td><a href='..\module\dynamics_frequency_response.html'>dynamics_frequency_response</a></td>
                  <td>None</td>
@@ -343,6 +499,12 @@ inputs and multiple outputs (MIMO).</p></td>
                  <td><p>Defines a link carrying an arbitrary number of joint coordinate
 frames.  This type is suitable for the ternary and higher-order links
 found in closed-loop mechanisms.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\nodal_condition.html'>nodal_condition</a></td>
+                 <td><a href='..\module\dynamics_boundary_conditions.html'>dynamics_boundary_conditions</a></td>
+                 <td>None</td>
+                 <td><p>Prescribes one local DOF of one node in a finite_element_mesh.</p></td>
                </tr>
 			   <tr>
                  <td><a href='..\type\node.html'>node</a></td>
@@ -471,10 +633,31 @@ translations at each node.</p></td>
 implementation takes the form:</p><a href="../type/state_space.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
 			   <tr>
+                 <td><a href='..\type\static_solver_progress.html'>static_solver_progress</a></td>
+                 <td><a href='..\module\dynamics_solver_reporting.html'>dynamics_solver_reporting</a></td>
+                 <td>None</td>
+                 <td><p>Describes an accepted iterate of a nonlinear static solver.</p></td>
+               </tr>
+			   <tr>
                  <td><a href='..\type\structural_integrator.html'>structural_integrator</a></td>
                  <td><a href='..\module\dynamics_linear_structural_solvers.html'>dynamics_linear_structural_solvers</a></td>
                  <td>None</td>
                  <td><p>Base class for linear structural time integrators.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\time_history_solver_progress.html'>time_history_solver_progress</a></td>
+                 <td><a href='..\module\dynamics_solver_reporting.html'>dynamics_solver_reporting</a></td>
+                 <td>None</td>
+                 <td><p>Describes a completed time step of a time-history solver.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='..\type\timoshenko_beam_element.html'>timoshenko_beam_element</a></td>
+                 <td><a href='..\module\dynamics_flexible_beam_elements.html'>dynamics_flexible_beam_elements</a></td>
+                 <td>..\..\two_node_beam_element</td>
+                 <td><p>Finite-strain spatial beam with linear centerline interpolation
+and independently interpolated section rotations. Axial, bending
+and torsional energy use four Gauss points; transverse shear uses
+the midpoint to relieve thin-beam shear locking.</p></td>
                </tr>
 			   <tr>
                  <td><a href='..\type\torsional_damper.html'>torsional_damper</a></td>
@@ -581,7 +764,7 @@ orientations use the world frame.</p></td>
             <p class="text-end">
               Documentation generated by
               <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-10-16 05:59              </p>
+ on 2026-11-22 19:41              </p>
           </div>
         </div>
         <br>

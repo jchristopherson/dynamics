@@ -88,7 +88,7 @@ module dynamics_shell_elements
     !! translational inertia \(\rho t\) and rotary inertia
     !! \(\rho t^3 / 12\).  The rotary inertia is also assigned to the drilling
     !! rotation to keep the mass matrix positive definite.
-    use iso_fortran_env, only : int32, real64
+    use iso_fortran_env, only : real64
     use dynamics_error_handling
     use dynamics_helper, only : cross_product
     use dynamics_structural, only : node, material, element
@@ -263,7 +263,7 @@ pure function node_positions(elem) result(rst)
     class(shell_element), intent(in) :: elem
     real(real64), allocatable, dimension(:,:) :: rst
 
-    integer(int32) :: i, n
+    integer :: i, n
     type(node) :: nd
 
     n = elem%get_node_count()
@@ -281,7 +281,7 @@ pure function membrane_strain_rows(dndx) result(rst)
     real(real64), intent(in), dimension(:,:) :: dndx
     real(real64), allocatable, dimension(:,:) :: rst
 
-    integer(int32) :: i, c
+    integer :: i, c
 
     allocate(rst(3, 6 * size(dndx, 2)), source = 0.0d0)
     do i = 1, size(dndx, 2)
@@ -301,7 +301,7 @@ pure function drilling_row(elem, s) result(rst)
     real(real64), intent(in), dimension(:) :: s
     real(real64), allocatable, dimension(:) :: rst
 
-    integer(int32) :: i, c, n
+    integer :: i, c, n
     real(real64), allocatable, dimension(:,:) :: dndx
 
     n = elem%get_node_count()
@@ -322,7 +322,7 @@ pure function shl_dimensionality(this) result(rst)
     !! Gets the dimensionality of the element.
     class(shell_element), intent(in) :: this
         !! The shell_element object.
-    integer(int32) :: rst
+    integer :: rst
         !! The dimensionality (always 3).
     rst = 3
 end function
@@ -332,7 +332,7 @@ pure function shl_dof_per_node(this) result(rst)
     !! Gets the number of degrees of freedom per node.
     class(shell_element), intent(in) :: this
         !! The shell_element object.
-    integer(int32) :: rst
+    integer :: rst
         !! The number of degrees of freedom per node (always 6).
     rst = 6
 end function
@@ -386,7 +386,7 @@ pure function shl_local_frame(this) result(rst)
         !! The 3-by-3 direction cosine matrix.
 
     ! Local Variables
-    integer(int32) :: i, n
+    integer :: i, n
     real(real64) :: nrm, scale, e1(3), e2(3), e3(3), d(3)
     real(real64), allocatable, dimension(:,:) :: p
 
@@ -434,7 +434,7 @@ pure function shl_local_coordinates(this) result(rst)
         !! local \(x\) and \(y\) coordinates of each node.
 
     ! Local Variables
-    integer(int32) :: i, n
+    integer :: i, n
     real(real64) :: q(3)
     real(real64), allocatable, dimension(:,:) :: r, p
 
@@ -464,7 +464,7 @@ pure function shl_rotation_matrix(this) result(rst)
         !! nodes.
 
     ! Local Variables
-    integer(int32) :: i, n
+    integer :: i, n
     real(real64), allocatable, dimension(:,:) :: r
 
     ! Process
@@ -534,7 +534,7 @@ pure function shl_shape_function_matrix(this, s) result(rst)
         !! The 6-by-6N shape function matrix, where N is the number of nodes.
 
     ! Local Variables
-    integer(int32) :: i, k, n
+    integer :: i, k, n
     real(real64) :: ni
 
     ! Process
@@ -557,7 +557,7 @@ pure function shl_area(this) result(rst)
         !! The element area.
 
     ! Local Variables
-    integer(int32) :: i
+    integer :: i
     real(real64), allocatable, dimension(:) :: wts
     real(real64), allocatable, dimension(:,:) :: pts
 
@@ -579,7 +579,7 @@ pure function shl_stiffness_matrix(this, rule) result(rst)
     !! global matrix is \(K = T^T K_{local} T\).
     class(shell_element), intent(in) :: this
         !! The shell_element object.
-    integer(int32), intent(in), optional :: rule
+    integer, intent(in), optional :: rule
         !! The integration rule.  This argument is unused and is present for
         !! interface compatibility; the element uses the quadrature defined by
         !! its integration_rule routine.
@@ -587,7 +587,7 @@ pure function shl_stiffness_matrix(this, rule) result(rst)
         !! The 6N-by-6N stiffness matrix, where N is the number of nodes.
 
     ! Local Variables
-    integer(int32) :: i, ndof
+    integer :: i, ndof
     real(real64) :: dj, g, kd
     real(real64), allocatable, dimension(:) :: wts, bd
     real(real64), allocatable, dimension(:,:) :: pts, b, d, t, kl
@@ -625,7 +625,7 @@ pure function shl_mass_matrix(this, rule) result(rst)
     !! \frac{t^3}{12}, \frac{t^3}{12}\right) $$
     class(shell_element), intent(in) :: this
         !! The shell_element object.
-    integer(int32), intent(in), optional :: rule
+    integer, intent(in), optional :: rule
         !! The integration rule.  This argument is unused and is present for
         !! interface compatibility; the element uses the quadrature defined by
         !! its integration_rule routine.
@@ -633,7 +633,7 @@ pure function shl_mass_matrix(this, rule) result(rst)
         !! The 6N-by-6N mass matrix, where N is the number of nodes.
 
     ! Local Variables
-    integer(int32) :: i, k, ndof
+    integer :: i, k, ndof
     real(real64) :: dj, lambda(6)
     real(real64), allocatable, dimension(:) :: wts
     real(real64), allocatable, dimension(:,:) :: pts, n, ln, t, ml
@@ -677,7 +677,7 @@ pure function shl_ext_force_vector(this, q, rule) result(rst)
         !! acting along the local \(z\)-axis, supply
         !! \(\boldsymbol{q} = p \boldsymbol{e}_z\), where
         !! \(\boldsymbol{e}_z\) is the third row of the local_frame matrix.
-    integer(int32), intent(in), optional :: rule
+    integer, intent(in), optional :: rule
         !! The integration rule.  This argument is unused and is present for
         !! interface compatibility; the element uses the quadrature defined by
         !! its integration_rule routine.
@@ -685,7 +685,7 @@ pure function shl_ext_force_vector(this, q, rule) result(rst)
         !! The 6N-element force vector, where N is the number of nodes.
 
     ! Local Variables
-    integer(int32) :: i, j, c, n
+    integer :: i, j, c, n
     real(real64) :: dj
     real(real64), allocatable, dimension(:) :: wts
     real(real64), allocatable, dimension(:,:) :: pts
@@ -793,7 +793,7 @@ pure function tri_get_node_count(this) result(rst)
     !! Gets the number of nodes in the element.
     class(triangular_shell_element), intent(in) :: this
         !! The triangular_shell_element object.
-    integer(int32) :: rst
+    integer :: rst
         !! The number of nodes (always 3).
     rst = 3
 end function
@@ -803,7 +803,7 @@ pure function tri_get_node(this, i) result(rst)
     !! Gets the requested node from the element.
     class(triangular_shell_element), intent(in) :: this
         !! The triangular_shell_element object.
-    integer(int32), intent(in) :: i
+    integer, intent(in) :: i
         !! The local index of the node to retrieve.
     type(node) :: rst
         !! The requested node.
@@ -816,7 +816,7 @@ pure function tri_get_node_natural_coordinates(this, i) result(rst)
     !! Returns the natural coordinates of the requested node.
     class(triangular_shell_element), intent(in) :: this
         !! The triangular_shell_element object.
-    integer(int32), intent(in) :: i
+    integer, intent(in) :: i
         !! The local index of the node.
     real(real64), allocatable, dimension(:) :: rst
         !! The 2-element natural coordinate vector of the node.
@@ -838,7 +838,7 @@ pure function tri_shape_function(this, i, s) result(rst)
     !! \(N_1 = 1 - \xi - \eta\), \(N_2 = \xi\), \(N_3 = \eta\).
     class(triangular_shell_element), intent(in) :: this
         !! The triangular_shell_element object.
-    integer(int32), intent(in) :: i
+    integer, intent(in) :: i
         !! The index of the shape function to evaluate.
     real(real64), intent(in), dimension(:) :: s
         !! The natural coordinates \((\xi, \eta)\).
@@ -901,11 +901,11 @@ pure function dkt_curvature_matrix(xy, s) result(rst)
 
     ! Edge k runs from node ii(k) to node jj(k); edges 1, 2, and 3 correspond
     ! to the midside nodes 4 (2-3), 5 (3-1), and 6 (1-2) of Batoz et al.
-    integer(int32), parameter :: ii(3) = [2, 3, 1]
-    integer(int32), parameter :: jj(3) = [3, 1, 2]
+    integer, parameter :: ii(3) = [2, 3, 1]
+    integer, parameter :: jj(3) = [3, 1, 2]
 
     ! Local Variables
-    integer(int32) :: k, m
+    integer :: k, m
     real(real64) :: xi, eta, xij, yij, l2, x31, x12, y31, y12, twoa
     real(real64) :: a(3), b(3), c(3), d(3), e(3), dn(2,6), hx(2,9), hy(2,9)
 
@@ -980,7 +980,7 @@ pure function tri_strain_disp_matrix(this, s) result(rst)
         !! The 8-by-18 strain-displacement matrix.
 
     ! Local Variables
-    integer(int32) :: i, m
+    integer :: i, m
     real(real64) :: bb(3,9)
     real(real64), allocatable, dimension(:,:) :: xy
 
@@ -1042,7 +1042,7 @@ pure function quad_get_node_count(this) result(rst)
     !! Gets the number of nodes in the element.
     class(rectangular_shell_element), intent(in) :: this
         !! The rectangular_shell_element object.
-    integer(int32) :: rst
+    integer :: rst
         !! The number of nodes (always 4).
     rst = 4
 end function
@@ -1052,7 +1052,7 @@ pure function quad_get_node(this, i) result(rst)
     !! Gets the requested node from the element.
     class(rectangular_shell_element), intent(in) :: this
         !! The rectangular_shell_element object.
-    integer(int32), intent(in) :: i
+    integer, intent(in) :: i
         !! The local index of the node to retrieve.
     type(node) :: rst
         !! The requested node.
@@ -1065,7 +1065,7 @@ pure function quad_get_node_natural_coordinates(this, i) result(rst)
     !! Returns the natural coordinates of the requested node.
     class(rectangular_shell_element), intent(in) :: this
         !! The rectangular_shell_element object.
-    integer(int32), intent(in) :: i
+    integer, intent(in) :: i
         !! The local index of the node.
     real(real64), allocatable, dimension(:) :: rst
         !! The 2-element natural coordinate vector of the node.
@@ -1083,7 +1083,7 @@ pure function quad_shape_function(this, i, s) result(rst)
     !! \(N_i = \frac{1}{4}(1 + r r_i)(1 + s s_i)\).
     class(rectangular_shell_element), intent(in) :: this
         !! The rectangular_shell_element object.
-    integer(int32), intent(in) :: i
+    integer, intent(in) :: i
         !! The index of the shape function to evaluate.
     real(real64), intent(in), dimension(:) :: s
         !! The natural coordinates \((r, s)\).
@@ -1144,10 +1144,10 @@ pure function mitc4_covariant_shear(elem, r, s, dir) result(rst)
     !   dir = 2: gamma_s = dw/ds + theta_y * dx/ds - theta_x * dy/ds
     class(rectangular_shell_element), intent(in) :: elem
     real(real64), intent(in) :: r, s
-    integer(int32), intent(in) :: dir
+    integer, intent(in) :: dir
     real(real64) :: rst(24)
 
-    integer(int32) :: i, c
+    integer :: i, c
     real(real64) :: ni, jac(2,2)
     real(real64), allocatable, dimension(:,:) :: dnds
 
@@ -1188,7 +1188,7 @@ pure function quad_strain_disp_matrix(this, s) result(rst)
         !! The 8-by-24 strain-displacement matrix.
 
     ! Local Variables
-    integer(int32) :: i, c
+    integer :: i, c
     real(real64) :: jac(2,2), jinv(2,2), gr(24), gs(24)
     real(real64), allocatable, dimension(:,:) :: dndx
 

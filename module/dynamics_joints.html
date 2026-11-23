@@ -90,7 +90,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 1.2% of total for modules and submodules.">124 statements</a>
+               title=" 0.9% of total for modules and submodules.">124 statements</a>
           </li>
 
             <li id="source-file">
@@ -203,11 +203,11 @@ the links of a mechanism.</p>
       <ul class="list-group">
           <li class="list-group-item">
             <ul class="list-inline">
-                <li>linalg</li>
-                <li><a href='../module/dynamics_rotation.html'>dynamics_rotation</a></li>
-                <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
-                <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
                 <li><a href='../module/dynamics_kinematics.html'>dynamics_kinematics</a></li>
+                <li><a href='../module/dynamics_rotation.html'>dynamics_rotation</a></li>
+                <li>linalg</li>
+                <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
+                <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
             </ul>
           </li>
       </ul>
@@ -309,7 +309,7 @@ the links of a mechanism.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-cylindrical_joint"></span>
-              integer(kind=int32),
+              integer,
             </td>
               <td>public,</td>
             <td>
@@ -327,7 +327,7 @@ joint's z-axis.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-fixed_joint"></span>
-              integer(kind=int32),
+              integer,
             </td>
               <td>public,</td>
             <td>
@@ -344,7 +344,7 @@ parameter
         <tr>
             <td>
               <span class="anchor" id="variable-spherical_joint"></span>
-              integer(kind=int32),
+              integer,
             </td>
               <td>public,</td>
             <td>
@@ -362,7 +362,7 @@ rotation is parameterized by a z-y-x Euler angle sequence.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-universal_joint"></span>
-              integer(kind=int32),
+              integer,
             </td>
               <td>public,</td>
             <td>
@@ -414,7 +414,7 @@ by rotation about the resulting y-axis.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              integer(kind=int32),
+              integer,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -431,7 +431,7 @@ UNIVERSAL_JOINT, or SPHERICAL_JOINT.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              integer(kind=int32),
+              integer,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -446,7 +446,7 @@ UNIVERSAL_JOINT, or SPHERICAL_JOINT.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              integer(kind=int32),
+              integer,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -461,7 +461,7 @@ UNIVERSAL_JOINT, or SPHERICAL_JOINT.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              integer(kind=int32),
+              integer,
             </td>
 <td>intent(in),</td>
               <td>optional</td>            <td>
@@ -477,7 +477,7 @@ joint attaches.  If not supplied, a value of one is used.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              integer(kind=int32),
+              integer,
             </td>
 <td>intent(in),</td>
               <td>optional</td>            <td>
@@ -571,7 +571,7 @@ with both frames when all of its joint variables are zero.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-child_frame~2"></span>
-              integer(kind=int32),
+              integer,
             </td>
               <td>public</td>
             <td>
@@ -589,7 +589,7 @@ joint attaches.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-child_link~2"></span>
-              integer(kind=int32),
+              integer,
             </td>
               <td>public</td>
             <td>
@@ -606,7 +606,7 @@ joint attaches.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-joint_type"></span>
-              integer(kind=int32),
+              integer,
             </td>
               <td>public</td>
             <td>
@@ -625,7 +625,7 @@ UNIVERSAL_JOINT, or SPHERICAL_JOINT.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-parent_frame~2"></span>
-              integer(kind=int32),
+              integer,
             </td>
               <td>public</td>
             <td>
@@ -643,7 +643,7 @@ the joint attaches.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-parent_link~2"></span>
-              integer(kind=int32),
+              integer,
             </td>
               <td>public</td>
             <td>
@@ -766,7 +766,7 @@ joint type.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              integer(kind=int32),
+              integer,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -783,7 +783,7 @@ joint type.</p>
 
     <h4>
     Return Value
-    <small>integer(kind=int32)</small>
+    <small>integer</small>
     </h4>
     <p>The number of degrees of freedom.  A value of -1 is returned if
 the joint type is not recognized.</p>
@@ -812,7 +812,7 @@ the joint type is not recognized.</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-10-31 12:53            </p>
+ on 2026-11-23 20:11            </p>
         </div>
       </div>
       <br>

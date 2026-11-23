@@ -24,16 +24,16 @@ module dynamics_maps
     public :: poincare_map
     public :: poincare_map_progress
 
-    integer(int32), parameter :: POINCARE_TWO_SIDED = 0
+    integer, parameter :: POINCARE_TWO_SIDED = 0
         !! A two-sided Poincare section will be computed.  In this section, the
         !! algorithm does not care whether the trajectory approaches the 
         !! sectioning plane from the front or the back of the plane (defined
         !! by the plane normal).  It simply returns any intersection point.
-    integer(int32), parameter :: POINCARE_ONE_SIDED_FROM_FRONT = 1
+    integer, parameter :: POINCARE_ONE_SIDED_FROM_FRONT = 1
         !! A one-sided Poincare section will be computed where the algorithm
         !! only retains intersection points where the trajectory approaches
         !! the sectioning plane from the front (the side of the plane normal).
-    integer(int32), parameter :: POINCARE_ONE_SIDED_FROM_BACK = 2
+    integer, parameter :: POINCARE_ONE_SIDED_FROM_BACK = 2
         !! A one-sided Poincare section will be computed where the algorithm
         !! only retains intersection points where the trajectory approaches
         !! the sectioning plane from the back (the side opposite the plane 
@@ -61,10 +61,10 @@ module dynamics_maps
         subroutine poincare_map_progress(completed_samples, total_samples, &
             time, args)
             !! Reports progress after a complete ODE sample chunk is processed.
-            import int32, real64
-            integer(int32), intent(in) :: completed_samples
+            import real64
+            integer, intent(in) :: completed_samples
                 !! Number of uniformly spaced samples completed so far.
-            integer(int32), intent(in) :: total_samples
+            integer, intent(in) :: total_samples
                 !! Total number of requested samples.
             real(real64), intent(in) :: time
                 !! Time at the end of the completed chunk.
@@ -97,7 +97,7 @@ contains
         class(plane), intent(in), optional :: pln
             !! The plane to intersect.  If not supplied, the x-y plane is 
             !! utilized where z = 0.
-        integer(int32), intent(in), optional :: side
+        integer, intent(in), optional :: side
             !! An integer flag denoting which approach to use when computing
             !! the section.  The acceptable values are as follows.
             !!
@@ -123,7 +123,7 @@ contains
 
         ! Local Variables
         logical :: from_back, keep
-        integer(int32) :: i, j, n, s
+        integer :: i, j, n, s
         real(real64) :: t, pt(3), normal(3), normal_norm, offset, tol, scale
         real(real64), allocatable, dimension(:) :: signed_distance
         real(real64), allocatable, dimension(:,:) :: buffer
@@ -226,19 +226,19 @@ contains
         real(real64), intent(in), dimension(:) :: iv
             !! The initial value of each ODE state at tspan(1). At least one
             !! state is required, or three when coordinates is not supplied.
-        integer(int32), intent(in) :: sample_count
+        integer, intent(in) :: sample_count
             !! The number of uniformly spaced samples across tspan, including
             !! both endpoints. Must be at least two.
         class(plane), intent(in), optional :: pln
             !! The section plane. Defaults to the x-y plane (z = 0).
-        integer(int32), intent(in), optional :: side
+        integer, intent(in), optional :: side
             !! The crossing direction: POINCARE_TWO_SIDED (default),
             !! POINCARE_ONE_SIDED_FROM_FRONT, or POINCARE_ONE_SIDED_FROM_BACK.
         class(ode_integrator), intent(inout), optional, target :: solver
             !! The ODE solver to use. Defaults to runge_kutta_45. Its solution
             !! buffer is cleared for each chunk and on return; other solver
             !! settings, including tolerances, are retained.
-        integer(int32), intent(in), optional :: chunk_size
+        integer, intent(in), optional :: chunk_size
             !! Maximum number of sample intervals per solve. Must be positive;
             !! defaults to 1000. The solve requests at most chunk_size + 1
             !! samples, except that a one-interval solve requests a midpoint.
@@ -247,14 +247,13 @@ contains
             !! Defaults to the first three state components.
         class(*), intent(inout), optional :: args
             !! Optional user data forwarded to each ODE solver call.
-        procedure(poincare_map_progress), intent(in), pointer, optional :: &
-            progress_callback
+        procedure(poincare_map_progress), optional :: progress_callback
             !! Optional notification after each completed sample chunk.
         real(real64), allocatable, dimension(:,:) :: rst
             !! An N-by-3 array of section intersections in x, y, z order.
 
         logical :: carry_previous
-        integer(int32) :: first, last, count, capacity, chunk, i, n, &
+        integer :: first, last, count, capacity, chunk, i, n, &
             solve_count, sample_index, offset, found
         real(real64) :: dt, scale, tol, distance, normal_norm
         real(real64), allocatable, dimension(:) :: times, state
@@ -382,7 +381,7 @@ contains
 
 ! ------------------------------------------------------------------------------
     pure logical function accepts_side(side, from_back) result(rst)
-        integer(int32), intent(in) :: side
+        integer, intent(in) :: side
         logical, intent(in) :: from_back
 
         rst = side == POINCARE_TWO_SIDED .or. &

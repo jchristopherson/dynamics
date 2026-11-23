@@ -174,7 +174,7 @@ contains
             !! The resulting quaternion.
 
         ! Local Variables
-        integer(int32) :: ind
+        integer :: ind
         real(real64) :: esq(4), e0, e1, e2, e3
 
         ! Process
@@ -532,7 +532,7 @@ contains
         !! Computes the result of a quaternion raised to an exponent.
         type(quaternion), intent(in) :: q
             !! The quaternion base.
-        integer(int32), intent(in) :: exponent
+        integer, intent(in) :: exponent
             !! The exponent.
         type(quaternion) :: rst
             !! The resulting quaternion.

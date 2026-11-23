@@ -1,5 +1,6 @@
 var group__dynamics__state =
 [
+    [ "Discrete-time controls", "group__dynamics__discrete__controls.html", "group__dynamics__discrete__controls" ],
     [ "c_alloc_polynomial", "group__dynamics__state.html#ga5b3138ce385d12057157228875ebe2bc", null ],
     [ "c_free_polynomial", "group__dynamics__state.html#ga5d0fbd0ad48d49a137a783934a66bf12", null ],
     [ "c_alloc_transfer_function", "group__dynamics__state.html#ga18947661251ea48ae1725d1f6b63e63d", null ],

@@ -90,7 +90,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 2.8% of total for modules and submodules.">290 statements</a>
+               title=" 2.1% of total for modules and submodules.">287 statements</a>
           </li>
 
             <li id="source-file">
@@ -180,15 +180,15 @@
       <ul class="list-group">
           <li class="list-group-item">
             <ul class="list-inline">
-                <li>linalg</li>
                 <li><a href='../module/dynamics_geometry.html'>dynamics_geometry</a></li>
+                <li><a href='../module/dynamics_kinematics.html'>dynamics_kinematics</a></li>
+                <li>linalg</li>
+                <li>collections</li>
+                <li><a href='../module/dynamics_helper.html'>dynamics_helper</a></li>
+                <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
                 <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
                 <li><a href='../module/dynamics_rigid_bodies.html'>dynamics_rigid_bodies</a></li>
-                <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
-                <li>collections</li>
                 <li><a href='../module/dynamics_quaternions.html'>dynamics_quaternions</a></li>
-                <li><a href='../module/dynamics_helper.html'>dynamics_helper</a></li>
-                <li><a href='../module/dynamics_kinematics.html'>dynamics_kinematics</a></li>
             </ul>
           </li>
       </ul>
@@ -285,7 +285,7 @@
         <tr>
             <td>
               <span class="anchor" ></span>
-              integer(kind=int32),
+              integer,
             </td>
 <td>intent(in),</td>
               <td>optional</td>            <td>
@@ -651,7 +651,7 @@ frame.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-joint_angle~2"></span>
+              <span class="anchor" id="variable-joint_angle"></span>
               real(kind=real64),
             </td>
               <td>public</td>
@@ -670,8 +670,8 @@ current link's x-axis.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-joint_type~2"></span>
-              integer(kind=int32),
+              <span class="anchor" id="variable-joint_type~7"></span>
+              integer,
             </td>
               <td>public</td>
             <td>
@@ -688,7 +688,7 @@ REVOLUTE_JOINT or PRISMATIC_JOINT.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-link_length~2"></span>
+              <span class="anchor" id="variable-link_length"></span>
               real(kind=real64),
             </td>
               <td>public</td>
@@ -706,7 +706,7 @@ joint axes as measured along the link's x-axis.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-link_offset~2"></span>
+              <span class="anchor" id="variable-link_offset"></span>
               real(kind=real64),
             </td>
               <td>public</td>
@@ -725,7 +725,7 @@ axis of the proximal joint.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-link_twist~2"></span>
+              <span class="anchor" id="variable-link_twist"></span>
               real(kind=real64),
             </td>
               <td>public</td>
@@ -744,7 +744,7 @@ joint's axis.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-mass~14"></span>
+              <span class="anchor" id="variable-mass~12"></span>
               real(kind=real64),
             </td>
               <td>public</td>
@@ -872,7 +872,7 @@ frame.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-mass~14"></span>
+              <span class="anchor" id="variable-mass~12"></span>
               real(kind=real64),
             </td>
               <td>public</td>
@@ -979,7 +979,7 @@ frame.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-mass~14"></span>
+              <span class="anchor" id="variable-mass~12"></span>
               real(kind=real64),
             </td>
               <td>public</td>
@@ -1094,7 +1094,7 @@ frame.</p>
                 <td>
                     procedure
                     ,                  public
-                  :: <strong><a href='../type/serial_linkage.html#boundprocedure-forward_kinematics~2'>forward_kinematics</a></strong>
+                  :: <strong><a href='../type/serial_linkage.html#boundprocedure-forward_kinematics'>forward_kinematics</a></strong>
  =>
                     sl_forward_kinematics
 <small>Function</small>                </td>
@@ -1104,7 +1104,7 @@ frame.</p>
                 <td>
                     procedure
                     ,                  public
-                  :: <strong><a href='../type/serial_linkage.html#boundprocedure-get_link~2'>get_link</a></strong>
+                  :: <strong><a href='../type/serial_linkage.html#boundprocedure-get_link'>get_link</a></strong>
  =>
                     sl_get_link
 <small>Function</small>                </td>
@@ -1114,7 +1114,7 @@ frame.</p>
                 <td>
                     procedure
                     ,                  public
-                  :: <strong><a href='../type/serial_linkage.html#boundprocedure-get_link_count~2'>get_link_count</a></strong>
+                  :: <strong><a href='../type/serial_linkage.html#boundprocedure-get_link_count'>get_link_count</a></strong>
  =>
                     sl_get_link_count
 <small>Function</small>                </td>
@@ -1124,7 +1124,7 @@ frame.</p>
                 <td>
                     procedure
                     ,                  public
-                  :: <strong><a href='../type/serial_linkage.html#boundprocedure-inverse_kinematics~2'>inverse_kinematics</a></strong>
+                  :: <strong><a href='../type/serial_linkage.html#boundprocedure-inverse_kinematics'>inverse_kinematics</a></strong>
  =>
                     sl_inverse_kinematics_1
 <small>Function</small>                </td>
@@ -1134,7 +1134,7 @@ frame.</p>
                 <td>
                     procedure
                     ,                  public
-                  :: <strong><a href='../type/serial_linkage.html#boundprocedure-jacobian~3'>jacobian</a></strong>
+                  :: <strong><a href='../type/serial_linkage.html#boundprocedure-jacobian~2'>jacobian</a></strong>
  =>
                     sl_jacobian
 <small>Function</small>                </td>
@@ -1167,7 +1167,7 @@ frame.</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-10-31 12:53            </p>
+ on 2026-11-23 20:11            </p>
         </div>
       </div>
       <br>

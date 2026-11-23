@@ -12,7 +12,7 @@
 ! implied, including but not limited to the warranties of merchantability,
 ! fitness for a particular purpose and noninfringement.
 module dynamics_frequency_sweep
-    use iso_fortran_env, only : int32, real64
+    use iso_fortran_env, only : real64
     use diffeq, only : ode_container, ode_integrator
     use dynamics_error_handling
     use dynamics_frequency_response, only : frf
@@ -43,7 +43,7 @@ module dynamics_frequency_sweep
                 !! The value of the solution estimate at time t.
             real(real64), intent(out), dimension(:) :: dxdt
                 !! The derivatives as computed by this routine.
-            class(*), intent(inout), optional :: args
+            class(*), intent(in), optional :: args
                 !! An optional argument allowing the passing of data in/out of
                 !! this routine.
         end subroutine
@@ -109,7 +109,7 @@ contains
         !! b = \frac{2}{N} \sum_{k=0}^{N-1} y_k \sin(\omega t_k). $$
         use diffeq, only : runge_kutta_45
         use dynamics_error_handling
-        procedure(harmonic_ode), pointer, intent(in) :: fcn
+        procedure(harmonic_ode) :: fcn
             !! A pointer to the routine containing the ODE's to integrate.
         real(real64), intent(in), dimension(:) :: freq
             !! An M-element array containing the frequency points at which the 
@@ -125,14 +125,14 @@ contains
             !! An optional differential equation solver.  The default solver
             !! is the Dormand-Prince Runge-Kutta integrator from the DIFFEQ
             !! library.
-        integer(int32), intent(in), optional :: ncycles
+        integer, intent(in), optional :: ncycles
             !! An optional parameter controlling the number of cycles to 
             !! analyze when determining the amplitude and phase of the response.
             !! The default is 5.
-        integer(int32), intent(in), optional :: ntransient
+        integer, intent(in), optional :: ntransient
             !! An optional parameter controlling how many of the initial 
             !! "transient" cycles to ignore.  The default is 30.
-        integer(int32), intent(in), optional :: points
+        integer, intent(in), optional :: points
             !! An optional parameter controlling how many evenly spaced 
             !! solution points should be considered per cycle.  The default is 
             !! 1000.
@@ -140,7 +140,7 @@ contains
             !! Set to true if the units of the frequency vector are in Hz.  If
             !! false, the units are assumed as rad/s.  The default is false such
             !! that the frequency units are assumed to be rad/s.
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
             !! An optional argument allowing for passing of data in/out of the
             !! fcn subroutine.
         type(frf) :: rst
@@ -152,7 +152,7 @@ contains
 
         ! Local Variables
         logical :: hz
-        integer(int32) :: i, j, nfreq, neqn, nc, nt, ntotal, npts, ppc, &
+        integer :: i, j, nfreq, neqn, nc, nt, ntotal, npts, ppc, &
             i1, ncpts
         real(real64) :: dt, omega, f
         real(real64), allocatable, dimension(:) :: ic, t
@@ -206,7 +206,6 @@ contains
         end if
 
         ! Input Checking
-        if (.not.associated(fcn)) error stop DYN_NULL_POINTER_ERROR
         if (nfreq < 1 .or. neqn < 1) error stop DYN_INVALID_INPUT_ERROR
         if (nc < 1) error stop DYN_INVALID_INPUT_ERROR
         if (nt < 1) error stop DYN_INVALID_INPUT_ERROR
@@ -261,7 +260,7 @@ contains
         real(real64), intent(in) :: x
         real(real64), intent(in), dimension(:) :: y
         real(real64), intent(out), dimension(:) :: dydx
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
 
         select type (args)
         class is (frf_arg_container)
@@ -286,7 +285,7 @@ contains
         complex(real64) :: rst
 
         ! Local Variables
-        integer(int32) :: i, n
+        integer :: i, n
         real(real64) :: a, b, r, phi
 
         ! Initialization
@@ -322,9 +321,9 @@ contains
         !! where
         !! $$ a = \frac{2}{N} \sum_{k=0}^{N-1} y_k \cos(\omega t_k), \qquad
         !! b = \frac{2}{N} \sum_{k=0}^{N-1} y_k \sin(\omega t_k). $$
-        procedure(harmonic_ode), pointer, intent(in) :: fcn
+        procedure(harmonic_ode) :: fcn
             !! A pointer to the routine containing the ODE's to integrate.
-        integer(int32), intent(in) :: nfreq
+        integer, intent(in) :: nfreq
             !! The number of frequency values to analyze.  This value must be
             !! at least 2.
         real(real64), intent(in) :: freq1
@@ -338,14 +337,14 @@ contains
             !! An optional differential equation solver.  The default solver
             !! is the Dormand-Prince Runge-Kutta integrator from the DIFFEQ
             !! library.
-        integer(int32), intent(in), optional :: ncycles
+        integer, intent(in), optional :: ncycles
             !! An optional parameter controlling the number of cycles to 
             !! analyze when determining the amplitude and phase of the response.
             !! The default is 5.
-        integer(int32), intent(in), optional :: ntransient
+        integer, intent(in), optional :: ntransient
             !! An optional parameter controlling how many of the initial 
             !! "transient" cycles to ignore.  The default is 30.
-        integer(int32), intent(in), optional :: points
+        integer, intent(in), optional :: points
             !! An optional parameter controlling how many evenly spaced 
             !! solution points should be considered per cycle.  The default is 
             !! 1000.
@@ -353,19 +352,18 @@ contains
             !! Set to true if the units of the frequency units are in Hz.  If
             !! false, the units are assumed as rad/s.  The default is false such
             !! that the frequency units are assumed to be rad/s.
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
             !! An optional argument allowing for passing of data in/out of the
             !! fcn subroutine.
         type(frf) :: rst
             !! The resulting frequency responses.
 
         ! Local Variables
-        integer(int32) :: i
+        integer :: i
         real(real64) :: df
         real(real64), allocatable, dimension(:) :: freq
 
         ! Input Checking
-        if (.not.associated(fcn)) error stop DYN_NULL_POINTER_ERROR
         if (abs(freq1 - freq2) < sqrt(epsilon(freq1))) error stop DYN_INVALID_INPUT_ERROR
         if (nfreq < 2) error stop DYN_INVALID_INPUT_ERROR
 

@@ -9,6 +9,7 @@ var annotated_dup =
     [ "c_damper_element_3d", "structc__damper__element__3d.html", "structc__damper__element__3d" ],
     [ "c_dh_parameter_set", "structc__dh__parameter__set.html", "structc__dh__parameter__set" ],
     [ "c_dh_table", "structc__dh__table.html", "structc__dh__table" ],
+    [ "c_discrete_optimizer_options", "structc__discrete__optimizer__options.html", "structc__discrete__optimizer__options" ],
     [ "c_dynamic_system_measurement", "structc__dynamic__system__measurement.html", "structc__dynamic__system__measurement" ],
     [ "c_frequency_sweep_controls", "structc__frequency__sweep__controls.html", "structc__frequency__sweep__controls" ],
     [ "c_iteration_behavior", "structc__iteration__behavior.html", "structc__iteration__behavior" ],

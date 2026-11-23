@@ -90,7 +90,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 6.6% of total for modules and submodules.">667 statements</a>
+               title=" 4.8% of total for modules and submodules.">661 statements</a>
           </li>
 
             <li id="source-file">
@@ -205,13 +205,13 @@
       <ul class="list-group">
           <li class="list-group-item">
             <ul class="list-inline">
-                <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
-                <li><a href='../module/dynamics_helper.html'>dynamics_helper</a></li>
                 <li>spectrum</li>
                 <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
+                <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
+                <li><a href='../module/dynamics_helper.html'>dynamics_helper</a></li>
                 <li>lapack</li>
-                <li>fstats</li>
                 <li><a href='../module/dynamics_modal_analysis.html'>dynamics_modal_analysis</a></li>
+                <li>fstats</li>
             </ul>
           </li>
       </ul>
@@ -316,7 +316,7 @@
         <tr>
             <td>
               <span class="anchor" id="variable-frf_accelerance_model"></span>
-              integer(kind=int32),
+              integer,
             </td>
               <td>public,</td>
             <td>
@@ -333,7 +333,7 @@ parameter
         <tr>
             <td>
               <span class="anchor" id="variable-frf_receptance_model"></span>
-              integer(kind=int32),
+              integer,
             </td>
               <td>public,</td>
             <td>
@@ -858,11 +858,11 @@ frequency response functions, in units of rad/s.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              procedure(<a href='../interface/modal_excite.html'>modal_excite</a>),
+              procedure(<a href='../interface/modal_excite.html'>modal_excite</a>)
             </td>
-<td>intent(in),</td>
+<td></td>
               <td></td>            <td>
-              pointer
+              
             </td>
             <td>::</td>
             <td><strong>frc</strong></td>
@@ -909,7 +909,7 @@ its own column.</p>
               <span class="anchor" ></span>
               class(*),
             </td>
-<td>intent(inout),</td>
+<td>intent(in),</td>
               <td>optional</td>            <td>
               
             </td>
@@ -1013,7 +1013,7 @@ The damping matrix is defined by <script type="math/tex">C=\alpha M+\beta K</scr
         <tr>
             <td>
               <span class="anchor" ></span>
-              integer(kind=int32),
+              integer,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -1044,11 +1044,11 @@ must be greater than zero and less than N.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              procedure(<a href='../interface/modal_excite.html'>modal_excite</a>),
+              procedure(<a href='../interface/modal_excite.html'>modal_excite</a>)
             </td>
-<td>intent(in),</td>
+<td></td>
               <td></td>            <td>
-              pointer
+              
             </td>
             <td>::</td>
             <td><strong>frc</strong></td>
@@ -1093,7 +1093,7 @@ retained mode shapes.</p>
               <span class="anchor" ></span>
               class(*),
             </td>
-<td>intent(inout),</td>
+<td>intent(in),</td>
               <td>optional</td>            <td>
               
             </td>
@@ -1203,7 +1203,7 @@ symmetric.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              integer(kind=int32),
+              integer,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -1249,11 +1249,11 @@ at least 2.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              procedure(<a href='../interface/modal_excite.html'>modal_excite</a>),
+              procedure(<a href='../interface/modal_excite.html'>modal_excite</a>)
             </td>
-<td>intent(in),</td>
+<td></td>
               <td></td>            <td>
-              pointer
+              
             </td>
             <td>::</td>
             <td><strong>frc</strong></td>
@@ -1300,7 +1300,7 @@ its own column.</p>
               <span class="anchor" ></span>
               class(*),
             </td>
-<td>intent(inout),</td>
+<td>intent(in),</td>
               <td>optional</td>            <td>
               
             </td>
@@ -1404,7 +1404,7 @@ The damping matrix is defined by <script type="math/tex">C=\alpha M+\beta K</scr
         <tr>
             <td>
               <span class="anchor" ></span>
-              integer(kind=int32),
+              integer,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -1420,7 +1420,7 @@ must be greater than zero and less than N.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              integer(kind=int32),
+              integer,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -1466,11 +1466,11 @@ at least 2.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              procedure(<a href='../interface/modal_excite.html'>modal_excite</a>),
+              procedure(<a href='../interface/modal_excite.html'>modal_excite</a>)
             </td>
-<td>intent(in),</td>
+<td></td>
               <td></td>            <td>
-              pointer
+              
             </td>
             <td>::</td>
             <td><strong>frc</strong></td>
@@ -1515,7 +1515,7 @@ retained mode shapes.</p>
               <span class="anchor" ></span>
               class(*),
             </td>
-<td>intent(inout),</td>
+<td>intent(in),</td>
               <td>optional</td>            <td>
               
             </td>
@@ -1637,7 +1637,7 @@ function.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              integer(kind=int32),
+              integer,
             </td>
 <td>intent(out),</td>
               <td>optional,</td>            <td>
@@ -1656,7 +1656,7 @@ length as freq.</p>
               <span class="anchor" ></span>
               class(*),
             </td>
-<td>intent(inout),</td>
+<td>intent(in),</td>
               <td>optional</td>            <td>
               
             </td>
@@ -1747,7 +1747,7 @@ F(\omega) </script>.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              integer(kind=int32),
+              integer,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -1809,7 +1809,7 @@ function.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              integer(kind=int32),
+              integer,
             </td>
 <td>intent(out),</td>
               <td>optional,</td>            <td>
@@ -1828,7 +1828,7 @@ length as freq.</p>
               <span class="anchor" ></span>
               class(*),
             </td>
-<td>intent(inout),</td>
+<td>intent(in),</td>
               <td>optional</td>            <td>
               
             </td>
@@ -1932,7 +1932,7 @@ is applied.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              integer(kind=int32),
+              integer,
             </td>
 <td>intent(in),</td>
               <td>optional</td>            <td>
@@ -2049,7 +2049,7 @@ is applied.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              integer(kind=int32),
+              integer,
             </td>
 <td>intent(in),</td>
               <td>optional</td>            <td>
@@ -2151,7 +2151,7 @@ written.</p>
               <span class="anchor" ></span>
               class(*),
             </td>
-<td>intent(inout),</td>
+<td>intent(in),</td>
               <td>optional</td>            <td>
               
             </td>
@@ -2347,7 +2347,7 @@ receptance model:</p><a href="../proc/fit_frf.html" class="pull-right"><emph>Rea
         <tr>
             <td>
               <span class="anchor" ></span>
-              integer(kind=int32),
+              integer,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -2362,7 +2362,7 @@ receptance model:</p><a href="../proc/fit_frf.html" class="pull-right"><emph>Rea
         <tr>
             <td>
               <span class="anchor" ></span>
-              integer(kind=int32),
+              integer,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -2572,7 +2572,7 @@ iterative solution and the nature of the convergence.</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-10-31 12:53            </p>
+ on 2026-11-23 20:11            </p>
         </div>
       </div>
       <br>

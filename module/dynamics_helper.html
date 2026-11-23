@@ -90,7 +90,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 0.7% of total for modules and submodules.">69 statements</a>
+               title=" 1.9% of total for modules and submodules.">259 statements</a>
           </li>
 
             <li id="source-file">
@@ -125,7 +125,21 @@
   
   
   
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#inters-0">Interfaces</a>
+        </h3>
+      </div>
+      <div id="inters-0" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_helper.html#interface-cross_product">cross_product</a>
+            <a class="list-group-item" href="../module/dynamics_helper.html#interface-dot_product">dot_product</a>
+            <a class="list-group-item" href="../module/dynamics_helper.html#interface-matmul~2">matmul</a>
+        </div>
+      </div>
+    </div>
+
   
   
       <div class="panel panel-primary">
@@ -136,8 +150,8 @@
       </div>
       <div id="funcs-0" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../module/dynamics_helper.html#proc-cross_product">cross_product</a>
             <a class="list-group-item" href="../module/dynamics_helper.html#proc-is_symmetric">is_symmetric</a>
+            <a class="list-group-item" href="../module/dynamics_helper.html#proc-matrix_exponential">matrix_exponential</a>
             <a class="list-group-item" href="../module/dynamics_helper.html#proc-scalar_projection">scalar_projection</a>
             <a class="list-group-item" href="../module/dynamics_helper.html#proc-to_skew_symmetric">to_skew_symmetric</a>
             <a class="list-group-item" href="../module/dynamics_helper.html#proc-vector_angle">vector_angle</a>
@@ -146,7 +160,20 @@
       </div>
     </div>
 
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#subs-0">Subroutines</a>
+        </h3>
+      </div>
+      <div id="subs-0" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_helper.html#proc-siso_resolvent_coefficients">siso_resolvent_coefficients</a>
+            <a class="list-group-item" href="../module/dynamics_helper.html#proc-solve_linear">solve_linear</a>
+        </div>
+      </div>
+    </div>
+
   
   
   
@@ -168,7 +195,10 @@
       <ul class="list-group">
           <li class="list-group-item">
             <ul class="list-inline">
+                <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
                 <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
+                <li>autodiff</li>
+                <li>linalg</li>
             </ul>
           </li>
       </ul>
@@ -187,7 +217,21 @@
   
   
   
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#inters-1">Interfaces</a>
+        </h3>
+      </div>
+      <div id="inters-1" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_helper.html#interface-cross_product">cross_product</a>
+            <a class="list-group-item" href="../module/dynamics_helper.html#interface-dot_product">dot_product</a>
+            <a class="list-group-item" href="../module/dynamics_helper.html#interface-matmul~2">matmul</a>
+        </div>
+      </div>
+    </div>
+
   
   
       <div class="panel panel-primary">
@@ -198,8 +242,8 @@
       </div>
       <div id="funcs-1" class="panel-collapse collapse">
         <div class="list-group">
-            <a class="list-group-item" href="../module/dynamics_helper.html#proc-cross_product">cross_product</a>
             <a class="list-group-item" href="../module/dynamics_helper.html#proc-is_symmetric">is_symmetric</a>
+            <a class="list-group-item" href="../module/dynamics_helper.html#proc-matrix_exponential">matrix_exponential</a>
             <a class="list-group-item" href="../module/dynamics_helper.html#proc-scalar_projection">scalar_projection</a>
             <a class="list-group-item" href="../module/dynamics_helper.html#proc-to_skew_symmetric">to_skew_symmetric</a>
             <a class="list-group-item" href="../module/dynamics_helper.html#proc-vector_angle">vector_angle</a>
@@ -208,7 +252,20 @@
       </div>
     </div>
 
-  
+      <div class="panel panel-primary">
+      <div class="panel-heading text-left">
+        <h3 class="panel-title">
+          <a data-toggle="collapse" href="#subs-1">Subroutines</a>
+        </h3>
+      </div>
+      <div id="subs-1" class="panel-collapse collapse">
+        <div class="list-group">
+            <a class="list-group-item" href="../module/dynamics_helper.html#proc-siso_resolvent_coefficients">siso_resolvent_coefficients</a>
+            <a class="list-group-item" href="../module/dynamics_helper.html#proc-solve_linear">solve_linear</a>
+        </div>
+      </div>
+    </div>
+
   
   
   
@@ -223,17 +280,20 @@
 
     
     
-
-    
-    
- 
     <section>
-    <h2>Functions</h2>
-      <div class="panel panel-default">
-    <div class="panel-heading codesum"><span class="anchor" id="proc-cross_product"></span><h3>public pure function <a href='../proc/cross_product.html'>cross_product</a>(x, y) result(rst)  
-</h3></div>
-    <div class="panel-body">
-          
+   <h2>Interfaces</h2>
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="interface-cross_product"></span>
+      <h3>public        interface <a href='../interface/cross_product.html'>cross_product</a> 
+      </h3>
+    </div>
+    <ul class="list-group">
+          <li class="list-group-item">
+                <h3>
+    private pure function real_cross(x, y) result(rst)  
+
+    </h3>
   <p>Computes the cross-product of two three-dimensional vectors.
 The result is orthogonal to both inputs and is defined by
 <script type="math/tex; mode=display"> \boldsymbol{x}\times\boldsymbol{y} =
@@ -263,7 +323,7 @@ The result is orthogonal to both inputs and is defined by
             <td>::</td>
             <td><strong>x</strong>(3)</td>
             <td>
-<p>The left-hand-side argument.</p>
+                <p>The left-hand-side argument.</p>
             </td>
         </tr>
         <tr>
@@ -278,7 +338,7 @@ The result is orthogonal to both inputs and is defined by
             <td>::</td>
             <td><strong>y</strong>(3)</td>
             <td>
-<p>The right-hand-side argument</p>
+                <p>The right-hand-side argument</p>
             </td>
         </tr>
     </tbody>
@@ -290,9 +350,330 @@ The result is orthogonal to both inputs and is defined by
     </h4>
     <p>The resulting vector.</p>
 
-    </div>
+          </li>
+          <li class="list-group-item">
+                <h3>
+    private pure function hd_cross(a, b) result(c)  
+
+    </h3>
+  <p>Compute the right-handed cross product of hyper-dual vectors.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(hyperdual),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(3)
+            </td>
+            <td>::</td>
+            <td><strong>a</strong></td>
+            <td>
+                <p>Left operand.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(hyperdual),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(3)
+            </td>
+            <td>::</td>
+            <td><strong>b</strong></td>
+            <td>
+                <p>Right operand.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(hyperdual), dimension(3)</small>
+    </h4>
+    <p>Cross product with propagated derivatives.</p>
+
+          </li>
+    </ul>
   </div>
 
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="interface-dot_product"></span>
+      <h3>public        interface <a href='../interface/dot_product.html'>dot_product</a> 
+      </h3>
+    </div>
+    <ul class="list-group">
+          <li class="list-group-item">
+                <h3>
+    private pure function dual_dot_product(x, y) result(rst)  
+
+    </h3>
+  <p>Computes the dot-product of two dual-type arrays.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(dual),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+                <p>The left-hand-side argument.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(dual),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>y</strong></td>
+            <td>
+                <p>The right-hand-side argument.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(dual)</small>
+    </h4>
+    <p>The dot product.</p>
+
+          </li>
+          <li class="list-group-item">
+                <h3>
+    private pure function hyperdual_dot_product(x, y) result(rst)  
+
+    </h3>
+  <p>Computes the dot-product of two hyperdual-type arrays.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(hyperdual),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+                <p>The left-hand-side argument.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(hyperdual),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>y</strong></td>
+            <td>
+                <p>The right-hand-side argument.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(hyperdual)</small>
+    </h4>
+    <p>The dot product.</p>
+
+          </li>
+    </ul>
+  </div>
+
+       <div class="panel panel-default">
+    <div class="panel-heading codesum">
+      <span class="anchor" id="interface-matmul~2"></span>
+      <h3>public        interface <a href='../interface/matmul~2.html'>matmul</a> 
+      </h3>
+    </div>
+    <ul class="list-group">
+          <li class="list-group-item">
+                <h3>
+    private pure function dual_matmul_mtx_vec(x, y) result(rst)  
+
+    </h3>
+  <p>Computes the matrix-vector product of a real-valued matrix with a
+dual-type array.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+                <p>The matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(dual),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>y</strong></td>
+            <td>
+                <p>The vector.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(dual), allocatable, dimension(:)</small>
+    </h4>
+    <p>The resulting vector.</p>
+
+          </li>
+          <li class="list-group-item">
+                <h3>
+    private pure function hyperdual_matmul_mtx_vec(x, y) result(rst)  
+
+    </h3>
+  <p>Computes the matrix-vector product of a real-valued matrix with a
+hyperdual-type array.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+                <p>The matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(hyperdual),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>y</strong></td>
+            <td>
+                <p>The vector.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>type(hyperdual), allocatable, dimension(:)</small>
+    </h4>
+    <p>The resulting vector.</p>
+
+          </li>
+    </ul>
+  </div>
+
+    </section>
+  <br>
+
+    
+    
+ 
+    <section>
+    <h2>Functions</h2>
       <div class="panel panel-default">
     <div class="panel-heading codesum"><span class="anchor" id="proc-is_symmetric"></span><h3>public pure function <a href='../proc/is_symmetric.html'>is_symmetric</a>(a) result(rst)  
 </h3></div>
@@ -334,6 +715,54 @@ The result is orthogonal to both inputs and is defined by
     <small>logical</small>
     </h4>
     <p>True if the matrix is symmetric; else, false.</p>
+
+    </div>
+  </div>
+
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-matrix_exponential"></span><h3>public pure function <a href='../proc/matrix_exponential.html'>matrix_exponential</a>(a) result(rst)  
+</h3></div>
+    <div class="panel-body">
+          
+  <p>Computes the matrix exponential <script type="math/tex"> e^{A} </script> using a degree-six Padé
+approximant combined with scaling and squaring.  The matrix inverse
+required by the approximant is computed with
+<a>mtx_inverse</a>.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>a</strong></td>
+            <td>
+<p>The N-by-N matrix.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=real64), allocatable, dimension(:,:)</small>
+    </h4>
+    <p>The N-by-N matrix exponential.</p>
 
     </div>
   </div>
@@ -578,6 +1007,178 @@ projection is defined such that ( proj_{y} \vec{x} =<br>
     </section>
     <br>
 
+    <section>
+    <h2>Subroutines</h2>
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-siso_resolvent_coefficients"></span><h3>public pure subroutine <a href='../proc/siso_resolvent_coefficients.html'>siso_resolvent_coefficients</a>(a, b, c, den, markov)  
+</h3></div>
+    <div class="panel-body">
+          
+  <p>Computes the coefficients of the characteristic polynomial
+<script type="math/tex"> p(s) = \det(sI - A) </script> and the scalar terms <script type="math/tex"> CB_kB </script> required to
+form the numerator of a single-input, single-output transfer function
+from a state-space realization.  The Faddeev-LeVerrier algorithm is
+employed:
+<script type="math/tex; mode=display"> B_0 = I, \quad a_k = -\frac{1}{k}\text{tr}(AB_{k-1}), \quad
+B_k = AB_{k-1} + a_k I </script>
+such that <script type="math/tex"> p(s) = \sum_{k=0}^{N} a_k s^{N-k} </script> and
+<script type="math/tex"> \text{adj}(sI - A) = \sum_{k=0}^{N-1} B_k s^{N-1-k} </script>.
+The output arrays are 1-based, such that <code>den(k+1)</code> holds <script type="math/tex">a_k</script> and
+<code>markov(k+1)</code> holds <script type="math/tex"> CB_kB </script>.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>a</strong></td>
+            <td>
+<p>The N-by-N dynamics matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>b</strong></td>
+            <td>
+<p>The N-by-1 input matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>c</strong></td>
+            <td>
+<p>The 1-by-N output matrix.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              allocatable, dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>den</strong></td>
+            <td>
+<p>The N+1 characteristic polynomial coefficients, ordered from the
+leading coefficient.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real(kind=real64),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              allocatable, dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>markov</strong></td>
+            <td>
+<p>The N scalar values <script type="math/tex"> CB_kB </script> for <script type="math/tex"> k = 0, \ldots, N-1 </script>.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+      <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="proc-solve_linear"></span><h3>public  subroutine <a href='../proc/solve_linear.html'>solve_linear</a>(a, b)  
+</h3></div>
+    <div class="panel-body">
+          
+  <p>Solves a dense linear system in place using Gaussian elimination with
+partial pivoting.  On output, b contains the solution.  The matrix
+must be nonsingular.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(dual),
+            </td>
+<td>intent(inout),</td>
+              <td></td>            <td>
+              dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>a</strong></td>
+            <td>
+<p>The coefficient matrix.  Its contents are overwritten.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(dual),
+            </td>
+<td>intent(inout),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>b</strong></td>
+            <td>
+<p>On input, the right-hand side.  On output, the solution.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+    </section>
+    <br>
 
 
 
@@ -596,7 +1197,7 @@ projection is defined such that ( proj_{y} \vec{x} =<br>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-10-31 12:53            </p>
+ on 2026-11-23 20:11            </p>
         </div>
       </div>
       <br>

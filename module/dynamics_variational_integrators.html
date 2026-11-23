@@ -90,7 +90,7 @@
           <li id="statements"><i class="fa fa-list-ol"></i>
             <a data-toggle="tooltip"
                data-placement="bottom" data-html="true"
-               title=" 6.0% of total for modules and submodules.">613 statements</a>
+               title=" 4.6% of total for modules and submodules.">631 statements</a>
           </li>
 
             <li id="source-file">
@@ -153,6 +153,7 @@
             <a class="list-group-item" href="../module/dynamics_variational_integrators.html#interface-variational_constraint">variational_constraint</a>
             <a class="list-group-item" href="../module/dynamics_variational_integrators.html#interface-variational_constraint_jacobian">variational_constraint_jacobian</a>
             <a class="list-group-item" href="../module/dynamics_variational_integrators.html#interface-variational_force">variational_force</a>
+            <a class="list-group-item" href="../module/dynamics_variational_integrators.html#interface-variational_step_callback">variational_step_callback</a>
         </div>
       </div>
     </div>
@@ -218,11 +219,11 @@ according to the sparsity graph of the Newton matrix.</p>
           <li class="list-group-item">
             <ul class="list-inline">
                 <li>linalg</li>
-                <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
                 <li><a href='../module/dynamics_error_handling.html'>dynamics_error_handling</a></li>
+                <li><a href='../module/dynamics_helper.html'>dynamics_helper</a></li>
+                <li><a href="http://fortranwiki.org/fortran/show/iso_fortran_env">iso_fortran_env</a></li>
                 <li><a href='../module/dynamics_rigid_bodies.html'>dynamics_rigid_bodies</a></li>
                 <li><a href='../module/dynamics_quaternions.html'>dynamics_quaternions</a></li>
-                <li><a href='../module/dynamics_helper.html'>dynamics_helper</a></li>
             </ul>
           </li>
       </ul>
@@ -269,6 +270,7 @@ according to the sparsity graph of the Newton matrix.</p>
             <a class="list-group-item" href="../module/dynamics_variational_integrators.html#interface-variational_constraint">variational_constraint</a>
             <a class="list-group-item" href="../module/dynamics_variational_integrators.html#interface-variational_constraint_jacobian">variational_constraint_jacobian</a>
             <a class="list-group-item" href="../module/dynamics_variational_integrators.html#interface-variational_force">variational_force</a>
+            <a class="list-group-item" href="../module/dynamics_variational_integrators.html#interface-variational_step_callback">variational_step_callback</a>
         </div>
       </div>
     </div>
@@ -330,7 +332,7 @@ according to the sparsity graph of the Newton matrix.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-vi_dense_solver"></span>
-              integer(kind=int32),
+              integer,
             </td>
               <td>public,</td>
             <td>
@@ -347,7 +349,7 @@ parameter
         <tr>
             <td>
               <span class="anchor" id="variable-vi_force_implicit_endpoint"></span>
-              integer(kind=int32),
+              integer,
             </td>
               <td>public,</td>
             <td>
@@ -364,7 +366,7 @@ parameter
         <tr>
             <td>
               <span class="anchor" id="variable-vi_force_left_endpoint"></span>
-              integer(kind=int32),
+              integer,
             </td>
               <td>public,</td>
             <td>
@@ -381,7 +383,7 @@ parameter
         <tr>
             <td>
               <span class="anchor" id="variable-vi_force_midpoint"></span>
-              integer(kind=int32),
+              integer,
             </td>
               <td>public,</td>
             <td>
@@ -400,7 +402,7 @@ state update or formal integrator order.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-vi_graph_factorized_solver"></span>
-              integer(kind=int32),
+              integer,
             </td>
               <td>public,</td>
             <td>
@@ -485,7 +487,7 @@ constraint-compatible state.</p>
               <span class="anchor" ></span>
               class(*),
             </td>
-<td>intent(inout),</td>
+<td>intent(in),</td>
               <td>optional</td>            <td>
               
             </td>
@@ -567,7 +569,7 @@ Rotational columns use the local quaternion variation</p>
               <span class="anchor" ></span>
               class(*),
             </td>
-<td>intent(inout),</td>
+<td>intent(in),</td>
               <td>optional</td>            <td>
               
             </td>
@@ -677,7 +679,7 @@ Newton's trial state changes for the latter two modes.</p>
               <span class="anchor" ></span>
               class(*),
             </td>
-<td>intent(inout),</td>
+<td>intent(in),</td>
               <td>optional</td>            <td>
               
             </td>
@@ -685,6 +687,99 @@ Newton's trial state changes for the latter two modes.</p>
             <td><strong>args</strong></td>
             <td>
                 <p>Optional user-supplied data.</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+      </li>
+    </ul>
+  </div>
+
+       <div class="panel panel-default">
+    <div class="panel-heading codesum"><span class="anchor" id="interface-variational_step_callback"></span><h3>abstract interface
+        
+    </h3></div>
+    <ul class="list-group">
+      <li class="list-group-item">
+            <h3>
+    public  subroutine variational_step_callback(step, total_steps, state, args)  
+
+    </h3>
+  <p>Receives progress after each completed time step of
+<a href="../type/variational_integrator.html">variational_integrator</a>%solve. Trial states from look-ahead
+steps and failed steps are not reported.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th>Type</th>
+<th>Intent</th><th>Optional</th>        <th>Attributes</th>
+        <th></th>
+        <th>Name</th>
+        <th></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>step</strong></td>
+            <td>
+                <p>The number of time steps completed in the current solve.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>total_steps</strong></td>
+            <td>
+                <p>The number of time steps requested by the current solve.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              type(<a href='../type/variational_state.html'>variational_state</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>state</strong></td>
+            <td>
+                <p>The converged state at the completed time point.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(*),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>args</strong></td>
+            <td>
+                <p>Optional user-supplied data shared with the other callbacks.</p>
             </td>
         </tr>
     </tbody>
@@ -728,7 +823,7 @@ paper's graph-structured block factorization.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-settings~2"></span>
+              <span class="anchor" id="variable-settings~7"></span>
               type(<a href='../type/variational_integrator_settings.html'>variational_integrator_settings</a>),
             </td>
               <td>public</td>
@@ -756,7 +851,7 @@ paper's graph-structured block factorization.</p>
                 <td>
                     procedure
                     ,                  public
-                  :: <strong><a href='../type/variational_integrator.html#boundprocedure-solve'>solve</a></strong>
+                  :: <strong><a href='../type/variational_integrator.html#boundprocedure-solve~2'>solve</a></strong>
  =>
                     vi_solve
 <small>Function</small>                </td>
@@ -766,7 +861,7 @@ paper's graph-structured block factorization.</p>
                 <td>
                     procedure
                     ,                  public
-                  :: <strong><a href='../type/variational_integrator.html#boundprocedure-step'>step</a></strong>
+                  :: <strong><a href='../type/variational_integrator.html#boundprocedure-step~6'>step</a></strong>
  =>
                     vi_step
 <small>Subroutine</small>                </td>
@@ -802,7 +897,7 @@ paper's graph-structured block factorization.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-converged"></span>
+              <span class="anchor" id="variable-converged~2"></span>
               logical,
             </td>
               <td>public</td>
@@ -819,8 +914,8 @@ paper's graph-structured block factorization.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-iterations"></span>
-              integer(kind=int32),
+              <span class="anchor" id="variable-iterations~2"></span>
+              integer,
             </td>
               <td>public</td>
             <td>
@@ -944,7 +1039,7 @@ Jacobians.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-force_evaluation"></span>
-              integer(kind=int32),
+              integer,
             </td>
               <td>public</td>
             <td>
@@ -968,7 +1063,7 @@ the conservative state update or its formal order.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-linear_solver"></span>
-              integer(kind=int32),
+              integer,
             </td>
               <td>public</td>
             <td>
@@ -986,7 +1081,7 @@ are VI_DENSE_SOLVER and VI_GRAPH_FACTORIZED_SOLVER.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-maximum_iterations"></span>
-              integer(kind=int32),
+              integer,
             </td>
               <td>public</td>
             <td>
@@ -1003,7 +1098,7 @@ are VI_DENSE_SOLVER and VI_GRAPH_FACTORIZED_SOLVER.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-maximum_line_search_iterations"></span>
-              integer(kind=int32),
+              integer,
             </td>
               <td>public</td>
             <td>
@@ -1020,7 +1115,7 @@ line search.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-tolerance"></span>
+              <span class="anchor" id="variable-tolerance~3"></span>
               real(kind=real64),
             </td>
               <td>public</td>
@@ -1125,7 +1220,7 @@ step. Reset to false when supplying new physical velocities.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-position"></span>
+              <span class="anchor" id="variable-position~2"></span>
               real(kind=real64),
             </td>
               <td>public,</td>
@@ -1142,7 +1237,7 @@ step. Reset to false when supplying new physical velocities.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-time"></span>
+              <span class="anchor" id="variable-time~4"></span>
               real(kind=real64),
             </td>
               <td>public</td>
@@ -1159,7 +1254,7 @@ step. Reset to false when supplying new physical velocities.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-velocity"></span>
+              <span class="anchor" id="variable-velocity~9"></span>
               real(kind=real64),
             </td>
               <td>public,</td>
@@ -1227,7 +1322,7 @@ quaternion.</p>
         <tr>
             <td>
               <span class="anchor" ></span>
-              integer(kind=int32),
+              integer,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -1266,7 +1361,7 @@ quaternion.</p>
           <p class="text-right">
             Documentation generated by 
             <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-10-31 12:53            </p>
+ on 2026-11-23 20:11            </p>
         </div>
       </div>
       <br>

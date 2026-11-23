@@ -31,15 +31,15 @@ module dynamics_joints
     public :: joint
     public :: joint_degrees_of_freedom
 
-    integer(int32), parameter :: FIXED_JOINT = 2
+    integer, parameter :: FIXED_JOINT = 2
         !! Defines a rigid connection permitting no relative motion.
-    integer(int32), parameter :: CYLINDRICAL_JOINT = 3
+    integer, parameter :: CYLINDRICAL_JOINT = 3
         !! Defines a joint permitting rotation about, and translation along, the
         !! joint's z-axis.
-    integer(int32), parameter :: UNIVERSAL_JOINT = 4
+    integer, parameter :: UNIVERSAL_JOINT = 4
         !! Defines a joint permitting rotation about the joint's x-axis followed
         !! by rotation about the resulting y-axis.
-    integer(int32), parameter :: SPHERICAL_JOINT = 5
+    integer, parameter :: SPHERICAL_JOINT = 5
         !! Defines a joint permitting rotation about all three axes.  The
         !! rotation is parameterized by a z-y-x Euler angle sequence.
 
@@ -48,18 +48,18 @@ module dynamics_joints
         !! to a coordinate frame on each of the two links; the frames are
         !! identified by their index within each link.  The joint is coincident
         !! with both frames when all of its joint variables are zero.
-        integer(int32), public :: joint_type = REVOLUTE_JOINT
+        integer, public :: joint_type = REVOLUTE_JOINT
             !! The type of joint.  This value must be one of FIXED_JOINT,
             !! REVOLUTE_JOINT, PRISMATIC_JOINT, CYLINDRICAL_JOINT,
             !! UNIVERSAL_JOINT, or SPHERICAL_JOINT.
-        integer(int32), public :: parent_link = 0
+        integer, public :: parent_link = 0
             !! The index of the parent link.
-        integer(int32), public :: parent_frame = 1
+        integer, public :: parent_frame = 1
             !! The index of the coordinate frame on the parent link to which
             !! the joint attaches.
-        integer(int32), public :: child_link = 0
+        integer, public :: child_link = 0
             !! The index of the child link.
-        integer(int32), public :: child_frame = 1
+        integer, public :: child_frame = 1
             !! The index of the coordinate frame on the child link to which the
             !! joint attaches.
         logical, public :: actuated = .false.
@@ -81,18 +81,18 @@ contains
     function jnt_init(jtype, parent_link, child_link, parent_frame, &
         child_frame, actuated) result(rst)
         !! Initializes a new joint object.
-        integer(int32), intent(in) :: jtype
+        integer, intent(in) :: jtype
             !! The type of joint.  This value must be one of FIXED_JOINT,
             !! REVOLUTE_JOINT, PRISMATIC_JOINT, CYLINDRICAL_JOINT,
             !! UNIVERSAL_JOINT, or SPHERICAL_JOINT.
-        integer(int32), intent(in) :: parent_link
+        integer, intent(in) :: parent_link
             !! The index of the parent link.
-        integer(int32), intent(in) :: child_link
+        integer, intent(in) :: child_link
             !! The index of the child link.
-        integer(int32), intent(in), optional :: parent_frame
+        integer, intent(in), optional :: parent_frame
             !! The index of the coordinate frame on the parent link to which the
             !! joint attaches.  If not supplied, a value of one is used.
-        integer(int32), intent(in), optional :: child_frame
+        integer, intent(in), optional :: child_frame
             !! The index of the coordinate frame on the child link to which the
             !! joint attaches.  If not supplied, a value of one is used.
         logical, intent(in), optional :: actuated
@@ -131,9 +131,9 @@ contains
     pure function joint_degrees_of_freedom(jtype) result(rst)
         !! Gets the number of degrees of freedom permitted by the requested
         !! joint type.
-        integer(int32), intent(in) :: jtype
+        integer, intent(in) :: jtype
             !! The joint type.
-        integer(int32) :: rst
+        integer :: rst
             !! The number of degrees of freedom.  A value of -1 is returned if
             !! the joint type is not recognized.
 
@@ -157,7 +157,7 @@ contains
         !! joint variables, permitted by the joint.
         class(joint), intent(in) :: this
             !! The joint object.
-        integer(int32) :: rst
+        integer :: rst
             !! The number of degrees of freedom.
 
         rst = joint_degrees_of_freedom(this%joint_type)
@@ -170,7 +170,7 @@ contains
         !! three-dimensional space.
         class(joint), intent(in) :: this
             !! The joint object.
-        integer(int32) :: rst
+        integer :: rst
             !! The number of constraint equations.
 
         rst = 6 - this%get_dof()
@@ -183,7 +183,7 @@ contains
         !! restricted to planar motion.
         class(joint), intent(in) :: this
             !! The joint object.
-        integer(int32) :: rst
+        integer :: rst
             !! The number of constraint equations.
 
         rst = 3 - this%get_dof()
