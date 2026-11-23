@@ -952,10 +952,14 @@ contains
         real(real64), allocatable, dimension(:) :: resid
         type(vecfcn_helper) :: helper
         type(least_squares_solver) :: solver
+        procedure(vecfcn), pointer :: fcn
+        procedure(jacobianfcn), pointer :: jfcn
 
         if (neqn < size(x)) error stop DYN_CONSTRAINT_ERROR
-        call helper%set_fcn(mechanism_equations, neqn, size(x))
-        call helper%set_jacobian(mechanism_equation_jacobian)
+        fcn => mechanism_equations
+        jfcn => mechanism_equation_jacobian
+        call helper%set_fcn(fcn, neqn, size(x))
+        call helper%set_jacobian(jfcn)
         allocate(resid(neqn))
         call solver%solve(helper, x, resid, ib = ib, args = obj)
     end subroutine

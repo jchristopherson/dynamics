@@ -632,7 +632,7 @@ contains
         type(iteration_behavior), intent(out), optional :: ib
             !! An optional output that can be used to gather information on the
             !! solver.
-        procedure(jacobianfcn), optional :: jfcn
+        procedure(jacobianfcn), intent(in), pointer, optional :: jfcn
             !! A routine that can be used to provide the Jacobian matrix for
             !! the linkage.
         real(real64), intent(in), dimension(size(qo)), optional :: qmax
@@ -655,6 +655,7 @@ contains
         type(vecfcn_helper) :: helper
         class(constrained_equation_solver), pointer :: solver
         type(constrained_least_squares_solver), target :: default_solver
+        procedure(vecfcn), pointer :: fcn
         type(inverse_kinematics_container) :: obj
         
         ! Initialization
@@ -682,7 +683,8 @@ contains
         if (present(qmin)) call solver%set_lower_limits(qmin)
 
         ! Set up the solver
-        call helper%set_fcn(inverse_kinematics_solver_fcn, neqn, nvar)
+        fcn => inverse_kinematics_solver_fcn
+        call helper%set_fcn(fcn, neqn, nvar)
         if (present(jfcn)) then
             call helper%set_jacobian(jfcn)
         end if
