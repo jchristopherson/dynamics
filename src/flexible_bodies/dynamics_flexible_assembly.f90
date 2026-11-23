@@ -36,9 +36,9 @@ module dynamics_flexible_assembly
 
     type :: finite_element_mesh
         !! Owns a node table and a heterogeneous collection of elements.
-        !! Shared nodes must use the same local DOF count and component order.
-        !! Both are checked when the layout is built. Numbering is recomputed
-        !! on each call.
+        !! Full-layout elements must agree on count and component order at
+        !! shared nodes. Subset elements attach by matching component labels.
+        !! Numbering is recomputed on each call.
         type(fe_node), allocatable, dimension(:) :: nodes
             !! Reference nodes in equation-numbering order. Connectivity uses
             !! one-based positions, not node IDs. Remap element connectivity
@@ -272,6 +272,7 @@ contains
         type(element_map), allocatable, dimension(:) :: topology
         type(node_layout), allocatable, dimension(:) :: layouts
         integer :: nnode, nelem, i, j, k, node, nd, first
+        logical :: subset
 
         nnode = 0
         nelem = 0
@@ -290,6 +291,7 @@ contains
                 if (int(size(connectivity), int64)*nd /= element%dof_count()) &
                     error stop "Mesh element DOFs must be grouped by node"
                 components = element%dof_components()
+                subset = element%uses_dof_subset()
                 if (size(components) /= nd .or. any(components <= 0)) error stop "Invalid mesh element DOF labels"
                 do k = 1, nd
                     if (any(components(:k-1) == components(k))) error stop "Mesh element repeats a DOF label"
@@ -298,6 +300,7 @@ contains
                     node = connectivity(j)
                     if (node < 1 .or. node > nnode) error stop "Mesh element node index out of bounds"
                     if (any(connectivity(:j-1) == node)) error stop "Mesh element repeats a node"
+                    if (subset) cycle
                     if (allocated(layouts(node)%components)) then
                         if (size(layouts(node)%components) /= nd) &
                             error stop "Mesh elements disagree on the DOF count at a shared node"
@@ -311,6 +314,20 @@ contains
             call move_alloc(connectivity, topology(i)%indices)
         end do
 
+        ! Establish full layouts before attaching subsets, regardless of element order.
+        do i = 1, nelem
+            if (.not.this%elements(i)%element%uses_dof_subset()) cycle
+            components = this%elements(i)%element%dof_components()
+            do j = 1, size(topology(i)%indices)
+                node = topology(i)%indices(j)
+                if (.not.allocated(layouts(node)%components)) layouts(node)%components = components
+                do k = 1, size(components)
+                    if (.not.any(layouts(node)%components == components(k))) &
+                        error stop "Mesh subset element requires a missing DOF label"
+                end do
+            end do
+        end do
+
         allocate(offsets(nnode+1))
         offsets(1) = 0
         do i = 1, nnode
@@ -319,19 +336,28 @@ contains
             if (nd > huge(0) - 1 - offsets(i)) error stop "Mesh DOF count exceeds integer range"
             offsets(i+1) = offsets(i) + nd
         end do
-        if (present(node_layouts)) call move_alloc(layouts, node_layouts)
-        if (.not.present(maps)) return
-
-        allocate(maps(nelem))
-        do i = 1, nelem
-            nd = this%elements(i)%element%dof_per_node()
-            allocate(maps(i)%indices(this%elements(i)%element%dof_count()))
-            do j = 1, size(topology(i)%indices)
-                node = topology(i)%indices(j)
-                first = (j-1)*nd
-                maps(i)%indices(first+1:first+nd) = [(offsets(node)+k, k=1,nd)]
+        if (present(maps)) then
+            allocate(maps(nelem))
+            do i = 1, nelem
+                nd = this%elements(i)%element%dof_per_node()
+                subset = this%elements(i)%element%uses_dof_subset()
+                if (subset) components = this%elements(i)%element%dof_components()
+                allocate(maps(i)%indices(this%elements(i)%element%dof_count()))
+                do j = 1, size(topology(i)%indices)
+                    node = topology(i)%indices(j)
+                    first = (j-1)*nd
+                    if (subset) then
+                        do k = 1, nd
+                            maps(i)%indices(first+k) = offsets(node) + &
+                                findloc(layouts(node)%components, components(k), dim=1)
+                        end do
+                    else
+                        maps(i)%indices(first+1:first+nd) = [(offsets(node)+k, k=1,nd)]
+                    end if
+                end do
             end do
-        end do
+        end if
+        if (present(node_layouts)) call move_alloc(layouts, node_layouts)
     end subroutine
 
 ! ------------------------------------------------------------------------------
@@ -550,10 +576,11 @@ contains
     end subroutine
 
 ! ------------------------------------------------------------------------------
-    subroutine assemble_internal_force(this, q, f, nthreads)
+    subroutine assemble_internal_force(this, q, f, nthreads, velocity)
         !! Gather local displacements and sum element forces at shared DOFs.
         !! This preserves the element force sign conventions and applies no
-        !! external loads or boundary conditions.
+        !! external loads or boundary conditions. If velocities are supplied,
+        !! also add each element's velocity-dependent damping contribution.
         class(finite_element_mesh), intent(inout) :: this
             !! Mesh; element routines may update their workspaces.
         real(real64), intent(in), dimension(:) :: q
@@ -568,6 +595,8 @@ contains
             !! Values less than 1 cause `error stop`. For values above 1,
             !! element routines and any shared data (such as material models)
             !! must be safe to access concurrently from distinct elements.
+        real(real64), intent(in), optional, dimension(:) :: velocity
+            !! Coordinate rates in global equation order.
 
         type(element_map), allocatable, dimension(:) :: maps
         integer, allocatable, dimension(:) :: offsets
@@ -577,6 +606,9 @@ contains
         call build_layout(this, offsets, maps)
         n = offsets(size(offsets))
         if (size(q) /= n) error stop "Mesh displacement vector has the wrong length"
+        if (present(velocity)) then
+            if (size(velocity) /= n) error stop "Mesh velocity vector has the wrong length"
+        end if
         allocate(f(n), source=0.0d0)
         max_nd = 0
         do i = 1, size(maps)
@@ -596,6 +628,8 @@ contains
                         nd = size(indices)
                         call this%elements(i)%element%internal_force_vector( &
                             q(indices), work(:nd,i-first+1), this%nodes)
+                        if (present(velocity)) call this%elements(i)%element%add_damping_force( &
+                            q(indices), velocity(indices), work(:nd,i-first+1), this%nodes)
                     end associate
                 end do
                 !$omp end parallel do
@@ -603,6 +637,8 @@ contains
                 associate (indices => maps(first)%indices)
                     nd = size(indices)
                     call this%elements(first)%element%internal_force_vector(q(indices), work(:nd,1), this%nodes)
+                    if (present(velocity)) call this%elements(first)%element%add_damping_force( &
+                        q(indices), velocity(indices), work(:nd,1), this%nodes)
                 end associate
             end if
             do i = first, last

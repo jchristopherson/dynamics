@@ -3,6 +3,7 @@ module dynamics_flexible_bodies_tests
     use, intrinsic :: ieee_arithmetic, only : ieee_value, ieee_quiet_nan
     use autodiff
     use dynamics_flexible_beam_elements
+    use dynamics_flexible_discrete_elements
     use dynamics_flexible_body_types, only : fe_node, degree_of_freedom, DOF_UX, DOF_UY, DOF_UZ, DOF_RX, DOF_RY, DOF_RZ
     use dynamics_flexible_assembly, only : finite_element_mesh
     use dynamics_boundary_conditions, only : nodal_condition, &
@@ -23,6 +24,7 @@ module dynamics_flexible_bodies_tests
     public :: test_flexible_material
     public :: test_flexible_beam
     public :: test_timoshenko_beam
+    public :: test_flexible_discrete_elements
     public :: test_flexible_mesh
     public :: test_flexible_mesh_boundary_conditions
     public :: test_flexible_static
@@ -853,6 +855,79 @@ contains
             error stop "Unknown flexible input test"
         end select
     end subroutine
+
+    function test_flexible_discrete_elements() result(ok)
+        !! Check follower forces and tangent, nodal inertia, and a damped transient.
+        logical :: ok
+        type(flexible_spring_element) :: spring
+        type(flexible_damper_element) :: damper
+        type(finite_element_mesh) :: mesh
+        type(flexible_transient_settings) :: settings
+        type(nodal_condition), dimension(8) :: supports
+        real(real64), dimension(3,3) :: inertia
+        real(real64), dimension(6,6) :: tangent
+        real(real64), dimension(6) :: q
+        real(real64), dimension(6) :: v
+        real(real64), dimension(6) :: f
+        real(real64), dimension(6) :: fp
+        real(real64), dimension(6) :: fm
+        real(real64), dimension(9) :: initial
+        real(real64), dimension(9) :: at_rest
+        real(real64), dimension(5) :: times
+        real(real64), allocatable, dimension(:,:) :: displacement
+        real(real64), allocatable, dimension(:,:) :: velocity
+        real(real64), allocatable, dimension(:,:) :: mass
+        integer, allocatable, dimension(:) :: offsets
+        real(real64), parameter :: h = 1.0d-6
+        real(real64), parameter :: decay = 0.2d0
+        real(real64), parameter :: omega = sqrt(4.0d0 - decay**2)
+
+        spring = flexible_spring_element(1, 2, 8.0d0)
+        damper = flexible_damper_element(1, 2, 0.8d0)
+        inertia = reshape([2.0d0, 0.3d0, 0.0d0, 0.3d0, 3.0d0, 0.0d0, 0.0d0, 0.0d0, 4.0d0], [3,3])
+        mesh = finite_element_mesh(2, 3)
+        mesh%nodes = [fe_node(10, [0.0d0, 0.0d0, 0.0d0]), fe_node(20, [1.0d0, 0.0d0, 0.0d0])]
+        call mesh%assign_element(1, spring)
+        call mesh%assign_element(2, damper)
+        call mesh%assign_element(3, flexible_point_mass_element(2, 2.0d0, inertia))
+        call mesh%number_dofs(offsets)
+        ok = all(offsets == [0, 3, 9])
+        call mesh%assemble_mass(mass)
+        ok = ok .and. maxval(abs(mass(7:9,7:9)-inertia)) < 1.0d-14
+        ok = ok .and. abs(mass(4,4)-2.0d0) < 1.0d-14 .and. maxval(abs(mass(:6,7:9))) < 1.0d-14
+
+        ! Rotate the reference chord through 90 degrees; rigid rotation is force-free.
+        q = [0.0d0, 0.0d0, 0.0d0, -1.0d0, 1.0d0, 0.0d0]
+        v = [0.0d0, 0.0d0, 0.0d0, -1.0d0, 0.0d0, 0.0d0]
+        call spring%internal_force_vector(q, f, mesh%nodes)
+        call damper%add_damping_force(q, v, f, mesh%nodes)
+        ok = ok .and. maxval(abs(f)) < 1.0d-13
+        q(5) = 1.2d0
+        v(5) = 2.0d0
+        call spring%internal_force_vector(q, f, mesh%nodes)
+        call damper%add_damping_force(q, v, f, mesh%nodes)
+        ok = ok .and. maxval(abs(f-[0.0d0, -3.2d0, 0.0d0, 0.0d0, 3.2d0, 0.0d0])) < 1.0d-13
+        call spring%stiffness_matrix(q, tangent, mesh%nodes)
+        call spring%internal_force_vector(q+h*v, fp, mesh%nodes)
+        call spring%internal_force_vector(q-h*v, fm, mesh%nodes)
+        ok = ok .and. maxval(abs((fp-fm)/(2*h)-matmul(tangent,v))) < 1.0d-8
+
+        supports = [nodal_condition(1, DOF_UX), nodal_condition(1, DOF_UY), nodal_condition(1, DOF_UZ), &
+            nodal_condition(2, DOF_UY), nodal_condition(2, DOF_UZ), nodal_condition(2, DOF_RX), &
+            nodal_condition(2, DOF_RY), nodal_condition(2, DOF_RZ)]
+        initial = 0.0d0
+        initial(4) = 0.02d0
+        at_rest = 0.0d0
+        times = [0.0d0, 0.25d0, 0.5d0, 0.75d0, 1.0d0]
+        settings%absolute_tolerance = 1.0d-10
+        settings%relative_tolerance = 1.0d-8
+        settings%maximum_step_size = 0.01d0
+        call solve_flexible_transient(mesh, times, supports, initial, at_rest, displacement, velocity, settings)
+        ok = ok .and. maxval(abs(displacement(4,:) - initial(4)*exp(-decay*times)* &
+            (cos(omega*times) + decay/omega*sin(omega*times)))) < 1.0d-7
+        ok = ok .and. maxval(abs(velocity(4,:) + initial(4)*4.0d0/omega*exp(-decay*times)*sin(omega*times))) < 1.0d-7
+        if (.not.ok) print "(A)", "TEST FAILED: flexible discrete elements"
+    end function
 
     function test_timoshenko_beam() result(ok)
         !! Check the linearized stiffness, rigid rotation, finite-strain

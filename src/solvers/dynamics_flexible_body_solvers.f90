@@ -156,7 +156,7 @@ contains
         !! history without assembling mass or evaluating loads.
         !!
         !! For meshes without joints the free equations are `qdot = v` and
-        !! `M*vdot = f_ext - f_int`. For meshes with joints a private stabilized
+        !! `M*vdot = f_ext - f_int - f_damp`. For meshes with joints a private stabilized
         !! GGL adapter adds the joint force `-transpose(G)*lambda`, where `G`
         !! is the constraint Jacobian restricted to free columns. It also
         !! adds a kinematic correction to control drift.
@@ -332,13 +332,14 @@ contains
     end subroutine
 
     subroutine transient_force(t, y, f, args)
-        !! Assemble the free net force from the state prefix `q`. Joint
+        !! Assemble the free net force from `[q, v]`. Joint
         !! forces are excluded here because the GGL adapter supplies them.
         real(real64), intent(in) :: t
         real(real64), intent(in), dimension(:) :: y
         real(real64), intent(out), dimension(:) :: f
         class(*), intent(in), optional :: args
         real(real64), allocatable, dimension(:) :: q
+        real(real64), allocatable, dimension(:) :: v
         real(real64), allocatable, dimension(:) :: internal
         real(real64), allocatable, dimension(:) :: applied
 
@@ -347,7 +348,9 @@ contains
         type is (flexible_transient_context)
             q = args%support
             q(args%free) = y(:size(f))
-            call args%mesh%assemble_internal_force(q, internal, nthreads=args%nthreads)
+            allocate(v(size(q)), source=0.0d0)
+            v(args%free) = y(size(f)+1:)
+            call args%mesh%assemble_internal_force(q, internal, nthreads=args%nthreads, velocity=v)
             f = -internal(args%free)
             if (associated(args%load)) then
                 allocate(applied(size(q)))

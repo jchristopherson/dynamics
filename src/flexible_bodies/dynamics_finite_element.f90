@@ -18,6 +18,8 @@ module dynamics_finite_element
             !! Number of DOFs at each node.
         procedure(get_dof_components), deferred :: dof_components
             !! Ordered physical component labels used at each node.
+        procedure :: uses_dof_subset
+            !! If true, attach by label without replacing a full node layout.
         procedure(get_element_dimensionality), deferred, public, pass :: dimensionality
             !! Number of spatial coordinate dimensions.
     end type
@@ -70,4 +72,10 @@ module dynamics_finite_element
                 !! The element dimensionality.
         end function
     end interface
+contains
+    pure logical function uses_dof_subset(this) result(subset)
+        !! By default, elements sharing a node must agree on its full layout.
+        class(finite_element), intent(in) :: this
+        subset = .false.
+    end function
 end module

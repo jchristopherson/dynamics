@@ -41,6 +41,7 @@ set(DYNAMICS_SOURCES
     ${dir}/flexible_bodies/dynamics_beam_elements.f90
     ${dir}/flexible_bodies/dynamics_flexible_body_types.f90
     ${dir}/flexible_bodies/dynamics_flexible_assembly.f90
+    ${dir}/flexible_bodies/dynamics_flexible_discrete_elements.f90
     ${dir}/flexible_bodies/dynamics_flexible_joints.f90
     ${dir}/flexible_bodies/dynamics_boundary_conditions.f90
     ${dir}/multibody/dynamics_multibody.f90

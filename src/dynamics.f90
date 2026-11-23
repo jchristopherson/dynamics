@@ -46,6 +46,7 @@ module dynamics
     use dynamics_flexible_beam_elements
     use dynamics_flexible_body_types
     use dynamics_flexible_assembly
+    use dynamics_flexible_discrete_elements
     use dynamics_flexible_joints
     use dynamics_boundary_conditions
     use dynamics_flexible_body_solvers

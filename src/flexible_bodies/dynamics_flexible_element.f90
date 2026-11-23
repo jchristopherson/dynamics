@@ -21,6 +21,8 @@ module dynamics_flexible_element
             !! Internal force evaluated at the supplied DOFs.
         procedure(get_stiffness_matrix), deferred, public, pass :: stiffness_matrix
             !! Tangent stiffness evaluated at the supplied DOFs.
+        procedure :: add_damping_force
+            !! Add a velocity-dependent internal force. Default is no damping.
     end type
 
     abstract interface
@@ -85,5 +87,20 @@ module dynamics_flexible_element
                 !! Caller-owned reference node table, borrowed during evaluation.
         end subroutine
     end interface
+
+contains
+
+    subroutine add_damping_force(this, q, v, f, nodes)
+        !! Add the element's damping contribution to an existing internal
+        !! force vector. The base implementation leaves it unchanged.
+        class(flexible_element), intent(inout) :: this
+        real(real64), intent(in), dimension(:) :: q
+            !! Local displacements.
+        real(real64), intent(in), dimension(:) :: v
+            !! Local coordinate rates.
+        real(real64), intent(inout), dimension(:) :: f
+            !! Local internal force; subtract the assembled vector in momentum balance.
+        type(fe_node), intent(in), dimension(:) :: nodes
+    end subroutine
 
 end module

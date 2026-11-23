@@ -78,8 +78,10 @@ equations. Concrete flexible finite elements must implement `dof_components()`
 with distinct positive labels in their local node-block order. Use `DOF_UX`
 through `DOF_RZ` for the standard mechanical components. If you implement your
 own elements, add this binding when updating to the new interface. The mesh
-rejects elements that disagree on DOF counts, labels, or label order at a shared
-node. Assembly does not modify element equation indices.
+rejects full-layout elements that disagree on DOF counts, labels, or label
+order at a shared node. Subset elements, such as follower connectors, instead
+attach to available DOFs by physical label. Assembly does not modify element
+equation indices.
 
 `mesh%resolve_dofs(node_positions, components, dofs[, ndof])` returns
 `degree_of_freedom` records in request order. Inputs use node-table positions;
@@ -173,6 +175,36 @@ Hessian, so the iteration is quasi-Newton. For transient analysis, use
 
 - Orientation constraints are singular when the relative rotation is π.
 - Joints attach at mesh nodes only; no joint-to-element or ground attachment.
+
+### Discrete elements
+
+The flexible mesh accepts follower springs, viscous dampers, and six-DOF
+nodal masses alongside beam elements. For example, connect an existing
+anchor node and beam tip, then add a mass at the tip:
+
+```fortran
+call mesh%assign_element(i,   flexible_spring_element(anchor, tip, stiffness))
+call mesh%assign_element(i+1, flexible_damper_element(anchor, tip, damping))
+call mesh%assign_element(i+2, flexible_point_mass_element(tip, mass, inertia))
+```
+
+The two connectors use the current chord between their attachment nodes.
+The spring is stress-free at the reference length and its tangent includes
+the effect of the changing force direction. The damper opposes the current
+length rate and dissipates power `damping*length_rate**2`; it has no static
+force or stiffness. Rigid-body motion alone changes neither length nor
+length rate. A collapsed current chord is invalid; the spring also requires
+distinct reference positions. For a fixed anchor, prescribe its three
+translations to zero. Connector-only nodes do not acquire rotational DOFs.
+
+The nodal mass contributes `diag(m*I, J_ref)`, where `inertia` is the optional
+symmetric positive semidefinite `3 x 3` tensor in global reference axes.
+It remains constant in the mesh rotation-vector coordinates and has no
+center-of-mass offset or finite-rotation gyroscopic terms. If `inertia` is
+omitted it is zero; the full reduced mass of a transient model must still
+be positive definite. For custom assembly, pass `velocity=v` to
+`mesh%assemble_internal_force(q, f, velocity=v)` to include damping.
+The transient solver does this automatically.
 
 ### Dense transient analysis
 
@@ -284,6 +316,34 @@ so rigid swing alone gives zero.
 Build the `flexible_pendulum_example` target and run it with gnuplot available.
 The example prints peak transverse tip deflection and the maximum sampled
 joint position residual and displays the time histories with FPLOT.
+
+#### Flexible linkage with a spring and damper
+
+The [flexible linkage example](../../examples/flexible_linkage_example.f90)
+releases two Timoshenko links from rest under gravity. Revolute joints at the
+base and elbow allow relative rotation about the out-of-plane axis. A follower
+spring and damper in parallel connect the tip to a fixed anchor, and a
+six-DOF mass adds tip inertia. After setting up the beam elements and
+supports, the example adds the connectors and joints and integrates with
+the fifth-order Kennedy-Carpenter solver:
+
+```fortran
+call mesh%assign_element(4, flexible_spring_element(7, 6, 18.0d0))
+call mesh%assign_element(5, flexible_damper_element(7, 6, damping))
+call mesh%assign_element(6, flexible_point_mass_element(6, 0.25d0, tip_inertia))
+mesh%joints = [flexible_joint(REVOLUTE_JOINT, 2, 3), flexible_joint(REVOLUTE_JOINT, 4, 5)]
+
+settings%solver = FLEXIBLE_KENNEDY_CARPENTER_5
+call solve_flexible_transient(mesh, times, supports, initial, initial, q, v, settings, &
+    load=apply_gravity, args=gravity)
+```
+
+![Flexible linkage time histories: base and elbow angles and signed connector extension](../../images/flexible_linkage_example.png?raw=true)
+
+Build and run `flexible_linkage_example` with gnuplot available. FPLOT displays
+the base and relative elbow angles above the signed connector extension.
+Positive extension means the connector is longer than its reference length;
+negative extension means it is shorter.
 
 ## Flexible Truss Example
 
