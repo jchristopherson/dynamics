@@ -28,6 +28,7 @@ module dynamics_discrete_controls
     public :: discrete_transfer_function
     public :: c2d
     public :: d2c
+    public :: try_d2c
     public :: DISCRETIZE_ZOH
     public :: DISCRETIZE_TUSTIN
 
@@ -458,7 +459,7 @@ pure function d2c(sys, method) result(rst)
     !! the matrix logarithm of
     !! $$ \begin{bmatrix}A_d&B_d\\0&I\end{bmatrix}. $$
     !! This requires the matrix \(A_d\) to have no eigenvalues on the
-    !! negative real axis.  For the Tustin method, with \(G=(I+A_d)^{-1}\),
+    !! nonpositive real axis.  For the Tustin method, with \(G=(I+A_d)^{-1}\),
     !! $$ A=\tfrac{2}{T_s}G(A_d-I),\quad B=\tfrac{4}{T_s}G^2B_d,\quad
     !!    D=D_d-\tfrac{T_s}{4}C(I+A_d)B. $$
     type(discrete_state_space), intent(in) :: sys
@@ -468,39 +469,68 @@ pure function d2c(sys, method) result(rst)
         !! or [[DISCRETIZE_TUSTIN]].
     type(state_space) :: rst
         !! The resulting continuous-time [[state_space]] model.
+    integer :: method_
+    logical :: ok
+
+    method_ = DISCRETIZE_ZOH
+    if (present(method)) method_ = method
+    call try_d2c(sys, method_, rst, ok)
+    if (.not.ok) error stop DYN_INVALID_INPUT_ERROR
+end function
+
+! ------------------------------------------------------------------------------
+pure subroutine try_d2c(sys, method, rst, ok)
+    !! Converts a discrete model as in [[d2c]], returning false instead of
+    !! stopping if the sample time, method, or numerical transform is invalid.
+    type(discrete_state_space), intent(in) :: sys
+        !! An initialized, finite model.
+    integer, intent(in) :: method
+        !! The discretization method to invert.
+    type(state_space), intent(out) :: rst
+        !! The continuous model, defined only on success.
+    logical, intent(out) :: ok
+        !! True if the transform succeeded.
 
     ! Local Variables
-    integer :: m, method_, n
+    integer :: m
+    integer :: n
     real(real64) :: ts
+    complex(real64), allocatable, dimension(:) :: poles
     real(real64), allocatable, dimension(:,:) :: a, b, dc, g, ident, lg, mtx
 
     ! Process
     ts = sys%sample_time
-    method_ = DISCRETIZE_ZOH
-    if (present(method)) method_ = method
+    ok = .false.
+    if (.not.ieee_is_finite(ts) .or. ts <= 0.0d0) return
     n = size(sys%A, 1)
     m = size(sys%B, 2)
-    select case (method_)
+    if (n == 0) return
+    select case (method)
     case (DISCRETIZE_ZOH)
+        poles = sys%poles()
+        if (any(real(poles, real64) <= 0.0d0 .and. aimag(poles) == 0.0d0)) return
         allocate(mtx(n + m, n + m), source = 0.0d0)
         mtx(1:n, 1:n) = sys%A
         mtx(1:n, n + 1:n + m) = sys%B
         mtx(n + 1:n + m, n + 1:n + m) = identity(m)
-        lg = matrix_log(mtx)
+        call matrix_log(mtx, lg)
+        if (.not.allocated(lg)) return
         a = lg(1:n, 1:n) / ts
         b = lg(1:n, n + 1:n + m) / ts
-        rst = state_space(a, b, sys%C, sys%D)
+        dc = sys%D
     case (DISCRETIZE_TUSTIN)
         ident = identity(n)
         g = mtx_inverse(ident + sys%A)
+        if (.not.all(ieee_is_finite(g))) return
         a = (2.0d0 / ts) * matmul(g, sys%A - ident)
         b = (4.0d0 / ts) * matmul(matmul(g, g), sys%B)
         dc = sys%D - (0.25d0 * ts) * matmul(sys%C, matmul(ident + sys%A, b))
-        rst = state_space(a, b, sys%C, dc)
     case default
-        error stop DYN_INVALID_INPUT_ERROR
+        return
     end select
-end function
+    ok = all(ieee_is_finite(a)) .and. all(ieee_is_finite(b)) .and. all(ieee_is_finite(dc))
+    if (ok) rst = state_space(a, b, sys%C, dc)
+end subroutine
 
 ! ------------------------------------------------------------------------------
 pure function z_roots(c) result(rst)
@@ -533,13 +563,13 @@ pure function z_roots(c) result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
-pure function matrix_sqrt(a) result(rst)
+pure subroutine matrix_sqrt(a, rst)
     !! Computes the principal square root of a matrix using the Denman-Beavers
     !! iteration.
     real(real64), intent(in), dimension(:,:) :: a
         !! The square matrix.
-    real(real64), allocatable, dimension(:,:) :: rst
-        !! The square root of \(A\).
+    real(real64), allocatable, intent(out), dimension(:,:) :: rst
+        !! The square root of \(A\), unallocated on failure.
 
     ! Local Variables
     integer :: i, n
@@ -552,33 +582,32 @@ pure function matrix_sqrt(a) result(rst)
     do i = 1, MAX_SQRT_ITERATIONS
         yi = mtx_inverse(y)
         zi = mtx_inverse(z)
+        if (.not.all(ieee_is_finite(yi)) .or. .not.all(ieee_is_finite(zi))) return
         ynew = 0.5d0 * (y + zi)
         z = 0.5d0 * (z + yi)
         if (norm1(ynew - y) <= 1.0d-15 * norm1(ynew)) then
-            y = ynew
-            exit
+            rst = ynew
+            return
         end if
         y = ynew
-        if (i == MAX_SQRT_ITERATIONS) error stop DYN_INVALID_INPUT_ERROR
     end do
-    rst = y
-end function
+end subroutine
 
 ! ------------------------------------------------------------------------------
-pure function matrix_log(a) result(rst)
+pure subroutine matrix_log(a, rst)
     !! Computes the principal matrix logarithm by taking repeated square roots
     !! until \(A^{1/2^k}\) is near the identity, then evaluating the
     !! series \( \log(I+X)=\sum_j (-1)^{j+1}X^j/j \) and scaling by
     !! \(2^k\).
     real(real64), intent(in), dimension(:,:) :: a
         !! The square matrix.
-    real(real64), allocatable, dimension(:,:) :: rst
-        !! The matrix logarithm of \(A\).
+    real(real64), allocatable, intent(out), dimension(:,:) :: rst
+        !! The matrix logarithm of \(A\), unallocated on failure.
 
     ! Local Variables
     integer :: j, k, n
     real(real64) :: sgn
-    real(real64), allocatable, dimension(:,:) :: r, term, x
+    real(real64), allocatable, dimension(:,:) :: r, root, term, x
 
     ! Process
     n = size(a, 1)
@@ -587,8 +616,10 @@ pure function matrix_log(a) result(rst)
     do
         x = r - identity(n)
         if (norm1(x) <= 0.25d0) exit
-        if (k >= MAX_SQRT_ITERATIONS) error stop DYN_INVALID_INPUT_ERROR
-        r = matrix_sqrt(r)
+        if (k >= MAX_SQRT_ITERATIONS) return
+        call matrix_sqrt(r, root)
+        if (.not.allocated(root)) return
+        call move_alloc(root, r)
         k = k + 1
     end do
     allocate(rst(n, n), source = 0.0d0)
@@ -600,7 +631,7 @@ pure function matrix_log(a) result(rst)
         if (norm1(term) / real(j, real64) <= 1.0d-17) exit
     end do
     rst = (2.0d0 ** k) * rst
-end function
+end subroutine
 
 ! ------------------------------------------------------------------------------
 pure function norm1(a) result(rst)

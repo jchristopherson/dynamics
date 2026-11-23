@@ -117,6 +117,8 @@ routine list and exact signatures, grouped as follows:
 - Parallel and planar linkage operations
 - Variational and linkage dynamics
 - Transfer functions and state-space models
+- [Discrete-time controls](c-api.md#discrete-time-controls): model conversions,
+  sampling, poles and zeros, frequency response, and integral feedback
 
 The routine names, associated argument names and types, and return types are
 therefore documented together in the generated declaration reference rather

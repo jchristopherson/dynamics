@@ -1,6 +1,6 @@
 # DYNAMICS C API
 
-The DYNAMICS C API is a C-compatible interface to the library. The public declarations are in [`dynamics.h`](../../src/c/dynamics.h).
+The DYNAMICS C API is a C-compatible interface to the library. The public declarations are in [`dynamics.h`](../src/c/dynamics.h).
 
 ## Conventions
 
@@ -34,6 +34,49 @@ The repository contains a complete closed-loop example at
 [`examples/c_four_bar_example_1.c`](../../examples/c_four_bar_example_1.c). It shows
 how to allocate mechanism links, connect them with `c_joint` values, create a
 planar linkage, solve its forward kinematics, and release all allocated data.
+
+## Discrete-time controls
+
+Use the existing `c_state_space_model` and `c_transfer_function` structs with
+an explicit sample time in seconds. Store state-space matrices in column-major
+order and discrete transfer-function coefficients in ascending powers of
+`z^-1`. The structs do not store the sample time; keep it with the model in
+your application. At each sample, the output is evaluated from the **current**
+state, not the updated one:
+
+```c
+/* Sample x_dot = -2*x + u, y = x at 100 ms. */
+double A[] = {-2}, B[] = {1}, C[] = {1}, D[] = {0};
+c_state_space_model continuous = {1, 1, 1, A, B, C, D};
+c_state_space_model sampled = {0};
+double ts = 0.1, x = 0, u = 1, next, y;
+
+if (c_c2d(&continuous, ts, DYN_DISCRETIZE_ZOH, &sampled) == 0) {
+    if (c_discrete_state_space_step(&sampled, ts, &u, &x, &next, &y) == 0) {
+        /* y is 0 at this sample; next is approximately 0.090635. */
+        x = next;
+    }
+    c_free_state_space_model(&sampled);
+}
+```
+
+`c_d2c` inverts either zero-order hold or Tustin discretization when the
+inverse exists. State-space and transfer-function root queries use the
+`z` plane. Transfer-function frequency response takes angular frequencies
+in rad/s. Canonical conversion supports delays and zero-state constant gains.
+
+For integral feedback, pass column-major gains `K` (inputs by states) and
+`Ki` (inputs by outputs). The closed-loop model takes the reference as its
+input and returns control effort followed by plant output.
+`c_discrete_integral_feedback_analyze` reports stability and/or unit-step
+integral squared error. `c_discrete_integral_feedback_optimize` starts from
+stabilizing gains, updates them in place, and can penalize the first difference
+of the control signal. Pass `NULL` for default tuning options.
+
+These functions return `0` on success or `-1` for a reported error. Use
+`c_get_last_error` and `c_get_last_error_message` to diagnose failures. A
+conversion result owns its storage; use an empty destination and free the
+result with its matching `c_free_*` function.
 
 ## Beam coordinates
 

@@ -7,6 +7,7 @@ The public C interface is declared in [`dynamics.h`](dynamics.h). It exposes cor
 * Quaternion, geometry, and structural-analysis operations.
 * Frequency response, system identification, stability, and vibration analysis.
 * State-space and transfer-function models, plus time integration for linear systems.
+* [Discrete-time controls](../../c_docs/c-api.md#discrete-time-controls), including sampled-model conversion, one-step evaluation, and integral state-feedback tuning.
 * Variational integration of constrained rigid-body systems and linkage dynamics.
 
 The examples below demonstrate three different parts of the API: constructing a Denavit-Hartenberg table, solving the kinematics of a closed-loop linkage, and integrating a continuous-time state-space model.

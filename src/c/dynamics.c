@@ -1,4 +1,6 @@
 #include "dynamics.h"
+#include <limits.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 
@@ -135,7 +137,10 @@ void c_free_mechanism_link(c_mechanism_link *lnk)
 int c_alloc_polynomial(int order, c_polynomial *p)
 {
     p->order = order;
-    p->coefficients = (double*)malloc((size_t)(order + 1) * sizeof(double));
+    p->coefficients = NULL;
+    if (order < 0 || order == INT_MAX ||
+        (size_t)order + 1 > SIZE_MAX / sizeof(double)) return -1;
+    p->coefficients = malloc(((size_t)order + 1) * sizeof(double));
     return (!p->coefficients) ? -1 : 0;
 }
 
@@ -149,11 +154,14 @@ void c_free_polynomial(c_polynomial *p)
 int c_alloc_transfer_function(int numer_order, int denom_order, 
     c_transfer_function *tf)
 {
-    int flag;
-    flag = c_alloc_polynomial(numer_order, &tf->numerator);
-    if (flag < 0) return -1;
-    flag = c_alloc_polynomial(denom_order, &tf->denominator);
-    return flag;
+    *tf = (c_transfer_function){0};
+    if (c_alloc_polynomial(numer_order, &tf->numerator) < 0 ||
+        c_alloc_polynomial(denom_order, &tf->denominator) < 0)
+    {
+        c_free_transfer_function(tf);
+        return -1;
+    }
+    return 0;
 }
 
 void c_free_transfer_function(c_transfer_function *tf)
@@ -162,41 +170,35 @@ void c_free_transfer_function(c_transfer_function *tf)
     c_free_polynomial(&tf->denominator);
 }
 
-int c_alloc_state_space_model(int dimension, int n_inputs, int n_outputs, 
+static int alloc_state_matrix(int rows, int cols, double **values)
+{
+    if (rows < 0 || cols < 0) return -1;
+    if (rows == 0 || cols == 0)
+    {
+        /* Preserve a valid address for legacy Fortran bindings. */
+        *values = malloc(sizeof(double));
+        return *values ? 0 : -1;
+    }
+    if ((size_t)rows > SIZE_MAX / sizeof(double) / (size_t)cols) return -1;
+    *values = malloc((size_t)rows * (size_t)cols * sizeof(double));
+    return *values ? 0 : -1;
+}
+
+int c_alloc_state_space_model(int dimension, int n_inputs, int n_outputs,
     c_state_space_model *mdl)
 {
+    *mdl = (c_state_space_model){0};
+    if (alloc_state_matrix(dimension, dimension, &mdl->A) < 0 ||
+        alloc_state_matrix(dimension, n_inputs, &mdl->B) < 0 ||
+        alloc_state_matrix(n_outputs, dimension, &mdl->C) < 0 ||
+        alloc_state_matrix(n_outputs, n_inputs, &mdl->D) < 0)
+    {
+        c_free_state_space_model(mdl);
+        return -1;
+    }
     mdl->dimension = dimension;
     mdl->n_inputs = n_inputs;
     mdl->n_outputs = n_outputs;
-    mdl->A = (double*)malloc((size_t)(dimension * dimension * sizeof(double)));
-    if (!mdl->A) return -1;
-    mdl->B = (double*)malloc((size_t)(dimension * n_inputs * sizeof(double)));
-    if (!mdl->B) 
-    {
-        free(mdl->A);
-        mdl->A = NULL;
-        return -1;
-    }
-    mdl->C = (double*)malloc((size_t)(n_outputs * dimension * sizeof(double)));
-    if (!mdl->C)
-    {
-        free(mdl->A);
-        mdl->A = NULL;
-        free(mdl->B);
-        mdl->B = NULL;
-        return -1;
-    }
-    mdl->D = (double*)malloc((size_t)(n_outputs * n_inputs * sizeof(double)));
-    if (!mdl->D)
-    {
-        free(mdl->A);
-        mdl->A = NULL;
-        free(mdl->B);
-        mdl->B = NULL;
-        free(mdl->C);
-        mdl->C = NULL;
-        return -1;
-    }
     return 0;
 }
 
