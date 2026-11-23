@@ -79,7 +79,7 @@ pure elemental function logarithmic_decrement(x1, x2, n) result(rst)
     real(real64), intent(in) :: x2
         !! The amplitude of the second peak that occurs N periods after the
         !! first.
-    integer(int32), intent(in) :: n
+    integer, intent(in) :: n
         !! The number of periods of oscillation seperating the two peaks.
     real(real64) :: rst
         !! The logarithmic decrement \(\delta\).
@@ -147,15 +147,15 @@ subroutine find_free_response_properties(t, x, delta, fn, x1, x2, t1, t2, s, n)
         !! An optional input that, if provided, allows for control of the 
         !! sensitivity of the peak detection algorithm.  The default is 0.1%
         !! of the peak-peak amplitude of the signal.
-    integer(int32), intent(in), optional :: n
+    integer, intent(in), optional :: n
         !! An optional input that, if provided, determines the number of 
         !! periods to allow between peak selection for the logarithmic 
         !! decrement calculation.  The default is 1.
 
     ! Local Variables
-    integer(int32) :: np, i1, i2, j2
+    integer :: np, i1, i2, j2
     real(real64) :: xmax, xmin, dx, x1p, x2p, t1p, t2p, nan
-    integer(int32), allocatable, dimension(:) :: maxind, minind
+    integer, allocatable, dimension(:) :: maxind, minind
     real(real64), allocatable, dimension(:) :: maxvals, minvals
 
     ! Determine a suitable sensitivity to peak detection

@@ -5,6 +5,137 @@
 #include "dynamics_c_test_helper.h"
 #include "dynamics_state_space_tests.h"
 
+#define DISCRETE_CHECK(condition) \
+    do { \
+        if (!(condition)) { \
+            printf("Discrete C test failed at line %d: %s\n", __LINE__, #condition); \
+            goto cleanup; \
+        } \
+    } while (0)
+
+static bool test_discrete_models(void)
+{
+    const double ts = 0.1, tol = 1e-10;
+    double a = -2, b = 1, c = 3, d = 0.5, u = 2, x = 4, next, y;
+    double delay_coeff[] = {0, 0, 2}, gain = 2, one = 1;
+    double omega = acos(-1) / (2 * ts);
+    double complex roots[1], response;
+    int count;
+    bool ok = false;
+    c_state_space_model plant = {1, 1, 1, &a, &b, &c, &d};
+    c_state_space_model disc = {0}, restored = {0}, realization = {0};
+    c_transfer_function tf = {0};
+    c_transfer_function delay = {{2, delay_coeff}, {0, &one}};
+    c_transfer_function constant = {{0, &gain}, {0, &one}};
+    c_clear_error();
+
+    for (int method = DYN_DISCRETIZE_ZOH; method <= DYN_DISCRETIZE_TUSTIN; ++method) {
+        DISCRETE_CHECK(c_c2d(&plant, ts, method, &disc) == 0);
+        DISCRETE_CHECK(c_d2c(&disc, ts, method, &restored) == 0);
+        DISCRETE_CHECK(fabs(restored.A[0] - a) < tol && fabs(restored.B[0] - b) < tol &&
+            fabs(restored.C[0] - c) < tol && fabs(restored.D[0] - d) < tol);
+        c_free_state_space_model(&restored);
+        if (method == DYN_DISCRETIZE_ZOH) {
+            const double pole = exp(a * ts), bd = (pole - 1) * b / a;
+            DISCRETE_CHECK(c_discrete_state_space_step(&disc, ts, &u, &x, &next, &y) == 0);
+            DISCRETE_CHECK(fabs(next - (pole * x + bd * u)) < tol && fabs(y - 13) < tol);
+            DISCRETE_CHECK(c_discrete_state_space_roots(&disc, ts, false, 1, roots, &count) == 0);
+            DISCRETE_CHECK(count == 1 && cabs(roots[0] - pole) < tol);
+            DISCRETE_CHECK(c_discrete_state_space_roots(&disc, ts, true, 0, NULL, &count) == 0);
+            DISCRETE_CHECK(count == 1);
+            DISCRETE_CHECK(c_discrete_state_space_roots(&disc, ts, true, 0, roots, &count) == -1);
+            DISCRETE_CHECK(count == 1 && c_get_last_error() == DYN_ARRAY_SIZE_ERROR);
+            DISCRETE_CHECK(c_discrete_state_space_roots(&disc, ts, true, 1, roots, &count) == 0);
+            DISCRETE_CHECK(cabs(roots[0] - (pole - c * bd / d)) < tol);
+            DISCRETE_CHECK(c_discrete_state_space_to_transfer_function(&disc, ts, &tf) == 0);
+            DISCRETE_CHECK(c_discrete_transfer_function_roots(&tf, ts, true, 1, roots, &count) == 0);
+            DISCRETE_CHECK(count == 1 && cabs(roots[0] - (pole - c * bd / d)) < tol);
+        }
+        c_free_state_space_model(&disc);
+    }
+
+    DISCRETE_CHECK(c_evaluate_discrete_transfer_function(&delay, ts, 1, &omega, &response) == 0);
+    DISCRETE_CHECK(cabs(response + 2) < tol);
+    for (int observable = 0; observable < 2; ++observable) {
+        double input = 1, state[2] = {0}, updated[2];
+        DISCRETE_CHECK(c_discrete_transfer_function_to_state_space(&delay, ts, observable, &realization) == 0);
+        DISCRETE_CHECK(realization.dimension == 2);
+        for (int sample = 0; sample < 3; ++sample) {
+            DISCRETE_CHECK(c_discrete_state_space_step(&realization, ts, &input, state, updated, &y) == 0);
+            DISCRETE_CHECK(fabs(y - (sample == 2 ? 2 : 0)) < tol);
+            state[0] = updated[0];
+            state[1] = updated[1];
+            input = 0;
+        }
+        c_free_state_space_model(&realization);
+    }
+    DISCRETE_CHECK(c_discrete_transfer_function_to_state_space(&constant, ts, false, &realization) == 0);
+    DISCRETE_CHECK(realization.dimension == 0);
+    DISCRETE_CHECK(c_discrete_state_space_step(&realization, ts, &u, NULL, NULL, &y) == 0);
+    DISCRETE_CHECK(fabs(y - 4) < tol);
+    c_free_transfer_function(&tf);
+    DISCRETE_CHECK(c_discrete_state_space_to_transfer_function(&realization, ts, &tf) == 0);
+    DISCRETE_CHECK(tf.numerator.order == 0 && fabs(tf.numerator.coefficients[0] - gain) < tol);
+
+    DISCRETE_CHECK(c_c2d(&plant, NAN, DYN_DISCRETIZE_ZOH, &disc) == -1);
+    DISCRETE_CHECK(c_get_last_error() == DYN_INVALID_INPUT_ERROR);
+    a = 2 / ts;
+    DISCRETE_CHECK(c_c2d(&plant, ts, DYN_DISCRETIZE_TUSTIN, &disc) == -1);
+    a = -1;
+    DISCRETE_CHECK(c_d2c(&plant, ts, DYN_DISCRETIZE_TUSTIN, &restored) == -1);
+    DISCRETE_CHECK(c_d2c(&plant, ts, DYN_DISCRETIZE_ZOH, &restored) == -1);
+    DISCRETE_CHECK(c_get_last_error() == DYN_INVALID_INPUT_ERROR);
+    ok = true;
+cleanup:
+    c_free_transfer_function(&tf);
+    c_free_state_space_model(&disc);
+    c_free_state_space_model(&restored);
+    c_free_state_space_model(&realization);
+    c_clear_error();
+    return ok;
+}
+
+static bool test_discrete_feedback(void)
+{
+    const double ts = 0.1, tol = 1e-10;
+    double a[] = {0.9, 0, 0.1, 0.8}, b[] = {0, 0.2}, c[] = {1, 0}, d = 0.1;
+    double k[] = {1, 0.5}, ki = 0.3, bad_k[] = {0, 0}, bad_ki = 0;
+    double x[] = {1, 2, 3}, next[3], y[2], reference = 2;
+    double ise0, ise1, cost;
+    bool stable, ok = false;
+    c_discrete_optimizer_options options = {1e-9, 250, 0.01};
+    c_state_space_model plant = {2, 1, 1, a, b, c, &d}, loop = {0};
+
+    DISCRETE_CHECK(c_discrete_integral_feedback_apply(&plant, ts, k, &ki, &loop) == 0);
+    DISCRETE_CHECK(loop.dimension == 3 && loop.n_inputs == 1 && loop.n_outputs == 2);
+    DISCRETE_CHECK(c_discrete_state_space_step(&loop, ts, &reference, x, next, y) == 0);
+    DISCRETE_CHECK(fabs(y[0] + 2.9) < tol && fabs(y[1] - 0.71) < tol);
+    DISCRETE_CHECK(fabs(next[0] - 1.1) < tol && fabs(next[1] - 1.02) < tol);
+    DISCRETE_CHECK(fabs(next[2] - (x[2] + ts * (y[1] - reference))) < tol);
+    DISCRETE_CHECK(c_discrete_integral_feedback_analyze(&plant, ts, k, &ki, &stable, &ise0) == 0);
+    DISCRETE_CHECK(stable && isfinite(ise0));
+    DISCRETE_CHECK(c_discrete_integral_feedback_optimize(&plant, ts, k, &ki, NULL, &cost) == 0);
+    DISCRETE_CHECK(c_discrete_integral_feedback_analyze(&plant, ts, k, &ki, &stable, &ise1) == 0);
+    DISCRETE_CHECK(stable && ise1 < ise0 && fabs(cost - ise1) < 1e-6);
+    DISCRETE_CHECK(c_discrete_integral_feedback_optimize(&plant, ts, k, &ki, &options, &cost) == 0);
+    DISCRETE_CHECK(c_discrete_integral_feedback_analyze(&plant, ts, k, &ki, NULL, &ise1) == 0);
+    DISCRETE_CHECK(isfinite(ise1) && cost > ise1);
+    DISCRETE_CHECK(c_discrete_integral_feedback_optimize(&plant, ts, bad_k, &bad_ki, NULL, NULL) == -1);
+    DISCRETE_CHECK(c_get_last_error() == DYN_INVALID_INPUT_ERROR);
+    ok = true;
+cleanup:
+    c_free_state_space_model(&loop);
+    c_clear_error();
+    return ok;
+}
+
+bool c_test_discrete_controls(void)
+{
+    return test_discrete_models() && test_discrete_feedback();
+}
+
+#undef DISCRETE_CHECK
+
 bool c_test_state_space_initialize()
 {
     // Local Variables

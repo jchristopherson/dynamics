@@ -33,7 +33,7 @@ contains
         ! A 4-by-4 translation along the x-axis.
         real(real64), intent(in) :: a
         real(real64) :: rst(4, 4)
-        integer(int32) :: i
+        integer :: i
         rst = 0.0d0
         do i = 1, 4
             rst(i,i) = 1.0d0
@@ -122,7 +122,7 @@ contains
         type(spanning_tree) :: tree
         type(graph_loop), allocatable, dimension(:) :: loops
         type(graph_path) :: path
-        integer(int32), allocatable, dimension(:) :: cuts
+        integer, allocatable, dimension(:) :: cuts
 
         ! Initialization
         rst = .true.
@@ -258,7 +258,7 @@ contains
         real(real64), parameter :: tol = 1.0d-8
 
         ! Local Variables
-        integer(int32) :: i
+        integer :: i
         type(planar_linkage) :: linkage
         real(real64) :: theta, q(4), c(2), p(3), T(4, 4)
         real(real64), allocatable, dimension(:) :: f
@@ -398,7 +398,7 @@ contains
         real(real64), parameter :: tol = 1.0d-8
 
         ! Local Variables
-        integer(int32) :: i
+        integer :: i
         type(binary_link) :: links(3)
         type(link_container) :: lnks(4)
         type(joint) :: jnts(3)

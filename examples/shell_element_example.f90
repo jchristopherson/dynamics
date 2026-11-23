@@ -30,20 +30,20 @@ program example
     real(real64), parameter :: thickness = 1.0d-2
     real(real64), parameter :: width = 0.75d0
     real(real64), parameter :: length = 1.25d0
-    integer(int32), parameter :: ndiv = 50
-    integer(int32), parameter :: dof_per_node = 6
-    integer(int32), parameter :: number_of_nodes = ndiv * ndiv
-    integer(int32), parameter :: global_dof_count = dof_per_node * number_of_nodes
-    integer(int32), parameter :: number_of_elements = (ndiv - 1)**2
-    integer(int32), parameter :: number_of_boundary_conditions = 2 * dof_per_node * ndiv
+    integer, parameter :: ndiv = 50
+    integer, parameter :: dof_per_node = 6
+    integer, parameter :: number_of_nodes = ndiv * ndiv
+    integer, parameter :: global_dof_count = dof_per_node * number_of_nodes
+    integer, parameter :: number_of_elements = (ndiv - 1)**2
+    integer, parameter :: number_of_boundary_conditions = 2 * dof_per_node * ndiv
 
     ! Analysis Properties
-    integer(int32), parameter :: mode_count = 6
+    integer, parameter :: mode_count = 6
     real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
 
     ! Local Variables
-    integer(int32) :: i, j, kk, n1, n2, n3, n4, n5, n6
-    integer(int32), allocatable, dimension(:) :: bc
+    integer :: i, j, kk, n1, n2, n3, n4, n5, n6
+    integer, allocatable, dimension(:) :: bc
     real(real64), allocatable, dimension(:) :: xc, yc, freqs
     real(real64), allocatable, dimension(:,:) :: shapes, shapesbc, u
     real(real64), allocatable, dimension(:,:,:) :: xy
@@ -155,7 +155,7 @@ contains
 ! ------------------------------------------------------------------------------
     subroutine plot_mode_shape(mode, freq, x, y, shape)
         !! Plots the specified mode shape.
-        integer(int32), intent(in) :: mode
+        integer, intent(in) :: mode
             !! The mode number.
         real(real64), intent(in) :: freq
             !! The frequency, in Hz.
@@ -197,7 +197,7 @@ contains
             !! The ndiv-by-ndiv matrix of displacements.
 
         ! Local Variables
-        integer(int32) :: ii, jj, dof
+        integer :: ii, jj, dof
 
         ! Process
         do jj = 1, ndiv

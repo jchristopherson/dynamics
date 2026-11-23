@@ -19,7 +19,7 @@ contains
     subroutine modal_frf_forcing_term(freq, f, args)
         real(real64), intent(in) :: freq
         complex(real64), intent(out), dimension(:) :: f
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
 
         complex(real64), parameter :: zero = (0.0d0, 0.0d0)
         complex(real64), parameter :: one = (1.0d0, 0.0d0)
@@ -36,7 +36,7 @@ program example
     implicit none
 
     ! Parameters
-    integer(int32), parameter :: nfreq = 1000
+    integer, parameter :: nfreq = 1000
     real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
     real(real64), parameter :: fmin = 2.0d0 * pi * 10.0d0
     real(real64), parameter :: fmax = 2.0d0 * pi * 1.0d3
@@ -54,10 +54,9 @@ program example
     real(real64), parameter :: k4 = 5.0d6
 
     ! Local Variables
-    integer(int32) :: i
+    integer :: i
     real(real64) :: m(3,3), k(3,3)
     type(frf) :: rsp
-    procedure(modal_excite), pointer :: fcn
     real(real64), allocatable, dimension(:) :: mdl, freq, amp, mdlamp, phase, &
         mdlphase, natfreqs
     complex(real64), allocatable, dimension(:) :: mdlrsp
@@ -69,9 +68,6 @@ program example
     class(plot_axis), pointer :: x1, x2, y1, y2
     class(legend), pointer :: lgnd
 
-    ! Initialization
-    fcn => modal_frf_forcing_term
-
     ! Define the mass matrix
     m = reshape([m1, 0.0d0, 0.0d0, 0.0d0, m2, 0.0d0, 0.0d0, 0.0d0, m3], [3, 3])
 
@@ -80,7 +76,7 @@ program example
         [3, 3])
 
     ! Compute the frequency response functions
-    rsp = frequency_response(m, k, alpha, beta, nfreq, fmin, fmax, fcn)
+    rsp = frequency_response(m, k, alpha, beta, nfreq, fmin, fmax, modal_frf_forcing_term)
 
     ! Attempt to fit the modeled frequency response function
     mdl = fit_frf(FRF_RECEPTANCE_MODEL, 3, rsp%frequency, rsp%responses(:,1))

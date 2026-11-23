@@ -257,6 +257,34 @@ target_link_libraries(motor_driven_four_bar_example ${PROJECT_NAME} ${FPLOT_LIBR
 add_executable(shell_element_example shell_element_example.f90)
 target_link_libraries(shell_element_example ${PROJECT_NAME} ${FPLOT_LIBRARIES})
 
+# Flexible Truss Example
+add_executable(flexible_truss_example flexible_truss_example.f90)
+target_link_libraries(flexible_truss_example ${PROJECT_NAME} ${FPLOT_LIBRARIES})
+
+# Flexible Pendulum Example
+add_executable(flexible_pendulum_example flexible_pendulum_example.f90)
+target_link_libraries(flexible_pendulum_example ${PROJECT_NAME} ${FPLOT_LIBRARIES})
+
+# Flexible Linkage Example
+add_executable(flexible_linkage_example flexible_linkage_example.f90)
+target_link_libraries(flexible_linkage_example ${PROJECT_NAME} ${FPLOT_LIBRARIES})
+
+# Stability Example
+add_executable(stability_example stability_example.f90)
+target_link_libraries(stability_example ${PROJECT_NAME})
+
+# Vibrations Helper Example
+add_executable(vibrations_helper_example vibrations_helper_example.f90)
+target_link_libraries(vibrations_helper_example ${PROJECT_NAME} ${FPLOT_LIBRARIES})
+
+# Discrete Controls Example
+add_executable(discrete_controls_example discrete_controls_example.f90)
+target_link_libraries(discrete_controls_example ${PROJECT_NAME} ${FPLOT_LIBRARIES})
+
+# Integral State Feedback Example
+add_executable(integral_state_feedback_example integral_state_feedback_example.f90)
+target_link_libraries(integral_state_feedback_example ${PROJECT_NAME} ${FPLOT_LIBRARIES})
+
 if (${BUILD_SHARED_LIBS} AND WIN32)
     add_custom_command(
         TARGET duffing_poincare_example

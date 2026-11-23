@@ -12,8 +12,8 @@ program harmonic_truss_example
     !    1--4--3
     ! Node 1 is pinned (x, y); node 3 is supported vertically. A vertical
     ! harmonic force acts at the apex, node 2. Bars carry axial force only.
-    integer(int32), parameter :: nnode = 4, ndof = 2 * nnode, nbar = 5
-    integer(int32), parameter :: nsteps = 2000
+    integer, parameter :: nnode = 4, ndof = 2 * nnode, nbar = 5
+    integer, parameter :: nsteps = 2000
     real(real64), parameter :: pi = acos(-1.0d0)
     real(real64), parameter :: dt = 2.0d-4, frequency = 20.0d0
     real(real64), parameter :: force_amplitude = 2.0d3
@@ -21,11 +21,11 @@ program harmonic_truss_example
     real(real64), parameter :: area = 2.5d-4
     real(real64), parameter :: positions(2,nnode) = reshape([ &
         0.0d0, 0.0d0,  0.5d0, 0.3d0,  1.0d0, 0.0d0,  0.5d0, 0.0d0], [2,nnode])
-    integer(int32), parameter :: ends(2,nbar) = reshape([ &
+    integer, parameter :: ends(2,nbar) = reshape([ &
         1, 2,  2, 3,  3, 4,  4, 1,  2, 4], [2,nbar])
 
-    integer(int32) :: bar, time_index, apex_y, middle_y, middle_x, right_x
-    integer(int32) :: restrained(3)
+    integer :: bar, time_index, apex_y, middle_y, middle_x, right_x
+    integer :: restrained(3)
     real(real64), allocatable, dimension(:,:) :: mass, stiffness, reduced_mass, reduced_stiffness, damping
     real(real64), allocatable, dimension(:) :: displacement, velocity, acceleration
     real(real64), allocatable, dimension(:) :: force_current, force_next

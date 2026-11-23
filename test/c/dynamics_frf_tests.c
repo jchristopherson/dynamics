@@ -548,7 +548,9 @@ void siso_lsq_fit_ode(int neqn, int nparam, const double *mdl, double t,
     zeta = mdl[1];
     Y = mdl[2];
     dxdt[0] = x[1];
-    dxdt[1] = Y * F - (2.0 * zeta * wn * x[1] + wn * wn * x[0]);
+    // The test data use F as the steady-state displacement, so Y is a
+    // dimensionless gain near one, rather than a gain near wn squared.
+    dxdt[1] = wn * wn * Y * F - (2.0 * zeta * wn * x[1] + wn * wn * x[0]);
 }
 
 void siso_lsq_constraints(int n, int neqn, int nparam, const double *xg,
@@ -637,6 +639,11 @@ bool c_test_siso_lsq_fit()
     {
         rst = false;
         printf("TEST FAILED: c_test_siso_lsq_fit -2\n");
+    }
+    if (!isfinite(p[2]) || fabs(p[2] - 1.0) > tol)
+    {
+        rst = false;
+        printf("TEST FAILED: c_test_siso_lsq_fit - gain\n");
     }
 
     // End

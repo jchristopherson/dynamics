@@ -22,6 +22,8 @@ module dynamics
     use dynamics_helper
     use dynamics_stability
     use dynamics_controls
+    use dynamics_discrete_controls
+    use dynamics_controls_tuning
     use dynamics_system_id
     use dynamics_linkage
     use dynamics_graph
@@ -38,4 +40,16 @@ module dynamics
     use dynamics_linkage_dynamics
     use dynamics_linear_structural_solvers
     use dynamics_maps
+    use dynamics_flexible_element
+    use dynamics_finite_element
+    use dynamics_flexible_materials
+    use dynamics_flexible_beam_elements
+    use dynamics_flexible_body_types
+    use dynamics_flexible_assembly
+    use dynamics_flexible_discrete_elements
+    use dynamics_flexible_joints
+    use dynamics_boundary_conditions
+    use dynamics_flexible_body_solvers
+    use dynamics_solver_reporting
+    use dynamics_multibody
 end module

@@ -13,6 +13,10 @@
 ! fitness for a particular purpose and noninfringement.
 module dynamics_helper
     use iso_fortran_env
+    use autodiff
+    use linalg, only : mtx_inverse
+    use dynamics_error_handling, only : DYN_NONSQUARE_MATRIX_ERROR, &
+        DYN_INVALID_INPUT_ERROR
     implicit none
     private
     public :: is_symmetric
@@ -21,6 +25,26 @@ module dynamics_helper
     public :: vector_angle
     public :: scalar_projection
     public :: vector_projection
+    public :: dot_product
+    public :: matmul
+    public :: matrix_exponential
+    public :: siso_resolvent_coefficients
+    public :: solve_linear
+
+    interface cross_product
+        module procedure :: real_cross
+        module procedure :: hd_cross
+    end interface
+
+    interface dot_product
+        module procedure :: dual_dot_product
+        module procedure :: hyperdual_dot_product
+    end interface
+
+    interface matmul
+        module procedure :: dual_matmul_mtx_vec
+        module procedure :: hyperdual_matmul_mtx_vec
+    end interface
 
 contains
 ! ------------------------------------------------------------------------------
@@ -32,7 +56,7 @@ pure function is_symmetric(a) result(rst)
         !! True if the matrix is symmetric; else, false.
 
     real(real64), parameter :: tol = 10.0d0 * epsilon(0.0d0)
-    integer(int32) :: i, j, n
+    integer :: i, j, n
     real(real64) :: scale
 
     n = size(a, 1)
@@ -53,7 +77,7 @@ pure function is_symmetric(a) result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
-pure function cross_product(x, y) result(rst)
+pure function real_cross(x, y) result(rst)
     !! Computes the cross-product of two three-dimensional vectors.
     !! The result is orthogonal to both inputs and is defined by
     !! $$ \boldsymbol{x}\times\boldsymbol{y} =
@@ -68,6 +92,21 @@ pure function cross_product(x, y) result(rst)
     rst(1) = x(2) * y(3) - x(3) * y(2)
     rst(2) = x(3) * y(1) - x(1) * y(3)
     rst(3) = x(1) * y(2) - x(2) * y(1)
+end function
+
+! ------------------------------------------------------------------------------
+pure function hd_cross(a, b) result(c)
+    !! Compute the right-handed cross product of hyper-dual vectors.
+    type(hyperdual), intent(in), dimension(3) :: a
+        !! Left operand.
+    type(hyperdual), intent(in), dimension(3) :: b
+        !! Right operand.
+    type(hyperdual), dimension(3) :: c
+        !! Cross product with propagated derivatives.
+
+    c(1) = a(2)*b(3) - a(3)*b(2)
+    c(2) = a(3)*b(1) - a(1)*b(3)
+    c(3) = a(1)*b(2) - a(2)*b(1)
 end function
 
 ! ------------------------------------------------------------------------------
@@ -145,6 +184,258 @@ pure function vector_projection(x, y) result(rst)
     ! Process
     rst = y * dot_product(x, y) / dot_product(y, y)
 end function
+
+! ------------------------------------------------------------------------------
+pure function dual_dot_product(x, y) result(rst)
+    !! Computes the dot-product of two dual-type arrays.
+    type(dual), intent(in), dimension(:) :: x
+        !! The left-hand-side argument.
+    type(dual), intent(in), dimension(:) :: y
+        !! The right-hand-side argument.
+    type(dual) :: rst
+        !! The dot product.
+
+    integer :: i
+    integer :: n
+    n = size(x)
+    if (size(y) /= n) error stop "Dot product dimensions must agree."
+    rst = 0.0d0
+    do i = 1, n
+        rst = rst + x(i) * y(i)
+    end do
+end function
+
+! ------------------------------------------------------------------------------
+pure function hyperdual_dot_product(x, y) result(rst)
+    !! Computes the dot-product of two hyperdual-type arrays.
+    type(hyperdual), intent(in), dimension(:) :: x
+        !! The left-hand-side argument.
+    type(hyperdual), intent(in), dimension(:) :: y
+        !! The right-hand-side argument.
+    type(hyperdual) :: rst
+        !! The dot product.
+
+    integer :: i
+    integer :: n
+    n = size(x)
+    if (size(y) /= n) error stop "Dot product dimensions must agree."
+    rst = 0.0d0
+    do i = 1, n
+        rst = rst + x(i) * y(i)
+    end do
+end function
+
+! ------------------------------------------------------------------------------
+pure function dual_matmul_mtx_vec(x, y) result(rst)
+    !! Computes the matrix-vector product of a real-valued matrix with a
+    !! dual-type array.
+    real(real64), intent(in), dimension(:,:) :: x
+        !! The matrix.
+    type(dual), intent(in), dimension(:) :: y
+        !! The vector.
+    type(dual), allocatable, dimension(:) :: rst
+        !! The resulting vector.
+
+    integer :: i, k, m, n, p
+    type(dual) :: temp
+
+    m = size(x, 1)
+    n = size(x, 2)
+    p = size(y)
+    if (n /= p) error stop "Inner matrix dimensions must agree."
+    allocate(rst(m))
+    do i = 1, m
+        temp = 0.0d0
+        do k = 1, n
+            temp = temp + x(i,k) * y(k)
+        end do
+        rst(i) = temp
+    end do
+end function
+
+! ------------------------------------------------------------------------------
+pure function matrix_exponential(a) result(rst)
+    !! Computes the matrix exponential \( e^{A} \) using a degree-six Padé
+    !! approximant combined with scaling and squaring.  The matrix inverse
+    !! required by the approximant is computed with
+    !! [[mtx_inverse]].
+    real(real64), intent(in), dimension(:,:) :: a
+        !! The N-by-N matrix.
+    real(real64), allocatable, dimension(:,:) :: rst
+        !! The N-by-N matrix exponential.
+
+    ! Parameters
+    real(real64), parameter :: theta = 0.25d0
+    real(real64), parameter, dimension(0:6) :: c = [1.0d0, 0.5d0, &
+        5.0d0 / 44.0d0, 1.0d0 / 66.0d0, 1.0d0 / 792.0d0, &
+        1.0d0 / 15840.0d0, 1.0d0 / 665280.0d0]
+
+    ! Local Variables
+    integer :: i, k, n, s
+    real(real64) :: norm_a, sgn
+    real(real64), allocatable, dimension(:,:) :: x, xk, num, den
+
+    ! Process
+    n = size(a, 1)
+    if (size(a, 2) /= n) error stop DYN_NONSQUARE_MATRIX_ERROR
+
+    ! Scale the matrix such that its 1-norm is no larger than theta
+    norm_a = maxval(sum(abs(a), dim = 1))
+    s = 0
+    if (norm_a > theta) s = ceiling(log(norm_a / theta) / log(2.0d0))
+    x = a / 2.0d0**s
+
+    ! Evaluate the Padé approximant N(x) / D(x)
+    allocate(num(n,n), den(n,n), xk(n,n), source = 0.0d0)
+    do i = 1, n
+        num(i,i) = c(0)
+        den(i,i) = c(0)
+        xk(i,i) = 1.0d0
+    end do
+    do k = 1, ubound(c, 1)
+        xk = matmul(xk, x)
+        sgn = merge(-1.0d0, 1.0d0, mod(k, 2) == 1)
+        num = num + c(k) * xk
+        den = den + sgn * c(k) * xk
+    end do
+    rst = matmul(mtx_inverse(den), num)
+
+    ! Undo the scaling
+    do k = 1, s
+        rst = matmul(rst, rst)
+    end do
+end function
+
+! ------------------------------------------------------------------------------
+pure subroutine siso_resolvent_coefficients(a, b, c, den, markov)
+    !! Computes the coefficients of the characteristic polynomial
+    !! \( p(s) = \det(sI - A) \) and the scalar terms \( CB_kB \) required to
+    !! form the numerator of a single-input, single-output transfer function
+    !! from a state-space realization.  The Faddeev-LeVerrier algorithm is
+    !! employed:
+    !! $$ B_0 = I, \quad a_k = -\frac{1}{k}\text{tr}(AB_{k-1}), \quad
+    !! B_k = AB_{k-1} + a_k I $$
+    !! such that \( p(s) = \sum_{k=0}^{N} a_k s^{N-k} \) and
+    !! \( \text{adj}(sI - A) = \sum_{k=0}^{N-1} B_k s^{N-1-k} \).
+    !! The output arrays are 1-based, such that `den(k+1)` holds \(a_k\) and
+    !! `markov(k+1)` holds \( CB_kB \).
+    real(real64), intent(in), dimension(:,:) :: a
+        !! The N-by-N dynamics matrix.
+    real(real64), intent(in), dimension(:,:) :: b
+        !! The N-by-1 input matrix.
+    real(real64), intent(in), dimension(:,:) :: c
+        !! The 1-by-N output matrix.
+    real(real64), intent(out), allocatable, dimension(:) :: den
+        !! The N+1 characteristic polynomial coefficients, ordered from the
+        !! leading coefficient.
+    real(real64), intent(out), allocatable, dimension(:) :: markov
+        !! The N scalar values \( CB_kB \) for \( k = 0, \ldots, N-1 \).
+
+    ! Local Variables
+    integer :: i, k, n
+    real(real64), allocatable, dimension(:,:) :: bk, ab
+
+    ! Process
+    n = size(a, 1)
+    if (size(a, 2) /= n .or. size(b, 1) /= n .or. size(b, 2) /= 1 .or. &
+        size(c, 1) /= 1 .or. size(c, 2) /= n) &
+        error stop DYN_INVALID_INPUT_ERROR
+    allocate(den(n + 1), markov(n), bk(n,n), source = 0.0d0)
+    do i = 1, n
+        bk(i,i) = 1.0d0
+    end do
+    den(1) = 1.0d0
+    do k = 1, n
+        markov(k) = sum(c(1,:) * matmul(bk, b(:,1)))
+        ab = matmul(a, bk)
+        den(k + 1) = -sum([(ab(i,i), i = 1, n)]) / k
+        bk = ab
+        do i = 1, n
+            bk(i,i) = bk(i,i) + den(k + 1)
+        end do
+    end do
+end subroutine
+
+! ------------------------------------------------------------------------------
+pure function hyperdual_matmul_mtx_vec(x, y) result(rst)
+    !! Computes the matrix-vector product of a real-valued matrix with a
+    !! hyperdual-type array.
+    real(real64), intent(in), dimension(:,:) :: x
+        !! The matrix.
+    type(hyperdual), intent(in), dimension(:) :: y
+        !! The vector.
+    type(hyperdual), allocatable, dimension(:) :: rst
+        !! The resulting vector.
+
+    integer :: i, k, m, n, p
+    type(hyperdual) :: temp
+
+    m = size(x, 1)
+    n = size(x, 2)
+    p = size(y)
+    if (n /= p) error stop "Inner matrix dimensions must agree."
+    allocate(rst(m))
+    do i = 1, m
+        temp = 0.0d0
+        do k = 1, n
+            temp = temp + x(i,k) * y(k)
+        end do
+        rst(i) = temp
+    end do
+end function
+
+! ------------------------------------------------------------------------------
+subroutine solve_linear(a, b)
+    !! Solves a dense linear system in place using Gaussian elimination with
+    !! partial pivoting.  On output, b contains the solution.  The matrix
+    !! must be nonsingular.
+    type(dual), intent(inout), dimension(:,:) :: a
+        !! The coefficient matrix.  Its contents are overwritten.
+    type(dual), intent(inout), dimension(:) :: b
+        !! On input, the right-hand side.  On output, the solution.
+
+    ! Local Variables
+    integer :: n, i, j, k, piv
+    real(real64) :: pmax
+    type(dual) :: f, t
+
+    n = size(b)
+    do k = 1, n
+        piv = k
+        pmax = abs(a(k, k)%x)
+        do i = k + 1, n
+            if (abs(a(i, k)%x) > pmax) then
+                pmax = abs(a(i, k)%x)
+                piv = i
+            end if
+        end do
+        if (piv /= k) then
+            do j = k, n
+                t = a(k, j)
+                a(k, j) = a(piv, j)
+                a(piv, j) = t
+            end do
+            t = b(k)
+            b(k) = b(piv)
+            b(piv) = t
+        end if
+        do i = k + 1, n
+            f = a(i, k) / a(k, k)
+            do j = k + 1, n
+                a(i, j) = a(i, j) - f * a(k, j)
+            end do
+            b(i) = b(i) - f * b(k)
+        end do
+    end do
+
+    do i = n, 1, -1
+        t = b(i)
+        do j = i + 1, n
+            t = t - a(i, j) * b(j)
+        end do
+        b(i) = t / a(i, i)
+    end do
+end subroutine
 
 ! ------------------------------------------------------------------------------
 end module

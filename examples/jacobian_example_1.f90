@@ -23,7 +23,7 @@ pure function finite_difference(t, x) result(rst)
     real(real64), allocatable, dimension(:) :: rst
 
     ! Local Variables
-    integer(int32) :: i, n
+    integer :: i, n
 
     ! Process
     n = size(t)
@@ -55,7 +55,7 @@ program example
     ! Parameters
     real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
     real(real64), parameter :: dt = 1.0d-3
-    integer(int32), parameter :: n = 1000
+    integer, parameter :: n = 1000
     real(real64), parameter :: f1 = 5.0d0
     real(real64), parameter :: f2 = 3.0d0
     real(real64), parameter :: f3 = 1.0d1
@@ -69,7 +69,7 @@ program example
     real(real64), parameter :: Alpha1 = pi / 2.0d0
 
     ! Variables
-    integer(int32) :: i, jtypes(3)
+    integer :: i, jtypes(3)
     real(real64) :: t(n), alpha(n, 3), a(n, 3), theta(n, 3), d(n, 3), X(n, 3), &
         Ti(4, 4), dtheta1(n), dtheta2(n), dd3(n), V(n, 6), J(6, 3), Vfd(n, 3), &
         qdot(3), d3, t1, t2

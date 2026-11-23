@@ -82,20 +82,91 @@
                  <td></td>
                </tr>
 <!---->			   <tr class="active">
+                 <td><a href='..\module\dynamics_boundary_conditions.html'>dynamics_boundary_conditions</a></td>
+                 <td><a href='..\sourcefile\dynamics_boundary_conditions.f90.html'>dynamics_boundary_conditions.f90</a></td>
+                 <td><p>Applies force and displacement boundary conditions to the unconstrained
+equations of a finite_element_mesh. A condition addresses a local DOF of
+a mesh node. Force conditions are added to the global force vector.
+Displacement conditions are eliminated from the assembled system and can
+be restored after the reduced system is solved.</p></td>
+               </tr>
+<!--active-->			   <tr class="">
                  <td><a href='..\module\dynamics_controls.html'>dynamics_controls</a></td>
                  <td><a href='..\sourcefile\dynamics_controls.f90.html'>dynamics_controls.f90</a></td>
                  <td></td>
                </tr>
+<!---->			   <tr class="active">
+                 <td><a href='..\module\dynamics_controls_tuning.html'>dynamics_controls_tuning</a></td>
+                 <td><a href='..\sourcefile\dynamics_controls_tuning.f90.html'>dynamics_controls_tuning.f90</a></td>
+                 <td><p>Defines an integral state feedback controller along with tools to
+evaluate its integral squared error (ISE) in closed form and to optimize
+its gains.  Gradients of the ISE with respect to the gains are computed
+with automatic differentiation.</p></td>
+               </tr>
 <!--active-->			   <tr class="">
+                 <td><a href='..\module\dynamics_discrete_controls.html'>dynamics_discrete_controls</a></td>
+                 <td><a href='..\sourcefile\dynamics_discrete_controls.f90.html'>dynamics_discrete_controls.f90</a></td>
+                 <td><p>Defines discrete-time state-space and transfer function models along with
+conversions between continuous and discrete forms.</p></td>
+               </tr>
+<!---->			   <tr class="active">
                  <td><a href='..\module\dynamics_discrete_elements.html'>dynamics_discrete_elements</a></td>
                  <td><a href='..\sourcefile\dynamics_discrete_elements.f90.html'>dynamics_discrete_elements.f90</a></td>
                  <td><p>Discrete (lumped-parameter) spring, viscous damper, and point mass
 elements for 2D and 3D structural analyses.</p><a href="../module/dynamics_discrete_elements.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
-<!---->			   <tr class="active">
+<!--active-->			   <tr class="">
                  <td><a href='..\module\dynamics_error_handling.html'>dynamics_error_handling</a></td>
                  <td><a href='..\sourcefile\dynamics_error_handling.f90.html'>dynamics_error_handling.f90</a></td>
                  <td></td>
+               </tr>
+<!---->			   <tr class="active">
+                 <td><a href='..\module\dynamics_finite_element.html'>dynamics_finite_element</a></td>
+                 <td><a href='..\sourcefile\dynamics_finite_element.f90.html'>dynamics_finite_element.f90</a></td>
+                 <td><p>Finite-element topology contracts for flexible elements.</p></td>
+               </tr>
+<!--active-->			   <tr class="">
+                 <td><a href='..\module\dynamics_flexible_assembly.html'>dynamics_flexible_assembly</a></td>
+                 <td><a href='..\sourcefile\dynamics_flexible_assembly.f90.html'>dynamics_flexible_assembly.f90</a></td>
+                 <td><p>Connectivity-based assembly for flexible finite elements.</p><a href="../module/dynamics_flexible_assembly.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+               </tr>
+<!---->			   <tr class="active">
+                 <td><a href='..\module\dynamics_flexible_beam_elements.html'>dynamics_flexible_beam_elements</a></td>
+                 <td><a href='..\sourcefile\dynamics_beam_elements.f90~2.html'>dynamics_beam_elements.f90</a></td>
+                 <td><p>Energy-based three-dimensional flexible beam elements.</p><a href="../module/dynamics_flexible_beam_elements.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+               </tr>
+<!--active-->			   <tr class="">
+                 <td><a href='..\module\dynamics_flexible_body_solvers.html'>dynamics_flexible_body_solvers</a></td>
+                 <td><a href='..\sourcefile\dynamics_flexible_body_solvers.f90.html'>dynamics_flexible_body_solvers.f90</a></td>
+                 <td><p>Static equilibrium and transient dynamics for flexible finite-element meshes.</p><a href="../module/dynamics_flexible_body_solvers.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+               </tr>
+<!---->			   <tr class="active">
+                 <td><a href='..\module\dynamics_flexible_body_types.html'>dynamics_flexible_body_types</a></td>
+                 <td><a href='..\sourcefile\dynamics_flexible_body_types.f90.html'>dynamics_flexible_body_types.f90</a></td>
+                 <td></td>
+               </tr>
+<!--active-->			   <tr class="">
+                 <td><a href='..\module\dynamics_flexible_discrete_elements.html'>dynamics_flexible_discrete_elements</a></td>
+                 <td><a href='..\sourcefile\dynamics_flexible_discrete_elements.f90.html'>dynamics_flexible_discrete_elements.f90</a></td>
+                 <td><p>Follower connectors and centered nodal inertia for flexible meshes.</p></td>
+               </tr>
+<!---->			   <tr class="active">
+                 <td><a href='..\module\dynamics_flexible_element.html'>dynamics_flexible_element</a></td>
+                 <td><a href='..\sourcefile\dynamics_flexible_element.f90.html'>dynamics_flexible_element.f90</a></td>
+                 <td><p>Common contracts for flexible elements and their assembled DOFs.</p></td>
+               </tr>
+<!--active-->			   <tr class="">
+                 <td><a href='..\module\dynamics_flexible_joints.html'>dynamics_flexible_joints</a></td>
+                 <td><a href='..\sourcefile\dynamics_flexible_joints.f90.html'>dynamics_flexible_joints.f90</a></td>
+                 <td><p>Kinematic joints between node-table positions of a flexible mesh.</p><a href="../module/dynamics_flexible_joints.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+               </tr>
+<!---->			   <tr class="active">
+                 <td><a href='..\module\dynamics_flexible_materials.html'>dynamics_flexible_materials</a></td>
+                 <td><a href='..\sourcefile\dynamics_flexible_materials.f90.html'>dynamics_flexible_materials.f90</a></td>
+                 <td><p>Material energy interfaces for flexible elements.
+Use a consistent unit system: energy density is energy per reference
+volume, bending and torsional energies are energy per reference length,
+moduli are stress, and density is mass per reference volume.</p></td>
                </tr>
 <!--active-->			   <tr class="">
                  <td><a href='..\module\dynamics_frequency_response.html'>dynamics_frequency_response</a></td>
@@ -167,6 +238,11 @@ variational integrator.</p></td>
                  <td></td>
                </tr>
 <!--active-->			   <tr class="">
+                 <td><a href='..\module\dynamics_multibody.html'>dynamics_multibody</a></td>
+                 <td><a href='..\sourcefile\dynamics_multibody.f90.html'>dynamics_multibody.f90</a></td>
+                 <td></td>
+               </tr>
+<!---->			   <tr class="active">
                  <td><a href='..\module\dynamics_parallel_linkage.html'>dynamics_parallel_linkage</a></td>
                  <td><a href='..\sourcefile\dynamics_parallel_linkage.f90.html'>dynamics_parallel_linkage.f90</a></td>
                  <td><p>Provides types supporting the kinematic analysis of closed-loop, or
@@ -176,26 +252,34 @@ spanning tree of that graph supplies the transformation path to each
 link, and the edges excluded from the tree define the loop-closure
 constraints that must be satisfied by any valid configuration.</p></td>
                </tr>
-<!---->			   <tr class="active">
+<!--active-->			   <tr class="">
                  <td><a href='..\module\dynamics_quaternions.html'>dynamics_quaternions</a></td>
                  <td><a href='..\sourcefile\dynamics_quaternions.f90.html'>dynamics_quaternions.f90</a></td>
                  <td></td>
                </tr>
-<!--active-->			   <tr class="">
+<!---->			   <tr class="active">
                  <td><a href='..\module\dynamics_rigid_bodies.html'>dynamics_rigid_bodies</a></td>
                  <td><a href='..\sourcefile\dynamics_rigid_bodies.f90.html'>dynamics_rigid_bodies.f90</a></td>
                  <td></td>
                </tr>
-<!---->			   <tr class="active">
+<!--active-->			   <tr class="">
                  <td><a href='..\module\dynamics_rotation.html'>dynamics_rotation</a></td>
                  <td><a href='..\sourcefile\dynamics_rotation.f90.html'>dynamics_rotation.f90</a></td>
                  <td></td>
                </tr>
-<!--active-->			   <tr class="">
+<!---->			   <tr class="active">
                  <td><a href='..\module\dynamics_shell_elements.html'>dynamics_shell_elements</a></td>
                  <td><a href='..\sourcefile\dynamics_shell_elements.f90.html'>dynamics_shell_elements.f90</a></td>
                  <td><p>Flat, three-dimensional shell elements with six degrees of freedom per
 node.</p><a href="../module/dynamics_shell_elements.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+               </tr>
+<!--active-->			   <tr class="">
+                 <td><a href='..\module\dynamics_solver_reporting.html'>dynamics_solver_reporting</a></td>
+                 <td><a href='..\sourcefile\dynamics_solver_reporting.f90.html'>dynamics_solver_reporting.f90</a></td>
+                 <td><p>Provides mechanisms for reporting solver status. Reporting is optional:
+every progress callback is an optional argument, and solvers do no
+reporting work when it is omitted. Static solvers report accepted
+nonlinear iterates, while time-history solvers report completed steps.</p></td>
                </tr>
 <!---->			   <tr class="active">
                  <td><a href='..\module\dynamics_stability.html'>dynamics_stability</a></td>
@@ -248,7 +332,7 @@ Sosnowski, Manchester, and Hirche (2023).</p><a href="../module/dynamics_variati
             <p class="text-end">
               Documentation generated by
               <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
- on 2026-10-16 05:59              </p>
+ on 2026-11-22 19:41              </p>
           </div>
         </div>
         <br>

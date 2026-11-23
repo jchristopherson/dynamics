@@ -24,7 +24,7 @@ program example
     implicit none
 
     ! Simulation Parameters
-    integer(int32), parameter :: ntime = 1001
+    integer, parameter :: ntime = 1001
     real(real64), parameter :: dt = 5.0d-4
     real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
     real(real64), parameter :: motion_frequency = 5.0d0
@@ -44,7 +44,7 @@ program example
         motion_center - motion_amplitude
 
     ! Local Variables
-    integer(int32) :: i
+    integer :: i
     real(real64), dimension(4) :: q
     real(real64), dimension(2) :: closure_point
     real(real64), dimension(3,3) :: rotation
@@ -58,7 +58,6 @@ program example
     type(variational_integrator) :: integrator
     type(variational_state), allocatable, dimension(:) :: solution
     type(joint_reaction), allocatable, dimension(:) :: joint_reactions
-    procedure(linkage_prescribed_motion), pointer :: motion_ptr
     type(multiplot) :: plt
     type(plot_2d) :: plt1, plt2, plt3, plt4
 
@@ -90,10 +89,9 @@ program example
     ! crank. Prescribing its absolute angle adds one rheonomic constraint. The
     ! final constraint multiplier is the motor torque required to follow it.
     integrator%settings%linear_solver = VI_DENSE_SOLVER
-    motion_ptr => crank_motion
     solution = dynamic_model%solve(integrator, dt, ntime, &
 		gravity = [0.0d0, -9.80665d0, 0.0d0], &
-                prescribed_body = 1, prescribed_motion = motion_ptr, &
+                prescribed_body = 1, prescribed_motion = crank_motion, &
                 multipliers = constraint_multipliers)
 
     ! Recover the absolute orientation of each moving link.
@@ -167,7 +165,7 @@ function crank_motion(t, args) result(rst)
     !! at its lower displacement limit with zero commanded velocity.
     real(real64), intent(in) :: t
         !! The simulation time.
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
         !! Optional, user-defined communication argument.
     real(real64) :: rst
         !! The prescribed absolute crank angle, in radians.
@@ -206,7 +204,7 @@ pure function translation(distance) result(rst)
         !! The translation distance.
     real(real64), dimension(4,4) :: rst
         !! The homogeneous transformation matrix.
-    integer(int32) :: i
+    integer :: i
 
     rst = 0.0d0
     do i = 1, 4

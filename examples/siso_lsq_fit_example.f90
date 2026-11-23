@@ -14,6 +14,7 @@
 module equation_container
     use iso_fortran_env
     use dynamics
+    use fstats_interp, only : base_interpolator
     implicit none
 
 contains
@@ -21,17 +22,19 @@ contains
         real(real64), intent(in) :: t               ! the current time value
         real(real64), intent(in) :: x(:)            ! the current state vector
         real(real64), intent(out) :: dxdt(:)        ! the derivatives
-        class(*), intent(inout), optional :: args   ! model information
+        class(*), intent(in), optional :: args      ! model information
 
         ! Local Variables
         real(real64) :: zeta, wn, F
+        class(base_interpolator), pointer :: excitation
 
         ! Extract the model information
         select type (args)
         class is (model_information)
             wn = args%model(1)
             zeta = args%model(2)
-            F = args%excitation%interpolate_value(t)
+            excitation => args%excitation
+            F = excitation%interpolate_value(t)
         end select
 
         ! The ODE:
@@ -52,17 +55,16 @@ program example
 
     ! Parameters
     real(real64), parameter :: fs = 1.0d3
-    integer(int32), parameter :: npts = 1000
+    integer, parameter :: npts = 1000
     real(real64), parameter :: zeta = 5.0d-2
     real(real64), parameter :: wn = 3.0d2
     real(real64), parameter :: sigma_pct = 1.0d-1
     real(real64), parameter :: amplitude = 1.0d4
 
     ! Local Variables
-    integer(int32) :: i
+    integer :: i
     real(real64) :: dt, tmax, p(2), ic(2)
     type(dynamic_system_measurement) :: measurements(1)
-    procedure(ode), pointer :: fcn
     type(ode_container) :: mdl
     type(runge_kutta_45) :: integrator
     type(model_information) :: info
@@ -112,8 +114,7 @@ program example
     controls%residual_tolerance = 1.0d-8
 
     ! Set up the problem and solve
-    fcn => eom
-    call siso_model_fit_least_squares(fcn, measurements, ic, p, &
+    call siso_model_fit_least_squares(eom, measurements, ic, p, &
         controls = controls, stats = stats)
 
     ! Compare the solution and the actual values

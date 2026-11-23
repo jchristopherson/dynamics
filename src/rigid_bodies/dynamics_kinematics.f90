@@ -59,9 +59,9 @@ module dynamics_kinematics
         module procedure :: dh_build_jacobian
     end interface
 
-    integer(int32), parameter :: REVOLUTE_JOINT = 0
+    integer, parameter :: REVOLUTE_JOINT = 0
         !! Defines a revolute joint.
-    integer(int32), parameter :: PRISMATIC_JOINT = 1
+    integer, parameter :: PRISMATIC_JOINT = 1
         !! Defines a prismatic joint.
 
     type coordinate_system
@@ -554,7 +554,7 @@ contains
             !! The resulting 4-by-4 transformation matrix.
 
         ! Local Variables
-        integer(int32) :: i, n
+        integer :: i, n
         real(real64) :: Ti(4,4)
 
         ! Initialization
@@ -579,7 +579,7 @@ contains
             !! The resulting 4-by-4 transformation matrix.
 
         ! Local Variables
-        integer(int32) :: i, n
+        integer :: i, n
         real(real64) :: Ti(4, 4)
 
         ! Initialization
@@ -613,7 +613,7 @@ contains
         slvr, ib, jfcn, qmax, qmin, args) result(rst)
         !! Solves the inverse kinematics problem for a linkage.  An iterative
         !! solution procedure is utilized.
-        procedure(vecfcn), intent(in), pointer :: mdl
+        procedure(vecfcn) :: mdl
             !! A routine used to compute the forward kinematics for the linkage
             !! given the current joint variable estimates.
         real(real64), intent(in), dimension(:) :: qo
@@ -643,13 +643,13 @@ contains
             !! An optional set of lower limits on each of the joint variables.
             !! If not provided, the default is the negative of the output of 
             !! the 'huge' intrinsic function.
-        class(*), intent(inout), optional, target :: args
+        class(*), intent(in), optional, target :: args
             !! An optional argument that can be used to communicate with mdl.
         real(real64), allocatable, dimension(:) :: rst
             !! An M-element array containing the computed joint variables.
 
         ! Local Variables
-        integer(int32) :: nvar, neqn, flag
+        integer :: nvar, neqn, flag
         real(real64), pointer, dimension(:) :: resid
         real(real64), allocatable, target, dimension(:) :: dresid
         type(vecfcn_helper) :: helper
@@ -671,7 +671,6 @@ contains
         if (present(args)) obj%user_args => args
 
         ! Input Check
-        if (.not.associated(mdl)) error stop DYN_NULL_POINTER_ERROR
         if (nvar < 1) error stop DYN_INVALID_INPUT_ERROR
         if (neqn < nvar) error stop DYN_CONSTRAINT_ERROR
         if (present(df)) then
@@ -708,7 +707,7 @@ contains
         ! Routine called by the inverse kinematics solver
         real(real64), intent(in), dimension(:) :: x
         real(real64), intent(out), dimension(:) :: f
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
 
         ! Process
         select type (args)
@@ -763,7 +762,7 @@ pure function jacobian_generating_vector(d, k, R, jtype) result(rst)
     real(real64), intent(in) :: R(3, 3)
         !! The rotation matrix defining the orientation of the link coordinate
         !! frame relative to the base coordinate frame.
-    integer(int32), intent(in) :: jtype
+    integer, intent(in) :: jtype
         !! The joint type.  Must be either REVOLUTE_JOINT or PRISMATIC_JOINT.
         !! If incorrectly specified, the code defaults to a REVOLUTE_JOINT type.
     real(real64) :: rst(6)
@@ -813,7 +812,7 @@ function dh_build_jacobian(alpha, a, theta, d, jtypes) result(rst)
     real(real64), intent(in), dimension(size(alpha)) :: d
         !! The joint offsets distance measured as the distance between the
         !! x(i-1) axis and the link's x-axis along the z(i-1) axis.
-    integer(int32), intent(in), dimension(size(alpha)) :: jtypes
+    integer, intent(in), dimension(size(alpha)) :: jtypes
         !! The types of each joint.  Must be either REVOLUTE_JOINT or
         !! PRISMATIC_JOINT.  The code defaults to REVOLUTE_JOINT.
     real(real64), allocatable, dimension(:,:) :: rst
@@ -824,7 +823,7 @@ function dh_build_jacobian(alpha, a, theta, d, jtypes) result(rst)
     real(real64), parameter :: zi_1(4) = [0.0d0, 0.0d0, 1.0d0, 0.0d0]
 
     ! Local Variables
-    integer(int32) :: i, j, n
+    integer :: i, j, n
     real(real64) :: Ti(4, 4), T(4, 4), Te(4, 4), temp(4, 4), di_1(3), ki_1(4)
 
     ! Initialization
@@ -1009,7 +1008,7 @@ end function
             !! The resulting Denavit-Hartenberg table.
 
         ! Local Variables
-        integer(int32) :: i, n
+        integer :: i, n
 
         ! Initialization
         n = size(c)

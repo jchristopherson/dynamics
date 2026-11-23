@@ -47,25 +47,25 @@ program example
     real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
 
     ! Mesh Refinement
-    integer(int32), parameter :: nel = 50
+    integer, parameter :: nel = 50
         !! The number of beam elements used to represent each leg of the truss.
-    integer(int32), parameter :: nlegs = 5
+    integer, parameter :: nlegs = 5
         !! The number of legs in the truss.
-    integer(int32), parameter :: ncorners = 4
+    integer, parameter :: ncorners = 4
         !! The number of corner nodes in the truss.
-    integer(int32), parameter :: dof_per_node = 3
-    integer(int32), parameter :: nnodes = ncorners + nlegs * (nel - 1)
-    integer(int32), parameter :: nelements = nlegs * nel
-    integer(int32), parameter :: gdof = nnodes * dof_per_node
-    integer(int32), parameter :: n_plot_modes = 6
+    integer, parameter :: dof_per_node = 3
+    integer, parameter :: nnodes = ncorners + nlegs * (nel - 1)
+    integer, parameter :: nelements = nlegs * nel
+    integer, parameter :: gdof = nnodes * dof_per_node
+    integer, parameter :: n_plot_modes = 6
         !! The number of lowest-frequency mode shapes to plot; the finer mesh
         !! yields many more modes than are of interest to visualize.
 
     ! Corner Node Coordinates & Leg Connectivity (1-2, 2-3, 3-4, 4-1, 2-4)
     real(real64), parameter :: corner_x(ncorners) = [0.0d0, 0.5d0, 1.0d0, 0.5d0]
     real(real64), parameter :: corner_y(ncorners) = [0.0d0, 0.2d0, 0.0d0, 0.0d0]
-    integer(int32), parameter :: leg_start(nlegs) = [1, 2, 3, 4, 2]
-    integer(int32), parameter :: leg_end(nlegs) = [2, 3, 4, 1, 4]
+    integer, parameter :: leg_start(nlegs) = [1, 2, 3, 4, 2]
+    integer, parameter :: leg_end(nlegs) = [2, 3, 4, 1, 4]
 
     ! Applied Forces
     real(real64), parameter :: applied_force = 1.0d4
@@ -81,7 +81,7 @@ program example
     real(real64), parameter :: density = 2.7d3
 
     ! FRF Parameters
-    integer(int32), parameter :: nfreq = 1000
+    integer, parameter :: nfreq = 1000
     real(real64), parameter :: alpha = 1.0d-3
     real(real64), parameter :: beta = 2.0d-6
     real(real64), parameter :: minfreq = 2.0d0 * pi * 1.0d1
@@ -91,14 +91,13 @@ program example
     type(material) :: mat
     type(node) :: nodes(nnodes)
     type(beam_element_2d) :: beams(nelements)
-    integer(int32) :: i, el, leg, node_count, elem_count, bc(4)
-    integer(int32) :: leg_nodes(nlegs, nel + 1)
+    integer :: i, el, leg, node_count, elem_count, bc(4)
+    integer :: leg_nodes(nlegs, nel + 1)
     real(real64) :: t, x0, y0, x1v, y1v
     real(real64), allocatable, dimension(:) :: F, Fbc, ubc, u, Fr, freqs
     real(real64), allocatable, dimension(:,:) :: shapesbc, shapes
     type(csr_matrix) :: K, Kbc, M, Mbc
     type(frf) :: frsp
-    procedure(modal_excite), pointer :: excitefcn
     character(len = 32) :: str
 
     ! Create the material
@@ -218,9 +217,8 @@ program example
 ! ******************************************************************************
 ! HARMONIC ANALYSIS
 ! ------------------------------------------------------------------------------
-    excitefcn => modal_frf_forcing_term
     frsp = frequency_response(Mbc, Kbc, alpha, beta, n_plot_modes, nfreq, &
-        minfreq, maxfreq, excitefcn)
+        minfreq, maxfreq, modal_frf_forcing_term)
     call plot_frf(frsp, 5)
 
 contains
@@ -231,15 +229,17 @@ contains
             !! The frequency value.
         complex(real64), intent(out), dimension(:) :: f_
             !! The output forcing vector.
-        class(*), intent(inout), optional :: args_
+        class(*), intent(in), optional :: args_
 
         complex(real64), parameter :: zero = (0.0d0, 0.0d0)
 
         ! Set f_ to zeros
         f_ = zero
 
-        ! Assign the forcing term to the appropriate node
-        f_(5) = applied_force
+        ! Assign the forcing term to the apex's vertical DOF.  The system is
+        ! reduced by the boundary conditions (global DOFs 1-3 removed), so the
+        ! global DOF 5 maps to index 2 in the reduced system.
+        f_(2) = applied_force
     end subroutine
 
 ! ------------------------------------------------------------------------------
@@ -250,7 +250,7 @@ contains
             !! The node list.
         real(real64), intent(in), dimension(:) :: u_
             !! The nodal deformation vector.
-        integer(int32), intent(in), dimension(:,:) :: leg_nodes_
+        integer, intent(in), dimension(:,:) :: leg_nodes_
             !! The global node index of each node along each leg, in order.
         real(real64), intent(in) :: scaling
             !! A scaling factor to aid in visualization.
@@ -258,7 +258,7 @@ contains
             !! The plot title.
 
         ! Local Variables
-        integer(int32) :: j, leg, nid, npts
+        integer :: j, leg, nid, npts
         real(real64), allocatable, dimension(:) :: x, y, dx, dy, umag
         type(plot_2d) :: plt
         type(plot_data_2d), allocatable, dimension(:) :: pd
@@ -301,7 +301,7 @@ contains
         !! Plots the FRF of the requested degree of freedom.
         type(frf), intent(in) :: rsp_
             !! The frequency response.
-        integer(int32), intent(in) :: dof_
+        integer, intent(in) :: dof_
             !! The degree of freedom to plot.
 
         ! Local Variables

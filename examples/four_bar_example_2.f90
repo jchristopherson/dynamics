@@ -22,7 +22,7 @@ program example
     implicit none
 
     ! Simulation Parameters
-    integer(int32), parameter :: ntime = 1001
+    integer, parameter :: ntime = 1001
     real(real64), parameter :: dt = 5.0d-4
     real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
     real(real64), parameter :: motion_frequency = 5.0d0
@@ -49,7 +49,6 @@ program example
     type(joint) :: joints(4)
     type(planar_linkage) :: mechanism
     type(linkage_dynamic_model) :: model
-    procedure(linkage_prescribed_motion), pointer :: motor_motion
     type(torsional_spring) :: spring
     type(torsional_damper) :: damper
     real(real64) :: g(3), R(3,3)
@@ -57,7 +56,7 @@ program example
     type(variational_state), allocatable, dimension(:) :: solution
     real(real64), allocatable, dimension(:,:) :: constraint_multipliers
     type(joint_reaction) :: joint_reactions(4)
-    integer(int32) :: i, nmult
+    integer :: i, nmult
     real(real64), allocatable, dimension(:) :: time, torque, crank_angle, &
         rocker_angle, Fx1, Fy1, Fx2, Fy2, Fx3, Fy3, Fx4, Fy4
 
@@ -128,9 +127,6 @@ program example
         mechanism%get_configuration() &     ! the initial configuration
     )
 
-    ! Now we can define the necessary routines for the integrator
-    motor_motion => crank_motor
-
     ! Add a spring and damper element
     spring%free_angle = 0.0d0
     spring%joint_index = 4      ! the spring is tied to the rocker-ground connection
@@ -152,7 +148,7 @@ program example
         ntime, &                                ! # of time steps
         gravity = g, &                          ! gravitational vector
         prescribed_body = 1, &                  ! the index of the driven body - ground is ignored in this instance, so the driving body is the crank and thus index 1
-        prescribed_motion = motor_motion, &     ! motor motion routine
+        prescribed_motion = crank_motor, &      ! motor motion routine
         multipliers = constraint_multipliers &  ! Lagrange multiplier values - use to get motor torque
     )
 
@@ -272,7 +268,7 @@ contains
         !! Defines the position of the crank motor at time t.
         real(real64), intent(in) :: t
             !! The simulation time.
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
             !! Optional user-defined communication argument.
         real(real64) :: rst
             !! The motor position, in radians.

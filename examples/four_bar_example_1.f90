@@ -25,7 +25,7 @@ program example
 
     ! Parameters
     real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
-    integer(int32), parameter :: npts = 100
+    integer, parameter :: npts = 100
 
     ! Model Properties
     real(real64), parameter :: crank = 1.0d0
@@ -34,7 +34,7 @@ program example
     real(real64), parameter :: ground = 4.0d0
 
     ! Local Variables
-    integer(int32) :: i
+    integer :: i
     type(link_container) :: links(4)
     type(joint) :: joints(4)
     type(planar_linkage) :: linkage
@@ -147,7 +147,7 @@ contains
         class(kinematic_mechanism), intent(in), target :: mech
         real(real64), intent(in), dimension(:) :: q
 
-        integer(int32) :: j, k, n
+        integer :: j, k, n
         class(link), pointer :: lnk
         type(plot_data_2d), allocatable, dimension(:) :: pd
         real(real64) :: T(4, 4), Pk(4, 4)

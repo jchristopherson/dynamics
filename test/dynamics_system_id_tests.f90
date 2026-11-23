@@ -17,6 +17,7 @@ module dynamics_system_id_tests
     use dynamics
     use diffeq
     use fstats
+    use fstats_interp, only : base_interpolator
     implicit none
 
 contains
@@ -25,17 +26,19 @@ contains
         real(real64), intent(in) :: t               ! the current time value
         real(real64), intent(in) :: x(:)            ! the current state vector
         real(real64), intent(out) :: dxdt(:)        ! the derivatives
-        class(*), intent(inout), optional :: args   ! model information
+        class(*), intent(in), optional :: args      ! model information
 
         ! Local Variables
         real(real64) :: zeta, wn, F
+        class(base_interpolator), pointer :: excitation
 
         ! Extract the model information
         select type (args)
         class is (model_information)
             wn = args%model(1)
             zeta = args%model(2)
-            F = args%excitation%interpolate_value(t)
+            excitation => args%excitation
+            F = excitation%interpolate_value(t)
         end select
 
         ! The ODE:
@@ -48,7 +51,7 @@ contains
     subroutine constraints(xg, fg, xc, p, fc, args)
         real(real64), intent(in), dimension(:) :: xg, fg, xc, p
         real(real64), intent(out), dimension(:) :: fc
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
 
         ! Constraint Equations
         fc(1) = p(1)
@@ -63,14 +66,14 @@ contains
         ! Parameters
         real(real64), parameter :: tol = 1.0d-1
         real(real64), parameter :: fs = 1.0d3
-        integer(int32), parameter :: npts = 1000
+        integer, parameter :: npts = 1000
         real(real64), parameter :: zeta = 5.0d-2
         real(real64), parameter :: wn = 3.0d2
         real(real64), parameter :: sigma_pct = 1.0d-1
         real(real64), parameter :: amplitude = 1.0d4
 
         ! Local Variables
-        integer(int32) :: i
+        integer :: i
         real(real64) :: dt, tmax, p(2), ic(2)
         type(dynamic_system_measurement) :: measurements(2)
         procedure(ode), pointer :: fcn
@@ -160,14 +163,14 @@ contains
         ! Parameters
         real(real64), parameter :: tol = 1.0d-1
         real(real64), parameter :: fs = 1.0d3
-        integer(int32), parameter :: npts = 1000
+        integer, parameter :: npts = 1000
         real(real64), parameter :: zeta = 5.0d-2
         real(real64), parameter :: wn = 3.0d2
         real(real64), parameter :: sigma_pct = 1.0d-1
         real(real64), parameter :: amplitude = 1.0d4
 
         ! Local Variables
-        integer(int32) :: i
+        integer :: i
         real(real64) :: dt, tmax, p(2), ic(2), tc(2), fc(2), minp(2), maxp(2)
         real(real64) :: weights(2 * npts + 2)
         type(dynamic_system_measurement) :: measurements(2)
@@ -270,14 +273,14 @@ contains
         ! Parameters
         real(real64), parameter :: tol = 1.0d-1
         real(real64), parameter :: fs = 1.0d3
-        integer(int32), parameter :: npts = 1000
+        integer, parameter :: npts = 1000
         real(real64), parameter :: zeta = 5.0d-2
         real(real64), parameter :: wn = 3.0d2
         real(real64), parameter :: sigma_pct = 1.0d-1
         real(real64), parameter :: amplitude = 1.0d4
 
         ! Local Variables
-        integer(int32) :: i
+        integer :: i
         real(real64) :: dt, tmax, p(2), ic(2,2)
         type(dynamic_system_measurement) :: measurements(2)
         procedure(ode), pointer :: fcn

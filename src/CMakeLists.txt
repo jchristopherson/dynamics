@@ -13,6 +13,8 @@ set(DYNAMICS_SOURCES
     ${dir}/support/dynamics_helper.f90
     ${dir}/vibrations/dynamics_stability.f90
     ${dir}/controls/dynamics_controls.f90
+    ${dir}/controls/dynamics_discrete_controls.f90
+    ${dir}/controls/dynamics_controls_tuning.f90
     ${dir}/system_id/dynamics_system_id.f90
     ${dir}/rigid_bodies/dynamics_quaternions.f90
     ${dir}/vibrations/dynamics_maps.f90
@@ -22,15 +24,26 @@ set(DYNAMICS_SOURCES
     ${dir}/rigid_bodies/dynamics_joints.f90
     ${dir}/rigid_bodies/dynamics_linkage.f90
     ${dir}/rigid_bodies/dynamics_parallel_linkage.f90
+    ${dir}/rigid_bodies/dynamics_linkage_dynamics.f90
     ${dir}/structural/dynamics_beam_elements.f90
     ${dir}/structural/dynamics_truss_elements.f90
     ${dir}/structural/dynamics_discrete_elements.f90
     ${dir}/structural/dynamics_shell_elements.f90
+    ${dir}/solvers/dynamics_solver_reporting.f90
     ${dir}/solvers/dynamics_variational_integrators.f90
-    ${dir}/rigid_bodies/dynamics_linkage_dynamics.f90
+    ${dir}/solvers/dynamics_flexible_body_solvers.f90
     ${dir}/solvers/dynamics_linear_structural_solvers.f90
     ${dir}/frequency/dynamics_frequency_sweep.f90
     ${dir}/frequency/dynamics_modal_analysis.f90
+    ${dir}/flexible_bodies/dynamics_flexible_element.f90
+    ${dir}/flexible_bodies/dynamics_finite_element.f90
+    ${dir}/flexible_bodies/dynamics_flexible_materials.f90
+    ${dir}/flexible_bodies/dynamics_beam_elements.f90
+    ${dir}/flexible_bodies/dynamics_flexible_body_types.f90
+    ${dir}/flexible_bodies/dynamics_flexible_assembly.f90
+    ${dir}/flexible_bodies/dynamics_flexible_discrete_elements.f90
+    ${dir}/flexible_bodies/dynamics_flexible_joints.f90
+    ${dir}/flexible_bodies/dynamics_boundary_conditions.f90
 )
 
 # C API
@@ -42,13 +55,28 @@ endif()
 # Dependencies
 include(FetchContent)
 find_package(OpenMP REQUIRED COMPONENTS Fortran)
-find_package(linalg 2.3.0 QUIET)
-find_package(nonlin 2.3.0 QUIET)
-find_package(fstats 1.8.0 QUIET)
-find_package(diffeq 2.1.0 QUIET)
+find_package(linalg 3.0 QUIET)
+find_package(nonlin 3.0 QUIET)
+find_package(fstats 2.0 QUIET)
+find_package(diffeq 3.0 QUIET)
 find_package(peaks QUIET)
-find_package(spectrum 1.5.0 QUIET)
-find_package(collections 1.2.0 QUIET)
+find_package(spectrum 1.5 QUIET)
+find_package(collections 1.2 QUIET)
+find_package(autodiff 1.1 QUIET)
+
+if (NOT autodiff_FOUND)
+    FetchContent_Declare(
+        autodiff
+        GIT_REPOSITORY "https://github.com/jchristopherson/autodiff"
+        GIT_TAG main
+    )
+    FetchContent_MakeAvailable(autodiff)
+    set(AUTODIFF_LIBRARIES autodiff)
+    set(BUILD_AUTODIFF TRUE)
+else()
+    set(AUTODIFF_LIBRARIES autodiff::autodiff)
+    set(BUILD_AUTODIFF FALSE)
+endif()
 
 if (NOT linalg_FOUND)
     message(STATUS "LINALG could not be found.  A reference version will be employed.")
@@ -165,6 +193,7 @@ target_link_libraries(
     ${PEAKS_LIBRARIES}
     ${SPECTRUM_LIBRARIES}
     ${COLLECTIONS_LIBRARIES}
+    ${AUTODIFF_LIBRARIES}
 )
 if (OpenMP_Fortran_FOUND)
     target_link_libraries(${PROJECT_NAME} PUBLIC OpenMP::OpenMP_Fortran)
@@ -215,6 +244,12 @@ install(
 install(DIRECTORY ${DYNAMICS_MOD_DIR} DESTINATION ${CMAKE_INSTALL_MODULEDIR})
 
 if (${BUILD_SHARED_LIBS})
+    if (${BUILD_AUTODIFF})
+        install(TARGETS ${AUTODIFF_LIBRARIES}
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        )
+    endif()
     if (${BUILD_LINALG})
         install(TARGETS ${LINALG_LIBRARIES}
             RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -258,6 +293,12 @@ if (${BUILD_SHARED_LIBS})
         )
     endif()
 else()
+    if (${BUILD_AUTODIFF})
+        install(TARGETS ${AUTODIFF_LIBRARIES}
+            RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        )
+    endif()
     if (${BUILD_LINALG})
         install(TARGETS ${LINALG_LIBRARIES}
             RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}

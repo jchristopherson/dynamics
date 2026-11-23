@@ -6,5 +6,6 @@
 bool c_test_state_space_initialize();
 bool c_test_state_space_poles_zeros();
 bool c_test_state_space_to_transfer_function();
+bool c_test_discrete_controls(void);
 
 #endif

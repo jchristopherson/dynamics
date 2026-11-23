@@ -23,9 +23,10 @@ module dynamics_linear_structural_solvers
     !! reuse their work arrays and their effective-system factorization when
     !! the time step is unchanged. The linalg GMRES routine still allocates
     !! its own iteration workspace for large CSR systems.
-    use iso_fortran_env, only : int32, real64
+    use iso_fortran_env, only : real64
     use, intrinsic :: ieee_arithmetic, only : ieee_is_finite
     use dynamics_error_handling
+    use dynamics_solver_reporting, only : time_history_solver_progress, time_history_solver_callback
     use linalg, only : csr_matrix, msr_matrix, size, matmul, &
         csr_to_dense, pgmres_solver, operator(+), operator(*)
     use lapack, only : DGETRF, DGETRS
@@ -85,7 +86,7 @@ module dynamics_linear_structural_solvers
         real(real64), private, allocatable, dimension(:,:) :: damping
         real(real64), private, allocatable, dimension(:,:) :: stiffness
         real(real64), private, allocatable, dimension(:,:) :: lu
-        integer(int32), private, allocatable, dimension(:) :: pivot
+        integer, private, allocatable, dimension(:) :: pivot
         real(real64), private :: cached_dt = -1.0d0
     contains
         procedure, public :: initialize => initialize_dense_integrator
@@ -104,8 +105,8 @@ module dynamics_linear_structural_solvers
         type(msr_matrix), private :: preconditioner
         real(real64), private, allocatable, dimension(:,:) :: small_lu
         real(real64), private, allocatable, dimension(:) :: diagonal
-        integer(int32), private, allocatable, dimension(:) :: pivot
-        integer(int32), private, allocatable, dimension(:) :: upper_start
+        integer, private, allocatable, dimension(:) :: pivot
+        integer, private, allocatable, dimension(:) :: upper_start
         real(real64), private :: cached_dt = -1.0d0
     contains
         procedure, public :: initialize => initialize_sparse_integrator
@@ -118,9 +119,11 @@ contains
 ! ******************************************************************************
 ! STRUCTURAL_INTEGRATOR
 ! ------------------------------------------------------------------------------
-subroutine integrator_solve(this, forces, dt, displacement, velocity, acceleration)
+subroutine integrator_solve(this, forces, dt, displacement, velocity, acceleration, &
+    progress, args)
     !! Advances through a force history with one column per time point. The
-    !! number of steps is size(forces, 2) - 1; only the final state is returned.
+    !! number of steps is size(forces, 2) - 1; only the final state is returned
+    !! unless a progress callback is supplied.
     class(structural_integrator), intent(inout) :: this
         !! Initialized dense or sparse integrator.
     real(real64), intent(in), dimension(:,:) :: forces
@@ -133,7 +136,12 @@ subroutine integrator_solve(this, forces, dt, displacement, velocity, accelerati
         !! Initial state on input, final state on output.
     real(real64), intent(inout), dimension(:) :: acceleration
         !! Initial state on input, final state on output.
-    integer(int32) :: step_index
+    procedure(time_history_solver_callback), optional :: progress
+        !! Optional callback invoked after each completed time step.
+    class(*), intent(in), optional :: args
+        !! Optional user-supplied data forwarded to the progress callback.
+    integer :: step_index
+    type(time_history_solver_progress) :: report
 
     if (.not.allocated(this%rhs)) error stop DYN_INVALID_INPUT_ERROR
     if (size(forces, 2) < 2) error stop DYN_ARRAY_SIZE_ERROR
@@ -141,15 +149,25 @@ subroutine integrator_solve(this, forces, dt, displacement, velocity, accelerati
     do step_index = 1, size(forces, 2) - 1
         call this%step(forces(:,step_index), forces(:,step_index+1), dt, &
             displacement, velocity, acceleration)
+        if (present(progress)) then
+            report%step = step_index
+            report%total_steps = size(forces, 2) - 1
+            report%time = step_index * dt
+            report%displacement = displacement
+            report%velocity = velocity
+            report%acceleration = acceleration
+            call progress(report, args = args)
+        end if
     end do
 end subroutine
+
 
 ! ------------------------------------------------------------------------------
 subroutine initialize_workspace(this, n, spectral_radius)
     !! Initializes the workspace for the integrator.
     class(structural_integrator), intent(inout) :: this
         !! The [[structural_integrator]] object.
-    integer(int32), intent(in) :: n
+    integer, intent(in) :: n
         !! The number of degrees-of-freedom.
     real(real64), intent(in), optional :: spectral_radius
         !! High-frequency spectral radius in [0, 1], default 1.
@@ -202,7 +220,7 @@ subroutine initialize_dense_integrator(this, mass, damping, stiffness, rho_infin
         !! High-frequency spectral radius in [0, 1], default 1.
 
     ! Local Variables
-    integer(int32) :: n
+    integer :: n
 
     ! Process
     n = size(mass, 1)
@@ -280,7 +298,7 @@ subroutine dense_integrator_step(this, force_current, force_next, dt, &
         !! updated to the state at t + dt.
 
     ! Local Variables
-    integer(int32) :: n, info
+    integer :: n, info
 
     ! Input Checking
     if (.not.allocated(this%mass)) error stop DYN_INVALID_INPUT_ERROR
@@ -339,7 +357,7 @@ subroutine initialize_sparse_integrator(this, mass, damping, stiffness, rho_infi
         !! High-frequency spectral radius in [0, 1], default 1.
 
     ! Local Variables
-    integer(int32) :: n
+    integer :: n
 
     ! Process
     n = size(mass, 1)
@@ -404,7 +422,7 @@ subroutine sparse_integrator_step(this, force_current, force_next, dt, &
         !! updated to the state at t + dt.
 
     ! Local Variables
-    integer(int32) :: n, info
+    integer :: n, info
 
     if (.not.allocated(this%rhs)) error stop DYN_INVALID_INPUT_ERROR
     n = size(this%rhs)

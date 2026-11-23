@@ -147,8 +147,8 @@ function test_ccf_form_conversion() result(rst)
     real(real64), parameter :: tol = 1.0d-8
 
     ! Variables
-    integer(int32), parameter :: n = 4
-    integer(int32) :: i
+    integer, parameter :: n = 4
+    integer :: i
     real(real64) :: A(n,n), B(n,1), C(1,n), D(1,1), x(n + 1), y(n)
     type(transfer_function) :: tf
     type(state_space) :: ss
@@ -206,8 +206,8 @@ function test_ocf_form_conversion() result(rst)
     real(real64), parameter :: tol = 1.0d-8
 
     ! Variables
-    integer(int32), parameter :: n = 4
-    integer(int32) :: i
+    integer, parameter :: n = 4
+    integer :: i
     real(real64) :: A(n,n), B(n,1), C(1,n), D(1,1), x(n + 1), y(n)
     type(transfer_function) :: tf
     type(state_space) :: ss

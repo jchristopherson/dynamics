@@ -21,7 +21,7 @@ contains
 ! ------------------------------------------------------------------------------
 function test_spring_elements() result(rst)
     logical :: rst
-    integer(int32) :: row, col
+    integer :: row, col
     real(real64), parameter :: tol = 1.0d-12
     real(real64), dimension(4) :: b2
     real(real64), dimension(6) :: b3
@@ -133,7 +133,7 @@ end function
 ! ------------------------------------------------------------------------------
 function test_damper_elements() result(rst)
     logical :: rst
-    integer(int32) :: row, col
+    integer :: row, col
     real(real64), parameter :: tol = 1.0d-12
     real(real64), dimension(4) :: b2
     real(real64), dimension(6) :: b3
@@ -196,7 +196,7 @@ end function
 ! ------------------------------------------------------------------------------
 function test_mass_elements() result(rst)
     logical :: rst
-    integer(int32) :: i
+    integer :: i
     real(real64), parameter :: tol = 1.0d-12
     real(real64), dimension(6,6) :: expected_m
     real(real64), allocatable, dimension(:) :: s
@@ -244,7 +244,7 @@ function test_discrete_element_system() result(rst)
     real(real64), parameter :: damping = 2.0d0
     real(real64), parameter :: mass = 4.0d0
     real(real64), parameter :: load = 10.0d0
-    integer(int32), dimension(3) :: constraints
+    integer, dimension(3) :: constraints
     real(real64), dimension(4) :: f
     real(real64), allocatable, dimension(:) :: fr, u
     real(real64), allocatable, dimension(:,:) :: k, c, m, kunused, kr, cr, mr

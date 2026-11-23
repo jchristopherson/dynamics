@@ -19,7 +19,7 @@ contains
     subroutine modal_frf_forcing_term(freq, f, args)
         real(real64), intent(in) :: freq
         complex(real64), intent(out), dimension(:) :: f
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
 
         complex(real64), parameter :: zero = (0.0d0, 0.0d0)
         complex(real64), parameter :: one = (1.0d0, 0.0d0)
@@ -36,7 +36,7 @@ program example
     implicit none
 
     ! Parameters
-    integer(int32), parameter :: nfreq = 1000
+    integer, parameter :: nfreq = 1000
     real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
     real(real64), parameter :: fmin = 2.0d0 * pi * 10.0d0
     real(real64), parameter :: fmax = 2.0d0 * pi * 1.0d3
@@ -55,12 +55,11 @@ program example
     real(real64), parameter :: b4 = 1.5d1
 
     ! Local Variables
-    integer(int32) :: i
+    integer :: i
     real(real64) :: m(3,3), k(3,3), b(3,3)
     type(frf) :: rsp
     real(real64), allocatable, dimension(:) :: freq
     real(real64), allocatable, dimension(:,:) :: mag, phase
-    procedure(modal_excite), pointer :: fcn
 
     ! Plot Variables
     type(multiplot) :: plt
@@ -68,9 +67,6 @@ program example
     type(plot_data_2d) :: pd1, pd2, pd3
     class(plot_axis), pointer :: xAxis, yAxis
     class(legend), pointer :: lgnd
-
-    ! Initialization
-    fcn => modal_frf_forcing_term
 
     ! Define the mass matrix
     m = reshape([m1, 0.0d0, 0.0d0, 0.0d0, m2, 0.0d0, 0.0d0, 0.0d0, m3], [3, 3])
@@ -84,7 +80,7 @@ program example
         [3, 3])
 
     ! Compute the frequency response functions
-    rsp = frequency_response(m, b, k, nfreq, fmin, fmax, fcn)
+    rsp = frequency_response(m, b, k, nfreq, fmin, fmax, modal_frf_forcing_term)
 
     ! Extract the magnitude and phase information.
     freq = rsp%frequency / (2.0d0 * pi)

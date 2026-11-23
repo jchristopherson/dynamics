@@ -49,7 +49,7 @@ module dynamics_frequency_response
             complex(real64), intent(out), dimension(:) :: frc
                 !! An N-element array where the forcing function should be
                 !! written.
-            class(*), intent(inout), optional :: args
+            class(*), intent(in), optional :: args
                 !! An optional argument that can be used to communicate with
                 !! the outside world.
         end subroutine
@@ -109,9 +109,9 @@ module dynamics_frequency_response
     end interface
 
 ! ------------------------------------------------------------------------------
-    integer(int32), parameter :: FRF_ACCELERANCE_MODEL = 1
+    integer, parameter :: FRF_ACCELERANCE_MODEL = 1
         !! Defines an accelerance frequency response model.
-    integer(int32), parameter :: FRF_RECEPTANCE_MODEL = 2
+    integer, parameter :: FRF_RECEPTANCE_MODEL = 2
         !! Defines a receptance frequency response model.
 
 contains
@@ -138,7 +138,7 @@ contains
         real(real64), intent(in), dimension(:) :: freq
             !! An M-element array of frequency values at which to evaluate the
             !! frequency response functions, in units of rad/s.
-        procedure(modal_excite), pointer, intent(in) :: frc
+        procedure(modal_excite) :: frc
             !! A pointer to a routine used to compute the modal forcing 
             !! function.
         real(real64), intent(out), allocatable, optional, &
@@ -150,7 +150,7 @@ contains
             !! An optional N-by-N allocatable matrix that, if supplied, will be
             !! used to retrieve the N mode shapes with each vector occupying
             !! its own column.
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
             !! An optional argument that can be used to communicate with
             !! the outside world.
         type(frf) :: rst
@@ -162,7 +162,7 @@ contains
         complex(real64), parameter :: one = (1.0d0, 0.0d0)
 
         ! Local Variables
-        integer(int32) :: i, m, n
+        integer :: i, m, n
         complex(real64) :: s
         real(real64), allocatable, dimension(:) :: lambda, zeta
         complex(real64), allocatable, dimension(:) :: vals, q, f, u
@@ -181,7 +181,6 @@ contains
             error stop DYN_INVALID_INPUT_ERROR
         if (.not.(alpha >= 0.0d0) .or. .not.(beta >= 0.0d0)) &
             error stop DYN_INVALID_INPUT_ERROR
-        if (.not.associated(frc)) error stop DYN_NULL_POINTER_ERROR
 
         ! Memory allocations
         allocate(zeta(n))
@@ -241,12 +240,12 @@ contains
             !! The mass damping factor, \(\alpha\).
         real(real64), intent(in) :: beta
             !! The stiffness damping factor, \(\beta\).
-        integer(int32), intent(in) :: nmodes
+        integer, intent(in) :: nmodes
             !! The number of lowest-frequency modes to retain.  This value
             !! must be greater than zero and less than N.
         real(real64), intent(in), dimension(:) :: freq
             !! An M-element array of frequency values in units of rad/s.
-        procedure(modal_excite), pointer, intent(in) :: frc
+        procedure(modal_excite) :: frc
             !! A pointer to the physical forcing function.
         real(real64), intent(out), allocatable, optional, dimension(:) :: modes
             !! An optional NMODES-element array containing the retained modal
@@ -255,7 +254,7 @@ contains
             modeshapes
             !! An optional N-by-NMODES matrix containing the mass-normalized
             !! retained mode shapes.
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
             !! An optional argument passed to the forcing function.
         type(frf) :: rst
             !! The modal-truncated frequency responses.
@@ -263,7 +262,7 @@ contains
         complex(real64), parameter :: j = (0.0d0, 1.0d0)
         complex(real64), parameter :: zero = (0.0d0, 0.0d0)
 
-        integer(int32) :: i, imode, m, n
+        integer :: i, imode, m, n
         real(real64) :: modal_mass
         complex(real64) :: s
         real(real64), allocatable, dimension(:) :: mass_vec, modal_freqs, zeta
@@ -275,7 +274,6 @@ contains
 
         if (.not.(alpha >= 0.0d0) .or. .not.(beta >= 0.0d0)) &
             error stop DYN_INVALID_INPUT_ERROR
-        if (.not.associated(frc)) error stop DYN_NULL_POINTER_ERROR
 
         call modal_response(mass, stiff, nmodes, modal_freqs, vecs)
 
@@ -341,14 +339,14 @@ contains
             !! The mass damping factor, \( \alpha \).
         real(real64), intent(in) :: beta
             !! The stiffness damping factor, \( \beta \).
-        integer(int32), intent(in) :: nfreq
+        integer, intent(in) :: nfreq
             !! The number of frequency values to analyze.  This value must be
             !! at least 2.
         real(real64), intent(in) :: freq1
             !! The starting frequency, in units of rad/s.
         real(real64), intent(in) :: freq2
             !! The ending frequency, in units of rad/s.
-        procedure(modal_excite), pointer, intent(in) :: frc
+        procedure(modal_excite) :: frc
             !! A pointer to a routine used to compute the modal forcing 
             !! function.
         real(real64), intent(out), allocatable, optional, &
@@ -360,14 +358,14 @@ contains
             !! An optional N-by-N allocatable matrix that, if supplied, will be
             !! used to retrieve the N mode shapes with each vector occupying
             !! its own column.
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
             !! An optional argument that can be used to communicate with
             !! the outside world.
         type(frf) :: rst
             !! The resulting frequency responses.
 
         ! Local Variables
-        integer(int32) :: i, flag
+        integer :: i, flag
         real(real64) :: df
         real(real64), allocatable, dimension(:) :: freq
 
@@ -399,17 +397,17 @@ contains
             !! The mass damping factor, \(\alpha\).
         real(real64), intent(in) :: beta
             !! The stiffness damping factor, \(\beta\).
-        integer(int32), intent(in) :: nmodes
+        integer, intent(in) :: nmodes
             !! The number of lowest-frequency modes to retain.  This value
             !! must be greater than zero and less than N.
-        integer(int32), intent(in) :: nfreq
+        integer, intent(in) :: nfreq
             !! The number of frequency values to analyze.  This value must be
             !! at least 2.
         real(real64), intent(in) :: freq1
             !! The starting frequency, in units of rad/s.
         real(real64), intent(in) :: freq2
             !! The ending frequency, in units of rad/s.
-        procedure(modal_excite), pointer, intent(in) :: frc
+        procedure(modal_excite) :: frc
             !! A pointer to the physical forcing function.
         real(real64), intent(out), allocatable, optional, dimension(:) :: modes
             !! An optional NMODES-element array containing the retained modal
@@ -418,13 +416,13 @@ contains
             modeshapes
             !! An optional N-by-NMODES matrix containing the mass-normalized
             !! retained mode shapes.
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
             !! An optional argument passed to the forcing function.
         type(frf) :: rst
             !! The modal-truncated frequency responses.
 
         ! Local Variables
-        integer(int32) :: i
+        integer :: i
         real(real64) :: df
         real(real64), allocatable, dimension(:) :: freq
 
@@ -455,7 +453,7 @@ function siso_freqres(x, y, fs, win, method) result(rst)
     class(window), intent(in), optional, target :: win
         !! The window to apply to the data.  If nothing is supplied, no window
         !! is applied.
-    integer(int32), intent(in), optional :: method
+    integer, intent(in), optional :: method
         !! Enter 1 to utilize an H1 estimator; else, enter 2 to utilize an
         !! H2 estimator.  The default is an H1 estimator.
         !!
@@ -472,7 +470,7 @@ function siso_freqres(x, y, fs, win, method) result(rst)
         !! The resulting frequency response function.
 
     ! Local Variables
-    integer(int32) :: i, npts, nfreq, meth
+    integer :: i, npts, nfreq, meth
     real(real64) :: df
     class(window), pointer :: wptr
     type(rectangular_window), target :: defwin
@@ -523,7 +521,7 @@ function mimo_freqres(x, y, fs, win, method) result(rst)
     class(window), intent(in), optional, target :: win
         !! The window to apply to the data.  If nothing is supplied, no window
         !! is applied.
-    integer(int32), intent(in), optional :: method
+    integer, intent(in), optional :: method
         !! Enter 1 to utilize an H1 estimator; else, enter 2 to utilize an
         !! H2 estimator.  The default is an H1 estimator.
         !!
@@ -540,7 +538,7 @@ function mimo_freqres(x, y, fs, win, method) result(rst)
         !! The resulting frequency response functions.
 
     ! Local Variables
-    integer(int32) :: i, j, npts, m, p, nfreq, meth
+    integer :: i, j, npts, m, p, nfreq, meth
     real(real64) :: df
     class(window), pointer :: wptr
     type(rectangular_window), target :: defwin
@@ -584,7 +582,7 @@ end function
 ! V1.0.6 ADDITIONS
 ! ------------------------------------------------------------------------------
 ! SEE: https://www.researchgate.net/publication/224619803_Reduction_of_structure-borne_noise_in_automobiles_by_multivariable_feedback
-subroutine frf_accel_fit_fcn(xdata, mdl, rst, stop, args)
+subroutine frf_accel_fit_fcn(xdata, mdl, rst, args)
     !! The FRF fitting function for an accelerance FRF (acceleration-excited).
     real(real64), intent(in), dimension(:) :: xdata
         !! The independent variable data.
@@ -592,13 +590,11 @@ subroutine frf_accel_fit_fcn(xdata, mdl, rst, stop, args)
         !! The model parameters.
     real(real64), intent(out), dimension(:) :: rst
         !! The model results.
-    logical, intent(out) :: stop
-        !! Stop the simulation?
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
         !! Optional arguments from the calling code.
 
     ! Local Variables
-    integer(int32) :: i, n
+    integer :: i, n
     complex(real64) :: h
 
     ! Process:
@@ -606,7 +602,6 @@ subroutine frf_accel_fit_fcn(xdata, mdl, rst, stop, args)
     ! The amplitude portion of the response is stored in the first "N" locations
     ! in the output with the phase portion (in radians) is stored in the
     ! second "N" locations.
-    stop = .false.
     n = size(xdata) / 2
     do i = 1, n
         h = evaluate_accelerance_frf_model(mdl, xdata(i))
@@ -616,7 +611,7 @@ subroutine frf_accel_fit_fcn(xdata, mdl, rst, stop, args)
 end subroutine
 
 ! ------------------------------------------------------------------------------
-subroutine frf_force_fit_fcn(xdata, mdl, rst, stop, args)
+subroutine frf_force_fit_fcn(xdata, mdl, rst, args)
     !! The FRF fitting function for an force-excited FRF.
     real(real64), intent(in), dimension(:) :: xdata
         !! The independent variable data.
@@ -624,13 +619,11 @@ subroutine frf_force_fit_fcn(xdata, mdl, rst, stop, args)
         !! The model parameters.
     real(real64), intent(out), dimension(:) :: rst
         !! The model results.
-    logical, intent(out) :: stop
-        !! Stop the simulation?
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
         !! Optional arguments from the calling code.
 
     ! Local Variables
-    integer(int32) :: i, n
+    integer :: i, n
     complex(real64) :: h
 
     ! Process:
@@ -638,7 +631,6 @@ subroutine frf_force_fit_fcn(xdata, mdl, rst, stop, args)
     ! The amplitude portion of the response is stored in the first "N" locations
     ! in the output with the phase portion (in radians) is stored in the
     ! second "N" locations.
-    stop = .false.
     n = size(xdata) / 2
     do i = 1, n
         h = evaluate_receptance_frf_model(mdl, xdata(i))
@@ -668,13 +660,13 @@ function fit_frf(mt, n, freq, rsp, maxp, minp, init, stats, alpha, controls, &
     !! from this result, estimates for both the amplitude and natural frequency
     !! values are obtained.  The damping parameters are assumed to be equal
     !! for all modes and set to a default value of 0.1.
-    integer(int32), intent(in) :: mt
+    integer, intent(in) :: mt
         !! The excitation method.  The options are as follows.
         !!
         !! - FRF_ACCELERANCE_MODEL: Use an accelerance model.
         !!
         !! - FRF_RECEPTANCE_MODEL: Use a receptance model.
-    integer(int32), intent(in) :: n
+    integer, intent(in) :: n
         !! The model order (# of resonant modes).
     real(real64), intent(in), dimension(:) :: freq
         !! An M-element array containing the excitation frequency values in 
@@ -719,8 +711,8 @@ function fit_frf(mt, n, freq, rsp, maxp, minp, init, stats, alpha, controls, &
 
     ! Local Variables
     procedure(regression_function), pointer :: fcn
-    integer(int32) :: i, npts, nparam
-    integer(int32), allocatable, dimension(:) :: maxinds, mininds
+    integer :: i, npts, nparam
+    integer, allocatable, dimension(:) :: maxinds, mininds
     real(real64) :: maxamp, minamp, amprange, delta
     real(real64), allocatable, dimension(:) :: x, y, maxvals, minvals, &
         ymod, resid
@@ -842,7 +834,7 @@ pure function evaluate_accelerance_frf_model_scalar(mdl, w) result(rst)
         !! The resulting frequency response function.
 
     ! Local Variables
-    integer(int32) :: i, j, n
+    integer :: i, j, n
 
     ! Process
     j = 1
@@ -871,7 +863,7 @@ pure function evaluate_accelerance_frf_model_array(mdl, w) result(rst)
         !! The resulting frequency response function.
 
     ! Local Variables
-    integer(int32) :: i, n
+    integer :: i, n
 
     ! Process
     n = size(w)
@@ -919,7 +911,7 @@ pure function evaluate_receptance_frf_model_scalar(mdl, w) result(rst)
         !! The resulting frequency response function.
 
     ! Local Variables
-    integer(int32) :: i, j, n
+    integer :: i, j, n
 
     ! Process
     j = 1
@@ -948,7 +940,7 @@ pure function evaluate_receptance_frf_model_array(mdl, w) result(rst)
         !! The resulting frequency response function.
 
     ! Local Variables
-    integer(int32) :: i, n
+    integer :: i, n
 
     ! Process
     n = size(w)
@@ -1000,7 +992,7 @@ end function
         complex(real64), parameter :: j = (0.0d0, 1.0d0)
 
         ! Local Variables
-        integer(int32) :: n
+        integer :: n
 
         ! Input Checking
         n = size(mass, 1)
@@ -1032,21 +1024,21 @@ end function
         procedure(modal_excite), pointer, intent(in) :: frc
             !! A pointer to a routine used to compute the modal forcing 
             !! function.
-        integer(int32), intent(out), optional, dimension(:) :: ranks
+        integer, intent(out), optional, dimension(:) :: ranks
             !! Provides information on the rank of the dynamic stiffness matrix
             !! for each frequency.  If provided, this array must be the same
             !! length as freq.
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
             !! An optional argument that can be used to communicate with
             !! the outside world.
         type(frf) :: rst
             !! The resulting frequency responses.
 
         ! Parallel Threshold
-        integer(int32), parameter :: parallel_threshold = 1000
+        integer, parameter :: parallel_threshold = 1000
 
         ! Local Variables
-        integer(int32) :: m, n, check
+        integer :: m, n, check
 
         ! Initialization
         m = size(freq)
@@ -1080,11 +1072,11 @@ end function
         procedure(modal_excite), pointer, intent(in) :: frc
             !! A pointer to a routine used to compute the modal forcing 
             !! function.
-        integer(int32), intent(out), optional, dimension(:) :: ranks
+        integer, intent(out), optional, dimension(:) :: ranks
             !! Provides information on the rank of the dynamic stiffness matrix
             !! for each frequency.  If provided, this array must be the same
             !! length as freq.
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
             !! An optional argument that can be used to communicate with
             !! the outside world.
         type(frf) :: rst
@@ -1095,8 +1087,8 @@ end function
         complex(real64), parameter :: j = (0.0d0, 1.0d0)
 
         ! Local Variables
-        integer(int32) :: i, m, n, lwork, lrwork, rnk, info
-        integer(int32), allocatable, dimension(:) :: jpvt
+        integer :: i, m, n, lwork, lrwork, rnk, info
+        integer, allocatable, dimension(:) :: jpvt
         real(real64) :: rcond
         real(real64), allocatable, dimension(:) :: rwork
         complex(real64), allocatable, dimension(:) :: work
@@ -1129,7 +1121,7 @@ end function
         ! Determine an appropriate workspace
         call ZGELSY(n, n, 1, K_dyn, n, dummy, n, jpvt, rcond, rnk, temp, &
             -1, rwork, info)
-        lwork = int(temp(1), kind = int32)
+        lwork = int(temp(1))
         allocate(work(lwork))
 
         ! Loop over each frequency and solve the linear system
@@ -1172,11 +1164,11 @@ end function
         procedure(modal_excite), pointer, intent(in) :: frc
             !! A pointer to a routine used to compute the modal forcing 
             !! function.
-        integer(int32), intent(out), optional, dimension(:) :: ranks
+        integer, intent(out), optional, dimension(:) :: ranks
             !! Provides information on the rank of the dynamic stiffness matrix
             !! for each frequency.  If provided, this array must be the same
             !! length as freq.
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
             !! An optional argument that can be used to communicate with
             !! the outside world.
         type(frf) :: rst
@@ -1188,8 +1180,8 @@ end function
 
         ! Local Variables
         logical :: return_rank
-        integer(int32) :: i, m, n, lwork, lrwork, rnk, info, idummy(1)
-        integer(int32), allocatable, dimension(:) :: jpvt
+        integer :: i, m, n, lwork, lrwork, rnk, info, idummy(1)
+        integer, allocatable, dimension(:) :: jpvt
         real(real64) :: rcond, rdummy(1)
         real(real64), allocatable, dimension(:) :: rwork
         complex(real64), allocatable, dimension(:) :: work, f
@@ -1218,7 +1210,7 @@ end function
         ! Determine an appropriate workspace
         call ZGELSY(n, n, 1, dummy, n, dummy, n, idummy, rcond, rnk, temp, &
             -1, rdummy, info)
-        lwork = int(temp(1), kind = int32)
+        lwork = int(temp(1))
         allocate(work(lwork))
 
         ! Process
@@ -1295,7 +1287,7 @@ end function
             !! The N-by-N damping matrix.
         real(real64), intent(in), dimension(:,:) :: stiff
             !! The N-by-N stiffness matrix.
-        integer(int32), intent(in) :: nfreq
+        integer, intent(in) :: nfreq
             !! The number of frequency values to analyze.  This value must be
             !! at least 2.
         real(real64), intent(in) :: freq1
@@ -1305,18 +1297,18 @@ end function
         procedure(modal_excite), pointer, intent(in) :: frc
             !! A pointer to a routine used to compute the modal forcing 
             !! function.
-        integer(int32), intent(out), optional, dimension(:) :: ranks
+        integer, intent(out), optional, dimension(:) :: ranks
             !! Provides information on the rank of the dynamic stiffness matrix
             !! for each frequency.  If provided, this array must be the same
             !! length as freq.
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
             !! An optional argument that can be used to communicate with
             !! the outside world.
         type(frf) :: rst
             !! The resulting frequency responses.
 
         ! Local Variables
-        integer(int32) :: i, flag
+        integer :: i, flag
         real(real64) :: df
         real(real64), allocatable, dimension(:) :: freq
 

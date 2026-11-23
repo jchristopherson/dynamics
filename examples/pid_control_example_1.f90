@@ -30,7 +30,7 @@ contains
             !! The current simulation time
         real(real64), intent(out) :: r(:)
             !! The command signal.
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
             !! An optional means of passing in arguments from the outside 
             !! world.
 
@@ -46,11 +46,12 @@ program example
     use model
     implicit none
 
-    ! Control Parameters - Arbitrarily Chosen
-    real(real64), parameter :: Kp = 8.0d-2
-    real(real64), parameter :: Ki = 1.0d3
-    real(real64), parameter :: Kd = 5.0d-4
-    real(real64), parameter :: tau = 1.0d-3
+    ! Match the filtered PID characteristic polynomial to real poles at
+    ! -1400, -1600, -2200, and -3200 rad/s for plant output y = k*X*q.
+    real(real64), parameter :: Kp = 0.551048902d0
+    real(real64), parameter :: Ki = 1295.323281d0
+    real(real64), parameter :: Kd = 1.086432759d-3
+    real(real64), parameter :: tau = 1.369008811d-4
 
     ! Solution Parameters
     real(real64), parameter :: tmax = 0.5d0
@@ -58,8 +59,7 @@ program example
     real(real64), parameter :: init_velocity = 0.0d0
 
     ! Local Variables
-    procedure(ss_excitation), pointer :: fcn
-    integer(int32) :: i, n
+    integer :: i, n
     real(real64) :: ic(4), t(2), ri(1)
     real(real64), allocatable, dimension(:) :: r, freq, omega, mag, phase
     real(real64), allocatable, dimension(:,:) :: sol
@@ -85,8 +85,7 @@ program example
     ic = [init_position, init_velocity, 0.0d0, 0.0d0]
 
     ! Compute the solution
-    fcn => command_signal   ! from the model module
-    sol = lti_solve(mdl, fcn, t, ic)
+    sol = lti_solve(mdl, command_signal, t, ic)
 
     ! Compute the poles and zeros of the closed-loop system
     poles = mdl%poles()
@@ -114,7 +113,7 @@ program example
     n = size(sol, 1)
     allocate(r(n))
     do i = 1, n
-        call fcn(sol(i,1), ri)
+        call command_signal(sol(i,1), ri)
         r(i) = ri(1)
     end do
 

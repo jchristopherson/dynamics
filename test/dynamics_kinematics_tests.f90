@@ -165,7 +165,7 @@ subroutine inverse_test_kinematics_equation(q, f, args)
     ! Arguments
     real(real64), intent(in), dimension(:) :: q
     real(real64), intent(out), dimension(:) :: f
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
 
     ! Mechanism: 3R PUMA
 
@@ -221,7 +221,7 @@ function test_jacobian() result(rst)
         c1(6), c2(6), c3(6), Jans(6, 3), T1(4, 4), T2(4, 4), T3(4, 4), &
         di_1(3), ki_1(4), T1ans(4, 4), T2ans(4, 4), T3ans(4, 4), T2a(4, 4), &
         T3a(4, 4), T(4, 4), k1ans(3), d1ans(3), k2ans(3), R(3, 3), J(6, 3)
-    integer(int32) :: jtypes(3)
+    integer :: jtypes(3)
 
     ! Initialization
     rst = .true.

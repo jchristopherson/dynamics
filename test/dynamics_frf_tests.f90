@@ -56,7 +56,7 @@ pure subroutine example_2nd_order_sweep(freq, x, y, dydx, args)
     real(real64), intent(in) :: x
     real(real64), intent(in), dimension(:) :: y
     real(real64), intent(out), dimension(:) :: dydx
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
 
     ! Model Parameters
     real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
@@ -80,7 +80,7 @@ function test_frf_sweep() result(rst)
     real(real64), parameter :: fmax = 6.0d1
     real(real64), parameter :: fmin = 4.0d1
     real(real64), parameter :: tol = 1.0d-2
-    integer(int32), parameter :: npts = 10
+    integer, parameter :: npts = 10
     real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
     real(real64), parameter :: z = 1.0d-1
     real(real64), parameter :: wn = 2.0d0 * pi * 5.0d1
@@ -88,7 +88,7 @@ function test_frf_sweep() result(rst)
 
     ! Local Variables
     procedure(harmonic_ode), pointer :: fcn
-    integer(int32) :: i
+    integer :: i
     real(real64) :: df, freq(npts), omega(npts)
     real(real64), allocatable, dimension(:) :: mag1, mag2, magans1, magans2, &
         ratio1, ratio2, ref
@@ -139,7 +139,7 @@ end function
 subroutine modal_frf_forcing_term(freq, f, args)
     real(real64), intent(in) :: freq
     complex(real64), intent(out), dimension(:) :: f
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
 
     complex(real64), parameter :: zero = (0.0d0, 0.0d0)
     complex(real64), parameter :: one = (1.0d0, 0.0d0)
@@ -150,7 +150,7 @@ end subroutine
 subroutine sparse_modal_frf_forcing_term(freq, f, args)
     real(real64), intent(in) :: freq
     complex(real64), intent(out), dimension(:) :: f
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
 
     f = (0.0d0, 0.0d0)
     f(1) = cmplx(1.0d0, 0.25d0 * freq, real64)
@@ -159,7 +159,7 @@ end subroutine
 subroutine general_damping_frf_forcing_term(freq, f, args)
     real(real64), intent(in) :: freq
     complex(real64), intent(out), dimension(:) :: f
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
 
     f(1) = cmplx(1.0d0, 0.1d0 * freq, real64)
     f(2) = cmplx(0.5d0, -0.25d0 * freq, real64)
@@ -192,11 +192,11 @@ end function
 function test_general_damping_frf() result(rst)
     logical :: rst
 
-    integer(int32), parameter :: nfreq = 3
+    integer, parameter :: nfreq = 3
     real(real64), parameter :: tol = 1.0d-10
     real(real64), parameter :: freq(nfreq) = [0.5d0, 1.0d0, 1.5d0]
     real(real64) :: mass(2,2), damp(2,2), stiff(2,2)
-    integer(int32) :: ranks_1(nfreq), ranks_2(nfreq), i
+    integer :: ranks_1(nfreq), ranks_2(nfreq), i
     complex(real64) :: a, b, c, d, determinant, force1, force2
     complex(real64) :: expected(nfreq,2)
     procedure(modal_excite), pointer :: fcn
@@ -249,7 +249,7 @@ function test_proportional_damping_frf() result(rst)
     ! Parameters
     real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
     real(real64), parameter :: tol = 1.0d-3
-    integer(int32), parameter :: nfreq = 100
+    integer, parameter :: nfreq = 100
     real(real64), parameter :: fmin = 10.0d0
     real(real64), parameter :: fmax = 1.0d2
     real(real64), parameter :: alpha = 0.1d0
@@ -266,7 +266,7 @@ function test_proportional_damping_frf() result(rst)
     real(real64), parameter :: k4 = 5.0d6
 
     ! Local Variables
-    integer(int32) :: i
+    integer :: i
     real(real64) :: df, m(3,3), k(3,3), freq(nfreq), omega(nfreq)
     real(real64), allocatable, dimension(:) :: modes
     real(real64), allocatable, dimension(:,:) :: modeshapes
@@ -302,16 +302,16 @@ function test_sparse_proportional_damping_frf() result(rst)
     use linalg, only : dense_to_csr
     logical :: rst
 
-    integer(int32), parameter :: n = 30
-    integer(int32), parameter :: nmodes = 3
-    integer(int32), parameter :: nfreq = 4
+    integer, parameter :: n = 30
+    integer, parameter :: nmodes = 3
+    integer, parameter :: nfreq = 4
     real(real64), parameter :: alpha = 0.1d0
     real(real64), parameter :: beta = 0.02d0
     real(real64), parameter :: tol = 1.0d-7
     real(real64), parameter :: freq(nfreq) = [0.5d0, 1.0d0, 1.5d0, 2.5d0]
     real(real64), parameter :: expected_modes(nmodes) = [2.0d0, 3.0d0, 4.0d0]
 
-    integer(int32) :: i
+    integer :: i
     real(real64) :: modal_mass
     real(real64) :: dense_mass(n,n), dense_stiff(n,n)
     real(real64), allocatable, dimension(:) :: modes
@@ -391,7 +391,7 @@ function test_modal_response() result(rst)
     ! Parameters
     real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
     real(real64), parameter :: tol = 1.0d-3
-    integer(int32), parameter :: nfreq = 100
+    integer, parameter :: nfreq = 100
     real(real64), parameter :: fmin = 10.0d0
     real(real64), parameter :: fmax = 1.0d2
     real(real64), parameter :: alpha = 0.1d0
@@ -400,8 +400,8 @@ function test_modal_response() result(rst)
     real(real64), parameter :: vec1(3) = [0.7179d0, 1.0d0, 0.7466d0]
     real(real64), parameter :: vec2(3) = [-0.4192d0, -0.1638d0, 1.0d0]
     real(real64), parameter :: vec3(3) = [1.0d0, -0.1837d0, 0.1791d0]
-    integer(int32), parameter :: sparse_n = 30
-    integer(int32), parameter :: sparse_nmodes = 3
+    integer, parameter :: sparse_n = 30
+    integer, parameter :: sparse_nmodes = 3
 
     ! Define the model parameters
     real(real64), parameter :: m1 = 0.5d0
@@ -413,7 +413,7 @@ function test_modal_response() result(rst)
     real(real64), parameter :: k4 = 5.0d6
 
     ! Local Variables
-    integer(int32) :: i
+    integer :: i
     real(real64) :: m(3,3), k(3,3), sparse_m_dense(sparse_n, sparse_n), &
         sparse_k_dense(sparse_n, sparse_n)
     real(real64), allocatable, dimension(:) :: modes, sparse_modes, &
@@ -500,6 +500,13 @@ function test_modal_response() result(rst)
         rst = .false.
         print "(A)", "TEST FAILED: test_modal_response -9"
     end if
+
+    call modal_response(sparse_m, sparse_k, sparse_nmodes, sparse_modes_only, &
+        sigma = -1.0d0)
+    if (.not.assert(modes(1:sparse_nmodes), sparse_modes_only, tol)) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_modal_response -10"
+    end if
 end function
 
 ! ------------------------------------------------------------------------------
@@ -510,7 +517,7 @@ function test_frf_fit() result(rst)
     ! Parameters
     real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
     real(real64), parameter :: tol = 5.0d-2
-    integer(int32), parameter :: nfreq = 100
+    integer, parameter :: nfreq = 100
     real(real64), parameter :: fmin = 2.0d0 * pi * 10.0d0
     real(real64), parameter :: fmax = 2.0d0 * pi * 1.0d3
     real(real64), parameter :: alpha = 0.1d0

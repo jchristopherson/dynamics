@@ -34,7 +34,7 @@ module dynamics_discrete_elements
     !! additional degrees of freedom (e.g. beam nodes), the element degrees of
     !! freedom map onto the leading translational degrees of freedom of each
     !! node.
-    use iso_fortran_env, only : int32, real64
+    use iso_fortran_env, only : real64
     use linalg, only : csr_matrix, dense_to_csr
     use dynamics_error_handling
     use dynamics_structural, only : node, element
@@ -241,12 +241,12 @@ pure function find_node_global_dof(n, nodes) result(rst)
         !! The node for which to search.
     class(node), intent(in), dimension(:) :: nodes
         !! The global node list.
-    integer(int32) :: rst
+    integer :: rst
         !! The index of the first global degree of freedom of the node, or
         !! zero if the node is not found in the list.
 
     ! Local Variables
-    integer(int32) :: i, offset
+    integer :: i, offset
 
     ! Process
     rst = 0
@@ -265,18 +265,18 @@ pure function element_dof_map(gdof, elem, nodes) result(rst)
     !! Maps each local degree of freedom of an element onto its global degree
     !! of freedom.  Local degrees of freedom map onto the leading degrees of
     !! freedom of their respective global nodes.
-    integer(int32), intent(in) :: gdof
+    integer, intent(in) :: gdof
         !! The total number of global degrees of freedom.
     class(discrete_element), intent(in) :: elem
         !! The discrete element.
     class(node), intent(in), dimension(:) :: nodes
         !! The global node list.
-    integer(int32), allocatable, dimension(:) :: rst
+    integer, allocatable, dimension(:) :: rst
         !! The N-element array of global degree of freedom indices, where N is
         !! the total number of element degrees of freedom.
 
     ! Local Variables
-    integer(int32) :: i, k, npn, nnodes, first
+    integer :: i, k, npn, nnodes, first
 
     ! Process
     npn = elem%get_dof_per_node()
@@ -296,7 +296,7 @@ end function
 pure subroutine add_discrete_contributions(gdof, elements, nodes, m, c, k)
     !! Adds the mass, damping, and stiffness contributions of a collection of
     !! discrete elements to the global system matrices.
-    integer(int32), intent(in) :: gdof
+    integer, intent(in) :: gdof
         !! The total number of global degrees of freedom.
     class(discrete_element), intent(in), dimension(:) :: elements
         !! The discrete elements to assemble.
@@ -310,8 +310,8 @@ pure subroutine add_discrete_contributions(gdof, elements, nodes, m, c, k)
         !! The gdof-by-gdof global stiffness matrix to update.
 
     ! Local Variables
-    integer(int32) :: eidx
-    integer(int32), allocatable, dimension(:) :: map
+    integer :: eidx
+    integer, allocatable, dimension(:) :: map
 
     ! Process
     do eidx = 1, size(elements)
@@ -326,7 +326,7 @@ end subroutine
 subroutine assemble_damping_matrix_dense(gdof, elements, nodes, c)
     !! Assembles a dense global damping matrix from a collection of discrete
     !! elements.
-    integer(int32), intent(in) :: gdof
+    integer, intent(in) :: gdof
         !! The total number of global degrees of freedom.
     class(discrete_element), intent(in), dimension(:) :: elements
         !! The discrete elements to assemble.
@@ -336,8 +336,8 @@ subroutine assemble_damping_matrix_dense(gdof, elements, nodes, c)
         !! The assembled gdof-by-gdof global damping matrix.
 
     ! Local Variables
-    integer(int32) :: eidx
-    integer(int32), allocatable, dimension(:) :: map
+    integer :: eidx
+    integer, allocatable, dimension(:) :: map
 
     ! Initialization
     allocate(c(gdof, gdof), source = 0.0d0)
@@ -353,7 +353,7 @@ end subroutine
 subroutine assemble_damping_matrix_csr(gdof, elements, nodes, c)
     !! Assembles a global damping matrix, in CSR format, from a collection of
     !! discrete elements.
-    integer(int32), intent(in) :: gdof
+    integer, intent(in) :: gdof
         !! The total number of global degrees of freedom.
     class(discrete_element), intent(in), dimension(:) :: elements
         !! The discrete elements to assemble.
@@ -379,7 +379,7 @@ subroutine assemble_discrete_system_dense(gdof, masses, dampers, springs, &
     !! assembled; therefore, any discrete element type may be supplied in any
     !! collection.  A zero-sized array may be supplied for any collection
     !! that is not required.
-    integer(int32), intent(in) :: gdof
+    integer, intent(in) :: gdof
         !! The total number of global degrees of freedom.
     class(discrete_element), intent(in), dimension(:) :: masses
         !! The mass elements to assemble.
@@ -414,7 +414,7 @@ subroutine assemble_discrete_system_csr(gdof, masses, dampers, springs, &
     !! assembled; therefore, any discrete element type may be supplied in any
     !! collection.  A zero-sized array may be supplied for any collection
     !! that is not required.
-    integer(int32), intent(in) :: gdof
+    integer, intent(in) :: gdof
         !! The total number of global degrees of freedom.
     class(discrete_element), intent(in), dimension(:) :: masses
         !! The mass elements to assemble.
@@ -453,13 +453,13 @@ pure function de_get_node_natural_coordinates(this, i) result(rst)
     !! s = -1 and s = 1, respectively.
     class(discrete_element), intent(in) :: this
         !! The discrete_element object.
-    integer(int32), intent(in) :: i
+    integer, intent(in) :: i
         !! The local index of the node.
     real(real64), allocatable, dimension(:) :: rst
         !! The natural coordinate of the node.
 
     ! Local Variables
-    integer(int32) :: n
+    integer :: n
 
     ! Process
     n = this%get_node_count()
@@ -491,7 +491,7 @@ pure function de_stiffness_matrix(this, rule) result(rst)
     !! returns a zero-valued matrix.
     class(discrete_element), intent(in) :: this
         !! The discrete_element object.
-    integer(int32), intent(in), optional :: rule
+    integer, intent(in), optional :: rule
         !! The integration rule.  This argument is unused and is present for
         !! interface compatibility.
     real(real64), allocatable, dimension(:,:) :: rst
@@ -499,7 +499,7 @@ pure function de_stiffness_matrix(this, rule) result(rst)
         !! degrees of freedom.
 
     ! Local Variables
-    integer(int32) :: n
+    integer :: n
 
     ! Process
     n = this%get_node_count() * this%get_dof_per_node()
@@ -512,7 +512,7 @@ pure function de_mass_matrix(this, rule) result(rst)
     !! zero-valued matrix.
     class(discrete_element), intent(in) :: this
         !! The discrete_element object.
-    integer(int32), intent(in), optional :: rule
+    integer, intent(in), optional :: rule
         !! The integration rule.  This argument is unused and is present for
         !! interface compatibility.
     real(real64), allocatable, dimension(:,:) :: rst
@@ -520,7 +520,7 @@ pure function de_mass_matrix(this, rule) result(rst)
         !! degrees of freedom.
 
     ! Local Variables
-    integer(int32) :: n
+    integer :: n
 
     ! Process
     n = this%get_node_count() * this%get_dof_per_node()
@@ -538,7 +538,7 @@ pure function de_damping_matrix(this) result(rst)
         !! degrees of freedom.
 
     ! Local Variables
-    integer(int32) :: n
+    integer :: n
 
     ! Process
     n = this%get_node_count() * this%get_dof_per_node()
@@ -556,7 +556,7 @@ pure function de_ext_force_vector(this, q, rule) result(rst)
     real(real64), intent(in), dimension(:) :: q
         !! The distributed load vector.  This argument is unused and is
         !! present for interface compatibility.
-    integer(int32), intent(in), optional :: rule
+    integer, intent(in), optional :: rule
         !! The integration rule.  This argument is unused and is present for
         !! interface compatibility.
     real(real64), allocatable, dimension(:) :: rst
@@ -564,7 +564,7 @@ pure function de_ext_force_vector(this, q, rule) result(rst)
         !! degrees of freedom.
 
     ! Local Variables
-    integer(int32) :: n
+    integer :: n
 
     ! Process
     n = this%get_node_count() * this%get_dof_per_node()
@@ -590,7 +590,7 @@ pure subroutine initialize_two_node(elem, nd1, nd2, direction)
         !! nodes must not be coincident.
 
     ! Local Variables
-    integer(int32) :: n
+    integer :: n
     real(real64) :: mag
     real(real64), dimension(3) :: v
 
@@ -617,7 +617,7 @@ pure function tnde_get_node_count(this) result(rst)
     !! Gets the number of nodes for the element.
     class(two_node_discrete_element), intent(in) :: this
         !! The two_node_discrete_element object.
-    integer(int32) :: rst
+    integer :: rst
         !! The number of nodes.
     rst = 2
 end function
@@ -628,7 +628,7 @@ pure function tnde_dof_per_node(this) result(rst)
     !! element dimensionality as only translations are considered.
     class(two_node_discrete_element), intent(in) :: this
         !! The two_node_discrete_element object.
-    integer(int32) :: rst
+    integer :: rst
         !! The number of DOF per node.
     rst = this%get_dimensionality()
 end function
@@ -638,7 +638,7 @@ pure function tnde_get_node(this, i) result(rst)
     !! Gets the requested node from the element.
     class(two_node_discrete_element), intent(in) :: this
         !! The two_node_discrete_element object.
-    integer(int32), intent(in) :: i
+    integer, intent(in) :: i
         !! The local index of the node to retrieve.  This value must be either
         !! 1 or 2.
     type(node) :: rst
@@ -659,7 +659,7 @@ pure function tnde_shape_function(this, i, s) result(rst)
     !! $$ N_1 = \frac{1}{2}(1 - s), \qquad N_2 = \frac{1}{2}(1 + s). $$
     class(two_node_discrete_element), intent(in) :: this
         !! The two_node_discrete_element object.
-    integer(int32), intent(in) :: i
+    integer, intent(in) :: i
         !! The index of the shape function to evaluate.
     real(real64), intent(in), dimension(:) :: s
         !! The natural coordinate at which to evaluate the shape function.
@@ -688,7 +688,7 @@ pure function tnde_shape_function_matrix(this, s) result(rst)
         !! dimensionality.
 
     ! Local Variables
-    integer(int32) :: k, n
+    integer :: k, n
     real(real64) :: n1, n2
 
     ! Process
@@ -718,7 +718,7 @@ pure function tnde_strain_disp_matrix(this, s) result(rst)
         !! The 1-by-2D matrix, where D is the element dimensionality.
 
     ! Local Variables
-    integer(int32) :: n
+    integer :: n
     real(real64), allocatable, dimension(:) :: a
 
     ! Process
@@ -739,7 +739,7 @@ pure function tnde_axis(this) result(rst)
         !! The D-element unit vector, where D is the element dimensionality.
 
     ! Local Variables
-    integer(int32) :: n
+    integer :: n
     real(real64) :: mag
     real(real64), dimension(3) :: v
 
@@ -794,7 +794,7 @@ pure function se_stiffness_matrix(this, rule) result(rst)
     !! \boldsymbol{a}\end{bmatrix}. $$
     class(spring_element), intent(in) :: this
         !! The spring_element object.
-    integer(int32), intent(in), optional :: rule
+    integer, intent(in), optional :: rule
         !! The integration rule.  This argument is unused as the stiffness
         !! matrix is exact.
     real(real64), allocatable, dimension(:,:) :: rst
@@ -828,7 +828,7 @@ pure function se2d_dimensionality(this) result(rst)
     !! Gets the dimensionality of the element.
     class(spring_element_2d), intent(in) :: this
         !! The spring_element_2d object.
-    integer(int32) :: rst
+    integer :: rst
         !! The dimensionality.
     rst = 2
 end function
@@ -858,7 +858,7 @@ pure function se3d_dimensionality(this) result(rst)
     !! Gets the dimensionality of the element.
     class(spring_element_3d), intent(in) :: this
         !! The spring_element_3d object.
-    integer(int32) :: rst
+    integer :: rst
         !! The dimensionality.
     rst = 3
 end function
@@ -914,7 +914,7 @@ pure function dp2d_dimensionality(this) result(rst)
     !! Gets the dimensionality of the element.
     class(damper_element_2d), intent(in) :: this
         !! The damper_element_2d object.
-    integer(int32) :: rst
+    integer :: rst
         !! The dimensionality.
     rst = 2
 end function
@@ -944,7 +944,7 @@ pure function dp3d_dimensionality(this) result(rst)
     !! Gets the dimensionality of the element.
     class(damper_element_3d), intent(in) :: this
         !! The damper_element_3d object.
-    integer(int32) :: rst
+    integer :: rst
         !! The dimensionality.
     rst = 3
 end function
@@ -956,7 +956,7 @@ pure function me_get_node_count(this) result(rst)
     !! Gets the number of nodes for the element.
     class(mass_element), intent(in) :: this
         !! The mass_element object.
-    integer(int32) :: rst
+    integer :: rst
         !! The number of nodes.
     rst = 1
 end function
@@ -967,7 +967,7 @@ pure function me_dof_per_node(this) result(rst)
     !! element dimensionality as only translations are considered.
     class(mass_element), intent(in) :: this
         !! The mass_element object.
-    integer(int32) :: rst
+    integer :: rst
         !! The number of DOF per node.
     rst = this%get_dimensionality()
 end function
@@ -977,7 +977,7 @@ pure function me_get_node(this, i) result(rst)
     !! Gets the requested node from the element.
     class(mass_element), intent(in) :: this
         !! The mass_element object.
-    integer(int32), intent(in) :: i
+    integer, intent(in) :: i
         !! The local index of the node to retrieve.  This value must be 1.
     type(node) :: rst
         !! The requested node.
@@ -991,7 +991,7 @@ pure function me_shape_function(this, i, s) result(rst)
     !! point mass is unity.
     class(mass_element), intent(in) :: this
         !! The mass_element object.
-    integer(int32), intent(in) :: i
+    integer, intent(in) :: i
         !! The index of the shape function to evaluate.
     real(real64), intent(in), dimension(:) :: s
         !! The natural coordinate at which to evaluate the shape function.
@@ -1016,7 +1016,7 @@ pure function me_shape_function_matrix(this, s) result(rst)
         !! The D-by-D shape function matrix.
 
     ! Local Variables
-    integer(int32) :: k, n
+    integer :: k, n
 
     ! Process
     n = this%get_dimensionality()
@@ -1058,14 +1058,14 @@ pure function me_mass_matrix(this, rule) result(rst)
     !! $$ M = m\,I. $$
     class(mass_element), intent(in) :: this
         !! The mass_element object.
-    integer(int32), intent(in), optional :: rule
+    integer, intent(in), optional :: rule
         !! The integration rule.  This argument is unused as the mass matrix
         !! is exact.
     real(real64), allocatable, dimension(:,:) :: rst
         !! The D-by-D mass matrix, where D is the element dimensionality.
 
     ! Local Variables
-    integer(int32) :: k, n
+    integer :: k, n
 
     ! Process
     n = this%get_dimensionality()
@@ -1093,7 +1093,7 @@ pure function me2d_dimensionality(this) result(rst)
     !! Gets the dimensionality of the element.
     class(mass_element_2d), intent(in) :: this
         !! The mass_element_2d object.
-    integer(int32) :: rst
+    integer :: rst
         !! The dimensionality.
     rst = 2
 end function
@@ -1116,7 +1116,7 @@ pure function me3d_dimensionality(this) result(rst)
     !! Gets the dimensionality of the element.
     class(mass_element_3d), intent(in) :: this
         !! The mass_element_3d object.
-    integer(int32) :: rst
+    integer :: rst
         !! The dimensionality.
     rst = 3
 end function

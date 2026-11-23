@@ -35,7 +35,7 @@ contains
             ! The joint variables.
         real(real64), intent(out), dimension(:) :: equations
             ! The resulting kinematic equations.
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
             ! Optional argument that can be used for passing data, 
             ! communication with the outside world, etc.
 
@@ -66,9 +66,8 @@ program example
     implicit none
 
     ! Local Variables
-    integer(int32) :: i
+    integer :: i
     real(real64) :: theta(3), T(4, 4), qo(3), q(3), constraints(6)
-    procedure(vecfcn), pointer :: mdl
 
     ! Define the Denavit-Hartenberg (DH) parameters
     call random_number(theta)   ! Randomly assign theta.  This is the joint variable
@@ -96,8 +95,7 @@ program example
     constraints(6) = T(3,1)
 
     ! Solve the model
-    mdl => kinematics_equations
-    q = solve_inverse_kinematics(mdl, qo, constraints)
+    q = solve_inverse_kinematics(kinematics_equations, qo, constraints)
 
     ! Display the solution and compare with the actual
     print "(A)", "COMPUTED (Inverse Model):"

@@ -209,7 +209,7 @@ contains
 
         ! Local Variables
         character :: jobu, jobvt
-        integer(int32) :: i, m, n, mn, lwork, info
+        integer :: i, m, n, mn, lwork, info
         real(real64), allocatable, dimension(:,:) :: shifted, vt
         real(real64), allocatable, dimension(:) :: s, work
         real(real64) :: temp(1), dummy(1), avg(3), nrm(3), nan
@@ -234,7 +234,7 @@ contains
         ! Workspaec Sizing - only compute V**T
         call DGESVD(jobu, jobvt, m, n, dummy, m, dummy, dummy, m, dummy, mn, &
             temp, -1, info)
-        lwork = int(temp(1), int32)
+        lwork = int(temp(1))
         allocate(work(lwork), vt(mn, n), shifted(m, n), s(mn))
 
         ! Process
@@ -326,7 +326,7 @@ contains
             !! $$ \boldsymbol{v}=\boldsymbol{n}_1\times\boldsymbol{n}_2. $$
 
         ! Local Variables
-        integer(int32) :: ind
+        integer :: ind
         real(real64) :: n1(3), n2(3), a11, a12, a21, a22, b1, b2, &
             denom, x1, x2
 
@@ -404,7 +404,7 @@ contains
 
         ! Local Variables
         character :: jobu, jobvt
-        integer(int32) :: i, m, n, mn, lwork, info
+        integer :: i, m, n, mn, lwork, info
         real(real64), allocatable, dimension(:,:) :: shifted, vt
         real(real64), allocatable, dimension(:) :: s, work
         real(real64) :: temp(1), dummy(1)
@@ -426,7 +426,7 @@ contains
         ! Workspace Sizing - only compute V**T
         call DGESVD(jobu, jobvt, m, n, dummy, m, dummy, dummy, m, dummy, mn, &
             temp, -1, info)
-        lwork = int(temp(1), int32)
+        lwork = int(temp(1))
         allocate(work(lwork), vt(mn, n), shifted(m, n), s(mn))
 
         ! Process
@@ -894,7 +894,7 @@ contains
 
         ! Local Variables
         logical :: coincident
-        integer(int32) :: lwork, info, ipvt(2), rnk
+        integer :: lwork, info, ipvt(2), rnk
         real(real64) :: s, t, xi(3), p1(3), p2(3), A(3,2), x(3), temp(1), rc
         real(real64), allocatable, dimension(:) :: work
 
@@ -924,7 +924,7 @@ contains
         ! Set up the least-squares solver.  We use DGELSY as we have 3 equations
         ! but only 2 unknowns.
         call DGELSY(3, 2, 1, A, 3, x, 3, ipvt, rc, rnk, temp, -1, info)
-        lwork = int(temp(1), int32)
+        lwork = int(temp(1))
         allocate(work(lwork))
 
         ! Solve
@@ -973,7 +973,7 @@ contains
             !! is 10x machine epsilon.
 
         ! Local Variables
-        integer(int32) :: lwork, info, rnk, ipvt(2)
+        integer :: lwork, info, rnk, ipvt(2)
         real(real64) :: tolerance, A(3, 2), x(3), s, t, temp(1), p1(3), p2(3), &
             dp(3), nan, rc
         real(real64), allocatable, dimension(:) :: work
@@ -993,7 +993,7 @@ contains
 
         ! Set up the least-squares solver
         call DGELSY(3, 2, 1, A, 3, x, 3, ipvt, rc, rnk, temp, -1, info)
-        lwork = int(temp(1), int32)
+        lwork = int(temp(1))
         allocate(work(lwork))
 
         ! Solve A {s;t} = X

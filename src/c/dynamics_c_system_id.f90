@@ -3,6 +3,7 @@ module dynamics_c_system_id
     use iso_fortran_env
     use dynamics
     use diffeq
+    use fstats_interp, only : base_interpolator
     use spectrum, only : window
     use dynamics_error_handling
     use nonlin
@@ -201,15 +202,17 @@ subroutine siso_fit_ode(t, x, dxdt, args)
     real(real64), intent(in) :: t
     real(real64), intent(in), dimension(:) :: x
     real(real64), intent(out), dimension(:) :: dxdt
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
     class(*), pointer :: ptr
+    class(base_interpolator), pointer :: excitation
     real(real64) :: frc
     real(real64), allocatable, dimension(:) :: mdl
     select type (args)
     class is (model_information)
         ptr => args%user_info
+        excitation => args%excitation
         mdl = args%model
-        frc = args%excitation%interpolate_value(t)
+        frc = excitation%interpolate_value(t)
         select type (ptr)
         class is (c_siso_fit_container)
             call ptr%odefcn(size(x), size(mdl), mdl, t, x, frc, dxdt, &
@@ -225,7 +228,7 @@ subroutine siso_constraint_equations(xg, fg, xc, p, fc, args)
     real(real64), intent(in), dimension(:) :: xc
     real(real64), intent(in), dimension(:) :: p
     real(real64), intent(out), dimension(:) :: fc
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
 
     select type (args)
     class is (c_siso_fit_container)

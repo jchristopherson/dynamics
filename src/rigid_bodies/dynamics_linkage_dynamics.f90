@@ -16,7 +16,7 @@ module dynamics_linkage_dynamics
     !! linkages. Link mass properties and joint attachment frames are converted
     !! into the rigid bodies and holonomic constraints required by the
     !! variational integrator.
-    use iso_fortran_env, only : int32, real64
+    use iso_fortran_env, only : real64
     use dynamics_error_handling, only : DYN_ARRAY_SIZE_ERROR, &
         DYN_INVALID_INPUT_ERROR
     use dynamics_kinematics, only : transform_inverse
@@ -43,6 +43,8 @@ module dynamics_linkage_dynamics
     public :: torsional_damper
     public :: axial_element_result
     public :: torsional_element_result
+    public :: joint_constraint_count
+    public :: append_spatial_joint_constraints
 
     abstract interface
         function linkage_prescribed_motion(t, args) result(rst)
@@ -51,7 +53,7 @@ module dynamics_linkage_dynamics
             import :: real64
             real(real64), intent(in) :: t
                 !! The simulation time.
-			class(*), intent(inout), optional :: args
+			class(*), intent(in), optional :: args
 				!! A mechanism for passing information in/out of this routine.
             real(real64) :: rst
                 !! With prescribed_joint: relative revolute angle (radians) or
@@ -67,13 +69,13 @@ module dynamics_linkage_dynamics
         !! frame; for a ground body, the frame is expressed directly in world
         !! coordinates. The parent and child joint frames coincide when the
         !! joint constraint is satisfied.
-        integer(int32) :: joint_type = REVOLUTE_JOINT
+        integer :: joint_type = REVOLUTE_JOINT
             !! The joint kind, using one of the joint-type constants from
             !! dynamics_joints.
-        integer(int32) :: parent_body = 0
+        integer :: parent_body = 0
             !! The one-based maximal-coordinate body index on the parent side,
             !! or zero for the fixed ground link.
-        integer(int32) :: child_body = 0
+        integer :: child_body = 0
             !! The one-based maximal-coordinate body index on the child side,
             !! or zero for the fixed ground link.
         real(real64), dimension(4,4) :: parent_frame
@@ -122,10 +124,10 @@ module dynamics_linkage_dynamics
         !! Body index zero denotes a fixed ground point whose coordinates are
         !! expressed in world coordinates. Subtypes override evaluate_force to
         !! compute a force from the current length and length rate.
-        integer(int32) :: body_1 = 0
+        integer :: body_1 = 0
             !! The one-based body index for the first attachment point, or zero
             !! for a ground point.
-        integer(int32) :: body_2 = 0
+        integer :: body_2 = 0
             !! The one-based body index for the second attachment point, or zero
             !! for a ground point.
         real(real64), dimension(3) :: point_1 = 0.0d0
@@ -160,7 +162,7 @@ module dynamics_linkage_dynamics
 
     type torsional_force_element
         !! Defines an extensible torsional element bound to a revolute joint.
-        integer(int32) :: joint_index = 0
+        integer :: joint_index = 0
             !! The one-based revolute-joint index whose axis the element uses.
     contains
         procedure, public :: evaluate_torque => torsional_zero_torque
@@ -207,7 +209,7 @@ module dynamics_linkage_dynamics
             m_torsional_elements
         type(variational_state), private :: m_initial_state
         logical, private :: m_planar = .false.
-        integer(int32), private :: m_constraint_count = 0
+        integer, private :: m_constraint_count = 0
     contains
         procedure, public :: get_body_count => ldm_get_body_count
         procedure, public :: get_joint_count => ldm_get_joint_count
@@ -245,10 +247,10 @@ module dynamics_linkage_dynamics
             !! Constant world-frame forces, shaped 3-by-number-of-bodies.
         real(real64), allocatable, dimension(:,:) :: body_torque
             !! Constant body-frame torques, shaped 3-by-number-of-bodies.
-        integer(int32) :: prescribed_body = 0
+        integer :: prescribed_body = 0
             !! The one-based planar body whose absolute angle is prescribed, or
             !! zero when no prescribed motion is active.
-        integer(int32) :: prescribed_joint = 0
+        integer :: prescribed_joint = 0
             !! The one-based driven revolute or prismatic joint, or zero.
         procedure(linkage_prescribed_motion), pointer, nopass :: &
             prescribed_motion => null()
@@ -345,7 +347,7 @@ function ldm_from_serial(mechanism, q) result(rst)
     type(linkage_dynamic_model) :: rst
         !! The resulting dynamic model.
 
-    integer(int32) :: i, n
+    integer :: i, n
     real(real64), dimension(4,4) :: body_transform, motion
     class(binary_link), pointer :: current_link
 
@@ -382,8 +384,8 @@ function ldm_from_parallel(mechanism, q) result(rst)
     type(linkage_dynamic_model) :: rst
         !! The resulting dynamic model.
 
-    integer(int32) :: base, body_index, i, nbody, nlink, njoint
-    integer(int32), allocatable, dimension(:) :: body_map
+    integer :: base, body_index, i, nbody, nlink, njoint
+    integer, allocatable, dimension(:) :: body_map
     real(real64), dimension(4,4) :: body_transform
     type(joint) :: current_joint
     class(link), pointer :: current_link
@@ -439,7 +441,7 @@ pure function ldm_get_body_count(this) result(rst)
     !! Gets the number of moving rigid bodies in the dynamic model.
     class(linkage_dynamic_model), intent(in) :: this
         !! The dynamic linkage model.
-    integer(int32) :: rst
+    integer :: rst
         !! The number of moving bodies; ground is not included.
     rst = size(this%m_bodies)
 end function
@@ -449,7 +451,7 @@ pure function ldm_get_joint_count(this) result(rst)
     !! Gets the number of joints represented by the dynamic model.
     class(linkage_dynamic_model), intent(in) :: this
         !! The dynamic linkage model.
-    integer(int32) :: rst
+    integer :: rst
         !! The joint count.
 
     rst = size(this%m_joints)
@@ -459,7 +461,7 @@ end function
 function ldm_get_joint(this, index) result(rst)
     !! Gets a copy of a joint descriptor in the model's joint ordering.
     class(linkage_dynamic_model), intent(in) :: this
-    integer(int32), intent(in) :: index
+    integer, intent(in) :: index
         !! The one-based joint index, not a moving-body index.
     type(dynamic_joint) :: rst
 
@@ -473,7 +475,7 @@ pure function ldm_get_constraint_count(this) result(rst)
     !! Gets the number of scalar constraints in the dynamic model.
     class(linkage_dynamic_model), intent(in) :: this
         !! The dynamic linkage model.
-    integer(int32) :: rst
+    integer :: rst
         !! The total number of joint and planar-body constraints.
     rst = this%m_constraint_count
 end function
@@ -498,7 +500,7 @@ subroutine ldm_add_axial_element(this, element)
         !! The axial element to add. Its body indices must identify two
         !! distinct valid bodies or ground.
     type(axial_element_container), allocatable, dimension(:) :: buffer
-    integer(int32) :: n
+    integer :: n
 
     call validate_body_pair(this, element%body_1, element%body_2)
     n = this%get_axial_element_count()
@@ -538,7 +540,7 @@ subroutine ldm_add_torsional_element(this, element)
         !! The torsional element to add. Its one-based joint index must refer
         !! to a revolute joint in this model.
     type(torsional_element_container), allocatable, dimension(:) :: buffer
-    integer(int32) :: n
+    integer :: n
 
     if (element%joint_index < 1 .or. &
         element%joint_index > this%get_joint_count()) &
@@ -576,7 +578,7 @@ pure function ldm_get_axial_count(this) result(rst)
     !! Gets the number of axial force elements in the model.
     class(linkage_dynamic_model), intent(in) :: this
         !! The dynamic linkage model.
-    integer(int32) :: rst
+    integer :: rst
         !! The number of stored axial elements.
     rst = 0
     if (allocated(this%m_axial_elements)) rst = size(this%m_axial_elements)
@@ -586,7 +588,7 @@ pure function ldm_get_torsional_count(this) result(rst)
     !! Gets the number of torsional force elements in the model.
     class(linkage_dynamic_model), intent(in) :: this
         !! The dynamic linkage model.
-    integer(int32) :: rst
+    integer :: rst
         !! The number of stored torsional elements.
     rst = 0
     if (allocated(this%m_torsional_elements)) &
@@ -601,7 +603,7 @@ function ldm_get_axial_results(this, state) result(rst)
         !! The state at which each element is evaluated.
     type(axial_element_result), allocatable, dimension(:) :: rst
         !! One result for each axial element, in insertion order.
-    integer(int32) :: i
+    integer :: i
     real(real64), dimension(3) :: direction, arm_1, arm_2
 
     allocate(rst(this%get_axial_element_count()))
@@ -619,7 +621,7 @@ function ldm_get_torsional_results(this, state) result(rst)
         !! The state at which each element is evaluated.
     type(torsional_element_result), allocatable, dimension(:) :: rst
         !! One result for each torsional element, in insertion order.
-    integer(int32) :: i
+    integer :: i
     real(real64), dimension(3) :: axis
 
     allocate(rst(this%get_torsional_element_count()))
@@ -638,7 +640,7 @@ function ldm_constraint_residual(this, state) result(rst)
         !! The body state at which the constraints are evaluated.
     real(real64), allocatable, dimension(:) :: rst
         !! The constraint residual vector in the model's constraint ordering.
-    integer(int32) :: i, index
+    integer :: i, index
 
     allocate(rst(this%m_constraint_count))
     index = 1
@@ -666,7 +668,7 @@ function ldm_get_joint_reactions(this, state, multipliers) result(rst)
     type(joint_reaction), allocatable, dimension(:) :: rst
         !! One world-frame reaction wrench for each joint, in mechanism order.
 
-    integer(int32) :: i, index, nconstraint
+    integer :: i, index, nconstraint
     real(real64), dimension(3) :: local_force, local_moment
     real(real64), dimension(4,4) :: parent
 
@@ -734,7 +736,7 @@ end subroutine
 pure subroutine spatial_joint_reaction(joint_type, multipliers, force, moment)
     !! Maps spatial joint multipliers into a wrench expressed in the parent
     !! joint frame. The caller rotates the wrench into world coordinates.
-    integer(int32), intent(in) :: joint_type
+    integer, intent(in) :: joint_type
         !! The joint kind whose multiplier layout is being decoded.
     real(real64), intent(in), dimension(:) :: multipliers
         !! The spatial joint multipliers in the integrator's ordering.
@@ -780,7 +782,7 @@ function ldm_solve(this, integrator, dt, ntime, initial_state, gravity, &
         !! The variational integrator used to advance the model.
     real(real64), intent(in) :: dt
         !! The time step in seconds.
-    integer(int32), intent(in) :: ntime
+    integer, intent(in) :: ntime
         !! The number of returned simulation points, including the initial point.
     type(variational_state), intent(in), optional :: initial_state
         !! An optional starting state; the model's initial state is used when
@@ -791,11 +793,11 @@ function ldm_solve(this, integrator, dt, ntime, initial_state, gravity, &
         !! Constant 3-by-nbody world-frame force array.
     real(real64), intent(in), optional, dimension(:,:) :: body_torque
         !! Constant 3-by-nbody body-frame torque array.
-    integer(int32), intent(in), optional :: prescribed_body
+    integer, intent(in), optional :: prescribed_body
         !! The one-based moving body whose absolute world-z planar angle is
         !! prescribed (legacy input). Only planar models support this selector.
         !! Mutually exclusive with prescribed_joint.
-    procedure(linkage_prescribed_motion), pointer, intent(in), optional :: prescribed_motion
+    procedure(linkage_prescribed_motion), optional :: prescribed_motion
         !! The scalar motion callback. Supply exactly one of prescribed_body
         !! or prescribed_joint with this associated procedure pointer.
     real(real64), allocatable, intent(out), optional, dimension(:,:) :: multipliers
@@ -804,12 +806,12 @@ function ldm_solve(this, integrator, dt, ntime, initial_state, gravity, &
         !! prescribed, the last row is the required actuator torque (angular
         !! input) or axial force (prismatic input), positive in the direction
         !! of increasing prescribed coordinate. Joint reactions exclude it.
-	class(*), intent(inout), target, optional :: args
+	class(*), intent(in), target, optional :: args
 		!! A mechanism for the caller to pass information to/from the 
 		!! user-defined routines (e.g. presribed_motion).
     type(variational_integrator_info), intent(out), optional :: info
         !! Optional convergence diagnostics aggregated over the trajectory.
-    integer(int32), intent(in), optional :: prescribed_joint
+    integer, intent(in), optional :: prescribed_joint
         !! The one-based revolute or prismatic joint in model joint order
         !! (serial: proximal joint of link i; parallel: mechanism joint order).
         !! Supported for planar and spatial models. Revolute input is the
@@ -828,10 +830,8 @@ function ldm_solve(this, integrator, dt, ntime, initial_state, gravity, &
 
     type(linkage_solve_context) :: context
     type(variational_state) :: state
-    integer(int32) :: constraint_count, joint_type
+    integer :: constraint_count, joint_type
     real(real64) :: initial_residual
-    procedure(variational_force), pointer :: frc
-    procedure(variational_constraint), pointer :: constraint
 
     state = this%m_initial_state
     if (present(initial_state)) state = initial_state
@@ -856,9 +856,6 @@ function ldm_solve(this, integrator, dt, ntime, initial_state, gravity, &
     if ((present(prescribed_body) .or. present(prescribed_joint)) .neqv. &
         present(prescribed_motion)) &
         error stop DYN_INVALID_INPUT_ERROR
-    if (present(prescribed_motion)) then
-        if (.not.associated(prescribed_motion)) error stop DYN_INVALID_INPUT_ERROR
-    end if
     constraint_count = this%m_constraint_count
     if (present(prescribed_body)) then
         if (.not.this%m_planar .or. prescribed_body < 1 .or. &
@@ -881,12 +878,11 @@ function ldm_solve(this, integrator, dt, ntime, initial_state, gravity, &
             error stop DYN_INVALID_INPUT_ERROR
         constraint_count = constraint_count + 1
     end if
-    frc => linkage_gravity
-    constraint => linkage_constraints
     rst = integrator%solve(this%m_bodies, state, dt, ntime, &
         constraint_count = constraint_count, &
-        constraint = constraint, &
-        force_function = frc, multipliers = multipliers, &
+        constraint = linkage_constraints, &
+        force_function = linkage_gravity, &
+        multipliers = multipliers, &
         args = context, info = info)
 end function
 
@@ -898,7 +894,7 @@ subroutine linkage_constraints(state, value, args)
     real(real64), intent(out), dimension(:) :: value
         !! The output constraint residual vector, including an optional
         !! prescribed-motion residual as its final entry.
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
         !! A linkage_solve_context containing the model and optional motion
         !! prescription.
 
@@ -928,7 +924,7 @@ end subroutine
 function prescribed_joint_residual(state, context) result(rst)
     !! Evaluates a relative joint-coordinate driver, independent of world pose.
     type(variational_state), intent(in) :: state
-    type(linkage_solve_context), intent(inout) :: context
+    type(linkage_solve_context), intent(in) :: context
     real(real64) :: rst, target, angle
     real(real64), dimension(4,4) :: parent, child, relative
     type(dynamic_joint) :: descriptor
@@ -960,7 +956,7 @@ function planar_body_angle(state, body) result(rst)
     !! Gets the absolute angle of a planar body about the world z-axis.
     type(variational_state), intent(in) :: state
         !! The body state whose orientation is queried.
-    integer(int32), intent(in) :: body
+    integer, intent(in) :: body
         !! The one-based moving-body index.
     real(real64) :: rst
         !! The body's absolute angle in radians, in the range returned by
@@ -980,10 +976,10 @@ subroutine linkage_gravity(t, state, force, torque, args)
         !! The state used to evaluate force and torque elements.
     real(real64), intent(out), dimension(:,:) :: force, torque
         !! The output world-frame forces and body-frame torques for each body.
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
         !! A linkage_solve_context containing gravity, body loads, and the
         !! dynamic model.
-    integer(int32) :: i
+    integer :: i
 
     force = 0.0d0
     torque = 0.0d0
@@ -1009,7 +1005,7 @@ subroutine apply_force_elements(model, state, force, torque)
         !! The state at which element loads are evaluated.
     real(real64), intent(inout), dimension(:,:) :: force, torque
         !! The accumulated world-frame forces and body-frame torques to update.
-    integer(int32) :: i
+    integer :: i
     real(real64), dimension(3) :: direction, arm_1, arm_2, element_force, axis
     type(axial_element_result) :: axial_result
     type(torsional_element_result) :: torsional_result
@@ -1073,7 +1069,7 @@ subroutine attachment_state(model, state, body, point, position, velocity, arm)
         !! The dynamic model providing body mass-center locations.
     type(variational_state), intent(in) :: state
         !! The state used to transform the point.
-    integer(int32), intent(in) :: body
+    integer, intent(in) :: body
         !! The one-based body index, or zero for a fixed ground point.
     real(real64), intent(in), dimension(3) :: point
         !! The point in body coordinates, or world coordinates for ground.
@@ -1102,7 +1098,7 @@ subroutine apply_point_force(model, state, body, arm, applied, force, torque)
         !! The dynamic model providing body indexing.
     type(variational_state), intent(in) :: state
         !! The state used to rotate the resulting moment into body coordinates.
-    integer(int32), intent(in) :: body
+    integer, intent(in) :: body
         !! The one-based body receiving the load, or zero for ground.
     real(real64), intent(in), dimension(3) :: arm, applied
         !! The body-frame moment arm and world-frame applied force.
@@ -1151,7 +1147,7 @@ subroutine body_angular_velocity(state, body, omega)
     !! Gets a moving body's angular velocity in world coordinates.
     type(variational_state), intent(in) :: state
         !! The state containing the body's orientation and angular velocity.
-    integer(int32), intent(in) :: body
+    integer, intent(in) :: body
         !! The one-based body index, or zero for a fixed ground body.
     real(real64), intent(out), dimension(3) :: omega
         !! The body's world-frame angular velocity.
@@ -1167,7 +1163,7 @@ subroutine apply_axis_torque(state, body, applied, torque)
     !! Adds a world-frame axis torque to one moving body's torque array.
     type(variational_state), intent(in) :: state
         !! The state used to rotate the torque into body coordinates.
-    integer(int32), intent(in) :: body
+    integer, intent(in) :: body
         !! The one-based body receiving the torque, or zero for ground.
     real(real64), intent(in), dimension(3) :: applied
         !! The applied torque in world coordinates.
@@ -1182,7 +1178,7 @@ subroutine validate_body_pair(model, body_1, body_2)
     !! Validates two distinct body or ground indices for an axial element.
     class(linkage_dynamic_model), intent(in) :: model
         !! The model defining the valid moving-body index range.
-    integer(int32), intent(in) :: body_1, body_2
+    integer, intent(in) :: body_1, body_2
         !! The two indices to validate; zero denotes ground.
     if (body_1 < 0 .or. body_1 > model%get_body_count() .or. &
         body_2 < 0 .or. body_2 > model%get_body_count() .or. &
@@ -1196,11 +1192,11 @@ subroutine append_planar_body_constraints(model, state, body, value, index)
         !! The planar dynamic model whose body pose is evaluated.
     type(variational_state), intent(in) :: state
         !! The state at which the body constraints are evaluated.
-    integer(int32), intent(in) :: body
+    integer, intent(in) :: body
         !! The one-based moving-body index.
     real(real64), intent(inout), dimension(:) :: value
         !! The constraint vector receiving the three scalar residuals.
-    integer(int32), intent(inout) :: index
+    integer, intent(inout) :: index
         !! The one-based insertion position, advanced past the appended values.
     real(real64), dimension(3,3) :: rotation
     real(real64), dimension(3) :: origin
@@ -1223,7 +1219,7 @@ subroutine append_joint_constraints(model, state, descriptor, value, index)
         !! The joint descriptor defining type, bodies, and frames.
     real(real64), intent(inout), dimension(:) :: value
         !! The constraint vector receiving the joint residuals.
-    integer(int32), intent(inout) :: index
+    integer, intent(inout) :: index
         !! The one-based insertion position, advanced past the appended values.
     real(real64), dimension(4,4) :: parent, child, relative
     real(real64), dimension(3,3) :: world_rotation
@@ -1265,20 +1261,31 @@ subroutine append_joint_constraints(model, state, descriptor, value, index)
 end subroutine
 
 ! ------------------------------------------------------------------------------
-subroutine append_spatial_joint_constraints(joint_type, relative, value, index)
+subroutine append_spatial_joint_constraints(joint_type, relative, value, index, use_half_angle)
     !! Appends spatial joint residuals from a relative joint transform.
-    integer(int32), intent(in) :: joint_type
+    integer, intent(in) :: joint_type
         !! The joint kind determining the residual components and count.
     real(real64), intent(in), dimension(4,4) :: relative
         !! The child joint frame relative to the parent joint frame.
     real(real64), intent(inout), dimension(:) :: value
         !! The constraint vector receiving the spatial residuals.
-    integer(int32), intent(inout) :: index
+    integer, intent(inout) :: index
         !! The one-based insertion position, advanced past the appended values.
+    logical, intent(in), optional :: use_half_angle
+        !! Use the shortest-arc quaternion residual for fixed/prismatic
+        !! orientation, avoiding a spurious zero at a half turn. Defaults to
+        !! false to preserve the rigid solver's multiplier convention.
     real(real64), dimension(3) :: rotation_error
+    type(quaternion) :: orientation
 
     rotation_error = 0.5d0 * [relative(3,2) - relative(2,3), &
         relative(1,3) - relative(3,1), relative(2,1) - relative(1,2)]
+    if (present(use_half_angle)) then
+        if (use_half_angle .and. (joint_type == FIXED_JOINT .or. joint_type == PRISMATIC_JOINT)) then
+            orientation = quaternion(relative(1:3,1:3))
+            rotation_error = sign(2.0d0,orientation%w) * [orientation%x, orientation%y, orientation%z]
+        end if
+    end if
     select case (joint_type)
     case (FIXED_JOINT)
         value(index:index+2) = relative(1:3,4)
@@ -1315,7 +1322,7 @@ function joint_world_transform(model, state, body, frame) result(rst)
         !! The dynamic model providing body center-of-mass offsets.
     type(variational_state), intent(in) :: state
         !! The state providing the selected body's pose.
-    integer(int32), intent(in) :: body
+    integer, intent(in) :: body
         !! The one-based moving-body index, or zero for ground.
     real(real64), intent(in), dimension(4,4) :: frame
         !! The joint frame relative to the selected body, or already in world
@@ -1344,7 +1351,7 @@ subroutine body_pose(model, state, body, rotation, origin)
         !! The dynamic model providing the body's center-of-mass location.
     type(variational_state), intent(in) :: state
         !! The state containing the body's position and orientation.
-    integer(int32), intent(in) :: body
+    integer, intent(in) :: body
         !! The one-based moving-body index.
     real(real64), intent(out), dimension(3,3) :: rotation
         !! The body-to-world rotation matrix.
@@ -1361,9 +1368,9 @@ subroutine allocate_state(state, nbody)
     !! Allocates and initializes a variational state for moving bodies.
     type(variational_state), intent(out) :: state
         !! The state to allocate and initialize.
-    integer(int32), intent(in) :: nbody
+    integer, intent(in) :: nbody
         !! The number of moving bodies represented by the state.
-    integer(int32) :: i
+    integer :: i
 
     allocate(state%position(3,nbody), state%orientation(nbody), &
         state%velocity(3,nbody), state%angular_velocity(3,nbody))
@@ -1381,7 +1388,7 @@ subroutine set_body_state(state, body, properties, transform)
     !! Initializes one body's position and orientation from a homogeneous pose.
     type(variational_state), intent(inout) :: state
         !! The state receiving the body's pose.
-    integer(int32), intent(in) :: body
+    integer, intent(in) :: body
         !! The one-based body index to initialize.
     class(link), intent(in) :: properties
         !! The link mass properties, including its center-of-mass offset.
@@ -1409,7 +1416,7 @@ end subroutine
 ! ------------------------------------------------------------------------------
 pure function serial_joint_motion(joint_type, q) result(rst)
     !! Builds the homogeneous motion transform for one serial joint variable.
-    integer(int32), intent(in) :: joint_type
+    integer, intent(in) :: joint_type
         !! The joint kind; revolute and prismatic joints are supported.
     real(real64), intent(in) :: q
         !! The joint variable, in radians for a revolute joint or length units
@@ -1441,9 +1448,9 @@ pure function sum_joint_constraints(joints, planar) result(rst)
         !! The joint descriptors whose constraints are counted.
     logical, intent(in) :: planar
         !! Whether planar rather than spatial constraint counts are required.
-    integer(int32) :: rst
+    integer :: rst
         !! The total number of scalar joint constraints.
-    integer(int32) :: i
+    integer :: i
 
     rst = 0
     do i = 1, size(joints)
@@ -1454,11 +1461,11 @@ end function
 ! ------------------------------------------------------------------------------
 pure function joint_constraint_count(joint_type, planar) result(rst)
     !! Gets the number of scalar multipliers associated with one joint.
-    integer(int32), intent(in) :: joint_type
+    integer, intent(in) :: joint_type
         !! The joint kind whose scalar constraint count is requested.
     logical, intent(in) :: planar
         !! Whether to use planar or spatial joint constraints.
-    integer(int32) :: rst
+    integer :: rst
         !! The number of scalar constraints, or an error for an unsupported
         !! joint/mode combination.
 

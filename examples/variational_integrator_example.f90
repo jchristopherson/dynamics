@@ -33,9 +33,9 @@ program example
 	end type
 
 	! Model Parameters
-	integer(int32), parameter :: nbody = 2
-	integer(int32), parameter :: nconstraint = 6
-	integer(int32), parameter :: ntime = 801
+	integer, parameter :: nbody = 2
+	integer, parameter :: nconstraint = 6
+	integer, parameter :: ntime = 801
 	real(real64), parameter :: dt = 5.0d-3
 	real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
 	real(real64), parameter :: length1 = 1.0d0
@@ -49,7 +49,7 @@ program example
 	real(real64), parameter :: angle2_initial = -20.0d0 * pi / 180.0d0
 
 	! Local Variables
-	integer(int32) :: i
+	integer :: i
 	real(real64), dimension(3,3) :: inertia1, inertia2, rotation1, rotation2
 	real(real64), dimension(3) :: direction1, direction2
 	real(real64), allocatable, dimension(:) :: time, angle1, angle2
@@ -58,9 +58,6 @@ program example
 	type(variational_state), allocatable, dimension(:) :: solution
 	type(variational_integrator) :: integrator
 	type(double_pendulum_parameters) :: parameters
-	procedure(variational_constraint), pointer :: constraint_ptr
-	procedure(variational_force), pointer :: force_ptr
-	procedure(variational_constraint_jacobian), pointer :: jacobian_ptr
 	type(plot_2d) :: plt
     class(plot_axis), pointer :: xAxis
 	type(legend), pointer :: lgnd
@@ -90,14 +87,11 @@ program example
 	! constraint callbacks receive the model parameters through args.
 	parameters = double_pendulum_parameters(length1, length2, gravity)
 	integrator%settings%linear_solver = VI_GRAPH_FACTORIZED_SOLVER
-	constraint_ptr => pendulum_constraints
-	force_ptr => gravity_forces
-	jacobian_ptr => pendulum_constraint_jacobian
 	solution = integrator%solve(bodies, initial_state, dt, ntime, &
 		constraint_count = nconstraint, &
-		constraint = constraint_ptr, &
-		force_function = force_ptr, &
-		constraint_jacobian = jacobian_ptr, &
+		constraint = pendulum_constraints, &
+		force_function = gravity_forces, &
+		constraint_jacobian = pendulum_constraint_jacobian, &
 		args = parameters)
 
 	! Recover the two planar angles from the body-to-world rotation matrices.
@@ -159,7 +153,7 @@ contains
 			!! The world-frame forces acting on the bodies.
 		real(real64), intent(out), dimension(:,:) :: torque
 			!! The body-frame torques acting on the bodies.
-		class(*), intent(inout), optional :: args
+		class(*), intent(in), optional :: args
 			!! The double-pendulum parameters.
 
 		real(real64) :: acceleration
@@ -185,7 +179,7 @@ contains
 			!! The maximal-coordinate state to evaluate.
 		real(real64), intent(out), dimension(:) :: value
 			!! The six endpoint-compatibility residuals.
-		class(*), intent(inout), optional :: args
+		class(*), intent(in), optional :: args
 			!! The double-pendulum parameters.
 
 		real(real64) :: first_length, second_length
@@ -224,7 +218,7 @@ contains
 			!! The maximal-coordinate state at which to evaluate the Jacobian.
 		real(real64), intent(out), dimension(:,:) :: jacobian
 			!! The 6-by-12 reduced constraint Jacobian.
-		class(*), intent(inout), optional :: args
+		class(*), intent(in), optional :: args
 			!! The double-pendulum parameters.
 
 		real(real64) :: first_length, second_length

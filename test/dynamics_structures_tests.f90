@@ -17,6 +17,11 @@ module dynamics_structures_tests
     use fortran_test_helper
     implicit none
 
+    integer, save :: progress_count = 0
+    integer, save :: progress_last_step = 0
+    integer, save :: progress_total_steps = 0
+    real(real64), allocatable, dimension(:), save :: progress_last_displacement
+
 contains
 ! ------------------------------------------------------------------------------
     pure function beam2d_n1(s) result(rst)
@@ -904,13 +909,13 @@ contains
         logical :: rst
 
         ! Variables
-        integer(int32), parameter :: n = 50
-        integer(int32), parameter :: bc_index = 25
+        integer, parameter :: n = 50
+        integer, parameter :: bc_index = 25
         real(real64), parameter :: bc_value = 0.1d0
         real(real64) :: k(n,n), f(n), check(n), kcheck(n-1,n-1), fcheck(n-1)
         real(real64), allocatable, dimension(:) :: fnew, frestore
         real(real64), allocatable, dimension(:,:) :: knew
-        integer(int32) :: gdofs(1)
+        integer :: gdofs(1)
 
         ! Initialization
         rst = .true.
@@ -974,13 +979,13 @@ contains
         logical :: rst
 
         ! Variables
-        integer(int32), parameter :: n = 50
-        integer(int32), parameter :: bc_index = n
+        integer, parameter :: n = 50
+        integer, parameter :: bc_index = n
         real(real64), parameter :: bc_value = 0.1d0
         real(real64) :: k(n,n), f(n), check(n), kcheck(n-1,n-1), fcheck(n-1)
         real(real64), allocatable, dimension(:) :: fnew, frestore
         real(real64), allocatable, dimension(:,:) :: knew
-        integer(int32) :: gdofs(1)
+        integer :: gdofs(1)
 
         ! Initialization
         rst = .true.
@@ -1044,15 +1049,15 @@ contains
         logical :: rst
 
         ! Variables
-        integer(int32), parameter :: n = 20
-        integer(int32), parameter :: nbc = 3
+        integer, parameter :: n = 20
+        integer, parameter :: nbc = 3
         real(real64) :: k(n,n), f(n), fcsr(n)
         real(real64), allocatable, dimension(:,:) :: knew_dense, knew_csr, &
             restored_dense, restored_csr
         type(csr_matrix) :: kcsr, knewcsr, restoredcsr
-        integer(int32) :: gdofs_dense(nbc), gdofs_csr(nbc)
-        integer(int32) :: free_dofs(n - nbc)
-        integer(int32) :: i, j
+        integer :: gdofs_dense(nbc), gdofs_csr(nbc)
+        integer :: free_dofs(n - nbc)
+        integer :: i, j
 
         ! Initialization
         rst = .true.
@@ -1112,7 +1117,7 @@ contains
         logical :: rst
 
         ! Variables
-        integer(int32), parameter :: gdof = 9 ! 3 dof per node, 3 nodes
+        integer, parameter :: gdof = 9 ! 3 dof per node, 3 nodes
         real(real64) :: x1, y1, x2, y2, x3, y3, a1, a2, i1, i2, &
             L1ans(6,9), L2ans(6,9), L1(6,9), L2(6,9)
         type(csr_matrix) :: L1csr, L2csr
@@ -1213,7 +1218,7 @@ function test_global_assembly() result(rst)
     logical :: rst
 
     ! Local Variables
-    integer(int32) :: i, j, eidx, offset
+    integer :: i, j, eidx, offset
     real(real64) :: local_k(6,6), local_m(6,6)
     real(real64) :: expected_k(9,9), expected_m(9,9)
     real(real64), allocatable :: actual_k(:,:), actual_m(:,:)
@@ -1878,7 +1883,7 @@ end function
 ! ------------------------------------------------------------------------------
 function test_truss_elements() result(rst)
     logical :: rst
-    integer(int32) :: row, col
+    integer :: row, col
     real(real64), parameter :: tol = 1.0d-12
     real(real64), dimension(4) :: axial_2d
     real(real64), dimension(6) :: axial_3d
@@ -1968,7 +1973,7 @@ end function
 function test_generalized_alpha_integrator() result(rst)
     use linalg, only : dense_to_csr
     logical :: rst
-    integer(int32) :: index, step, row
+    integer :: index, step, row
     real(real64) :: dt, rho, alpha_m, alpha_f, gamma, beta
     real(real64), dimension(2) :: displacement, velocity, acceleration
     real(real64), dimension(2) :: sparse_displacement, sparse_velocity, sparse_acceleration
@@ -2201,6 +2206,73 @@ function test_generalized_alpha_integrator() result(rst)
 end function
 
 ! ------------------------------------------------------------------------------
+subroutine record_integrator_progress(progress, args)
+    type(time_history_solver_progress), intent(in) :: progress
+    class(*), intent(in), optional :: args
+    progress_count = progress_count + 1
+    progress_last_step = progress%step
+    progress_total_steps = progress%total_steps
+    progress_last_displacement = progress%displacement
+end subroutine
+
+! ------------------------------------------------------------------------------
+function test_integrator_progress() result(rst)
+    !! Verifies that the optional time-history progress callback is invoked
+    !! once per step and that it does not alter the solution.
+    logical :: rst
+    integer :: i, nsteps
+    real(real64) :: dt
+    real(real64), dimension(2) :: displacement, velocity, acceleration
+    real(real64), dimension(2) :: ref_displacement, ref_velocity, ref_acceleration
+    real(real64), dimension(2,11) :: force_history
+    real(real64), dimension(2,2) :: mass, damping, stiffness
+    type(dense_generalized_alpha_integrator) :: integrator
+    rst = .true.
+    nsteps = 10
+    dt = 0.05d0
+    mass = reshape([2.0d0, 0.2d0, 0.2d0, 1.5d0], [2, 2])
+    damping = reshape([0.4d0, -0.1d0, -0.1d0, 0.3d0], [2, 2])
+    stiffness = reshape([8.0d0, -2.0d0, -2.0d0, 5.0d0], [2, 2])
+    do i = 1, nsteps + 1
+        force_history(:,i) = [1.0d0 + 0.2d0 * (i - 1), -0.5d0 + 0.1d0 * (i - 1)]
+    end do
+    call integrator%initialize(mass, damping, stiffness, 0.5d0)
+
+    displacement = [0.3d0, -0.2d0]
+    velocity = [0.1d0, 0.4d0]
+    acceleration = solve_static_system(mass, force_history(:,1) - &
+        matmul(damping, velocity) - matmul(stiffness, displacement))
+    ref_displacement = displacement
+    ref_velocity = velocity
+    ref_acceleration = acceleration
+
+    progress_count = 0
+    progress_last_step = 0
+    progress_total_steps = 0
+    call integrator%solve(force_history, dt, displacement, velocity, acceleration, &
+        record_integrator_progress)
+    if (progress_count /= nsteps .or. progress_last_step /= nsteps .or. &
+        progress_total_steps /= nsteps) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_integrator_progress - callback count or step"
+        return
+    end if
+    if (norm2(progress_last_displacement - displacement) > 1.0d-12) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_integrator_progress - final reported state"
+        return
+    end if
+
+    call integrator%solve(force_history, dt, ref_displacement, ref_velocity, ref_acceleration)
+    if (norm2(ref_displacement - displacement) > 1.0d-12 .or. &
+        norm2(ref_velocity - velocity) > 1.0d-12 .or. &
+        norm2(ref_acceleration - acceleration) > 1.0d-12) then
+        rst = .false.
+        print "(A)", "TEST FAILED: test_integrator_progress - callback altered solution"
+    end if
+end function
+
+! ------------------------------------------------------------------------------
 function test_integration_rules() result(rst)
     ! A linear truss mass matrix integrates a quadratic, so the 2-, 3-, and
     ! 4-point rules are exact and the 1-point rule samples the midpoint.
@@ -2209,7 +2281,7 @@ function test_integration_rules() result(rst)
     real(real64), parameter :: len = 2.0d0
     real(real64), parameter :: area = 0.5d0
     real(real64), parameter :: rho = 3.0d0
-    integer(int32) :: rule
+    integer :: rule
     real(real64) :: mtot
     real(real64), allocatable, dimension(:,:) :: m
     type(truss_element_2d) :: truss

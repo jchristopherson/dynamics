@@ -8,6 +8,7 @@ set(dynamics_test_sources
     dynamics_stability_tests.f90
     dynamics_transfer_function_tests.f90
     dynamics_state_space_tests.f90
+    dynamics_controls_tuning_tests.f90
     dynamics_system_id_tests.f90
     dynamics_rotation_tests.f90
     dynamics_geometry_tests.f90
@@ -17,6 +18,7 @@ set(dynamics_test_sources
     dynamics_linkage_dynamics_tests.f90
     dynamics_discrete_elements_tests.f90
     dynamics_shell_elements_tests.f90
+    dynamics_flexible_bodies_tests.f90
 )
 
 # Dependencies
@@ -50,10 +52,56 @@ add_test(
     COMMAND $<TARGET_FILE:dynamics_tests>
 )
 add_test(
+    NAME dynamics_discrete_canonical_tests
+    WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+    COMMAND $<TARGET_FILE:dynamics_tests> discrete-canonical
+)
+foreach(case IN ITEMS ccf ocf sample-time uninitialized evaluate-input evaluate-state)
+    add_test(
+        NAME dynamics_discrete_invalid_${case}
+        WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+        COMMAND $<TARGET_FILE:dynamics_tests> discrete-invalid-${case}
+    )
+    set_tests_properties(dynamics_discrete_invalid_${case} PROPERTIES WILL_FAIL TRUE)
+endforeach()
+add_test(
     NAME dynamics_generalized_alpha_tests
     WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
     COMMAND $<TARGET_FILE:dynamics_tests> generalized-alpha
 )
+add_test(
+    NAME dynamics_flexible_bodies_tests
+    WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+    COMMAND $<TARGET_FILE:dynamics_tests> flexible-bodies
+)
+add_test(
+    NAME dynamics_flexible_truss_static_tests
+    WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+    COMMAND $<TARGET_FILE:dynamics_tests> flexible-truss-static
+)
+add_test(
+    NAME dynamics_flexible_transient_tests
+    WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+    COMMAND $<TARGET_FILE:dynamics_tests> flexible-transient
+)
+foreach(case IN ITEMS dual-dot hyperdual-dot dual-matmul hyperdual-matmul)
+    add_test(
+        NAME dynamics_ad_error_${case}
+        WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+        COMMAND $<TARGET_FILE:dynamics_tests> ad-${case}
+    )
+    set_tests_properties(dynamics_ad_error_${case} PROPERTIES WILL_FAIL TRUE)
+endforeach()
+foreach(case IN ITEMS invalid-strain invalid-material invalid-section invalid-node-index invalid-repeated-node
+        invalid-mesh-node invalid-dof-order invalid-dof-label invalid-static-duplicate invalid-static-options
+        invalid-transient-mass invalid-transient-position invalid-transient-velocity invalid-transient-rank)
+    add_test(
+        NAME dynamics_flexible_error_${case}
+        WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+        COMMAND $<TARGET_FILE:dynamics_tests> flex-${case}
+    )
+    set_tests_properties(dynamics_flexible_error_${case} PROPERTIES WILL_FAIL TRUE)
+endforeach()
 add_test(
     NAME dynamics_variational_startup_tests
     WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}

@@ -67,7 +67,7 @@ end subroutine
 function test_prescribed_joint_motion() result(rst)
     !! Drives joints relative to a moving parent, in planar and spatial models.
     logical :: rst
-    integer(int32) :: mode, kind, i, jtype
+    integer :: mode, kind, i, jtype
     type(joint_motion_law), target :: law
     real(real64) :: expected, actual
     real(real64), dimension(3,3) :: inertia
@@ -148,7 +148,7 @@ end function
 function test_prescribed_serial_translation() result(rst)
     !! Checks the actuator force magnitude/sign and no-args callback path.
     logical :: rst
-    integer(int32) :: i
+    integer :: i
     real(real64) :: inertia(3,3), force(3,1)
     real(real64), allocatable :: multipliers(:,:)
     type(binary_link) :: links(1)
@@ -186,7 +186,7 @@ end function
 function test_prescribed_joint_turns() result(rst)
     !! Checks branch crossings, multiple turns, and required actuator torque.
     logical :: rst
-    integer(int32) :: i
+    integer :: i
     type(joint_motion_law), target :: law
     real(real64) :: inertia(3,3), frames(4,4,1), torque(3,1), angle, target
     real(real64), allocatable :: multipliers(:,:)
@@ -232,7 +232,7 @@ end function
 
 function polynomial_joint_motion(t, args) result(rst)
     real(real64), intent(in) :: t
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
     real(real64) :: rst
     select type (args)
     type is (joint_motion_law)
@@ -245,7 +245,7 @@ end function
 
 function accelerating_translation(t, args) result(rst)
     real(real64), intent(in) :: t
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
     real(real64) :: rst
     rst = 0.25d0 + t*t
 end function
@@ -254,7 +254,7 @@ function test_joint_coordinate(model, state, index) result(rst)
     !! Test models use zero CG offsets, so positions are body-frame origins.
     type(linkage_dynamic_model), intent(in) :: model
     type(variational_state), intent(in) :: state
-    integer(int32), intent(in) :: index
+    integer, intent(in) :: index
     real(real64) :: rst, parent(4,4), child(4,4), transform(4,4), relative(3,3)
     type(dynamic_joint) :: descriptor
 
@@ -446,9 +446,9 @@ function test_spatial_joint_dynamics() result(rst)
     !! Exercises compatible configurations and reaction mappings for the
     !! spatial prismatic, cylindrical, universal, and spherical joints.
     logical :: rst
-    integer(int32), parameter :: ncase = 4
-    integer(int32), dimension(ncase) :: joint_types
-    integer(int32) :: i, j, nconstraint
+    integer, parameter :: ncase = 4
+    integer, dimension(ncase) :: joint_types
+    integer :: i, j, nconstraint
     real(real64), allocatable, dimension(:) :: q, residual, multipliers
     type(parallel_linkage) :: mechanism
     type(linkage_dynamic_model) :: model
@@ -497,7 +497,7 @@ function test_fixed_and_planar_prismatic_joints() result(rst)
     !! Covers fixed spatial constraints and fixed/prismatic planar constraints,
     !! including their reaction wrench mappings.
     logical :: rst
-    integer(int32) :: i
+    integer :: i
     real(real64), allocatable, dimension(:) :: residual, multipliers
     real(real64), dimension(4,4,1) :: single_frame
     real(real64), dimension(4,4,2) :: double_frame
@@ -578,7 +578,7 @@ end function
 ! ------------------------------------------------------------------------------
 function build_spatial_joint_mechanism(joint_type) result(rst)
     !! Builds a ground-to-body mechanism containing one requested joint.
-    integer(int32), intent(in) :: joint_type
+    integer, intent(in) :: joint_type
     type(parallel_linkage) :: rst
     type(link_container), dimension(2) :: links
     type(joint), dimension(1) :: joints
@@ -594,7 +594,7 @@ end function
 ! ------------------------------------------------------------------------------
 function spatial_joint_configuration(joint_type) result(rst)
     !! Supplies a nonzero compatible coordinate vector for a spatial joint.
-    integer(int32), intent(in) :: joint_type
+    integer, intent(in) :: joint_type
     real(real64), allocatable, dimension(:) :: rst
 
     select case (joint_type)
@@ -613,7 +613,7 @@ subroutine check_reaction(actual, force, moment, rst, test_case)
     type(joint_reaction), intent(in) :: actual
     real(real64), intent(in), dimension(3) :: force, moment
     logical, intent(inout) :: rst
-    integer(int32), intent(in) :: test_case
+    integer, intent(in) :: test_case
 
     if (.not.assert(actual%force, force) .or. &
         .not.assert(actual%moment, moment)) then
@@ -714,7 +714,7 @@ end function
 function fixed_crank_motion(t, args) result(rst)
     !! Supplies the fixed crank angle used to exercise prescribed motion.
     real(real64), intent(in) :: t
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
     real(real64) :: rst
 
     rst = 0.7d0
@@ -741,7 +741,7 @@ end function
 pure function translate_x(distance) result(rst)
     real(real64), intent(in) :: distance
     real(real64), dimension(4,4) :: rst
-    integer(int32) :: i
+    integer :: i
 
     rst = 0.0d0
     do i = 1, 4

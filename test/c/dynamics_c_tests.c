@@ -23,6 +23,8 @@ int main(int argc, char **argv)
 
     if (argc > 1 && strcmp(argv[1], "linkage-motion") == 0)
         return c_test_linkage_dynamics() ? 0 : 77;
+    if (argc > 1 && strcmp(argv[1], "discrete-controls") == 0)
+        return c_test_discrete_controls() ? 0 : 85;
 
     // Tests
     if (!c_test_q_factor()) flag = 1;
@@ -126,6 +128,7 @@ int main(int argc, char **argv)
     if (!c_test_generalized_alpha_integrator()) flag = 82;
     if (!c_test_poincare_map_ode()) flag = 83;
     if (!c_test_error_reporting()) flag = 84;
+    if (!c_test_discrete_controls()) flag = 85;
 
     return flag;
 }

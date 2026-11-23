@@ -173,7 +173,7 @@ end subroutine
 subroutine cfr_fcn(freq, frc, args)
     real(real64), intent(in) :: freq
     complex(real64), intent(out), dimension(:) :: frc
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
     select type (args)
     class is (c_modal_excite_container)
         call args%fcn(size(frc), freq, frc, args%user_data)
@@ -313,7 +313,7 @@ subroutine cfrf_sweep_fcn(freq, t, x, dxdt, args)
     real(real64), intent(in) :: freq, t
     real(real64), intent(in), dimension(:) :: x
     real(real64), intent(out), dimension(:) :: dxdt
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
 
     select type (args)
     class is (c_harmonic_ode_container)

@@ -20,6 +20,7 @@ program main
     use dynamics_stability_tests
     use dynamics_transfer_function_tests
     use dynamics_state_space_tests
+    use dynamics_controls_tuning_tests
     use dynamics_system_id_tests
     use dynamics_rotation_tests
     use dynamics_geometry_tests
@@ -29,11 +30,12 @@ program main
     use dynamics_linkage_dynamics_tests
     use dynamics_discrete_elements_tests
     use dynamics_shell_elements_tests
+    use dynamics_flexible_bodies_tests
     implicit none
 
     ! Variables
     logical :: check
-    integer(int32) :: flag
+    integer :: flag
 
     ! Initialization
     flag = 0
@@ -42,6 +44,44 @@ program main
         block
             character(32) :: selection
             call get_command_argument(1, selection)
+            if (selection == "discrete-canonical") then
+                if (.not.test_discrete_canonical_forms()) stop 204
+                if (.not.test_discrete_tf_evaluate()) stop 205
+                stop
+            end if
+            if (index(selection, "discrete-invalid-") == 1) then
+                call invalid_discrete_canonical(trim(selection))
+                stop
+            end if
+            if (index(selection, "ad-") == 1) then
+                call invalid_ad_product(trim(selection))
+                stop
+            end if
+            if (index(selection, "flex-invalid-") == 1) then
+                call invalid_flexible_input(trim(selection))
+                stop
+            end if
+            if (selection == "flexible-bodies") then
+                if (.not.test_ad_products()) stop 190
+                if (.not.test_flexible_material()) stop 191
+                if (.not.test_flexible_beam()) stop 192
+                if (.not.test_timoshenko_beam()) stop 218
+                if (.not.test_flexible_discrete_elements()) stop 219
+                if (.not.test_flexible_mesh()) stop 193
+                if (.not.test_flexible_mesh_boundary_conditions()) stop 194
+                if (.not.test_flexible_static()) stop 195
+                if (.not.test_flexible_joint_jacobian()) stop 215
+                if (.not.test_flexible_joints()) stop 216
+                stop
+            end if
+            if (selection == "flexible-transient") then
+                if (.not.test_flexible_transient()) stop 217
+                stop
+            end if
+            if (selection == "flexible-truss-static") then
+                if (.not.test_flexible_truss_static()) stop 196
+                stop
+            end if
             if (index(selection, "motion-") == 1) then
                 call invalid_prescribed_joint_motion(trim(selection))
                 stop
@@ -65,6 +105,42 @@ program main
     end if
 
     ! Tests
+    check = test_ad_products()
+    if (.not.check) flag = 190
+
+    check = test_flexible_material()
+    if (.not.check) flag = 191
+
+    check = test_flexible_beam()
+    if (.not.check) flag = 192
+
+    check = test_timoshenko_beam()
+    if (.not.check) flag = 218
+
+    check = test_flexible_discrete_elements()
+    if (.not.check) flag = 219
+
+    check = test_flexible_mesh()
+    if (.not.check) flag = 193
+
+    check = test_flexible_mesh_boundary_conditions()
+    if (.not.check) flag = 194
+
+    check = test_flexible_static()
+    if (.not.check) flag = 195
+
+    check = test_flexible_truss_static()
+    if (.not.check) flag = 196
+
+    check = test_flexible_joint_jacobian()
+    if (.not.check) flag = 215
+
+    check = test_flexible_joints()
+    if (.not.check) flag = 216
+
+    check = test_flexible_transient()
+    if (.not.check) flag = 217
+
     check = test_frf_sweep()
     if (.not.check) flag = 1
 
@@ -139,6 +215,9 @@ program main
 
     check = test_generalized_alpha_integrator()
     if (.not.check) flag = 152
+
+    check = test_integrator_progress()
+    if (.not.check) flag = 197
 
     check = test_spring_elements()
     if (.not.check) flag = 156
@@ -484,6 +563,57 @@ program main
 
     check = test_state_space_to_transfer_function()
     if (.not.check) flag = 100
+
+    check = test_state_space_to_transfer_function_round_trip()
+    if (.not.check) flag = 198
+
+    check = test_matrix_exponential()
+    if (.not.check) flag = 199
+
+    check = test_discrete_state_space_to_transfer_function()
+    if (.not.check) flag = 200
+
+    check = test_discrete_canonical_forms()
+    if (.not.check) flag = 204
+
+    check = test_discrete_tf_evaluate()
+    if (.not.check) flag = 205
+
+    check = test_discrete_state_space_zeros_evaluate()
+    if (.not.check) flag = 214
+
+    check = test_isf_continuous_ise()
+    if (.not.check) flag = 206
+
+    check = test_isf_discrete_ise()
+    if (.not.check) flag = 207
+
+    check = test_isf_unstable_gains()
+    if (.not.check) flag = 208
+
+    check = test_isf_optimizer_continuous()
+    if (.not.check) flag = 209
+
+    check = test_isf_optimizer_discrete()
+    if (.not.check) flag = 210
+
+    check = test_isf_optimizer_control_weight()
+    if (.not.check) flag = 211
+
+    check = test_isf_apply_to_ss_plant()
+    if (.not.check) flag = 212
+
+    check = test_isf_apply_to_dss_plant()
+    if (.not.check) flag = 213
+
+    check = test_discretize_zoh_scalar()
+    if (.not.check) flag = 201
+
+    check = test_discretize_tustin_scalar()
+    if (.not.check) flag = 202
+
+    check = test_discretize_round_trip()
+    if (.not.check) flag = 203
 
     check = test_graph_topology()
     if (.not.check) flag = 101

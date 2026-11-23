@@ -41,7 +41,7 @@ program example
     type(spring_element_2d) :: springs(2)
     type(damper_element_2d) :: dampers(2)
     type(mass_element_2d) :: masses(2)
-    integer(int32) :: i, n, bc(4)
+    integer :: i, n, bc(4)
     real(real64) :: M(2, 2), B(2, 2), K(2, 2), x(2), v(2), a(2), f(2), fnew(2)
     real(real64), allocatable, dimension(:) :: t
     real(real64), allocatable, dimension(:,:) :: M_full, B_full, K_full, &
@@ -200,7 +200,7 @@ contains
             !! The state vector.
         real(real64), intent(out), dimension(:) :: derivatives_
             !! The derivative vector.
-        class(*), intent(inout), optional :: args_
+        class(*), intent(in), optional :: args_
             !! User communication container.
 
         ! Local Variables

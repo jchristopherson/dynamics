@@ -320,7 +320,7 @@ end subroutine
 subroutine sik_fcn(x, f, args)
     real(real64), intent(in), dimension(:) :: x
     real(real64), intent(out), dimension(:) :: f
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
     select type (args)
     class is (c_vecfcn_container)
         call args%fcn(size(x), size(f), x, f, args%user_data)

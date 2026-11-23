@@ -3094,7 +3094,7 @@ int c_alloc_transfer_function(int numer_order, int denom_order,
  */
 void c_free_transfer_function(c_transfer_function *tf);
 /**
- * Allocate a continuous state-space model.
+ * Allocate storage for a state-space model.
  * @param dimension State dimension.
  * @param n_inputs Input count.
  * @param n_outputs Output count.
@@ -3108,6 +3108,126 @@ int c_alloc_state_space_model(int dimension, int n_inputs, int n_outputs,
  * @param mdl Model to release.
  */
 void c_free_state_space_model(c_state_space_model *mdl);
+
+/**
+ * @defgroup dynamics_discrete_controls Discrete-time controls
+ * @brief Sampled state-space models, transfer functions, and integral feedback.
+ *
+ * All routines in this group return 0 on success and -1 for a reported error
+ * (see c_get_last_error()). The sample time `ts` is finite, positive, and in
+ * seconds. Models use the existing structs and do not store `ts`. For
+ * state-space models, `A`, `B`, `C`, and `D` are column-major with shapes
+ * N-by-N, N-by-M, P-by-N, and P-by-M, respectively; N may be zero, and M and
+ * P must be positive. Empty matrices may have NULL pointers. For discrete
+ * transfer functions, coefficients are in ascending powers of z^-1.
+ *
+ * Input model storage remains caller-owned. Pass a fresh or freed struct
+ * for a model output, distinct from the input. On success, free the result
+ * with c_free_state_space_model() or c_free_transfer_function(), as applicable.
+ * Arrays passed to the same routine must not overlap.
+ * @{
+ */
+
+/** Zero-order hold discretization. */
+#define DYN_DISCRETIZE_ZOH 1
+/** Bilinear (Tustin) discretization. */
+#define DYN_DISCRETIZE_TUSTIN 2
+
+/**
+ * Discretize `model` at `ts` with the specified method; allocate `output`.
+ * Tustin requires a nonsingular I - (ts/2)*A.
+ */
+int c_c2d(const c_state_space_model *model, double ts, int method,
+    c_state_space_model *output);
+
+/**
+ * Invert the specified discretization at `ts`; allocate the continuous
+ * `output`. ZOH uses the principal matrix logarithm and requires no discrete
+ * poles on the nonpositive real axis. Tustin requires a nonsingular I + A.
+ */
+int c_d2c(const c_state_space_model *model, double ts, int method,
+    c_state_space_model *output);
+
+/**
+ * Evaluate one sample: `next = A*x + B*u`, `y = C*x + D*u`.
+ * `u`, `x`, `next`, and `y` hold M, N, N, and P values, respectively.
+ * `x` and `next` may be NULL when N is zero.
+ */
+int c_discrete_state_space_step(const c_state_space_model *model, double ts,
+    const double *u, const double *x, double *next, double *y);
+
+/**
+ * Return poles (zeros=false) or finite zeros (zeros=true) in the z plane.
+ * Zeros require a regular Rosenbrock pencil (including equal input and output
+ * counts). Exact zeros at z=0 are retained. Pass `capacity=0` and `roots=NULL`
+ * to query `count`; otherwise pass room for `capacity` complex values. If
+ * capacity is insufficient, returns -1 and sets `count` to the required size.
+ */
+int c_discrete_state_space_roots(const c_state_space_model *model, double ts,
+    bool zeros, int capacity, double complex *roots, int *count);
+
+/**
+ * Return roots in the z plane of the denominator (zeros=false) or numerator
+ * (zeros=true). Roots at infinity are omitted. `capacity`, `roots`, and
+ * `count` follow c_discrete_state_space_roots().
+ */
+int c_discrete_transfer_function_roots(const c_transfer_function *tf, double ts,
+    bool zeros, int capacity, double complex *roots, int *count);
+
+/**
+ * Evaluate H(exp(i*omega*ts)) at `n` angular frequencies in rad/s.
+ * `omega` and `response` each contain `n` entries and may be NULL for n=0.
+ * At a pole, the response may be nonfinite.
+ */
+int c_evaluate_discrete_transfer_function(const c_transfer_function *tf,
+    double ts, int n, const double *omega, double complex *response);
+
+/** Convert a SISO discrete state-space model to an allocated transfer function. */
+int c_discrete_state_space_to_transfer_function(const c_state_space_model *model,
+    double ts, c_transfer_function *output);
+
+/**
+ * Allocate the controllable (`observable=false`) or observable canonical
+ * realization. The denominator constant coefficient must be nonzero. Delays
+ * are supported; a constant gain has zero states.
+ */
+int c_discrete_transfer_function_to_state_space(const c_transfer_function *tf,
+    double ts, bool observable, c_state_space_model *output);
+
+/** Controls for discrete integral state-feedback tuning. */
+typedef struct {
+    double tolerance; /**< Positive convergence tolerance (default 1e-10). */
+    int max_evaluations; /**< Positive evaluation budget (default 1000). */
+    double control_weight; /**< Nonnegative control first-difference penalty weight (default 0). */
+} c_discrete_optimizer_options;
+
+/**
+ * Allocate the closed-loop model for `u=-K*x-Ki*xi` and
+ * `xi_next=xi+ts*(y-r)`. Gains are column-major M-by-N and M-by-P;
+ * `K` may be NULL if N is zero. The result has N+P states `[x; xi]`,
+ * P reference inputs `r`, M+P outputs `[u; y]`, and zero feedthrough.
+ */
+int c_discrete_integral_feedback_apply(const c_state_space_model *model,
+    double ts, const double *K, const double *Ki, c_state_space_model *output);
+
+/**
+ * Analyze closed-loop stability and unit-step integral squared error.
+ * Gain shapes match c_discrete_integral_feedback_apply(). Either `stable` or
+ * `ise` may be NULL, but not both. An unstable loop has positive infinite ISE.
+ */
+int c_discrete_integral_feedback_analyze(const c_state_space_model *model,
+    double ts, const double *K, const double *Ki, bool *stable, double *ise);
+
+/**
+ * Tune stabilizing initial gains in place with BFGS. The optional `cost`
+ * returns unit-step ISE plus the weighted control first-difference penalty.
+ * Pass `options=NULL` for defaults or `cost=NULL` to omit the cost.
+ * Success means a finite, stabilizing result, not guaranteed convergence.
+ */
+int c_discrete_integral_feedback_optimize(const c_state_space_model *model,
+    double ts, double *K, double *Ki, const c_discrete_optimizer_options *options,
+    double *cost);
+/** @} */
 /**
  * Evaluate a transfer function at complex points.
  * @param tf Transfer function.

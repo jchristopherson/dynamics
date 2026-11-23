@@ -37,7 +37,7 @@ contains
         real(real64), intent(in) :: t
         real(real64), intent(in), dimension(:) :: x
         real(real64), intent(out), dimension(:) :: dxdt
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
 
         ! Compute the forcing term
         real(real64) :: f
@@ -62,7 +62,7 @@ program example
     complex(real64), parameter :: j = (0.0d0, 1.0d0)
 
     ! Variables
-    integer(int32) :: i, n
+    integer :: i, n
     real(real64), allocatable, dimension(:) :: t, x, amp, phase, aamp, aphase
     real(real64), allocatable, dimension(:,:) :: y
     complex(real64), allocatable, dimension(:) :: s, arsp

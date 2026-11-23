@@ -66,7 +66,7 @@ function test_log_decrement() result(rst)
     logical :: rst
 
     ! Variables
-    integer(int32), parameter :: n = 2
+    integer, parameter :: n = 2
     real(real64) :: x1, x2, ans, delta
 
     ! Initialization
@@ -117,10 +117,10 @@ function test_find_free_rsp_props() result(rst)
     real(real64), parameter :: vo = 1.0d0
     real(real64), parameter :: pi = 2.0d0 * acos(0.0d0)
     real(real64), parameter :: dt = 1.0d-3
-    integer(int32), parameter :: n = 1000
+    integer, parameter :: n = 1000
 
     ! Variables
-    integer(int32) :: i
+    integer :: i
     real(real64) :: t(n), x(n), wn, wd, A, B, fnx, delta, zx, tol
 
     ! Initialization
@@ -181,7 +181,7 @@ function test_step_response() result(rst)
     logical :: rst
 
     ! Parameters
-    integer(int32), parameter :: n = 1000
+    integer, parameter :: n = 1000
     real(real64), parameter :: dt = 1.0d-3
     real(real64), parameter :: fn = 1.0d1
     real(real64), parameter :: zeta = 1.0d-1
@@ -189,7 +189,7 @@ function test_step_response() result(rst)
     real(real64), parameter :: xs = 2.0d0
 
     ! Variables
-    integer(int32) :: i
+    integer :: i
     real(real64) :: t(n), x(n), ans(n), wn, wd, A
 
     ! Initialization
@@ -214,7 +214,7 @@ function test_settling_amplitude() result(rst)
     logical :: rst
 
     ! Parameters
-    integer(int32), parameter :: n = 1000
+    integer, parameter :: n = 1000
     real(real64), parameter :: dt = 1.0d-3
     real(real64), parameter :: fn = 1.0d1
     real(real64), parameter :: zeta = 1.0d-1
@@ -223,7 +223,7 @@ function test_settling_amplitude() result(rst)
     real(real64), parameter :: tol = 5.0d-2
 
     ! Variables
-    integer(int32) :: i
+    integer :: i
     real(real64) :: t(n), x(n), xf, wn
 
     ! Initialization
@@ -246,7 +246,7 @@ function test_damping_from_overshoot() result(rst)
     logical :: rst
 
     ! Parameters
-    integer(int32), parameter :: n = 1000
+    integer, parameter :: n = 1000
     real(real64), parameter :: dt = 1.0d-3
     real(real64), parameter :: fn = 1.0d1
     real(real64), parameter :: zeta = 6.0d-1
@@ -255,7 +255,7 @@ function test_damping_from_overshoot() result(rst)
     real(real64), parameter :: tol = 5.0d-2
 
     ! Variables
-    integer(int32) :: i
+    integer :: i
     real(real64) :: t(n), x(n), wn, zx
 
     ! Initialization

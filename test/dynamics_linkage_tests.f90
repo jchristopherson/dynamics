@@ -48,7 +48,7 @@ contains
         logical :: rst
 
         ! Local Variables
-        integer(int32) :: i
+        integer :: i
         class(binary_link), pointer :: lnk
         type(serial_linkage) :: linkage
         real(real64), dimension(3) :: q, d, alpha, a, theta
@@ -94,7 +94,7 @@ contains
         logical :: rst
 
         ! Local Variables
-        integer(int32) :: i
+        integer :: i
         class(binary_link), pointer :: lnk
         type(serial_linkage) :: linkage
         real(real64) :: d3, theta1, theta2
