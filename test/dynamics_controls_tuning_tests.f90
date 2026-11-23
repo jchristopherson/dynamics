@@ -223,6 +223,8 @@ function test_isf_optimizer_continuous() result(rst)
     call build_test_plant(sys_c, sys_d, K, Ki, ctrl)
     ise0 = ctrl%integral_squared_error(sys_c)
 
+    ! ISE-only tuning favors unbounded gains, so use a practical gradient tolerance.
+    opt%tolerance = 1.0d-3
     call opt%optimize(sys_c, ctrl, fout)
     ise1 = ctrl%integral_squared_error(sys_c)
     rst = ctrl%is_stable(sys_c) .and. ise1 < ise0
