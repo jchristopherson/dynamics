@@ -881,7 +881,8 @@ function ldm_solve(this, integrator, dt, ntime, initial_state, gravity, &
     rst = integrator%solve(this%m_bodies, state, dt, ntime, &
         constraint_count = constraint_count, &
         constraint = linkage_constraints, &
-        force_function = linkage_gravity, multipliers = multipliers, &
+        force_function = linkage_gravity, &
+        multipliers = multipliers, &
         args = context, info = info)
 end function
 
