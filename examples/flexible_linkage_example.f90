@@ -105,6 +105,7 @@ program flexible_linkage_example
     settings%absolute_tolerance = 1.0d-7
     settings%relative_tolerance = 1.0d-5
     settings%maximum_step_size = 0.02d0
+    settings%nthreads = 8
     call solve_flexible_transient(mesh, times, supports, initial, initial, q, v, settings, &
         load=apply_gravity, args=gravity)
 

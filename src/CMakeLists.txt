@@ -44,7 +44,6 @@ set(DYNAMICS_SOURCES
     ${dir}/flexible_bodies/dynamics_flexible_discrete_elements.f90
     ${dir}/flexible_bodies/dynamics_flexible_joints.f90
     ${dir}/flexible_bodies/dynamics_boundary_conditions.f90
-    ${dir}/multibody/dynamics_multibody.f90
 )
 
 # C API
