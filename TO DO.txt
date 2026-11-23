@@ -1,2 +1,0 @@
-- Update documentation
-- Update version - major version bump
