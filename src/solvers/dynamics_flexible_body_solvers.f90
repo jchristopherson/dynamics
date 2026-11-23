@@ -377,7 +377,7 @@ contains
 
         n = size(y) / 2
         f(:n) = y(n+1:)
-        call transient_force(t, y, f(n+1:), args)
+        call transient_force(t, y, f(n+1:), args = args)
     end subroutine
 
     subroutine transient_physical_mass(t, y, mass, args)
@@ -411,7 +411,7 @@ contains
         do i = 1, n
             mass(i,i) = 1.0d0
         end do
-        call transient_physical_mass(t, y(:n), mass(n+1:,n+1:), args)
+        call transient_physical_mass(t, y(:n), mass(n+1:,n+1:), args = args)
     end subroutine
 
     subroutine transient_joint_data(q, g, jac, args)
@@ -445,7 +445,7 @@ contains
         real(real64), allocatable, dimension(:) :: values
         real(real64), allocatable, dimension(:,:) :: jac
 
-        call transient_joint_data(q, values, jac, args)
+        call transient_joint_data(q, values, jac, args = args)
         g = values
     end subroutine
 
@@ -458,7 +458,7 @@ contains
         real(real64), allocatable, dimension(:) :: values
         real(real64), allocatable, dimension(:,:) :: gradient
 
-        call transient_joint_data(q, values, gradient, args)
+        call transient_joint_data(q, values, gradient, args = args)
         jac = gradient
     end subroutine
 
@@ -482,8 +482,8 @@ contains
         if (scale == 0.0d0 .or. all(v == 0.0d0)) return
         ! Off the manifold, direction is qdot, not necessarily v.
         h = epsilon(1.0d0)**(1.0d0/3.0d0) * max(1.0d0, maxval(abs(q)))
-        call transient_gradient(t, q + h * (direction / scale), plus, args)
-        call transient_gradient(t, q - h * (direction / scale), minus, args)
+        call transient_gradient(t, q + h * (direction / scale), plus, args = args)
+        call transient_gradient(t, q - h * (direction / scale), minus, args = args)
         curvature = (scale / (2.0d0*h)) * matmul(plus - minus, v)
     end subroutine
 
@@ -748,7 +748,7 @@ contains
                 report%residual_norm = trial_norm
                 report%tolerance = threshold
                 report%step_fraction = alpha
-                call progress(report, args)
+                call progress(report, args = args)
             end if
         end do
         if (status%residual_norm > threshold) then

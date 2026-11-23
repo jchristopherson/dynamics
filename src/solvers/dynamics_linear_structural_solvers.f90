@@ -156,7 +156,7 @@ subroutine integrator_solve(this, forces, dt, displacement, velocity, accelerati
             report%displacement = displacement
             report%velocity = velocity
             report%acceleration = acceleration
-            call progress(report, args)
+            call progress(report, args = args)
         end if
     end do
 end subroutine

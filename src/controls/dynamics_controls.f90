@@ -1063,7 +1063,7 @@ function lti_solve(mdl, u, t, ic, solver, args) result(rst)
 
     ! Compute: C * x + D * u
     do i = 1, npts
-        call u(sol(i,1), uv, args)
+        call u(sol(i,1), uv, args = args)
         rst(i,1) = sol(i,1)
         rst(i,2:) = mdl%evaluate_output(uv, sol(i,2:))
     end do

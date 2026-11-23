@@ -332,7 +332,7 @@ subroutine vi_step(this, bodies, state, dt, constraint_count, constraint, &
         allocate(constraint_gradient(nconstraint, 6*nbody), &
             base_constraint_value(nconstraint))
         if (present(constraint_jacobian)) then
-            call constraint_jacobian(state, constraint_gradient, args)
+            call constraint_jacobian(state, constraint_gradient, args = args)
         else
             call finite_difference_constraint_gradient(constraint_gradient)
         end if
@@ -451,10 +451,10 @@ contains
             select case (this%settings%force_evaluation)
             case (VI_FORCE_LEFT_ENDPOINT)
                 call force_function(state%time, state, applied_force, &
-                    applied_torque, args)
+                    applied_torque, args = args)
             case (VI_FORCE_IMPLICIT_ENDPOINT)
                 call force_function(next_state%time, next_state, applied_force, &
-                    applied_torque, args)
+                    applied_torque, args = args)
             case (VI_FORCE_MIDPOINT)
                 force_state = state
                 force_state%time = state%time + 0.5d0 * dt
@@ -495,7 +495,7 @@ contains
                         matmul(rotation_end, next_state%angular_velocity(:,body_index))))
                 end do
                 call force_function(force_state%time, force_state, &
-                    applied_force, applied_torque, args)
+                    applied_force, applied_torque, args = args)
             end select
         end if
 
@@ -531,7 +531,7 @@ contains
             ! Apply constraint forces through the reduced configuration Jacobian
             ! and append the position-level constraints at the new configuration.
         if (nconstraint > 0) then
-            call constraint(next_state, constraint_value, args)
+            call constraint(next_state, constraint_value, args = args)
             value(1:6*nbody) = value(1:6*nbody) - matmul( &
                 transpose(constraint_gradient), x(6*nbody+1:nvar))
             value(6*nbody+1:nvar) = constraint_value
@@ -600,7 +600,7 @@ contains
         integer :: body_index, component, column
         real(real64) :: rotation_step, translation_step
         ! Evaluate the unperturbed constraint once for all forward differences.
-        call constraint(state, base_constraint_value, args)
+        call constraint(state, base_constraint_value, args = args)
 		rotation_step = this%settings%finite_difference_step * &
 			this%settings%constraint_rotation_scale
         do body_index = 1, nbody
@@ -615,7 +615,7 @@ contains
                     perturbed_state%position(component,body_index) + &
 					translation_step
                 call constraint(perturbed_state, &
-                    perturbed_value(1:nconstraint), args)
+                    perturbed_value(1:nconstraint), args = args)
                 derivative(:,column) = (perturbed_value(1:nconstraint) - &
                     base_constraint_value) / &
 					translation_step
@@ -631,7 +631,7 @@ contains
                 perturbed_state%orientation(body_index) = &
                     state%orientation(body_index) * perturbation
                 call constraint(perturbed_state, &
-                    perturbed_value(1:nconstraint), args)
+                    perturbed_value(1:nconstraint), args = args)
                 derivative(:,column) = (perturbed_value(1:nconstraint) - &
                     base_constraint_value) / &
 					rotation_step
@@ -746,7 +746,7 @@ function vi_solve(this, bodies, state, dt, ntime, constraint_count, &
                 initialize_momenta = .not.new_state%discrete_momenta)
         end if
         rst(i) = new_state
-        if (present(progress)) call progress(i - 1, ntime - 1, new_state, args)
+        if (present(progress)) call progress(i - 1, ntime - 1, new_state, args = args)
         if (present(multipliers)) then
             multiplier_history(:,i - 1) = mult
         end if
