@@ -334,18 +334,20 @@ subroutine vi_step(this, bodies, state, dt, constraint_count, constraint, &
         if (present(constraint_jacobian)) then
             call constraint_jacobian(state, constraint_gradient, args = args)
         else
-            call finite_difference_constraint_gradient(constraint_gradient)
+            call finite_difference_constraint_gradient( &
+                constraint_gradient, constraint, args)
         end if
     end if
 
     ! Solve the discrete Euler-Lagrange equations and position-level
     ! constraints with damped Newton iterations.
-    call evaluate_residual(unknown, residual)
+    call evaluate_residual(unknown, residual, force_function, constraint, args)
     residual_norm = norm2(residual)
     do iteration = 1, this%settings%maximum_iterations
         if (residual_norm <= this%settings%tolerance) exit
         iterations_used = iteration
-        call finite_difference_jacobian(unknown, residual, jacobian)
+        call finite_difference_jacobian(unknown, residual, jacobian, &
+            force_function, constraint, args)
         select case (this%settings%linear_solver)
         case (VI_DENSE_SOLVER)
             call lu_factor(jacobian, ipvt = pivot, lu = lu)
@@ -374,7 +376,8 @@ subroutine vi_step(this, bodies, state, dt, constraint_count, constraint, &
         trial_norm = huge(1.0d0)
         do line_iteration = 0, this%settings%maximum_line_search_iterations
             trial = unknown + alpha * delta
-            call evaluate_residual(trial, trial_residual)
+            call evaluate_residual(trial, trial_residual, &
+                force_function, constraint, args)
             trial_norm = norm2(trial_residual)
             if (trial_norm < residual_norm) exit
             alpha = 0.5d0 * alpha
@@ -422,13 +425,17 @@ contains
         end if
     end subroutine
 
-    subroutine evaluate_residual(x, value)
+    subroutine evaluate_residual(x, value, force_callback, constraint_callback, &
+        callback_args)
         !! Evaluates the coupled discrete Euler-Lagrange and holonomic
         !! constraint residual for a Newton iterate.
         real(real64), intent(in), dimension(:) :: x
             !! The Newton unknown vector.
         real(real64), intent(out), dimension(:) :: value
             !! The residual vector.
+        procedure(variational_force), optional :: force_callback
+        procedure(variational_constraint), optional :: constraint_callback
+        class(*), intent(in), optional :: callback_args
 
         ! Local Variables
         type(variational_state) :: next_state, force_state
@@ -447,14 +454,14 @@ contains
         ! and midpoint modes make the force part of the Newton residual.
         applied_force = 0.0d0
         applied_torque = 0.0d0
-        if (present(force_function)) then
+        if (present(force_callback)) then
             select case (this%settings%force_evaluation)
             case (VI_FORCE_LEFT_ENDPOINT)
-                call force_function(state%time, state, applied_force, &
-                    applied_torque, args = args)
+                call force_callback(state%time, state, applied_force, &
+                    applied_torque, callback_args)
             case (VI_FORCE_IMPLICIT_ENDPOINT)
-                call force_function(next_state%time, next_state, applied_force, &
-                    applied_torque, args = args)
+                call force_callback(next_state%time, next_state, applied_force, &
+                    applied_torque, callback_args)
             case (VI_FORCE_MIDPOINT)
                 force_state = state
                 force_state%time = state%time + 0.5d0 * dt
@@ -494,8 +501,8 @@ contains
                         matmul(rotation_start, state%angular_velocity(:,body_index)) + &
                         matmul(rotation_end, next_state%angular_velocity(:,body_index))))
                 end do
-                call force_function(force_state%time, force_state, &
-                    applied_force, applied_torque, args = args)
+                call force_callback(force_state%time, force_state, &
+                    applied_force, applied_torque, callback_args)
             end select
         end if
 
@@ -531,7 +538,7 @@ contains
             ! Apply constraint forces through the reduced configuration Jacobian
             ! and append the position-level constraints at the new configuration.
         if (nconstraint > 0) then
-            call constraint(next_state, constraint_value, args = args)
+            call constraint_callback(next_state, constraint_value, callback_args)
             value(1:6*nbody) = value(1:6*nbody) - matmul( &
                 transpose(constraint_gradient), x(6*nbody+1:nvar))
             value(6*nbody+1:nvar) = constraint_value
@@ -567,12 +574,16 @@ contains
         end do
     end subroutine
 
-    subroutine finite_difference_jacobian(x, value, derivative)
+    subroutine finite_difference_jacobian(x, value, derivative, &
+        force_callback, constraint_callback, callback_args)
         !! Computes the full Newton Jacobian by scaled forward differences.
         real(real64), intent(in), dimension(:) :: x, value
             !! The current unknown vector and its residual.
         real(real64), intent(out), dimension(:,:) :: derivative
             !! The numerical Newton Jacobian.
+        procedure(variational_force), optional :: force_callback
+        procedure(variational_constraint), optional :: constraint_callback
+        class(*), intent(in), optional :: callback_args
 
         ! Local Variables
         integer :: column
@@ -583,16 +594,20 @@ contains
                 max(1.0d0, abs(x(column)))
             perturbed = x
             perturbed(column) = perturbed(column) + step_size
-            call evaluate_residual(perturbed, perturbed_value)
+            call evaluate_residual(perturbed, perturbed_value, &
+                force_callback, constraint_callback, callback_args)
             derivative(:,column) = (perturbed_value - value) / step_size
         end do
     end subroutine
 
-    subroutine finite_difference_constraint_gradient(derivative)
+    subroutine finite_difference_constraint_gradient(derivative, &
+        constraint_callback, callback_args)
         !! Computes the reduced constraint Jacobian by perturbing translations
         !! directly and orientations on the unit-quaternion manifold.
         real(real64), intent(out), dimension(:,:) :: derivative
             !! The nconstraint-by-(6*nbody) reduced Jacobian.
+        procedure(variational_constraint), optional :: constraint_callback
+        class(*), intent(in), optional :: callback_args
 
         ! Local Variables
         type(variational_state) :: perturbed_state
@@ -600,7 +615,7 @@ contains
         integer :: body_index, component, column
         real(real64) :: rotation_step, translation_step
         ! Evaluate the unperturbed constraint once for all forward differences.
-        call constraint(state, base_constraint_value, args = args)
+        call constraint_callback(state, base_constraint_value, callback_args)
 		rotation_step = this%settings%finite_difference_step * &
 			this%settings%constraint_rotation_scale
         do body_index = 1, nbody
@@ -614,8 +629,8 @@ contains
                 perturbed_state%position(component,body_index) = &
                     perturbed_state%position(component,body_index) + &
 					translation_step
-                call constraint(perturbed_state, &
-                    perturbed_value(1:nconstraint), args = args)
+                call constraint_callback(perturbed_state, &
+                    perturbed_value(1:nconstraint), callback_args)
                 derivative(:,column) = (perturbed_value(1:nconstraint) - &
                     base_constraint_value) / &
 					translation_step
@@ -630,8 +645,8 @@ contains
                     merge(rotation_step, 0.0d0, component == 3)])
                 perturbed_state%orientation(body_index) = &
                     state%orientation(body_index) * perturbation
-                call constraint(perturbed_state, &
-                    perturbed_value(1:nconstraint), args = args)
+                call constraint_callback(perturbed_state, &
+                    perturbed_value(1:nconstraint), callback_args)
                 derivative(:,column) = (perturbed_value(1:nconstraint) - &
                     base_constraint_value) / &
 					rotation_step
