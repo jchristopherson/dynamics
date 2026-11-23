@@ -323,9 +323,17 @@ The [flexible linkage example](../../examples/flexible_linkage_example.f90)
 releases two Timoshenko links from rest under gravity. Revolute joints at the
 base and elbow allow relative rotation about the out-of-plane axis. A follower
 spring and damper in parallel connect the tip to a fixed anchor, and a
-six-DOF mass adds tip inertia. After setting up the beam elements and
-supports, the example adds the connectors and joints and integrates with
-the fifth-order Kennedy-Carpenter solver:
+six-DOF mass adds tip inertia.
+
+![Flexible linkage at release, showing two Timoshenko links, two revolute joints, a tip mass, and a spring and damper in parallel from the fixed anchor to the tip](../../images/flexible_linkage_diagram.svg)
+
+The diagram separates the spring and damper symbols for clarity. Both
+elements connect the same two nodes (7 and 6) and act along the same
+moving chord.
+
+After setting up the beam elements and supports, the example adds the
+connectors and joints and integrates with the fifth-order
+Kennedy-Carpenter solver:
 
 ```fortran
 call mesh%assign_element(4, flexible_spring_element(7, 6, 18.0d0))
