@@ -37,7 +37,7 @@ contains
         real(real64), intent(in) :: t
         real(real64), intent(in), dimension(:) :: x
         real(real64), intent(out), dimension(:) :: dxdt
-        class(*), intent(in), optional :: args
+        class(*), intent(inout), optional :: args
         real(real64), dimension(2) :: force
         real(real64) :: sample
         real(real64) :: fraction

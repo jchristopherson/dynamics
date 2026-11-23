@@ -30,7 +30,7 @@ contains
 subroutine ode_fcn(t, x, dxdt, args)
     real(real64), intent(in) :: t, x(:)
     real(real64), intent(out) :: dxdt(:)
-    class(*), intent(in), optional :: args
+    class(*), intent(inout), optional :: args
 
     ! m x" + b x' + k x = U sin(w * t)
     dxdt(1) = x(2)

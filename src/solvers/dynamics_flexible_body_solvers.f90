@@ -337,7 +337,7 @@ contains
         real(real64), intent(in) :: t
         real(real64), intent(in), dimension(:) :: y
         real(real64), intent(out), dimension(:) :: f
-        class(*), intent(in), optional :: args
+        class(*), intent(inout), optional :: args
         real(real64), allocatable, dimension(:) :: q
         real(real64), allocatable, dimension(:) :: v
         real(real64), allocatable, dimension(:) :: internal
@@ -372,7 +372,7 @@ contains
         real(real64), intent(in) :: t
         real(real64), intent(in), dimension(:) :: y
         real(real64), intent(out), dimension(:) :: f
-        class(*), intent(in), optional :: args
+        class(*), intent(inout), optional :: args
         integer :: n
 
         n = size(y) / 2
@@ -385,7 +385,7 @@ contains
         real(real64), intent(in) :: t
         real(real64), intent(in), dimension(:) :: y
         real(real64), intent(out), dimension(:,:) :: mass
-        class(*), intent(in), optional :: args
+        class(*), intent(inout), optional :: args
 
         if (.not.present(args)) error stop DYN_INVALID_INPUT_ERROR
         select type (args)
@@ -402,7 +402,7 @@ contains
         real(real64), intent(in) :: t
         real(real64), intent(in), dimension(:) :: y
         real(real64), intent(out), dimension(:,:) :: mass
-        class(*), intent(in), optional :: args
+        class(*), intent(inout), optional :: args
         integer :: n
         integer :: i
 
@@ -441,7 +441,7 @@ contains
         real(real64), intent(in) :: t
         real(real64), intent(in), dimension(:) :: q
         real(real64), intent(out), dimension(:) :: g
-        class(*), intent(in), optional :: args
+        class(*), intent(inout), optional :: args
         real(real64), allocatable, dimension(:) :: values
         real(real64), allocatable, dimension(:,:) :: jac
 
@@ -454,7 +454,7 @@ contains
         real(real64), intent(in) :: t
         real(real64), intent(in), dimension(:) :: q
         real(real64), intent(out), dimension(:,:) :: jac
-        class(*), intent(in), optional :: args
+        class(*), intent(inout), optional :: args
         real(real64), allocatable, dimension(:) :: values
         real(real64), allocatable, dimension(:,:) :: gradient
 
@@ -471,7 +471,7 @@ contains
         real(real64), intent(in), dimension(:) :: direction
         real(real64), intent(in), dimension(:) :: v
         real(real64), intent(out), dimension(:) :: curvature
-        class(*), intent(in), optional :: args
+        class(*), intent(inout), optional :: args
         real(real64), dimension(size(curvature),size(q)) :: plus
         real(real64), dimension(size(curvature),size(q)) :: minus
         real(real64) :: scale

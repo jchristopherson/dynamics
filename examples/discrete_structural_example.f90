@@ -200,7 +200,7 @@ contains
             !! The state vector.
         real(real64), intent(out), dimension(:) :: derivatives_
             !! The derivative vector.
-        class(*), intent(in), optional :: args_
+        class(*), intent(inout), optional :: args_
             !! User communication container.
 
         ! Local Variables
