@@ -334,7 +334,7 @@ subroutine siso_model_fit_least_squares_2(fcn, x, ic, p, integrator, ind, &
     type(convergence_info), intent(out), optional :: info
         !! An optional output that can be used to gain information about the 
         !! iterative solution and the nature of the convergence.
-    procedure(iteration_update), optional :: status
+    procedure(iteration_update), intent(in), pointer, optional :: status
         !! An optional pointer to a routine that can be used to extract 
         !! iteration information.
     real(real64), intent(out), optional, dimension(:,:) :: cov
