@@ -11,14 +11,14 @@ homepage = "https://github.com/jchristopherson/dynamics"
 source-dir = "src"
 
 [dependencies]
-linalg = { git = "https://github.com/jchristopherson/linalg", tag = "v3.0.0" }
-nonlin = { git = "https://github.com/jchristopherson/nonlin", tag = "v3.0.0" }
-diffeq = { git = "https://github.com/jchristopherson/diffeq", tag = "v2.1.0" }
-spectrum = { git = "https://github.com/jchristopherson/spectrum", tag = "v1.5.0" }
-fstats = { git = "https://github.com/jchristopherson/fstats", tag = "v1.8.0" } 
+linalg = { git = "https://github.com/jchristopherson/linalg", tag = "v3.0" }
+nonlin = { git = "https://github.com/jchristopherson/nonlin", tag = "v3.0" }
+diffeq = { git = "https://github.com/jchristopherson/diffeq", tag = "v3.0" }
+spectrum = { git = "https://github.com/jchristopherson/spectrum", tag = "v1.5" }
+fstats = { git = "https://github.com/jchristopherson/fstats", tag = "v1.8" } 
 peaks = { git = "https://github.com/jchristopherson/peaks" }
-collections = { git = "https://github.com/jchristopherson/collections", tag = "v1.2.0" }
-autodiff = { git = "https://github.com/jchristopherson/autodiff", tag = "v1.1.0" }
+collections = { git = "https://github.com/jchristopherson/collections", tag = "v1.2" }
+autodiff = { git = "https://github.com/jchristopherson/autodiff", tag = "v1.1" }
 
 [dev-dependencies]
 fortran_test_helper = { git = "https://github.com/jchristopherson/fortran_test_helper" }

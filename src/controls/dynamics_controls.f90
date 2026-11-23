@@ -323,8 +323,8 @@ pure function state_space_init_pid(kp, ki, kd, tau, a, b, c, d) result(rst)
     !! Where the augmented matrices are as follows.
     !!
     !! $$ A_{cl} = \left[ \begin{matrix} A - \alpha \beta B C & 
-    !! \beta K_{i} B & -\frac{\beta K_{d}}{\tau} B \\ 
-    !! -C + \alpha \beta D C & -\beta K_{i} D & \frac{\beta K_{d}}{\tau} D 
+    !! \beta K_{i} B & -\frac{\beta K_{d}}{\tau} B \\ -C + \alpha \beta D C & 
+    !! -\beta K_{i} D & \frac{\beta K_{d}}{\tau} D 
     !! \\ \frac{1}{\tau}\left(-C + \alpha \beta D C \right) & 
     !! -\frac{\beta K_{i}}{\tau} D & -\frac{1}{\tau} + 
     !! \frac{\beta K_{d}}{\tau^{2}} D \end{matrix} \right] $$
