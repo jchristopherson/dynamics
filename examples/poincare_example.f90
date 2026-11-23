@@ -26,7 +26,7 @@ contains
         real(real64), intent(in) :: t
         real(real64), intent(in), dimension(:) :: x
         real(real64), intent(out), dimension(:) :: dxdt
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
 
         ! Model
         dxdt(1) = sigma * (x(2) - x(1))

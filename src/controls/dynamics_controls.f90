@@ -1074,7 +1074,7 @@ subroutine ode_solver_routine(t, x, dxdt, args)
     ! The routine called by the LTI solver
     real(real64), intent(in) :: t, x(:)
     real(real64), intent(out) :: dxdt(:)
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
 
     ! Local Variables
     integer :: n, p

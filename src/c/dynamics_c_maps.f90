@@ -157,7 +157,7 @@ subroutine cpm_ode_fcn(x, y, dydx, args)
     real(real64), intent(in) :: x
     real(real64), intent(in), dimension(:) :: y
     real(real64), intent(out), dimension(:) :: dydx
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
     select type (args)
     class is (c_ode_equations_container)
         call args%fcn(size(y), x, y, dydx, args%user_data)

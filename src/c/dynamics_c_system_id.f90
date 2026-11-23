@@ -202,7 +202,7 @@ subroutine siso_fit_ode(t, x, dxdt, args)
     real(real64), intent(in) :: t
     real(real64), intent(in), dimension(:) :: x
     real(real64), intent(out), dimension(:) :: dxdt
-    class(*), intent(inout), optional :: args
+    class(*), intent(in), optional :: args
     class(*), pointer :: ptr
     class(base_interpolator), pointer :: excitation
     real(real64) :: frc

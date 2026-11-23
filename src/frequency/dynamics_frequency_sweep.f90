@@ -260,7 +260,7 @@ contains
         real(real64), intent(in) :: x
         real(real64), intent(in), dimension(:) :: y
         real(real64), intent(out), dimension(:) :: dydx
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
 
         select type (args)
         class is (frf_arg_container)

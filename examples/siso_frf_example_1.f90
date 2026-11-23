@@ -37,7 +37,7 @@ contains
         real(real64), intent(in) :: t
         real(real64), intent(in), dimension(:) :: x
         real(real64), intent(out), dimension(:) :: dxdt
-        class(*), intent(inout), optional :: args
+        class(*), intent(in), optional :: args
 
         ! Compute the forcing term
         real(real64) :: f
