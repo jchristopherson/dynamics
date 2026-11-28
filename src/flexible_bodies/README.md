@@ -285,12 +285,15 @@ the sparse path. A non-BDF solver with `sparse = .true.` is invalid.
 This requires a diffeq build with the sparse BDF and GGL interfaces.
 The reduced mass is assembled and checked without a dense mass matrix;
 the sparse definiteness check can itself incur fill and quadratic work.
-The complete right-hand-side Jacobian is formed by central differences,
-one column at a time, retaining all nonzero couplings. It requires two RHS
-evaluations per state variable, and numerical fill or the GGL inverse-mass
-couplings can make it effectively dense. GGL constraint Jacobians and the
-initial constraint-rank check still use dense storage; sparse integration
-therefore does not guarantee linear memory or runtime for every mesh.
+The complete right-hand-side Jacobian is formed by forward differences,
+one column at a time, retaining all nonzero couplings. For `N` state
+variables it requires `N+1` RHS evaluations per Jacobian. Perturbations use
+the diffeq finite-difference step (normally `sqrt(epsilon(1.0d0))`), scaled
+by `max(1, abs(state))`. Numerical fill or the GGL inverse-mass couplings
+can make the Jacobian effectively dense. GGL constraint
+Jacobians and the initial constraint-rank check still use dense storage;
+sparse integration therefore does not guarantee linear memory or runtime
+for every mesh.
 
 Optional `multipliers` has shape `(joint constraint rows, output times)`,
 with rows in the same order as `mesh%assemble_constraints`. The generalized

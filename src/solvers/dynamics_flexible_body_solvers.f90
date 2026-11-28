@@ -187,7 +187,7 @@ contains
         !! joint Jacobian loses rank during the motion.
         !!
         !! Set `settings%sparse` to use BDF's CSR mass and Newton solve.
-        !! The sparse Jacobian is computed by central differences of the
+        !! The sparse Jacobian is computed by forward differences of the
         !! complete RHS, without assuming a sparsity pattern. Its cost and
         !! storage may be large, especially for GGL systems whose inverse
         !! physical mass can couple otherwise disconnected equations. GGL
@@ -420,8 +420,8 @@ contains
         type(csr_matrix), intent(out) :: jac
         class(*), intent(in), optional :: args
         real(real64), allocatable, dimension(:) :: shifted
-        real(real64), allocatable, dimension(:) :: plus
-        real(real64), allocatable, dimension(:) :: minus
+        real(real64), allocatable, dimension(:) :: baseline
+        real(real64), allocatable, dimension(:) :: perturbed
         real(real64), allocatable, dimension(:) :: values
         integer, allocatable, dimension(:) :: rows
         integer, allocatable, dimension(:) :: cols
@@ -433,17 +433,20 @@ contains
         integer :: n
 
         n = size(y)
-        allocate(shifted(n), plus(n), minus(n), rows(0), cols(0), values(0))
+        allocate(shifted(n), baseline(n), perturbed(n), rows(0), cols(0), values(0))
+        shifted = y
+        call model%compute_rhs(x, y, baseline, args)
         count = 0
         do j = 1, n
-            h = 1.0d-6 * max(1.0d0, abs(y(j)))
-            shifted = y
+            h = model%get_finite_difference_step() * max(1.0d0, abs(y(j)))
             shifted(j) = y(j) + h
-            call model%compute_rhs(x, shifted, plus, args)
-            shifted(j) = y(j) - h
-            call model%compute_rhs(x, shifted, minus, args)
+            if (.not.ieee_is_finite(shifted(j))) error stop DYN_INVALID_INPUT_ERROR
+            h = shifted(j) - y(j)
+            if (h <= 0.0d0) error stop DYN_INVALID_INPUT_ERROR
+            call model%compute_rhs(x, shifted, perturbed, args)
+            shifted(j) = y(j)
             do i = 1, n
-                value = (plus(i) - minus(i)) / (2.0d0*h)
+                value = (perturbed(i) - baseline(i)) / h
                 if (.not.ieee_is_finite(value)) error stop DYN_INVALID_INPUT_ERROR
                 if (value /= 0.0d0) call append_sparse_entry(rows, cols, values, count, i, j, value)
             end do

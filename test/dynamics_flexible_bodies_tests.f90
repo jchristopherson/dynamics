@@ -66,6 +66,11 @@ module dynamics_flexible_bodies_tests
         procedure :: mass_matrix => indefinite_test_mass
     end type
 
+    type :: counted_transient_load
+        real(real64) :: amplitude
+        integer, pointer :: calls => null()
+    end type
+
 contains
     subroutine indefinite_test_mass(this, m, nodes)
         class(indefinite_mass_test_element), intent(inout) :: this
@@ -425,6 +430,7 @@ contains
         type(finite_element_mesh) :: mesh
         type(finite_element_mesh) :: large_mesh
         type(flexible_transient_settings) :: settings
+        type(counted_transient_load), target :: counted_load
         type(nodal_condition), dimension(11) :: axial_supports
         type(nodal_condition), dimension(12) :: hinge_supports
         real(real64), dimension(12) :: q0
@@ -446,6 +452,8 @@ contains
             FLEXIBLE_KENNEDY_CARPENTER_4, FLEXIBLE_KENNEDY_CARPENTER_5]
         integer :: i
         integer :: j
+        integer, target :: load_calls
+        integer :: dense_load_calls
 
         material%modulus = 100.0d0
         material%poissons_ratio = 0.25d0
@@ -490,22 +498,26 @@ contains
         ok = ok .and. all(shape(multipliers) == [0,2])
         settings%sparse = .false.
 
-        mesh = finite_element_mesh(4, 2)
+        mesh = finite_element_mesh(4, 3)
         mesh%nodes = [fe_node(1, [0.0d0, 0.0d0, 0.0d0]), fe_node(2, [1.0d0, 0.0d0, 0.0d0]), &
             fe_node(3, [1.0d0, 0.0d0, 0.0d0]), fe_node(4, [2.0d0, 0.0d0, 0.0d0])]
         call mesh%assign_element(1, beam)
         beam%node_indices = [3, 4]
         call mesh%assign_element(2, beam)
+        call mesh%assign_element(3, flexible_damper_element(1, 2, 0.2d0))
         mesh%joints = [flexible_joint(REVOLUTE_JOINT, 2, 3)]
         hinge_supports(:6) = axial_supports(:6)
         hinge_supports(1)%value = 0.0d0
         hinge_supports(7:) = [nodal_condition(4, DOF_UX), nodal_condition(4, DOF_UY), nodal_condition(4, DOF_UZ), &
             nodal_condition(4, DOF_RX), nodal_condition(4, DOF_RY), nodal_condition(4, DOF_RZ)]
         times = 0.25d0 * times
+        counted_load%amplitude = 0.1d0
+        counted_load%calls => load_calls
         do i = 1, size(solvers)
             settings%solver = solvers(i)
+            load_calls = 0
             call solve_flexible_transient(mesh, times, hinge_supports, zero, zero, q, v, settings, &
-                load=hinge_transient_load, args=0.1d0, multipliers=multipliers)
+                load=counted_hinge_transient_load, args=counted_load, multipliers=multipliers)
             ok = ok .and. all(shape(q) == [24,5]) .and. all(shape(v) == [24,5])
             ok = ok .and. all(shape(multipliers) == [5,5])
             ok = ok .and. maxval(abs(multipliers)) > 1.0d-4
@@ -518,14 +530,21 @@ contains
                 reference = q
                 reference_v = v
                 reference_multipliers = multipliers
+                dense_load_calls = load_calls
             else
                 ok = ok .and. maxval(abs(q - reference)) < 1.0d-7
             end if
         end do
         settings%solver = FLEXIBLE_BDF
         settings%sparse = .true.
+        load_calls = 0
         call solve_flexible_transient(mesh, times, hinge_supports, zero, zero, q, v, settings, &
-            load=hinge_transient_load, args=0.1d0, multipliers=multipliers)
+            load=counted_hinge_transient_load, args=counted_load, multipliers=multipliers)
+        ! Centered differences require nearly twice as many RHS evaluations.
+        if (dense_load_calls == 0 .or. load_calls > 3*dense_load_calls/2) then
+            print "(A,2I10)", "TEST FAILED: sparse/dense transient RHS counts: ", load_calls, dense_load_calls
+            ok = .false.
+        end if
         ok = ok .and. maxval(abs(q-reference)) < 1.0d-7
         ok = ok .and. maxval(abs(v-reference_v)) < 1.0d-6
         ok = ok .and. maxval(abs(multipliers-reference_multipliers)) < 1.0d-5
@@ -585,6 +604,23 @@ contains
         end do
         if (.not.ok) print "(A)", "TEST FAILED: flexible transient solve"
     end function
+
+    subroutine counted_hinge_transient_load(time, force, args)
+        real(real64), intent(in) :: time
+        real(real64), intent(out), dimension(:) :: force
+        class(*), intent(in), optional :: args
+
+        if (.not.present(args)) error stop "Missing counted transient load"
+        select type (args)
+        type is (counted_transient_load)
+            if (.not.associated(args%calls)) error stop "Missing transient load counter"
+            args%calls = args%calls + 1
+            call hinge_transient_load(time, force, args%amplitude)
+            force(7) = 0.3d0 * args%amplitude * sin(20.0d0*time)
+        class default
+            error stop "Invalid counted transient load"
+        end select
+    end subroutine
 
     subroutine hinge_transient_load(time, force, args)
         real(real64), intent(in) :: time
