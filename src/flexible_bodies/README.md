@@ -206,7 +206,7 @@ be positive definite. For custom assembly, pass `velocity=v` to
 `mesh%assemble_internal_force(q, f, velocity=v)` to include damping.
 The transient solver does this automatically.
 
-### Dense transient analysis
+### Transient analysis
 
 Call `solve_flexible_transient` with a mesh, the output time grid, constant
 prescribed displacements, and the initial displacement and velocity:
@@ -258,6 +258,7 @@ internal solver times. Do not use the callback to advance external state.
 | Field | Default | Meaning |
 | --- | --- | --- |
 | `solver` | `FLEXIBLE_BDF` | Also accepts `FLEXIBLE_ROSENBROCK`, `FLEXIBLE_KENNEDY_CARPENTER_4`, and `FLEXIBLE_KENNEDY_CARPENTER_5`. |
+| `sparse` | `.false.` | Assemble the mass in CSR and use sparse Newton solves; requires `FLEXIBLE_BDF`. |
 | `absolute_tolerance` | `1.0e-8` | Positive scalar absolute integration error tolerance. |
 | `relative_tolerance` | `1.0e-6` | Nonnegative scalar relative integration error tolerance. |
 | `minimum_step_size` | `10*epsilon(1.0d0)` | Positive lower bound on internal step size. |
@@ -277,6 +278,19 @@ already imposed by the supports, and configurations where the rank changes.
 The initial consistency tolerance is not a bound on drift over the returned
 history. Use `mesh%assemble_constraints(q(:,i), g, jac)` and evaluate
 `matmul(jac, v(:,i))` to check the position and velocity residuals at sample `i`.
+
+For sparse BDF integration, set `settings%sparse = .true.` and leave
+`settings%solver` at `FLEXIBLE_BDF`. Both joint-free and GGL systems use
+the sparse path. A non-BDF solver with `sparse = .true.` is invalid.
+This requires a diffeq build with the sparse BDF and GGL interfaces.
+The reduced mass is assembled and checked without a dense mass matrix;
+the sparse definiteness check can itself incur fill and quadratic work.
+The complete right-hand-side Jacobian is formed by central differences,
+one column at a time, retaining all nonzero couplings. It requires two RHS
+evaluations per state variable, and numerical fill or the GGL inverse-mass
+couplings can make it effectively dense. GGL constraint Jacobians and the
+initial constraint-rank check still use dense storage; sparse integration
+therefore does not guarantee linear memory or runtime for every mesh.
 
 Optional `multipliers` has shape `(joint constraint rows, output times)`,
 with rows in the same order as `mesh%assemble_constraints`. The generalized

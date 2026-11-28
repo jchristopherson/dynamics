@@ -4,7 +4,10 @@ The solver functionality in this directory covers structural equilibrium and tim
 
 * **`dynamics_linear_structural_solvers`** advances the linear system \(M a + C v + K u = f\) with the generalized-alpha method. It provides dense and CSR sparse integrators, accepts loads at both ends of a time step, and reuses the effective-system factorization when the time step is unchanged. Apply prescribed boundary conditions before integration and provide a consistent initial acceleration.
 * **`dynamics_variational_integrators`** advances constrained rigid-body systems in maximal coordinates using discrete Euler-Lagrange equations and Lagrange multipliers. It supports dense and graph-factorized Newton solvers, user force and holonomic-constraint callbacks, optional constraint Jacobians, and configurable force sampling at the left endpoint, implicit endpoint, or midpoint.
-* **`dynamics_flexible_body_solvers`** solves nonlinear static equilibrium of a flexible mesh using its internal forces and consistent tangent.
+* **`dynamics_flexible_body_solvers`** solves nonlinear static equilibrium and transient dynamics of flexible meshes, with dense methods and a sparse BDF option for unconstrained and joint-constrained motion.
+
+For transient setup, solver restrictions, and sparse scaling limitations, see
+the [flexible-body transient guide](../flexible_bodies/README.md#transient-analysis).
 
 ## Nonlinear flexible static equilibrium
 

@@ -94,7 +94,8 @@ foreach(case IN ITEMS dual-dot hyperdual-dot dual-matmul hyperdual-matmul)
 endforeach()
 foreach(case IN ITEMS invalid-strain invalid-material invalid-section invalid-node-index invalid-repeated-node
         invalid-mesh-node invalid-dof-order invalid-dof-label invalid-static-duplicate invalid-static-options
-        invalid-transient-mass invalid-transient-position invalid-transient-velocity invalid-transient-rank)
+        invalid-transient-mass invalid-transient-position invalid-transient-velocity invalid-transient-rank
+        invalid-sparse-mass invalid-sparse-indefinite invalid-sparse-solver)
     add_test(
         NAME dynamics_flexible_error_${case}
         WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}

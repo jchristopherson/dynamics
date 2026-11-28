@@ -61,7 +61,25 @@ module dynamics_flexible_bodies_tests
         procedure :: stiffness_matrix => zero_test_stiffness
     end type
 
+    type, extends(euler_bernoulli_beam_element) :: indefinite_mass_test_element
+    contains
+        procedure :: mass_matrix => indefinite_test_mass
+    end type
+
 contains
+    subroutine indefinite_test_mass(this, m, nodes)
+        class(indefinite_mass_test_element), intent(inout) :: this
+        real(real64), intent(out), dimension(:,:) :: m
+        type(fe_node), intent(in), dimension(:) :: nodes
+        integer :: i
+        m = 0.0d0
+        do i = 1, size(m,1)
+            m(i,i) = 1.0d0
+        end do
+        m(1,2) = 2.0d0
+        m(2,1) = 2.0d0
+    end subroutine
+
     subroutine static_test_force(this, q, f, nodes)
         class(static_test_element), intent(inout), target :: this
         real(real64), intent(in), dimension(:) :: q
@@ -405,6 +423,7 @@ contains
         type(linear_elastic_isotropic_material), target :: material
         type(euler_bernoulli_beam_element) :: beam
         type(finite_element_mesh) :: mesh
+        type(finite_element_mesh) :: large_mesh
         type(flexible_transient_settings) :: settings
         type(nodal_condition), dimension(11) :: axial_supports
         type(nodal_condition), dimension(12) :: hinge_supports
@@ -414,9 +433,13 @@ contains
         real(real64), allocatable, dimension(:,:) :: q
         real(real64), allocatable, dimension(:,:) :: v
         real(real64), allocatable, dimension(:,:) :: reference
+        real(real64), allocatable, dimension(:,:) :: reference_v
+        real(real64), allocatable, dimension(:,:) :: reference_multipliers
         real(real64), allocatable, dimension(:,:) :: multipliers
         real(real64), allocatable, dimension(:,:) :: jac
         real(real64), allocatable, dimension(:) :: g
+        real(real64), dimension(48) :: large_initial
+        real(real64), dimension(3) :: short_times
         real(real64), parameter :: amplitude = 1.0d-5
         real(real64), parameter :: omega = sqrt(300.0d0)
         integer, parameter, dimension(4) :: solvers = [FLEXIBLE_BDF, FLEXIBLE_ROSENBROCK, &
@@ -454,6 +477,18 @@ contains
         ok = ok .and. abs(q(7,2) - (0.02d0 + amplitude*cos(omega*times(5)))) < 2.0d-8
         ok = ok .and. abs(v(7,2) + amplitude*omega*sin(omega*times(5))) < 5.0d-7
         if (.not.ok) print "(A)", "TEST FAILED: flexible transient axial vibration"
+        reference = q
+        reference_v = v
+        settings%sparse = .true.
+        call solve_flexible_transient(mesh, times([1,5]), axial_supports, q0, zero(:12), q, v, settings, &
+            multipliers=multipliers)
+        ok = ok .and. all(shape(multipliers) == [0,2])
+        ok = ok .and. maxval(abs(q-reference)) < 2.0d-8 .and. maxval(abs(v-reference_v)) < 5.0d-7
+        call solve_flexible_transient(mesh, times([1,5]), [axial_supports, nodal_condition(2, DOF_UX, 0.03d0)], &
+            q0, zero(:12), q, v, settings, load=hinge_transient_load, multipliers=multipliers)
+        ok = ok .and. all(q(7,:) == 0.03d0) .and. all(v == 0.0d0)
+        ok = ok .and. all(shape(multipliers) == [0,2])
+        settings%sparse = .false.
 
         mesh = finite_element_mesh(4, 2)
         mesh%nodes = [fe_node(1, [0.0d0, 0.0d0, 0.0d0]), fe_node(2, [1.0d0, 0.0d0, 0.0d0]), &
@@ -481,9 +516,72 @@ contains
             end do
             if (i == 1) then
                 reference = q
+                reference_v = v
+                reference_multipliers = multipliers
             else
                 ok = ok .and. maxval(abs(q - reference)) < 1.0d-7
             end if
+        end do
+        settings%solver = FLEXIBLE_BDF
+        settings%sparse = .true.
+        call solve_flexible_transient(mesh, times, hinge_supports, zero, zero, q, v, settings, &
+            load=hinge_transient_load, args=0.1d0, multipliers=multipliers)
+        ok = ok .and. maxval(abs(q-reference)) < 1.0d-7
+        ok = ok .and. maxval(abs(v-reference_v)) < 1.0d-6
+        ok = ok .and. maxval(abs(multipliers-reference_multipliers)) < 1.0d-5
+        do j = 1, size(times)
+            call mesh%assemble_constraints(q(:,j), g, jac)
+            ok = ok .and. maxval(abs(g)) < 1.0d-8 .and. maxval(abs(matmul(jac, v(:,j)))) < 1.0d-7
+        end do
+
+        large_mesh = finite_element_mesh(8, 7)
+        do i = 1, 8
+            large_mesh%nodes(i) = fe_node(i, [real(i-1, real64), 0.0d0, 0.0d0])
+        end do
+        do i = 1, 7
+            beam%node_indices = [i, i+1]
+            call large_mesh%assign_element(i, beam)
+        end do
+        large_initial = 0.0d0
+        large_initial(44) = amplitude
+        settings%sparse = .false.
+        call solve_flexible_transient(large_mesh, times([1,5]), hinge_supports(:6), large_initial, &
+            0.0d0*large_initial, reference, reference_v, settings)
+        settings%sparse = .true.
+        call solve_flexible_transient(large_mesh, times([1,5]), hinge_supports(:6), large_initial, &
+            0.0d0*large_initial, q, v, settings)
+        ok = ok .and. all(shape(q) == [48,2]) .and. maxval(abs(q-reference)) < 1.0d-7
+        ok = ok .and. maxval(abs(v-reference_v)) < 1.0d-6
+
+        large_mesh = finite_element_mesh(8, 4)
+        do i = 1, 8
+            large_mesh%nodes(i) = fe_node(i, [real(i/2, real64), 0.0d0, 0.0d0])
+        end do
+        do i = 1, 4
+            beam%node_indices = [2*i-1, 2*i]
+            call large_mesh%assign_element(i, beam)
+        end do
+        large_mesh%joints = [flexible_joint(REVOLUTE_JOINT, 2, 3), &
+            flexible_joint(REVOLUTE_JOINT, 4, 5), flexible_joint(REVOLUTE_JOINT, 6, 7)]
+        hinge_supports(7:) = [nodal_condition(8, DOF_UX), nodal_condition(8, DOF_UY), &
+            nodal_condition(8, DOF_UZ), nodal_condition(8, DOF_RX), &
+            nodal_condition(8, DOF_RY), nodal_condition(8, DOF_RZ)]
+        short_times = [0.0d0, 0.0005d0, 0.001d0]
+        large_initial = 0.0d0
+        settings%sparse = .false.
+        call solve_flexible_transient(large_mesh, short_times, hinge_supports, large_initial, large_initial, &
+            reference, reference_v, settings, load=hinge_transient_load, args=0.1d0, &
+            multipliers=reference_multipliers)
+        settings%sparse = .true.
+        call solve_flexible_transient(large_mesh, short_times, hinge_supports, large_initial, large_initial, &
+            q, v, settings, load=hinge_transient_load, args=0.1d0, multipliers=multipliers)
+        ok = ok .and. all(shape(multipliers) == [15,3])
+        ok = ok .and. maxval(abs(q-reference)) < 1.0d-7
+        ok = ok .and. maxval(abs(v-reference_v)) < 1.0d-6
+        ok = ok .and. maxval(abs(multipliers-reference_multipliers)) < 1.0d-5
+        do j = 1, size(short_times)
+            call large_mesh%assemble_constraints(q(:,j), g, jac)
+            ok = ok .and. maxval(abs(g)) < 1.0d-8 .and. maxval(abs(matmul(jac, v(:,j)))) < 1.0d-7
         end do
         if (.not.ok) print "(A)", "TEST FAILED: flexible transient solve"
     end function
@@ -762,8 +860,10 @@ contains
         type(linear_elastic_isotropic_material), target :: material
         type(euler_bernoulli_beam_element) :: beam
         type(labeled_test_beam) :: labeled
+        type(indefinite_mass_test_element) :: indefinite
         type(finite_element_mesh) :: mesh
         type(flexible_static_settings) :: settings
+        type(flexible_transient_settings) :: transient_settings
         integer, allocatable, dimension(:) :: offsets
         integer, allocatable, dimension(:) :: equations
         type(fe_node), dimension(2) :: nodes
@@ -798,14 +898,23 @@ contains
             settings%relative_tolerance = -1.0d0
             call solve_flexible_static(mesh, load, [nodal_condition::], q, settings)
         case ("flex-invalid-transient-mass", "flex-invalid-transient-position", &
-            "flex-invalid-transient-velocity", "flex-invalid-transient-rank")
+            "flex-invalid-transient-velocity", "flex-invalid-transient-rank", &
+            "flex-invalid-sparse-mass", "flex-invalid-sparse-solver", "flex-invalid-sparse-indefinite")
             mesh = finite_element_mesh(2, 1)
             nodes(2)%coordinates = [0.0d0, 0.0d0, 1.0d0]
             mesh%nodes = nodes
             call mesh%assign_element(1, beam)
             select case (selection)
-            case ("flex-invalid-transient-mass")
+            case ("flex-invalid-transient-mass", "flex-invalid-sparse-mass")
                 material%density = 0.0d0
+                transient_settings%sparse = selection == "flex-invalid-sparse-mass"
+            case ("flex-invalid-sparse-solver")
+                transient_settings%sparse = .true.
+                transient_settings%solver = FLEXIBLE_ROSENBROCK
+            case ("flex-invalid-sparse-indefinite")
+                indefinite%node_indices = [1, 2]
+                call mesh%assign_element(1, indefinite)
+                transient_settings%sparse = .true.
             case ("flex-invalid-transient-position")
                 mesh%joints = [flexible_joint(PRISMATIC_JOINT, 1, 2)]
                 q(7) = 0.1d0
@@ -815,7 +924,8 @@ contains
             case ("flex-invalid-transient-rank")
                 mesh%joints = [flexible_joint(PRISMATIC_JOINT, 1, 2), flexible_joint(PRISMATIC_JOINT, 1, 2)]
             end select
-            call solve_flexible_transient(mesh, [0.0d0, 0.1d0], [nodal_condition::], q, load, displacement, velocity)
+            call solve_flexible_transient(mesh, [0.0d0, 0.1d0], [nodal_condition::], q, load, &
+                displacement, velocity, transient_settings)
         case ("flex-invalid-strain")
             energy = material%energy_density([0.0d0])
             print *, energy
@@ -922,6 +1032,11 @@ contains
         settings%absolute_tolerance = 1.0d-10
         settings%relative_tolerance = 1.0d-8
         settings%maximum_step_size = 0.01d0
+        call solve_flexible_transient(mesh, times, supports, initial, at_rest, displacement, velocity, settings)
+        ok = ok .and. maxval(abs(displacement(4,:) - initial(4)*exp(-decay*times)* &
+            (cos(omega*times) + decay/omega*sin(omega*times)))) < 1.0d-7
+        ok = ok .and. maxval(abs(velocity(4,:) + initial(4)*4.0d0/omega*exp(-decay*times)*sin(omega*times))) < 1.0d-7
+        settings%sparse = .true.
         call solve_flexible_transient(mesh, times, supports, initial, at_rest, displacement, velocity, settings)
         ok = ok .and. maxval(abs(displacement(4,:) - initial(4)*exp(-decay*times)* &
             (cos(omega*times) + decay/omega*sin(omega*times)))) < 1.0d-7

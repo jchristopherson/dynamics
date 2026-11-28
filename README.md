@@ -22,7 +22,7 @@ A library of routines used for the analysis of dynamic systems.
 | Force Elements | Springs, dampers, torsional elements, custom force models | ✅ | ✅ | ✅ |
 | Geometry | Points, lines, planes, Plücker lines, intersections, projections | ✅ | ✅ | ✅ |
 | Structural Mechanics | Beam, truss, and shell finite elements | ✅ | ✅ | ✅ |
-| Structural Dynamics | Generalized-α integration, dense and sparse assemblies | ✅ | ✅ | ✅ |
+| Structural Dynamics | Generalized-α and flexible-mesh transient integration, dense and sparse solvers | ✅ | ✅ | ✅ |
 | Stability Analysis | Fixed-point stability classification | ✅ | ✅ | ✅ |
 | C Interface | Native C API | ✅ | ✅ | ✅ |
 
@@ -39,7 +39,7 @@ See the subdirectory READMEs for detailed module descriptions, code examples, an
 - [Flexible Bodies](src/flexible_bodies/README.md) — Euler-Bernoulli and [Timoshenko beams](src/flexible_bodies/README.md#timoshenko-beam), material models, and mesh assembly.
 - [Frequency Analysis](src/frequency/README.md) — modal analysis, frequency response, and nonlinear sweeps.
 - [Rigid Bodies and Mechanisms](src/rigid_bodies/README.md) — serial and closed-loop kinematics and linkage dynamics.
-- [Solvers](src/solvers/README.md) — linear structural time integration and constrained rigid-body integration.
+- [Solvers](src/solvers/README.md) — structural and flexible-body integration and constrained rigid-body integration.
 - [Structural Analysis](src/structural/README.md) — beam, truss, shell, and discrete elements.
 - [System Identification](src/system_id/README.md) — least-squares fitting of ODE models to measured data.
 - [Vibrations and Stability](src/vibrations/README.md) — response metrics, fixed-point stability, and Poincaré sections.

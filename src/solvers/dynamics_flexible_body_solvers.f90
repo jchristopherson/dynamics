@@ -16,7 +16,7 @@ module dynamics_flexible_body_solvers
     !!
     !! Both solvers use the mesh's internal force. Static equilibrium also
     !! uses the assembled tangent; transient integration uses a constant
-    !! reference mass and lets the integrator approximate its own Jacobian.
+    !! reference mass and approximates the integration Jacobian numerically.
     !! Neither solver manages history-dependent material state.
     use iso_fortran_env, only : real64
     use, intrinsic :: ieee_arithmetic, only : ieee_is_finite
@@ -26,7 +26,8 @@ module dynamics_flexible_body_solvers
     use dynamics_boundary_conditions, only : nodal_condition, resolve_boundary_conditions
     use dynamics_structural, only : apply_boundary_conditions
     use dynamics_solver_reporting, only : static_solver_progress, static_solver_callback
-    use linalg, only : csr_matrix, msr_matrix, lu_factor, pgmres_solve, matmul
+    use linalg, only : csr_matrix, msr_matrix, lu_factor, pgmres_solve, matmul, &
+        create_csr_matrix, create_empty_csr_matrix
     use lapack, only : DGETRF, DGETRS, DPOTRF, DGESVD
     use diffeq, only : ode_container, ggl_container, ode_integrator, bdf, rosenbrock, &
         kennedy_carpenter_4, kennedy_carpenter_5
@@ -72,6 +73,9 @@ module dynamics_flexible_body_solvers
         real(real64) :: constraint_tolerance = 1.0d-8
             !! Nonnegative absolute bound on each initial entry of `g` and
             !! `G*v`. This is not an integration or drift tolerance.
+        logical :: sparse = .false.
+            !! Use sparse BDF mass matrices and Newton solves. Only BDF supports
+            !! this option; the default dense path supports all integrators.
     end type
 
     abstract interface
@@ -102,7 +106,21 @@ module dynamics_flexible_body_solvers
             !! Full displacement template with zero entries at free DOFs.
         real(real64), allocatable, dimension(:,:) :: mass
             !! Constant free-free block of the assembled reference mass.
+        type(csr_matrix) :: sparse_mass
         integer :: nthreads
+    end type
+
+    type, extends(ode_container) :: flexible_sparse_ode
+    contains
+        procedure :: has_sparse_jacobian => flexible_ode_has_sparse_jacobian
+        procedure :: compute_sparse_jacobian => flexible_ode_sparse_jacobian
+    end type
+
+    type, extends(ggl_container) :: flexible_sparse_ggl
+        logical :: sparse = .false.
+    contains
+        procedure :: has_sparse_jacobian => flexible_ggl_has_sparse_jacobian
+        procedure :: compute_sparse_jacobian => flexible_ggl_sparse_jacobian
     end type
 
     type :: flexible_static_settings
@@ -149,7 +167,7 @@ module dynamics_flexible_body_solvers
 contains
     subroutine solve_flexible_transient(mesh, times, conditions, initial_displacement, initial_velocity, &
         displacement, velocity, settings, load, args, multipliers)
-        !! Integrate a mesh with a dense, constant reference mass. Prescribed
+        !! Integrate a mesh with a constant reference mass. Prescribed
         !! displacements are constant and eliminated from the integration
         !! equations. The reduced mass must be positive definite. If all
         !! DOFs are prescribed and there are no joints, return the prescribed
@@ -167,6 +185,13 @@ contains
         !! solver computes consistent multipliers but does not project the
         !! input displacement or velocity. Avoid configurations where the
         !! joint Jacobian loses rank during the motion.
+        !!
+        !! Set `settings%sparse` to use BDF's CSR mass and Newton solve.
+        !! The sparse Jacobian is computed by central differences of the
+        !! complete RHS, without assuming a sparsity pattern. Its cost and
+        !! storage may be large, especially for GGL systems whose inverse
+        !! physical mass can couple otherwise disconnected equations. GGL
+        !! constraint Jacobians and initial rank checks remain dense.
         !!
         !! Invalid inputs and integration failures cause `error stop`.
         !! Moving supports, state-dependent applied loads and inertia, and
@@ -207,7 +232,9 @@ contains
         type(flexible_transient_context) :: ctx
         class(ode_integrator), allocatable :: solver
         type(ode_container) :: ode
-        type(ggl_container) :: dae
+        type(flexible_sparse_ode) :: sparse_ode
+        type(flexible_sparse_ggl) :: dae
+        type(csr_matrix) :: full_sparse_mass
         integer, allocatable, dimension(:) :: constrained
         logical, allocatable, dimension(:) :: is_free
         real(real64), allocatable, dimension(:,:) :: full_mass
@@ -230,6 +257,7 @@ contains
             opts%minimum_step_size <= 0.0d0 .or. opts%maximum_step_size < opts%minimum_step_size .or. &
             opts%constraint_tolerance < 0.0d0 .or. opts%step_limit < 1 .or. opts%nthreads < 1) &
             error stop DYN_INVALID_INPUT_ERROR
+        if (opts%sparse .and. opts%solver /= FLEXIBLE_BDF) error stop DYN_INVALID_INPUT_ERROR
         select case (opts%solver)
         case (FLEXIBLE_BDF)
             allocate(bdf :: solver)
@@ -273,15 +301,25 @@ contains
         if (present(multipliers)) allocate(multipliers(nc,nt), source=0.0d0)
         if (n == 0) return
 
-        call mesh%assemble_mass(full_mass)
-        ctx%mass = full_mass(ctx%free,ctx%free)
-        deallocate(full_mass)
-        if (.not.all(ieee_is_finite(ctx%mass))) error stop DYN_INVALID_INPUT_ERROR
-        ! Validate definiteness without overwriting the mass used by callbacks.
-        factor = ctx%mass
-        call DPOTRF('L', n, factor, n, flag)
-        if (flag /= 0) error stop DYN_INVALID_INPUT_ERROR
-        deallocate(factor)
+        if (opts%sparse) then
+            call mesh%assemble_mass(full_sparse_mass)
+            if (size(constrained) > 0) then
+                ctx%sparse_mass = apply_boundary_conditions(constrained, full_sparse_mass)
+            else
+                ctx%sparse_mass = full_sparse_mass
+            end if
+            if (.not.all(ieee_is_finite(ctx%sparse_mass%values))) error stop DYN_INVALID_INPUT_ERROR
+            if (.not.sparse_mass_positive_definite(ctx%sparse_mass)) error stop DYN_INVALID_INPUT_ERROR
+        else
+            call mesh%assemble_mass(full_mass)
+            ctx%mass = full_mass(ctx%free,ctx%free)
+            deallocate(full_mass)
+            if (.not.all(ieee_is_finite(ctx%mass))) error stop DYN_INVALID_INPUT_ERROR
+            factor = ctx%mass
+            call DPOTRF('L', n, factor, n, flag)
+            if (flag /= 0) error stop DYN_INVALID_INPUT_ERROR
+            deallocate(factor)
+        end if
 
         call solver%set_absolute_tolerance(opts%absolute_tolerance)
         call solver%set_relative_tolerance(opts%relative_tolerance)
@@ -295,14 +333,26 @@ contains
         state(:n) = initial_displacement(ctx%free)
         state(n+1:2*n) = initial_velocity(ctx%free)
         if (nc == 0) then
-            ode%fcn => transient_rhs
-            ode%mass_matrix => transient_state_mass
-            call ode%set_is_mass_matrix_dependent(.false.)
-            call solver%solve(ode, times, state, args=ctx)
+            if (opts%sparse) then
+                sparse_ode%fcn => transient_rhs
+                sparse_ode%sparse_mass_matrix => transient_sparse_state_mass
+                call sparse_ode%set_is_mass_matrix_dependent(.false.)
+                call solver%solve(sparse_ode, times, state, args=ctx)
+            else
+                ode%fcn => transient_rhs
+                ode%mass_matrix => transient_state_mass
+                call ode%set_is_mass_matrix_dependent(.false.)
+                call solver%solve(ode, times, state, args=ctx)
+            end if
         else
-            dae = ggl_container(n, nc)
+            call dae%initialize(n, nc)
+            dae%sparse = opts%sparse
             dae%fcn => transient_force
-            dae%mass_matrix => transient_physical_mass
+            if (opts%sparse) then
+                dae%sparse_mass_matrix => transient_sparse_physical_mass
+            else
+                dae%mass_matrix => transient_physical_mass
+            end if
             dae%constraints => transient_constraints
             dae%constraint_jacobian => transient_gradient
             dae%constraint_curvature => transient_curvature
@@ -329,6 +379,197 @@ contains
             velocity(ctx%free,i) = sol(row,n+2:2*n+1)
             if (present(multipliers)) multipliers(:,i) = sol(row,2*n+2:2*n+nc+1)
         end do
+    end subroutine
+
+    function flexible_ode_has_sparse_jacobian(this) result(rst)
+        class(flexible_sparse_ode), intent(in) :: this
+        logical :: rst
+        rst = .true.
+    end function
+
+    function flexible_ggl_has_sparse_jacobian(this) result(rst)
+        class(flexible_sparse_ggl), intent(in) :: this
+        logical :: rst
+        rst = this%sparse
+    end function
+
+    subroutine flexible_ode_sparse_jacobian(this, x, y, jac, args)
+        class(flexible_sparse_ode), intent(inout) :: this
+        real(real64), intent(in) :: x
+        real(real64), intent(in), dimension(:) :: y
+        type(csr_matrix), intent(out) :: jac
+        class(*), intent(in), optional :: args
+        call flexible_sparse_jacobian(this, x, y, jac, args)
+    end subroutine
+
+    subroutine flexible_ggl_sparse_jacobian(this, x, y, jac, args)
+        class(flexible_sparse_ggl), intent(inout) :: this
+        real(real64), intent(in) :: x
+        real(real64), intent(in), dimension(:) :: y
+        type(csr_matrix), intent(out) :: jac
+        class(*), intent(in), optional :: args
+        call flexible_sparse_jacobian(this, x, y, jac, args)
+    end subroutine
+
+    subroutine flexible_sparse_jacobian(model, x, y, jac, args)
+        !! Differentiate the complete RHS, including the GGL algebraic rows.
+        !! No assumed sparsity pattern may discard mass-inverse couplings.
+        class(ode_container), intent(inout) :: model
+        real(real64), intent(in) :: x
+        real(real64), intent(in), dimension(:) :: y
+        type(csr_matrix), intent(out) :: jac
+        class(*), intent(in), optional :: args
+        real(real64), allocatable, dimension(:) :: shifted
+        real(real64), allocatable, dimension(:) :: plus
+        real(real64), allocatable, dimension(:) :: minus
+        real(real64), allocatable, dimension(:) :: values
+        integer, allocatable, dimension(:) :: rows
+        integer, allocatable, dimension(:) :: cols
+        real(real64) :: h
+        real(real64) :: value
+        integer :: i
+        integer :: j
+        integer :: count
+        integer :: n
+
+        n = size(y)
+        allocate(shifted(n), plus(n), minus(n), rows(0), cols(0), values(0))
+        count = 0
+        do j = 1, n
+            h = 1.0d-6 * max(1.0d0, abs(y(j)))
+            shifted = y
+            shifted(j) = y(j) + h
+            call model%compute_rhs(x, shifted, plus, args)
+            shifted(j) = y(j) - h
+            call model%compute_rhs(x, shifted, minus, args)
+            do i = 1, n
+                value = (plus(i) - minus(i)) / (2.0d0*h)
+                if (.not.ieee_is_finite(value)) error stop DYN_INVALID_INPUT_ERROR
+                if (value /= 0.0d0) call append_sparse_entry(rows, cols, values, count, i, j, value)
+            end do
+        end do
+        jac = create_csr_matrix(n, n, rows(:count), cols(:count), values(:count))
+    end subroutine
+
+    subroutine append_sparse_entry(rows, cols, values, count, row, col, value)
+        integer, allocatable, intent(inout), dimension(:) :: rows
+        integer, allocatable, intent(inout), dimension(:) :: cols
+        real(real64), allocatable, intent(inout), dimension(:) :: values
+        integer, intent(inout) :: count
+        integer, intent(in) :: row
+        integer, intent(in) :: col
+        real(real64), intent(in) :: value
+        integer, allocatable, dimension(:) :: new_rows
+        integer, allocatable, dimension(:) :: new_cols
+        real(real64), allocatable, dimension(:) :: new_values
+        integer :: capacity
+
+        if (count == size(values)) then
+            if (count > (huge(count)-1)/2) error stop DYN_INVALID_INPUT_ERROR
+            capacity = max(32, 2*count)
+            allocate(new_rows(capacity), new_cols(capacity), new_values(capacity))
+            new_rows(:count) = rows
+            new_cols(:count) = cols
+            new_values(:count) = values
+            call move_alloc(new_rows, rows)
+            call move_alloc(new_cols, cols)
+            call move_alloc(new_values, values)
+        end if
+        count = count + 1
+        rows(count) = row
+        cols(count) = col
+        values(count) = value
+    end subroutine
+
+    logical function sparse_mass_positive_definite(mass) result(ok)
+        !! Sparse LDL^T with dynamically stored fill; only the lower triangle
+        !! is used, matching the dense DPOTRF validation.
+        type(csr_matrix), intent(in) :: mass
+        real(real64), allocatable, dimension(:) :: diagonal
+        real(real64), allocatable, dimension(:) :: work
+        real(real64), allocatable, dimension(:) :: values
+        integer, allocatable, dimension(:) :: rows
+        integer, allocatable, dimension(:) :: cols
+        integer, allocatable, dimension(:) :: starts
+        real(real64) :: entry
+        integer :: n
+        integer :: i
+        integer :: j
+        integer :: k
+        integer :: p
+        integer :: count
+
+        n = size(mass%row_indices)-1
+        allocate(diagonal(n), work(n), starts(n+1), rows(0), cols(0), values(0))
+        count = 0
+        starts(1) = 1
+        ok = .false.
+        do i = 1, n
+            work = 0.0d0
+            do p = mass%row_indices(i), mass%row_indices(i+1)-1
+                j = mass%column_indices(p)
+                if (j <= i) work(j) = work(j) + mass%values(p)
+            end do
+            do j = 1, i-1
+                entry = work(j)
+                do p = starts(j), starts(j+1)-1
+                    k = cols(p)
+                    entry = entry - work(k)*diagonal(k)*values(p)
+                end do
+                entry = entry / diagonal(j)
+                if (.not.ieee_is_finite(entry)) return
+                work(j) = entry
+                if (entry /= 0.0d0) call append_sparse_entry(rows, cols, values, count, i, j, entry)
+            end do
+            entry = work(i)
+            do p = starts(i), count
+                j = cols(p)
+                entry = entry - values(p)**2 * diagonal(j)
+            end do
+            if (.not.ieee_is_finite(entry) .or. entry <= 0.0d0) return
+            diagonal(i) = entry
+            starts(i+1) = count + 1
+        end do
+        ok = .true.
+    end function
+
+    subroutine transient_sparse_physical_mass(t, y, mass, args)
+        real(real64), intent(in) :: t
+        real(real64), intent(in), dimension(:) :: y
+        type(csr_matrix), intent(out) :: mass
+        class(*), intent(in), optional :: args
+
+        if (.not.present(args)) error stop DYN_INVALID_INPUT_ERROR
+        select type (args)
+        type is (flexible_transient_context)
+            mass = args%sparse_mass
+        class default
+            error stop DYN_INVALID_INPUT_ERROR
+        end select
+    end subroutine
+
+    subroutine transient_sparse_state_mass(t, y, mass, args)
+        real(real64), intent(in) :: t
+        real(real64), intent(in), dimension(:) :: y
+        type(csr_matrix), intent(out) :: mass
+        class(*), intent(in), optional :: args
+        type(csr_matrix) :: physical
+        integer :: n
+        integer :: i
+        integer :: nnz
+
+        n = size(y)/2
+        call transient_sparse_physical_mass(t, y(:n), physical, args)
+        nnz = size(physical%values)
+        mass = create_empty_csr_matrix(2*n, 2*n, n+nnz)
+        do i = 1, n
+            mass%row_indices(i) = i
+            mass%column_indices(i) = i
+            mass%values(i) = 1.0d0
+        end do
+        mass%row_indices(n+1:) = n + physical%row_indices
+        mass%column_indices(n+1:) = n + physical%column_indices
+        mass%values(n+1:) = physical%values
     end subroutine
 
     subroutine transient_force(t, y, f, args)
