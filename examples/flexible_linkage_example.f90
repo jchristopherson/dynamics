@@ -6,7 +6,7 @@ program flexible_linkage_example
         linear_elastic_isotropic_material, nodal_condition, flexible_joint, REVOLUTE_JOINT, &
         flexible_spring_element, flexible_damper_element, flexible_point_mass_element, &
         DOF_UX, DOF_UY, DOF_UZ, DOF_RX, DOF_RY, DOF_RZ, flexible_transient_settings, &
-        solve_flexible_transient, FLEXIBLE_KENNEDY_CARPENTER_5, FLEXIBLE_BDF
+        solve_flexible_transient, FLEXIBLE_KENNEDY_CARPENTER_5
     use fplot_core, only : multiplot, plot_2d, legend, GNUPLOT_TERMINAL_PNG, CLR_BLUE, CLR_RED
     implicit none
 
@@ -101,12 +101,8 @@ program flexible_linkage_example
     call mesh%assemble_mass(mass)
     gravity%force = matmul(mass, acceleration)
     times = [(0.01d0*(i-1), i=1,nsamples)]
-    settings%solver = FLEXIBLE_BDF
-    ! settings%absolute_tolerance = 1.0d-7
-    ! settings%relative_tolerance = 1.0d-5
-    ! settings%maximum_step_size = 0.02d0
+    settings%solver = FLEXIBLE_KENNEDY_CARPENTER_5
     settings%nthreads = 8
-    settings%sparse = .true.
     call solve_flexible_transient(mesh, times, supports, initial, initial, q, v, settings, &
         load=apply_gravity, args=gravity)
 
